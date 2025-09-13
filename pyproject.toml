@@ -1,0 +1,74 @@
+[project]
+name = "LLM-concept-detection"
+version = "0.1.0"
+readme = "README.md"
+description = "Engineer Thesis: Explaining and modifying LLM responses using SAE and concepts."
+authors = [
+    {name = "Hubert Kowalski", email = "your.email@example.com"},
+    {name = "Adam Kaniasty", email = "askdjnv.email@example.com"}
+]
+requires-python = ">=3.12"
+dependencies = [
+    "datasets>=4.0.0",
+    "torch>=2.8.0",
+    "tqdm>=4.67.1",
+    "transformers>=4.56.1",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.3.0",
+    "ruff>=0.13.0",
+]
+
+
+[tool.ruff]
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+]
+line-length = 120
+indent-width = 4
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "C"]
+ignore = []
+fixable = ["ALL"]
+unfixable = []
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = false
+docstring-code-line-length = "dynamic"
+
+
