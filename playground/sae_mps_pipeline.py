@@ -51,7 +51,7 @@ except Exception:
 tok = AutoTokenizer.from_pretrained(MODEL_ID, use_fast=True)
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_ID,
-    torch_dtype=DTYPE,
+    dtype=DTYPE,
     low_cpu_mem_usage=True,
     attn_implementation="sdpa",
 ).to(device).eval()
