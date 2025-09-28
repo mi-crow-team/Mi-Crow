@@ -64,7 +64,9 @@ Temporary Items
 # Pytest
 .pytest_cache/
 .coverage
+coverage.xml
 htmlcov/
+
 
 # Jupyter
 .ipynb_checkpoints

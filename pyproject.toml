@@ -35,6 +35,7 @@ dev = [
 [tool.pytest.ini_options]
 addopts = "-q --maxfail=1 --cov --cov-report=term-missing --cov-report=xml"
 testpaths = ["tests"]
+pythonpath = ["src"]
 
 [tool.coverage.run]
 branch = true
