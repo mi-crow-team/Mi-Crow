@@ -21,7 +21,7 @@ dependencies = [
 ]
 dynamic = ["version"]
 
-[dependency-groups]
+[project.optional-dependencies]
 dev = [
     "pre-commit>=4.3.0",
     "ruff>=0.13.2",
@@ -38,7 +38,7 @@ docs = [
   "mkdocs-redirects>=1.2",
   "mkdocs-literate-nav>=0.6",
   "mkdocs-gen-files>=0.5",
-  "mike>=2.1",                # optional: versioned docs
+  "mike>=2.1",
 ]
 
 [tool.pytest.ini_options]
