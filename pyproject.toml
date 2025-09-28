@@ -1,25 +1,43 @@
+[build-system]
+requires = ["setuptools>=69", "setuptools-scm>=8", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
 [project]
-name = "LLM-concept-detection"
-version = "0.1.0"
+name = "amber"
 readme = "README.md"
 description = "Engineer Thesis: Explaining and modifying LLM responses using SAE and concepts."
 authors = [
-    {name = "Hubert Kowalski", email = "your.email@example.com"},
-    {name = "Adam Kaniasty", email = "askdjnv.email@example.com"}
+    { name = "Hubert Kowalski", email = "your.email@example.com" },
+    { name = "Adam Kaniasty", email = "adam.kaniasty@gmail.com" }
 ]
 requires-python = ">=3.12"
 dependencies = [
     "datasets>=4.0.0",
+    "setuptools-scm>=8",
     "torch>=2.8.0",
     "tqdm>=4.67.1",
     "transformers>=4.56.1",
+    "wheel>=0.45.1",
 ]
+dynamic = ["version"]
+
 
 [dependency-groups]
 dev = [
     "pre-commit>=4.3.0",
     "ruff>=0.13.0",
 ]
+
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+
+[tool.setuptools_scm]
+fallback_version = "0.0.0"
+version_scheme = "post-release"
+local_scheme = "node-and-date"
 
 
 [tool.ruff]
@@ -56,12 +74,14 @@ line-length = 120
 indent-width = 4
 target-version = "py312"
 
+
 [tool.ruff.lint]
 select = ["E", "F", "I", "W", "C"]
 ignore = []
 fixable = ["ALL"]
 unfixable = []
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
 
 [tool.ruff.format]
 quote-style = "double"
@@ -70,5 +90,3 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 docstring-code-format = false
 docstring-code-line-length = "dynamic"
-
-
