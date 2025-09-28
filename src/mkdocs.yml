@@ -1,0 +1,53 @@
+site_name: Amber
+site_description: Explaining and modifying LLM responses using SAE and concepts
+site_url: https://adamkaniasty.github.io/Inzynierka
+repo_url: https://github.com/AdamKaniasty/Inzynierka
+repo_name: AdamKaniasty/Inzynierka
+edit_uri: blob/main/
+
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - content.code.copy
+    - content.action.edit
+  palette:
+    - scheme: default
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            merge_init_into_class: true
+            separate_signature: true
+            heading_level: 2
+  - section-index
+  - redirects
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.snippets
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - API Reference:
+      - amber: api/amber.md
+  - Changelog: changelog.md

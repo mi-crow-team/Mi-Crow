@@ -1,1 +1,2 @@
 ![CI](https://github.com/AdamKaniasty/Inzynierka/actions/workflows/tests.yml/badge.svg?branch=main)
+[![Docs](https://img.shields.io/badge/docs-gh--pages-blue)](https://adamkaniasty.github.io/Inzynierka/)
