@@ -8,6 +8,7 @@ from amber.mechanistic.autoencoder.modules.modules_list import get_activation
 from amber.mechanistic.autoencoder.modules.topk import TopK
 from amber.mechanistic.autoencoder.sae_module import SaeModuleABC
 from amber.utils import get_logger
+
 logger = get_logger(__name__)
 
 
@@ -302,27 +303,89 @@ class Autoencoder(nn.Module):
             reconstructed_full = reconstructed_full.detach()
         return reconstructed, latents, reconstructed_full, full_latents
 
-    def save(self, name: str, path: str | None = None):
-        if path is None:
-            if isinstance(self.activation, SaeModuleABC):
-                path = self.activation.default_model_path
-            else:
-                path = Path("./models/relu")
-        torch.save(self.state_dict(), f"{path}/{name}.pt")
+    def save(
+            self,
+            name: str,
+            path: str | Path | None = None,
+            *,
+            dataset_normalize: bool | None = None,
+            dataset_target_norm: Any | None = None,
+            dataset_mean: Any | None = None,
+    ) -> None:
+        """
+        Save the model along with required metadata so load_model does NOT rely on filename parsing.
 
-    def load(self, name: str, path: str | None = None):
+        Args:
+            name: Filename without extension.
+            path: Directory to save into. If None, uses activation.default_model_path (if SaeModuleABC) or ./models/relu.
+            metadata: Optional extra metadata. User-provided metadata will NOT override core fields.
+            dataset_normalize: Optional flag used by `load_model`.
+            dataset_target_norm: Optional target norm used by `load_model`.
+            dataset_mean: Optional mean used by `load_model`.
+        """
         if path is None:
             if isinstance(self.activation, SaeModuleABC):
                 path = self.activation.default_model_path
             else:
                 path = Path("./models/relu")
-        state_dict = torch.load(f"{path}/{name}.pt", map_location=self.device)
-        self.load_state_dict(state_dict)
+        save_dir = Path(path)
+        save_dir.mkdir(parents=True, exist_ok=True)
+        save_path = save_dir / f"{name}.pt"
+
+        state = self.state_dict()
+
+        # Serialize activation to a canonical string understood by get_activation
+        def _activation_to_str(act: Any) -> str:
+            if isinstance(act, str):
+                return act
+            try:
+                from amber.mechanistic.autoencoder.modules.topk import TopK  # local import to avoid cycles
+            except Exception:
+                TopK = None  # type: ignore
+            if TopK is not None and isinstance(act, TopK):
+                # Determine base name based on act_fn
+                base = "TopKReLU" if isinstance(act.act_fn, nn.ReLU) else "TopK"
+                return f"{base}_{getattr(act, 'k', 0)}"
+            # Fallback to class name
+            return act.__class__.__name__
+
+        activation_name = _activation_to_str(self.activation)
+
+        # Always save a rich payload with core metadata
+        payload: dict[str, Any] = {
+            "model": state,
+            "n_latents": self.n_latents,
+            "n_inputs": self.n_inputs,
+            "activation": activation_name,
+            "tied": self.tied,
+        }
+        if dataset_normalize is not None:
+            payload["dataset_normalize"] = dataset_normalize
+        if dataset_target_norm is not None:
+            payload["dataset_target_norm"] = dataset_target_norm
+        if dataset_mean is not None:
+            payload["dataset_mean"] = dataset_mean
+
+        torch.save(payload, save_path)
+
+    def load(self, name: str, path: str | Path | None = None):
+        if path is None:
+            if isinstance(self.activation, SaeModuleABC):
+                path = self.activation.default_model_path
+            else:
+                path = Path("./models/relu")
+        load_path = Path(path) / f"{name}.pt"
+        payload = torch.load(load_path, map_location=self.device)
+        # Support both raw state_dict and dict payloads
+        if isinstance(payload, dict) and all(k in payload for k in ("model",)):
+            self.load_state_dict(payload["model"])
+        else:
+            self.load_state_dict(payload)
 
     @staticmethod
-    def load_model(path: str) -> tuple["Autoencoder", bool, bool, torch.Tensor]:
+    def load_model(path: str | Path) -> tuple["Autoencoder", bool, bool, torch.Tensor]:
         """
-        Load a saved autoencoder model from a path, inferring configuration from filename.
+        Load a saved autoencoder model from a path. Prefer metadata inside the file; fallback to filename parsing for legacy files.
 
         Args:
             path: Path to saved model file
@@ -331,38 +394,29 @@ class Autoencoder(nn.Module):
             - Loaded model
             - Whether data was mean-centered
             - Whether data was normalized
-            - Scaling factor
+            - Scaling factor (mean or norm tensor)
         """
-        # Extract model configuration from filename
-        path_head = path.split("/")[-1]
-        path_name = path_head[:path_head.find(".pt")]
-        path_name_split = path_name.split("_")
+        p = Path(path)
 
-        n_latents = int(path_name_split.pop(0))
-        n_inputs = int(path_name_split.pop(0))
-        activation = path_name_split.pop(0)
-        if "JumpReLU" in activation or "TopK" in activation:
-            activation += "_" + path_name_split.pop(0)
-        tied = True if "True" == path_name_split.pop(0) else False
-
-        model = Autoencoder(
-            n_latents,
-            n_inputs,
-            activation,
-            tied=tied,
-        )
-
-        # Load state dictionary
-        model_state_dict = torch.load(
-            path,
+        # Load payload (can be full dict or raw state_dict)
+        payload = torch.load(
+            p,
             map_location='cuda' if torch.cuda.is_available() else 'cpu'
         )
-        model.load_state_dict(model_state_dict['model'])
-        dataset_normalize = model_state_dict['dataset_normalize']
-        dataset_target_norm = model_state_dict['dataset_target_norm']
-        dataset_mean = model_state_dict['dataset_mean']
+
+        print(payload)
+
+        n_latents = int(payload["n_latents"])  # type: ignore
+        n_inputs = int(payload["n_inputs"])  # type: ignore
+        activation = payload["activation"]  # type: ignore
+        tied = bool(payload["tied"])  # type: ignore
+        model = Autoencoder(n_latents, n_inputs, activation, tied=tied)
+        model.load_state_dict(payload["model"])  # type: ignore[arg-type]
+        dataset_normalize = bool(payload.get("dataset_normalize", False))
+        dataset_target_norm = bool(payload.get("dataset_target_norm", False))
+        dataset_mean = payload.get("dataset_mean", torch.zeros(n_inputs))  # type: ignore[assignment]
 
         params_str = f"n_latents={n_latents}, n_inputs={n_inputs}, activation={activation}, tied={tied}"
-        logger.info(f"\nLoaded model from {path}\n{params_str}")
+        logger.info(f"\nLoaded model from {p}\n{params_str}")
 
         return model, dataset_normalize, dataset_target_norm, dataset_mean

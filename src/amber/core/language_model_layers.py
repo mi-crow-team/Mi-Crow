@@ -44,8 +44,9 @@ class LanguageModelLayers:
             raise ValueError(f"Layer index '{layer_index}' not found in model.")
         return self.idx_to_layer[layer_index]
 
-    def get_layer_names(self):
-        return list(self.name_to_layer.keys())
+    def print_layer_names(self):
+        for name, layer in self.name_to_layer.items():
+            print(f"{name}: {getattr(layer, 'weight', None).shape if hasattr(layer, 'weight') else 'No weight'}")
 
     def register_forward_hook_for_layer(
             self,
