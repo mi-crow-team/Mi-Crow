@@ -29,7 +29,7 @@ def tiny_lm():
 
 
 def test_flatten_layer_names_and_indices_consistency(tiny_lm: LanguageModel):
-    names = tiny_lm.layers.print_layer_names()
+    names = tiny_lm.layers.get_layer_names()
     # Ensure names captured and indices map same count
     assert isinstance(names, list)
     assert len(names) > 0
@@ -41,7 +41,7 @@ def test_flatten_layer_names_and_indices_consistency(tiny_lm: LanguageModel):
 
 def test_get_layer_by_name_and_index_and_errors(tiny_lm: LanguageModel):
     # Pick a valid name and its corresponding module
-    names = tiny_lm.layers.print_layer_names()
+    names = tiny_lm.layers.get_layer_names()
     first_name = names[0]
     layer_by_name = tiny_lm.layers._get_layer_by_name(first_name)
     # Find its index by searching idx_to_layer
@@ -155,7 +155,7 @@ def test_register_new_layer_by_index_and_name(tiny_lm: LanguageModel):
     new1 = nn.ReLU()
     tiny_lm.layers.register_new_layer("added_relu_idx", new1, any_idx)
     # Ensure re-flattened and present
-    names_after_idx = tiny_lm.layers.print_layer_names()
+    names_after_idx = tiny_lm.layers.get_layer_names()
     assert any("added_relu_idx" in n for n in names_after_idx)
 
     # Add by name: choose a known module name (take parent of new1 if possible or reuse earlier)
@@ -170,7 +170,7 @@ def test_register_new_layer_by_index_and_name(tiny_lm: LanguageModel):
 
     new2 = nn.Tanh()
     tiny_lm.layers.register_new_layer("added_tanh_name", new2, target_name)
-    names_after_name = tiny_lm.layers.print_layer_names()
+    names_after_name = tiny_lm.layers.get_layer_names()
     assert any("added_tanh_name" in n for n in names_after_name)
 
 
