@@ -2,7 +2,7 @@ import pytest
 
 from torch import nn
 
-from amber.adapters.language_model import LanguageModel
+from amber.core.language_model import LanguageModel
 
 
 class DummyModel(nn.Module):

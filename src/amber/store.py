@@ -24,7 +24,7 @@ class Store:
 
     # --- Run-oriented batch APIs ---
     def _run_batch_key(self, run_id: str, batch_index: int) -> str:
-        return f"runs/{run_id}/batch_{batch_index:06d}.safetensors"
+        return f"activations/{run_id}/batch_{batch_index:06d}.safetensors"
 
     def put_run_batch(self, run_id: str, batch_index: int,
                       tensors: List[torch.Tensor] | Dict[str, torch.Tensor]) -> str:  # pragma: no cover - abstract
@@ -126,7 +126,7 @@ class LocalStore(Store):
         return loaded
 
     def list_run_batches(self, run_id: str) -> List[int]:  # type: ignore[override]
-        base = self.base_path / "runs" / run_id
+        base = self.base_path / "activations" / run_id
         if not base.exists():
             return []
         out: List[int] = []
@@ -140,7 +140,7 @@ class LocalStore(Store):
         return out
 
     def delete_run(self, run_id: str) -> None:  # type: ignore[override]
-        base = self.base_path / "runs" / run_id
+        base = self.base_path / "activations" / run_id
         if not base.exists():
             return
         for p in base.glob("batch_*.safetensors"):

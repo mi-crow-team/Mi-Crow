@@ -5,10 +5,9 @@ import torch
 from torch import nn
 from datasets import Dataset
 
-from amber.adapters.language_model import LanguageModel
+from amber.core.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
 from amber.store import LocalStore
-from amber.activations import save_model_activations
 
 
 class FakeTokenizer:
@@ -54,7 +53,7 @@ def test_save_model_activations_verbose_and_tuple_output(tmp_path, caplog):
 
     # pick the linear layer by name
     target_name = None
-    for name, layer in lm.name_to_layer.items():
+    for name, layer in lm.layers.name_to_layer.items():
         if isinstance(layer, nn.Linear):
             target_name = name
             break
@@ -64,12 +63,11 @@ def test_save_model_activations_verbose_and_tuple_output(tmp_path, caplog):
     store = LocalStore(tmp_path/"store")
 
     with caplog.at_level(logging.INFO):
-        save_model_activations(
-            lm,
+        lm.activations.infer_and_save(
             ds,
-            store,
-            run_name="vrun",
             layer_signature=target_name,
+            run_name="vrun",
+            store=store,
             batch_size=2,
             autocast=False,
             verbose=True,

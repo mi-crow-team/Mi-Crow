@@ -1,10 +1,9 @@
-import math
 from typing import Sequence, Any
 
 import torch
 from torch import nn
 
-from amber.adapters.language_model import LanguageModel
+from amber.core.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
 from amber.store import LocalStore
 from datasets import Dataset
@@ -80,7 +79,7 @@ def test_save_model_activations_persists_batches_and_shapes(tmp_path):
 
     # Pick a layer name that exists (e.g., the proj Linear layer)
     target_layer_name = None
-    for name, layer in lm.name_to_layer.items():
+    for name, layer in lm.layers.name_to_layer.items():
         if isinstance(layer, nn.Linear) and "proj" in name:
             target_layer_name = name
             break
@@ -88,15 +87,12 @@ def test_save_model_activations_persists_batches_and_shapes(tmp_path):
 
     store = LocalStore(tmp_path / "store")
 
-    # Import and run activation saver
-    from amber.activations import save_model_activations
-
-    save_model_activations(
-        lm,
+    # Run activation saver via new API
+    lm.activations.save(
         ds,
-        store,
-        run_name="runA",
         layer_signature=target_layer_name,
+        run_name="runA",
+        store=store,
         batch_size=4,
         autocast=False,  # keep CPU simple
     )
@@ -129,7 +125,7 @@ def test_save_model_activations_options_maxlen_dtype_noinputs(tmp_path):
 
     # Target: first Linear in block
     target_layer_name = None
-    for name, layer in lm.name_to_layer.items():
+    for name, layer in lm.layers.name_to_layer.items():
         if isinstance(layer, nn.Linear) and "block" in name:
             target_layer_name = name
             break
@@ -137,15 +133,12 @@ def test_save_model_activations_options_maxlen_dtype_noinputs(tmp_path):
 
     store = LocalStore(tmp_path / "store2")
 
-    from amber.activations import save_model_activations
-
     # Use max_length=3 and downcast to float16; don't save inputs
-    save_model_activations(
-        lm,
+    lm.activations.save(
         ds,
-        store,
-        run_name="runB",
         layer_signature=target_layer_name,
+        run_name="runB",
+        store=store,
         batch_size=2,
         max_length=3,
         dtype=torch.float16,
