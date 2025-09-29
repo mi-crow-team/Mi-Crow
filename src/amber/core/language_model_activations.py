@@ -14,6 +14,38 @@ class LanguageModelActivations:
     def __init__(self, language_model: "LanguageModel"):
         self.lm = language_model
 
+    # Backward compatible alias: tests may call .save(...)
+    def save(
+            self,
+            dataset: TextSnippetDataset,
+            layer_signature: str | int,
+            run_name: str | None = None,
+            store: Store | None = None,
+            batch_size: int = 32,
+            *,
+            dtype: torch.dtype | None = None,
+            max_length: int | None = None,
+            autocast: bool = True,
+            autocast_dtype: torch.dtype | None = None,
+            save_inputs: bool = True,
+            free_cuda_cache_every: int | None = 0,
+            verbose: bool = False,
+    ):
+        return self.infer_and_save(
+            dataset,
+            layer_signature,
+            run_name=run_name,
+            store=store,
+            batch_size=batch_size,
+            dtype=dtype,
+            max_length=max_length,
+            autocast=autocast,
+            autocast_dtype=autocast_dtype,
+            save_inputs=save_inputs,
+            free_cuda_cache_every=free_cuda_cache_every,
+            verbose=verbose,
+        )
+
     def infer_and_save(
             self,
             dataset: TextSnippetDataset,
