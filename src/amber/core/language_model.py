@@ -64,9 +64,7 @@ class LanguageModel:
             model_path: Filesystem path to a directory containing a saved HF causal LM.
             tokenizer_path: Filesystem path to a directory containing a saved HF tokenizer.
         """
-        # Import locally to respect potential monkeypatching of transformers in tests
-        from transformers import AutoTokenizer as _AT, AutoModelForCausalLM as _AM
 
-        tokenizer = _AT.from_pretrained(tokenizer_path, local_files_only=True)
-        model = _AM.from_pretrained(model_path, local_files_only=True)
+        tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, local_files_only=True)
+        model = AutoModelForCausalLM.from_pretrained(model_path, local_files_only=True)
         return cls(model=model, tokenizer=tokenizer)
