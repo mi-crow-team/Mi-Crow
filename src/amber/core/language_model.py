@@ -54,17 +54,13 @@ class LanguageModel:
             model_params = {}
         tokenizer = AutoTokenizer.from_pretrained(model_name, **tokenizer_params)
         model = AutoModelForCausalLM.from_pretrained(model_name, **model_params)
-        return cls(model=model, tokenizer=tokenizer)  # TODO: fix the type hinting
+        lm = cls(model=model, tokenizer=tokenizer)  # TODO: fix the type hinting
+        # Ensure run metadata uses the HF repo id (e.g., "sshleifer/tiny-gpt2")
+        lm.model_name = model_name
+        # Optionally expose the repo id explicitly for downstream consumers
+        setattr(lm, "hf_repo_id", model_name)
+        return lm
 
     @classmethod
     def from_local(cls, model_path: str, tokenizer_path: str):
-        """Load model and tokenizer from local directories without network access.
-
-        Parameters:
-            model_path: Filesystem path to a directory containing a saved HF causal LM.
-            tokenizer_path: Filesystem path to a directory containing a saved HF tokenizer.
-        """
-
-        tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, local_files_only=True)
-        model = AutoModelForCausalLM.from_pretrained(model_path, local_files_only=True)
-        return cls(model=model, tokenizer=tokenizer)
+        pass

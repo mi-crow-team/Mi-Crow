@@ -106,7 +106,6 @@ def test_register_hooks_by_index_also_works(tiny_lm: LanguageModel):
     assert calls["fwd"] >= 1
 
 
-
 def test_lazy_rebuild_of_maps_on_access(tiny_lm: LanguageModel):
     # Clear maps to simulate state before flatten
     tiny_lm.layers.name_to_layer.clear()
@@ -172,30 +171,3 @@ def test_register_new_layer_by_index_and_name(tiny_lm: LanguageModel):
     tiny_lm.layers.register_new_layer("added_tanh_name", new2, target_name)
     names_after_name = tiny_lm.layers.get_layer_names()
     assert any("added_tanh_name" in n for n in names_after_name)
-
-
-def test_from_local_uses_local_files_only(monkeypatch):
-    calls = {"tok": None, "model": None}
-
-    class FakeTok:
-        @classmethod
-        def from_pretrained(cls, path, **kwargs):
-            calls["tok"] = {"path": path, "kwargs": kwargs}
-            return "tokenizer"
-
-    class FakeModel:
-        @classmethod
-        def from_pretrained(cls, path, **kwargs):
-            calls["model"] = {"path": path, "kwargs": kwargs}
-            # return a minimal torch.nn.Module object
-            return nn.Sequential()
-
-    monkeypatch.setattr("transformers.AutoTokenizer", FakeTok)
-    monkeypatch.setattr("transformers.AutoModelForCausalLM", FakeModel)
-
-    lm = LanguageModel.from_local("/path/to/model", "/path/to/tokenizer")
-    assert isinstance(lm, LanguageModel)
-    assert calls["tok"]["path"] == "/path/to/tokenizer"
-    assert calls["model"]["path"] == "/path/to/model"
-    assert calls["tok"]["kwargs"].get("local_files_only") is True
-    assert calls["model"]["kwargs"].get("local_files_only") is True

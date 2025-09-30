@@ -63,7 +63,7 @@ def main() -> None:
     model.model.to(DEVICE)
 
     # Optionally, inspect available layer names
-    layer_names = model.layers.print_layer_names()
+    layer_names = model.layers.get_layer_names()
     logger.info("Discovered %d layers. Example names: %s", len(layer_names), layer_names[:5])
 
     # Load a small text dataset
@@ -156,12 +156,6 @@ def main() -> None:
     trainer = SAETrainer(sae, store, RUN_ID, cfg)
     history = trainer.train()
     logger.info("Training history: %s", history)
-
-    # Optionally, save final model
-    final_dir = STORE_DIR / "sae_models" / RUN_ID
-    final_dir.mkdir(parents=True, exist_ok=True)
-    sae.save("final", path=str(final_dir))
-    logger.info("Saved final SAE to: %s", final_dir)
 
 
 # Standard entry point

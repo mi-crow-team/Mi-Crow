@@ -288,7 +288,12 @@ class SAETrainer:
                 ckpt_dir.mkdir(parents=True, exist_ok=True)
                 # Use Autoencoder.save for consistency
                 try:
-                    self.model.save(f"epoch_{epoch + 1:03d}", path=str(ckpt_dir))
+                    run_meta = {}
+                    try:
+                        run_meta = self.store.get_run_meta(self.run_id)
+                    except Exception:
+                        run_meta = {}
+                    self.model.save(f"epoch_{epoch + 1:03d}", path=str(ckpt_dir), run_metadata=run_meta)
                 except Exception:
                     # Fallback to torch.save for robustness
                     torch.save(self.model.state_dict(), str(ckpt_dir / f"epoch_{epoch + 1:03d}.pt"))
@@ -307,6 +312,24 @@ class SAETrainer:
 
         if self.cfg.verbose:
             self.logger.info("[SAETrainer] Completed training")
+
+        # Save final model to sae_models/<run_id>/final.pt under the store base path (if available)
+        try:
+            base_path = getattr(self.store, "base_path", None)
+            if base_path is not None:
+                final_dir = Path(base_path) / "sae_models" / self.run_id
+                final_dir.mkdir(parents=True, exist_ok=True)
+                run_meta = {}
+                try:
+                    run_meta = self.store.get_run_meta(self.run_id)
+                except Exception:
+                    run_meta = {}
+                self.model.save("final", path=str(final_dir), run_metadata=run_meta)
+                if self.cfg.verbose:
+                    self.logger.info("[SAETrainer] Saved final SAE to: %s", str(final_dir / "final.pt"))
+        except Exception:
+            # Best-effort; do not fail training completion if saving fails
+            pass
 
         # Close wandb run if opened
         if self._wandb_run is not None:

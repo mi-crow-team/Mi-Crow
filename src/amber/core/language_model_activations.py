@@ -14,38 +14,6 @@ class LanguageModelActivations:
     def __init__(self, language_model: "LanguageModel"):
         self.lm = language_model
 
-    # Backward compatible alias: tests may call .save(...)
-    def save(
-            self,
-            dataset: TextSnippetDataset,
-            layer_signature: str | int,
-            run_name: str | None = None,
-            store: Store | None = None,
-            batch_size: int = 32,
-            *,
-            dtype: torch.dtype | None = None,
-            max_length: int | None = None,
-            autocast: bool = True,
-            autocast_dtype: torch.dtype | None = None,
-            save_inputs: bool = True,
-            free_cuda_cache_every: int | None = 0,
-            verbose: bool = False,
-    ):
-        return self.infer_and_save(
-            dataset,
-            layer_signature,
-            run_name=run_name,
-            store=store,
-            batch_size=batch_size,
-            dtype=dtype,
-            max_length=max_length,
-            autocast=autocast,
-            autocast_dtype=autocast_dtype,
-            save_inputs=save_inputs,
-            free_cuda_cache_every=free_cuda_cache_every,
-            verbose=verbose,
-        )
-
     def infer_and_save(
             self,
             dataset: TextSnippetDataset,
@@ -92,6 +60,34 @@ class LanguageModelActivations:
         if verbose:
             logger.info(
                 f"Starting save_model_activations: run={run_name}, layer={layer_signature}, batch_size={batch_size}, device={device_type}")
+
+        # Save run metadata (dataset, model, run info)
+        try:
+            ds_id = str(getattr(dataset, "cache_dir", ""))
+            ds_len = int(len(dataset))
+        except Exception:
+            ds_id = ""
+            ds_len = -1
+        meta = {
+            "run_name": run_name,
+            "model": getattr(self.lm, "model_name", self.lm.model.__class__.__name__),
+            "layer_signature": str(layer_signature),
+            "dataset": {
+                "cache_dir": ds_id,
+                "length": ds_len,
+            },
+            "options": {
+                "dtype": str(dtype) if dtype is not None else None,
+                "max_length": max_length,
+                "save_inputs": bool(save_inputs),
+                "batch_size": int(batch_size),
+            },
+        }
+        try:
+            store.put_run_meta(run_name, meta)
+        except Exception:
+            # Non-fatal if metadata cannot be stored
+            pass
 
         captured: dict[str, torch.Tensor] = {}
 

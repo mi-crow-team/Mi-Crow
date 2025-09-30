@@ -36,6 +36,7 @@ class Autoencoder(nn.Module):
         self.bias_init = bias_init
         self.activation = activation
         self.device = device
+        self.metadata = None
 
         self.pre_bias = nn.Parameter(
             torch.full((n_inputs,), bias_init) if isinstance(bias_init, float) else bias_init.clone()
@@ -311,6 +312,7 @@ class Autoencoder(nn.Module):
             dataset_normalize: bool | None = None,
             dataset_target_norm: Any | None = None,
             dataset_mean: Any | None = None,
+            run_metadata: dict[str, Any] | None = None,
     ) -> None:
         """
         Save the model along with required metadata so load_model does NOT rely on filename parsing.
@@ -322,6 +324,7 @@ class Autoencoder(nn.Module):
             dataset_normalize: Optional flag used by `load_model`.
             dataset_target_norm: Optional target norm used by `load_model`.
             dataset_mean: Optional mean used by `load_model`.
+            run_metadata: Optional metadata describing the activation run used to train this SAE (e.g., dataset/model/run_id).
         """
         if path is None:
             if isinstance(self.activation, SaeModuleABC):
@@ -365,6 +368,8 @@ class Autoencoder(nn.Module):
             payload["dataset_target_norm"] = dataset_target_norm
         if dataset_mean is not None:
             payload["dataset_mean"] = dataset_mean
+        if run_metadata is not None:
+            payload["run_metadata"] = run_metadata
 
         torch.save(payload, save_path)
 
@@ -404,8 +409,6 @@ class Autoencoder(nn.Module):
             map_location='cuda' if torch.cuda.is_available() else 'cpu'
         )
 
-        print(payload)
-
         n_latents = int(payload["n_latents"])  # type: ignore
         n_inputs = int(payload["n_inputs"])  # type: ignore
         activation = payload["activation"]  # type: ignore
@@ -415,6 +418,7 @@ class Autoencoder(nn.Module):
         dataset_normalize = bool(payload.get("dataset_normalize", False))
         dataset_target_norm = bool(payload.get("dataset_target_norm", False))
         dataset_mean = payload.get("dataset_mean", torch.zeros(n_inputs))  # type: ignore[assignment]
+        model.metadata = payload['run_metadata'] if 'run_metadata' in payload else None
 
         params_str = f"n_latents={n_latents}, n_inputs={n_inputs}, activation={activation}, tied={tied}"
         logger.info(f"\nLoaded model from {p}\n{params_str}")

@@ -88,7 +88,7 @@ def test_save_model_activations_persists_batches_and_shapes(tmp_path):
     store = LocalStore(tmp_path / "store")
 
     # Run activation saver via new API
-    lm.activations.save(
+    lm.activations.infer_and_save(
         ds,
         layer_signature=target_layer_name,
         run_name="runA",
@@ -134,7 +134,7 @@ def test_save_model_activations_options_maxlen_dtype_noinputs(tmp_path):
     store = LocalStore(tmp_path / "store2")
 
     # Use max_length=3 and downcast to float16; don't save inputs
-    lm.activations.save(
+    lm.activations.infer_and_save(
         ds,
         layer_signature=target_layer_name,
         run_name="runB",

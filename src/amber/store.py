@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator, List, Dict
+from typing import Iterator, List, Dict, Any
+import json
 
 import safetensors.torch as storch
 import torch
@@ -15,16 +16,12 @@ class Store:
     Implementations should focus on efficient safetensors-backed IO.
     """
 
-    # --- Single-tensor helpers (abstract) ---
-    def put_tensor(self, key: str, tensor: torch.Tensor) -> None:  # pragma: no cover - abstract
-        raise NotImplementedError
-
-    def get_tensor(self, key: str) -> torch.Tensor:  # pragma: no cover - abstract
-        raise NotImplementedError
+    # Configurable base prefix for run storage (e.g., "runs" by default)
+    runs_prefix: str = "activations"
 
     # --- Run-oriented batch APIs ---
     def _run_batch_key(self, run_id: str, batch_index: int) -> str:
-        return f"runs/{run_id}/batch_{batch_index:06d}.safetensors"
+        return f"{self.runs_prefix}/{run_id}/batch_{batch_index:06d}.safetensors"
 
     def put_run_batch(self, run_id: str, batch_index: int,
                       tensors: List[torch.Tensor] | Dict[str, torch.Tensor]) -> str:  # pragma: no cover - abstract
@@ -77,14 +74,28 @@ class Store:
     def delete_run(self, run_id: str) -> None:  # pragma: no cover - abstract
         raise NotImplementedError
 
+    # --- Run metadata (optional helpers) ---
+    def put_run_meta(self, run_id: str, meta: Dict[str, Any]) -> str:  # pragma: no cover - abstract
+        """Persist metadata for a run (e.g., dataset/model identifiers).
+
+        Implementations should store JSON at a stable location, e.g., runs/{run_id}/meta.json.
+        Returns the key/path used for storage.
+        """
+        raise NotImplementedError
+
+    def get_run_meta(self, run_id: str) -> Dict[str, Any]:  # pragma: no cover - abstract
+        """Load metadata for a run. Should return an empty dict if missing."""
+        raise NotImplementedError
+
 
 @dataclass
 class LocalStore(Store):
     base_path: Path | str = ''
 
-    def __init__(self, base_path: Path | str = ''):
+    def __init__(self, base_path: Path | str = '', runs_prefix: str = "activations"):
         self.base_path = Path(base_path)
         self.base_path.mkdir(parents=True, exist_ok=True)
+        self.runs_prefix = runs_prefix
 
     def _full(self, key: str) -> Path:
         p = self.base_path / key
@@ -125,8 +136,27 @@ class LocalStore(Store):
                 pass
         return loaded
 
+    def put_run_meta(self, run_id: str, meta: Dict[str, Any]) -> str:  # type: ignore[override]
+        base = self.base_path / self.runs_prefix / run_id
+        base.mkdir(parents=True, exist_ok=True)
+        key = f"{self.runs_prefix}/{run_id}/meta.json"
+        path = self._full(key)
+        with path.open("w", encoding="utf-8") as f:
+            json.dump(meta, f, ensure_ascii=False, indent=2)
+        return key
+
+    def get_run_meta(self, run_id: str) -> Dict[str, Any]:  # type: ignore[override]
+        path = self._full(f"{self.runs_prefix}/{run_id}/meta.json")
+        if not path.exists():
+            return {}
+        try:
+            with path.open("r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return {}
+
     def list_run_batches(self, run_id: str) -> List[int]:  # type: ignore[override]
-        base = self.base_path / "runs" / run_id
+        base = self.base_path / self.runs_prefix / run_id
         if not base.exists():
             return []
         out: List[int] = []
@@ -140,7 +170,7 @@ class LocalStore(Store):
         return out
 
     def delete_run(self, run_id: str) -> None:  # type: ignore[override]
-        base = self.base_path / "runs" / run_id
+        base = self.base_path / self.runs_prefix / run_id
         if not base.exists():
             return
         for p in base.glob("batch_*.safetensors"):

@@ -90,7 +90,7 @@ def test_sae_trains_from_saved_activations_e2e(tmp_path):
     store = LocalStore(tmp_path / "store")
 
     # 4) Save activations to the store (CPU only, no autocast)
-    lm.activations.save(
+    lm.activations.infer_and_save(
         ds,
         layer_signature=target_layer_name,
         run_name="sae_run",

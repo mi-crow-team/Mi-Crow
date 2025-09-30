@@ -49,6 +49,6 @@ def test_language_model_activations_save_calls_infer(monkeypatch):
     monkeypatch.setattr(LanguageModelActivations, "infer_and_save", staticmethod(fake_infer_and_save))
 
     # Call save wrapper and ensure delegation works
-    ret = act.save(dataset=SimpleNamespace(iter_batches=lambda bs: [["hi"]]), layer_signature="x")
+    ret = act.infer_and_save(dataset=SimpleNamespace(iter_batches=lambda bs: [["hi"]]), layer_signature="x")
     assert ret == 123
     assert "ok" in called
