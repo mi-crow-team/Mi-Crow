@@ -114,8 +114,6 @@ class LanguageModelActivations:
 
         # Register the hook on the desired layer and keep a handle for cleanup
         handle = model.layers.register_forward_hook_for_layer(layer_signature, save_activations_hook)
-
-        model.model.eval()
         batch_counter = 0
         try:
             with torch.inference_mode():
@@ -123,47 +121,27 @@ class LanguageModelActivations:
                     if not texts:
                         continue
 
-                    tok_kwargs = {
-                        "padding": True,
-                        "truncation": True,
-                        "return_tensors": "pt",
-                    }
+                    tok_kwargs = {}
                     if max_length is not None:
                         tok_kwargs["max_length"] = max_length
 
-                    enc = model.lm_tokenizer.tokenize(texts, **tok_kwargs)
-
-                    if verbose:
-                        _ii = enc.get("input_ids")
-                        seq_len = int(_ii.shape[-1]) if _ii is not None else -1
-                        logger.info(f"Prepared batch {batch_index}: items={len(texts)}, seq_len={seq_len}")
-
-                    # Move inputs to model device (non_blocking if possible)
-                    if device_type == "cuda":
-                        enc = {k: v.to(device, non_blocking=True) for k, v in enc.items()}
-                    else:
-                        enc = {k: v.to(device) for k, v in enc.items()}
-
-                    # Optional autocast for faster matmul on CUDA
-                    if autocast and device_type == "cuda":
-                        amp_dtype = autocast_dtype or torch.float16
-                        cm = torch.autocast(device_type, dtype=amp_dtype)  # type: ignore[arg-type]
-                    else:
-                        # noop context manager
-                        class _Noop:
-                            def __enter__(self):
-                                return None
-
-                            def __exit__(self, exc_type, exc, tb):
-                                return False
-
-                        cm = _Noop()
-
-                    with cm:
-                        _ = model(**enc)  # type: ignore[attr-defined]
-
-                    # Prepare payload to store
                     payload: dict[str, torch.Tensor] = {}
+                    res = self.lm._inference(
+                        texts,
+                        tok_kwargs=tok_kwargs,
+                        device_type=device_type,
+                        autocast=autocast,
+                        autocast_dtype=autocast_dtype,
+                        discard_output=True,
+                        save_inputs=save_inputs,
+                    )
+                    if save_inputs:
+                        inp_ids, attn = res
+                        if isinstance(inp_ids, torch.Tensor):
+                            payload["input_ids"] = inp_ids
+                        if isinstance(attn, torch.Tensor):
+                            payload["attention_mask"] = attn
+
                     if "activations" in captured:
                         act = captured.pop("activations")
                         if dtype is not None:
@@ -177,14 +155,6 @@ class LanguageModelActivations:
                         else:
                             act = act.to("cpu")
                         payload["activations"] = act
-
-                    if save_inputs:
-                        input_ids = enc.get("input_ids")
-                        attn = enc.get("attention_mask")
-                        if input_ids is not None:
-                            payload["input_ids"] = input_ids.detach().to("cpu", non_blocking=(device_type == "cuda"))
-                        if attn is not None:
-                            payload["attention_mask"] = attn.detach().to("cpu", non_blocking=(device_type == "cuda"))
 
                     # Persist and cleanup to keep memory bounded
                     store.put_run_batch(run_name, batch_index, payload)

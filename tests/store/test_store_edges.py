@@ -30,7 +30,7 @@ def test_iter_run_batch_range_errors_and_defaults(tmp_path):
 
 def test_list_run_batches_ignores_malformed_and_delete_idempotent(tmp_path):
     store = LocalStore(tmp_path)
-    base = store.base_path / "runs" / "abc"
+    base = store.base_path / "activations" / "abc"
     base.mkdir(parents=True, exist_ok=True)
     # well-formed and malformed files
     (base / "batch_000000.safetensors").write_bytes(b"\x00")

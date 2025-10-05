@@ -75,7 +75,6 @@ def test_save_model_activations_verbose_and_tuple_output(tmp_path, caplog):
         )
     # Ensure some verbose logs present
     assert any("Starting save_model_activations" in rec.message for rec in caplog.records)
-    assert any("Prepared batch" in rec.message for rec in caplog.records)
     assert any("Saved batch" in rec.message for rec in caplog.records)
     assert any("Completed save_model_activations" in rec.message for rec in caplog.records)
 

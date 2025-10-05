@@ -126,7 +126,7 @@ def test_infer_and_save_captures_last_hidden_state_and_defaults(tmp_path, monkey
 
     # Pre-scan existing run directories
     from pathlib import Path
-    runs_dir = Path(lm.store.base_path) / "runs"
+    runs_dir = Path(lm.store.base_path) / "activations"
     runs_dir.mkdir(parents=True, exist_ok=True)
     before_runs = {p.name for p in runs_dir.iterdir() if p.is_dir()}
 
