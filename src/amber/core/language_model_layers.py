@@ -52,9 +52,6 @@ class LanguageModelLayers:
         return self.idx_to_layer[layer_index]
 
     def get_layer_names(self) -> List[str]:
-        # Ensure maps are populated
-        if not self.name_to_layer or not self.idx_to_layer:
-            self._flatten_layer_names()
         return list(self.name_to_layer.keys())
 
     def print_layer_names(self) -> None:
@@ -107,7 +104,6 @@ class LanguageModelLayers:
         else:
             after_layer = self._get_layer_by_name(after_layer_signature)
 
-        # Attach as a child so it appears in state_dict and is discoverable
         after_layer.add_module(layer_name, layer)
         self._flatten_layer_names()
 
@@ -117,7 +113,6 @@ class LanguageModelLayers:
             layer.concepts.lm = self._lm
             layer.concepts.lm_layer_signature = new_layer_signature
 
-        # Helper to extract the main tensor (e.g., hidden states) outputs.
         def _extract_main_tensor(output):
             import torch
             if isinstance(output, torch.Tensor):
@@ -127,13 +122,8 @@ class LanguageModelLayers:
                     if isinstance(item, torch.Tensor):
                         return item
                 return None
-            if hasattr(output, "last_hidden_state"):
-                maybe = getattr(output, "last_hidden_state")
-                if isinstance(maybe, torch.Tensor):
-                    return maybe
             return None
 
-        # Hook that replaces the parent's output with layer's output
         def _replace_output_hook(_module, _inputs, output):
             import torch
             x = _extract_main_tensor(output)
@@ -232,10 +222,12 @@ class LanguageModelLayers:
                         # Try to safely reshape when numel matches and last dim aligns
                         reshaped = False
                         try:
-                            if orig.dim() == 3 and y.dim() == 2 and y.shape[-1] == orig.shape[-1] and y.numel() == orig.numel():
+                            if orig.dim() == 3 and y.dim() == 2 and y.shape[-1] == orig.shape[
+                                -1] and y.numel() == orig.numel():
                                 y = y.view_as(orig)
                                 reshaped = True
-                            elif orig.dim() == 2 and y.dim() == 3 and y.shape[-1] == orig.shape[-1] and y.numel() == orig.numel():
+                            elif orig.dim() == 2 and y.dim() == 3 and y.shape[-1] == orig.shape[
+                                -1] and y.numel() == orig.numel():
                                 y = y.reshape_as(orig)
                                 reshaped = True
                         except Exception:

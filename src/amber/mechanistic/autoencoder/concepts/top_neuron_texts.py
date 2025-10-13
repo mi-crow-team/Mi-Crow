@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
+# TODO: Maybe we can make it inherit Tracker ABC?
 class TopNeuronTexts:
 
     def __init__(

@@ -9,6 +9,9 @@ from amber.core.language_model_layers import LanguageModelLayers
 from amber.core.language_model_tokenizer import LanguageModelTokenizer
 from amber.core.language_model_activations import LanguageModelActivations
 from amber.store import Store, LocalStore
+from amber.utils import get_logger
+
+logger = get_logger(__name__)
 
 
 class LanguageModel:
@@ -22,25 +25,23 @@ class LanguageModel:
             tokenizer: AutoTokenizer,
             store: Store | None = None
     ):
-        self.model = model
+        self._model = model
         self.model_name = model.__class__.__name__
-        self.tokenizer = tokenizer
+        self._tokenizer = tokenizer
         self.layers = LanguageModelLayers(self, model)
         self.lm_tokenizer = LanguageModelTokenizer(model, tokenizer)
         self.activations = LanguageModelActivations(self)
         self.store = store or LocalStore(Path.cwd() / "store" / self.model_name)
 
-        # Trackers that need current texts before a forward
         self._activation_text_trackers: list[Any] = []
 
-    def get_model(self) -> nn.Module:
-        return self.model
+    @property
+    def model(self) -> nn.Module | None:
+        return self._model
 
-    def get_tokenizer(self) -> AutoTokenizer | None:
-        return self.tokenizer
-
-    def __call__(self, *args, **kwargs):
-        return self.model(*args, **kwargs)
+    @property
+    def tokenizer(self) -> AutoTokenizer | None:
+        return self._tokenizer
 
     def tokenize(self, texts: Sequence[str], **kwargs: Any):
         return self.lm_tokenizer.tokenize(texts, **kwargs)
@@ -49,7 +50,6 @@ class LanguageModel:
             self,
             texts: Sequence[str],
             tok_kwargs: Dict | None = None,
-            device_type: str = "cpu",
             autocast: bool = True,
             autocast_dtype: torch.dtype | None = None,
             discard_output: bool = False,
@@ -66,8 +66,7 @@ class LanguageModel:
         }
         enc = self.tokenize(texts, **tok_kwargs)
 
-        # Determine device even if model has no parameters (e.g., parameterless synthetic modules)
-        first_param = next(self.model.parameters(), None)  # type: ignore[attr-defined]
+        first_param = next(self._model.parameters(), None)
         device = first_param.device if first_param is not None else torch.device("cpu")
         device_type = str(getattr(device, 'type', 'cpu'))
 
@@ -76,7 +75,7 @@ class LanguageModel:
         else:
             enc = {k: v.to(device) for k, v in enc.items()}
 
-        self.model.eval()
+        self._model.eval()
 
         # Provide current texts to any registered trackers prior to forward
         try:
@@ -84,16 +83,17 @@ class LanguageModel:
                 if hasattr(_tracker, "set_current_texts"):
                     _tracker.set_current_texts(texts)
         except Exception:
-            # Do not break inference if a tracker fails
+            logger.exception("Error setting current texts on activation tracker")
             pass
 
         with torch.inference_mode():
             if autocast and device_type == "cuda":
                 amp_dtype = autocast_dtype or torch.float16
-                with torch.autocast(device_type, dtype=amp_dtype):  # type: ignore[arg-type]
-                    output = self.model(**enc)
+                with torch.autocast(device_type, dtype=amp_dtype):
+                    output = self._model(**enc)
             else:
-                output = self.model(**enc)
+                output = self._model(**enc)
+
         if discard_output:
             if save_inputs:
                 input_ids = enc.get("input_ids")
@@ -104,30 +104,25 @@ class LanguageModel:
                     attn = attn.detach().to("cpu", non_blocking=(device_type == "cuda"))
                 return input_ids, attn
             return None
+
         return output, enc
 
     def forwards(
             self,
             texts: Sequence[str],
             tok_kwargs: Dict | None = None,
-            device_type: str = "cpu",
             autocast: bool = True,
             autocast_dtype: torch.dtype | None = None,
     ):
         return self._inference(
             texts,
             tok_kwargs=tok_kwargs,
-            device_type=device_type,
             autocast=autocast,
             autocast_dtype=autocast_dtype,
             discard_output=False,
             save_inputs=False
         )
 
-    def enable_input_text_tracking(self):
-        self.enabled_input_text_tracking = True
-
-    # Registration helpers for trackers that want current texts
     def register_activation_text_tracker(self, tracker: Any) -> None:
         if tracker not in self._activation_text_trackers:
             self._activation_text_trackers.append(tracker)
@@ -151,10 +146,8 @@ class LanguageModel:
             model_params = {}
         tokenizer = AutoTokenizer.from_pretrained(model_name, **tokenizer_params)
         model = AutoModelForCausalLM.from_pretrained(model_name, **model_params)
-        lm = cls(model=model, tokenizer=tokenizer)  # TODO: fix the type hinting
-        # Ensure run metadata uses the HF repo id (e.g., "sshleifer/tiny-gpt2")
+        lm = cls(model=model, tokenizer=tokenizer)
         lm.model_name = model_name
-        # Optionally expose the repo id explicitly for downstream consumers
         setattr(lm, "hf_repo_id", model_name)
         return lm
 

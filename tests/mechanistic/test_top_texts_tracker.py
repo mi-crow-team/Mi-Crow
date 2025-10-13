@@ -4,7 +4,7 @@ import torch
 from torch import nn
 
 from amber.core.language_model import LanguageModel
-from amber.mechanistic.autoencoder.autoencoder_concepts import AutoencoderConcepts
+from amber.mechanistic.autoencoder.concepts.autoencoder_concepts import AutoencoderConcepts
 
 
 class FakeTokenizer:

@@ -11,7 +11,8 @@ from amber.mechanistic.autoencoder.concepts.top_neuron_texts import TopNeuronTex
 from amber.utils import get_logger
 
 if TYPE_CHECKING:
-    from amber.mechanistic.autoencoder.concept_dictionary import ConceptDictionary
+    from amber.mechanistic.autoencoder.concepts.concept_dictionary import ConceptDictionary
+    from amber.core.language_model import LanguageModel
 
 logger = get_logger(__name__)
 
@@ -21,7 +22,7 @@ class AutoencoderConcepts:
             self,
             n_size: int,
             dictionary_path: str | Path | None = None,
-            lm: "LanguageModel | None" = None,
+            lm: LanguageModel = None,
             lm_layer_signature: int | str | None = None
     ):
         self._n_size = n_size
@@ -42,8 +43,6 @@ class AutoencoderConcepts:
     def enable_text_tracking(self, k: int = 5, *, negative: bool = False):
         if self.lm is None or self.lm_layer_signature is None:
             raise ValueError("LanguageModel and layer signature must be set to enable tracking")
-        self.lm.enable_input_text_tracking()
-        # Detach any existing tracker first
         if self.top_texts_tracker is not None:
             try:
                 self.top_texts_tracker.detach()
@@ -67,7 +66,7 @@ class AutoencoderConcepts:
 
     def _ensure_dictionary(self):
         if self.dictionary is None:
-            from amber.mechanistic.autoencoder.concept_dictionary import ConceptDictionary
+            from amber.mechanistic.autoencoder.concepts.concept_dictionary import ConceptDictionary
             if self._dictionary_path is not None:
                 self.dictionary = ConceptDictionary.from_directory(self._dictionary_path)
             else:

@@ -4,11 +4,14 @@ from typing import Any, TYPE_CHECKING
 import torch
 from torch import nn
 
-from amber.mechanistic.autoencoder.autoencoder_concepts import AutoencoderConcepts
+from amber.mechanistic.autoencoder.concepts.autoencoder_concepts import AutoencoderConcepts
 from amber.mechanistic.autoencoder.modules.modules_list import get_activation
 from amber.mechanistic.autoencoder.modules.topk import TopK
 from amber.mechanistic.autoencoder.sae_module import SaeModuleABC
 from amber.utils import get_logger
+
+if TYPE_CHECKING:
+    from amber.core.language_model import LanguageModel
 
 logger = get_logger(__name__)
 

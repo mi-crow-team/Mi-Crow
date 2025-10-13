@@ -42,8 +42,7 @@ class LanguageModelActivations:
           - input_ids: Tokenized input IDs (CPU tensor)
           - attention_mask: Attention mask (CPU tensor), if present
         """
-        model = self.lm
-        if model.model is None:
+        if self.lm.model is None:
             raise ValueError("Model must be initialized before running")
 
         if store is None:
@@ -53,7 +52,7 @@ class LanguageModelActivations:
             import datetime
             run_name = f"activations_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
-        device = next(model.model.parameters()).device  # type: ignore[attr-defined]
+        device = next(self.lm.model.parameters()).device  # type: ignore[attr-defined]
         device_type = str(getattr(device, 'type', 'cpu'))
 
         logger = get_logger(__name__)
@@ -113,7 +112,7 @@ class LanguageModelActivations:
             captured["activations"] = tensor.detach().to("cpu")
 
         # Register the hook on the desired layer and keep a handle for cleanup
-        handle = model.layers.register_forward_hook_for_layer(layer_signature, save_activations_hook)
+        handle = self.lm.layers.register_forward_hook_for_layer(layer_signature, save_activations_hook)
         batch_counter = 0
         try:
             with torch.inference_mode():
@@ -129,7 +128,6 @@ class LanguageModelActivations:
                     res = self.lm._inference(
                         texts,
                         tok_kwargs=tok_kwargs,
-                        device_type=device_type,
                         autocast=autocast,
                         autocast_dtype=autocast_dtype,
                         discard_output=True,
@@ -144,6 +142,19 @@ class LanguageModelActivations:
 
                     if "activations" in captured:
                         act = captured.pop("activations")
+                        # If the hook captured a 2D tensor [N, D] from an inner layer (e.g., flattened tokens),
+                        # and we have input_ids with shape [B, T], reshape to [B, T, D] when possible.
+                        try:
+                            inp_ids = payload.get("input_ids")
+                            if isinstance(act, torch.Tensor) and isinstance(inp_ids, torch.Tensor):
+                                if act.dim() == 2 and inp_ids.dim() == 2:
+                                    B, T = int(inp_ids.shape[0]), int(inp_ids.shape[1])
+                                    N, D = int(act.shape[0]), int(act.shape[1])
+                                    if B * T == N:
+                                        act = act.view(B, T, D)
+                        except Exception:
+                            # Best-effort reshape; continue without raising
+                            pass
                         if dtype is not None:
                             try:
                                 act = act.to(dtype, copy=False)
