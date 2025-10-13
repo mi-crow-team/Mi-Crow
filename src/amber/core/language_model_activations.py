@@ -149,14 +149,12 @@ class LanguageModelActivations:
                                 act = act.to(dtype, copy=False)
                             except Exception:
                                 act = act.to(dtype)
-                        # Move to CPU for persistence (non_blocking if CUDA)
                         if device_type == "cuda":
                             act = act.to("cpu", non_blocking=True)
                         else:
                             act = act.to("cpu")
                         payload["activations"] = act
 
-                    # Persist and cleanup to keep memory bounded
                     store.put_run_batch(run_name, batch_index, payload)
                     if verbose:
                         logger.info(f"Saved batch {batch_index} for run={run_name} with keys={list(payload.keys())}")

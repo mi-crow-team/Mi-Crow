@@ -1,9 +1,10 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import torch
 from torch import nn
 
+from amber.mechanistic.autoencoder.autoencoder_concepts import AutoencoderConcepts
 from amber.mechanistic.autoencoder.modules.modules_list import get_activation
 from amber.mechanistic.autoencoder.modules.topk import TopK
 from amber.mechanistic.autoencoder.sae_module import SaeModuleABC
@@ -37,6 +38,12 @@ class Autoencoder(nn.Module):
         self.activation = activation
         self.device = device
         self.metadata = None
+
+        # Language model refs
+        self.lm: LanguageModel | None = None
+        self.lm_layer_signature: int | str | None = None
+
+        self.concepts = AutoencoderConcepts(n_latents, self.lm, self.lm_layer_signature)
 
         self.pre_bias = nn.Parameter(
             torch.full((n_inputs,), bias_init) if isinstance(bias_init, float) else bias_init.clone()

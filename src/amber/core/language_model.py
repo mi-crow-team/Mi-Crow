@@ -25,10 +25,13 @@ class LanguageModel:
         self.model = model
         self.model_name = model.__class__.__name__
         self.tokenizer = tokenizer
-        self.layers = LanguageModelLayers(model)
+        self.layers = LanguageModelLayers(self, model)
         self.lm_tokenizer = LanguageModelTokenizer(model, tokenizer)
         self.activations = LanguageModelActivations(self)
         self.store = store or LocalStore(Path.cwd() / "store" / self.model_name)
+
+        # Trackers that need current texts before a forward
+        self._activation_text_trackers: list[Any] = []
 
     def get_model(self) -> nn.Module:
         return self.model
@@ -63,7 +66,9 @@ class LanguageModel:
         }
         enc = self.tokenize(texts, **tok_kwargs)
 
-        device = next(self.model.parameters()).device  # type: ignore[attr-defined]
+        # Determine device even if model has no parameters (e.g., parameterless synthetic modules)
+        first_param = next(self.model.parameters(), None)  # type: ignore[attr-defined]
+        device = first_param.device if first_param is not None else torch.device("cpu")
         device_type = str(getattr(device, 'type', 'cpu'))
 
         if device_type == "cuda":
@@ -72,6 +77,15 @@ class LanguageModel:
             enc = {k: v.to(device) for k, v in enc.items()}
 
         self.model.eval()
+
+        # Provide current texts to any registered trackers prior to forward
+        try:
+            for _tracker in getattr(self, "_activation_text_trackers", []):
+                if hasattr(_tracker, "set_current_texts"):
+                    _tracker.set_current_texts(texts)
+        except Exception:
+            # Do not break inference if a tracker fails
+            pass
 
         with torch.inference_mode():
             if autocast and device_type == "cuda":
@@ -100,14 +114,29 @@ class LanguageModel:
             autocast: bool = True,
             autocast_dtype: torch.dtype | None = None,
     ):
-        self._inference(
+        return self._inference(
             texts,
             tok_kwargs=tok_kwargs,
             device_type=device_type,
             autocast=autocast,
             autocast_dtype=autocast_dtype,
-            discard_output=False
+            discard_output=False,
+            save_inputs=False
         )
+
+    def enable_input_text_tracking(self):
+        self.enabled_input_text_tracking = True
+
+    # Registration helpers for trackers that want current texts
+    def register_activation_text_tracker(self, tracker: Any) -> None:
+        if tracker not in self._activation_text_trackers:
+            self._activation_text_trackers.append(tracker)
+
+    def unregister_activation_text_tracker(self, tracker: Any) -> None:
+        try:
+            self._activation_text_trackers.remove(tracker)
+        except ValueError:
+            pass
 
     @classmethod
     def from_huggingface(
