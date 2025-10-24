@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import TYPE_CHECKING
+import json
+import csv
 
 import torch
 from torch import nn
@@ -73,6 +75,42 @@ class AutoencoderConcepts:
                 self.dictionary = ConceptDictionary(self._n_size)
         return self.dictionary
 
+    def load_concepts_from_csv(self, csv_filepath: str | Path):
+        """Load concepts from CSV file using ConceptDictionary.from_csv()"""
+        from amber.mechanistic.autoencoder.concepts.concept_dictionary import ConceptDictionary
+        self.dictionary = ConceptDictionary.from_csv(
+            csv_filepath=csv_filepath,
+            n_size=self._n_size,
+            store=self.dictionary.store if self.dictionary else None,
+            max_concepts=self.dictionary.max_concepts if self.dictionary else None
+        )
+
+    def load_concepts_from_json(self, json_filepath: str | Path):
+        """Load concepts from JSON file using ConceptDictionary.from_json()"""
+        from amber.mechanistic.autoencoder.concepts.concept_dictionary import ConceptDictionary
+        self.dictionary = ConceptDictionary.from_json(
+            json_filepath=json_filepath,
+            n_size=self._n_size,
+            store=self.dictionary.store if self.dictionary else None,
+            max_concepts=self.dictionary.max_concepts if self.dictionary else None
+        )
+
+    def generate_concepts_with_llm(self, llm_provider: str | None = None):
+        """Generate concepts using LLM based on current top texts"""
+        if self.top_texts_tracker is None:
+            raise ValueError("No text tracker available. Enable text tracking first.")
+        
+        from amber.mechanistic.autoencoder.concepts.concept_dictionary import ConceptDictionary
+        neuron_texts = self.top_texts_tracker.get_all()
+        
+        self.dictionary = ConceptDictionary.from_llm(
+            neuron_texts=neuron_texts,
+            n_size=self._n_size,
+            store=self.dictionary.store if self.dictionary else None,
+            max_concepts=self.dictionary.max_concepts if self.dictionary else None,
+            llm_provider=llm_provider
+        )
+
     def multiply_concept(
             self,
             concept_idx: int,
@@ -95,3 +133,57 @@ class AutoencoderConcepts:
     def reset_top_texts(self) -> None:
         if self.top_texts_tracker is not None:
             self.top_texts_tracker.reset()
+
+    def export_top_texts_to_json(self, filepath: Path | str) -> Path:
+        """Export neuron-to-texts mapping to JSON file.
+        
+        Structure: {neuron_idx: [{text, score, token_str, token_idx}, ...], ...}
+        """
+        if self.top_texts_tracker is None:
+            raise ValueError("No text tracker available. Enable text tracking first.")
+        
+        filepath = Path(filepath)
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+        
+        all_texts = self.top_texts_tracker.get_all()
+        export_data = {}
+        
+        for neuron_idx, neuron_texts in enumerate(all_texts):
+            export_data[neuron_idx] = [
+                {
+                    "text": nt.text,
+                    "score": nt.score,
+                    "token_str": nt.token_str,
+                    "token_idx": nt.token_idx
+                }
+                for nt in neuron_texts
+            ]
+        
+        with filepath.open("w", encoding="utf-8") as f:
+            json.dump(export_data, f, ensure_ascii=False, indent=2)
+        
+        return filepath
+
+    def export_top_texts_to_csv(self, filepath: Path | str) -> Path:
+        """Export neuron-to-texts mapping to CSV file.
+        
+        Flat table format: neuron_idx,text,score,token_str,token_idx
+        One row per text per neuron.
+        """
+        if self.top_texts_tracker is None:
+            raise ValueError("No text tracker available. Enable text tracking first.")
+        
+        filepath = Path(filepath)
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+        
+        all_texts = self.top_texts_tracker.get_all()
+        
+        with filepath.open("w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["neuron_idx", "text", "score", "token_str", "token_idx"])
+            
+            for neuron_idx, neuron_texts in enumerate(all_texts):
+                for nt in neuron_texts:
+                    writer.writerow([neuron_idx, nt.text, nt.score, nt.token_str, nt.token_idx])
+        
+        return filepath
