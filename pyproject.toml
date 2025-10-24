@@ -20,6 +20,8 @@ dependencies = [
     "torch>=2.8.0",
     "tqdm>=4.67.1",
     "transformers>=4.56.1",
+    "safetensors>=0.4.5",
+    "wandb>=0.22.1",
 ]
 dynamic = ["version"]
 
@@ -44,7 +46,7 @@ docs = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "-q --maxfail=1 --cov --cov-report=term-missing --cov-report=xml"
+addopts = "--maxfail=1 -q --cov=amber --cov-report=term-missing --cov-report=xml --cov-fail-under=85"
 testpaths = ["tests"]
 pythonpath = ["src"]
 
