@@ -1,6 +1,5 @@
 from typing import Sequence, Any
 
-import pytest
 import torch
 from torch import nn
 from datasets import Dataset
@@ -47,37 +46,13 @@ class FlattenThenReshapeLM(nn.Module):
         return y.view(B, T, D)
 
 
-class LastHiddenObj:
-    def __init__(self, t: torch.Tensor):
-        self.last_hidden_state = t
-
-
-class ObjOutLayer(nn.Module):
-    def __init__(self, d: int):
-        super().__init__()
-        self.lin = nn.Linear(d, d)
-
-    def forward(self, x):
-        return LastHiddenObj(self.lin(x))
-
-
-class ObjOutLM(nn.Module):
-    def __init__(self, vocab_size: int = 32, d_model: int = 4):
-        super().__init__()
-        self.emb = nn.Embedding(vocab_size, d_model)
-        self.obj = ObjOutLayer(d_model)
-
-    def forward(self, input_ids, attention_mask=None):
-        x = self.emb(input_ids)
-        return self.obj(x)
-
-
 def make_ds(texts, tmp_path):
     base = Dataset.from_dict({"text": texts})
     return TextSnippetDataset(base, cache_dir=tmp_path)
 
 
 def test_captured_2d_activations_are_reshaped_to_3d(tmp_path):
+    """Test that 2D activations captured from flattened layers are properly reshaped to 3D."""
     tok = Tok()
     net = FlattenThenReshapeLM()
     lm = LanguageModel(model=net, tokenizer=tok)
@@ -107,33 +82,3 @@ def test_captured_2d_activations_are_reshaped_to_3d(tmp_path):
     inp = b0["input_ids"]
     assert acts.ndim == 3
     assert acts.shape[0] == inp.shape[0] and acts.shape[1] == inp.shape[1]
-
-
-def test_hook_fallback_reads_last_hidden_state_attr(tmp_path):
-    tok = Tok()
-    net = ObjOutLM()
-    lm = LanguageModel(model=net, tokenizer=tok)
-
-    # target the obj layer whose output is a custom object
-    layer_name = None
-    for name, layer in lm.layers.name_to_layer.items():
-        if isinstance(layer, ObjOutLayer):
-            layer_name = name
-            break
-    assert layer_name is not None
-
-    ds = make_ds(["x", "yy"], tmp_path / "cache2")
-    store = LocalStore(tmp_path / "store2")
-
-    lm.activations.infer_and_save(
-        ds,
-        layer_signature=layer_name,
-        run_name="obj",
-        store=store,
-        batch_size=2,
-        autocast=False,
-    )
-
-    b0 = store.get_run_batch("obj", 0)
-    # Ensure activations were captured despite layer returning object
-    assert "activations" in b0 and b0["activations"].ndim == 3

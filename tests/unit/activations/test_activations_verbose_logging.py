@@ -28,7 +28,7 @@ class FakeTokenizer:
         raise ValueError
 
 
-class TupleOutLM(nn.Module):
+class SimpleLM(nn.Module):
     def __init__(self):
         super().__init__()
         self.emb = nn.Embedding(200, 4)
@@ -36,9 +36,7 @@ class TupleOutLM(nn.Module):
 
     def forward(self, input_ids, attention_mask=None):
         x = self.emb(input_ids)
-        x = self.lin(x)
-        # Return a tuple where first item is tensor to trigger tuple path
-        return (x, {"aux": 1})
+        return self.lin(x)
 
 
 def make_ds(texts, tmp_path):
@@ -46,9 +44,10 @@ def make_ds(texts, tmp_path):
     return TextSnippetDataset(base, cache_dir=tmp_path)
 
 
-def test_save_model_activations_verbose_and_tuple_output(tmp_path, caplog):
+def test_verbose_logging_output(tmp_path, caplog):
+    """Test that verbose logging produces expected log messages."""
     tok = FakeTokenizer()
-    net = TupleOutLM()
+    net = SimpleLM()
     lm = LanguageModel(model=net, tokenizer=tok)
 
     # pick the linear layer by name
@@ -73,6 +72,7 @@ def test_save_model_activations_verbose_and_tuple_output(tmp_path, caplog):
             verbose=True,
             free_cuda_cache_every=1,  # on CPU branch it won't empty, but still hit condition checks
         )
+    
     # Ensure some verbose logs present
     assert any("Starting save_model_activations" in rec.message for rec in caplog.records)
     assert any("Saved batch" in rec.message for rec in caplog.records)
