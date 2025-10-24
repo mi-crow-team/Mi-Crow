@@ -68,16 +68,39 @@ class TopNeuronTexts:
         if self._heaps is None:
             self._heaps = [[] for _ in range(n_neurons)]
 
-    def _reduce_over_tokens(self, tensor: torch.Tensor) -> torch.Tensor:
+    def _reduce_over_tokens(self, tensor: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         # Expect tensor of shape [B, T, D] or [B, D]
         if tensor.dim() == 3:
             if self.negative:
                 # For negative tracking pick minimum across tokens per neuron
-                return tensor.min(dim=1).values
-            return tensor.max(dim=1).values
-        return tensor  # [B, D]
+                values, indices = tensor.min(dim=1)
+                return values, indices
+            values, indices = tensor.max(dim=1)
+            return values, indices
+        # For [B, D] case, assume all tokens are at index 0
+        indices = torch.zeros(tensor.shape[0], tensor.shape[1], dtype=torch.long, device=tensor.device)
+        return tensor, indices
 
-    def _update_heaps(self, scores_bt: torch.Tensor) -> None:
+    def _decode_token(self, text: str, token_idx: int) -> str:
+        """Decode a specific token from the text using the language model's tokenizer."""
+        try:
+            if self.lm.tokenizer is None:
+                return f"<token_{token_idx}>"
+            
+            # Tokenize the text to get token IDs
+            tokens = self.lm.tokenizer.encode(text, add_special_tokens=False)
+            if 0 <= token_idx < len(tokens):
+                token_id = tokens[token_idx]
+                # Decode the specific token
+                token_str = self.lm.tokenizer.decode([token_id])
+                return token_str
+            else:
+                return f"<token_{token_idx}_out_of_range>"
+        except Exception:
+            # If tokenization fails, return a placeholder
+            return f"<token_{token_idx}_decode_error>"
+
+    def _update_heaps(self, scores_bt: torch.Tensor, token_indices: torch.Tensor) -> None:
         assert self._current_texts is not None, "Current texts not set before forward"
         B, D = scores_bt.shape
         self._ensure_heaps(D)
@@ -85,14 +108,15 @@ class TopNeuronTexts:
             text = self._current_texts[i]
             for j in range(D):
                 score = float(scores_bt[i, j].item())
+                token_idx = int(token_indices[i, j].item())
                 adj = -score if self.negative else score
                 heap = self._heaps[j]
                 if len(heap) < self.k:
-                    heapq.heappush(heap, (adj, (score, text)))
+                    heapq.heappush(heap, (adj, (score, text, token_idx)))
                 else:
                     # Compare with smallest adjusted score; replace if better
                     if adj > heap[0][0]:
-                        heapq.heapreplace(heap, (adj, (score, text)))
+                        heapq.heapreplace(heap, (adj, (score, text, token_idx)))
 
     def _activations_hook(self, _module, _input, output):
         # Normalize output to a tensor
@@ -112,10 +136,11 @@ class TopNeuronTexts:
             return
         self.last_activations = tensor.detach().to("cpu")
         try:
-            scores_bt = self._reduce_over_tokens(self.last_activations)
+            scores_bt, token_indices = self._reduce_over_tokens(self.last_activations)
             if scores_bt.dim() == 1:
                 scores_bt = scores_bt.unsqueeze(0)
-            self._update_heaps(scores_bt)
+                token_indices = token_indices.unsqueeze(0)
+            self._update_heaps(scores_bt, token_indices)
         except Exception:
             # Do not raise from hooks
             pass
@@ -130,7 +155,13 @@ class TopNeuronTexts:
         items_sorted = sorted(items, key=lambda s_t: s_t[0], reverse=reverse)
         if top_m is not None:
             items_sorted = items_sorted[: top_m]
-        return [NeuronText(score=score, text=text) for score, text in items_sorted]
+        
+        # Decode tokens for each item
+        neuron_texts = []
+        for score, text, token_idx in items_sorted:
+            token_str = self._decode_token(text, token_idx)
+            neuron_texts.append(NeuronText(score=score, text=text, token_idx=token_idx, token_str=token_str))
+        return neuron_texts
 
     def get_all(self) -> list[list[NeuronText]]:
         if self._heaps is None:
