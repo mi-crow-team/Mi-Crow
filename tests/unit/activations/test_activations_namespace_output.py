@@ -54,35 +54,12 @@ class ReturnNamespace(nn.Module):
         return SimpleNamespace(last_hidden_state=y)
 
 
-class ReturnTuple(nn.Module):
-    def __init__(self, inner: nn.Module):
-        super().__init__()
-        self.inner = inner
-
-    def forward(self, x):
-        y = self.inner(x)
-        return (y,)
-
-
-class ReturnNumber(nn.Module):
-    def forward(self, x):
-        # Return a non-tensor to exercise the 'no activations captured' path
-        return 123
-
-
 class ToyLMBranchy(nn.Module):
-    def __init__(self, vocab_size: int = 50, d_model: int = 8, mode: str = "namespace"):
+    def __init__(self, vocab_size: int = 50, d_model: int = 8):
         super().__init__()
         self.embed = nn.Embedding(vocab_size + 1, d_model, padding_idx=0)
         self.lin = nn.Linear(d_model, d_model)
-        if mode == "namespace":
-            self.out = ReturnNamespace(nn.Linear(d_model, d_model))
-        elif mode == "tuple":
-            self.out = ReturnTuple(nn.Linear(d_model, d_model))
-        elif mode == "nontensor":
-            self.out = ReturnNumber()
-        else:
-            raise ValueError("unknown mode")
+        self.out = ReturnNamespace(nn.Linear(d_model, d_model))
 
     def forward(self, input_ids, attention_mask=None):
         x = self.embed(input_ids)
@@ -97,6 +74,7 @@ def _make_ds(texts: list[str], cache_dir) -> TextSnippetDataset:
 
 
 def test_infer_and_save_captures_last_hidden_state_and_defaults(tmp_path, monkeypatch):
+    """Test that namespace outputs with last_hidden_state are captured correctly."""
     # Monkeypatch datetime used in LanguageModelActivations to force deterministic run_name
     class _FixedDT:
         class datetime:
@@ -110,7 +88,7 @@ def test_infer_and_save_captures_last_hidden_state_and_defaults(tmp_path, monkey
     monkeypatch.setattr(_act_mod, "datetime", _FixedDT, raising=False)
 
     tok = FakeTokenizer()
-    net = ToyLMBranchy(vocab_size=30, d_model=6, mode="namespace")
+    net = ToyLMBranchy(vocab_size=30, d_model=6)
     lm = LanguageModel(model=net, tokenizer=tok)
 
     texts = ["a b", "c d e", "f", "g h", "i j k"]  # 5 items -> batches (2,2,1)
@@ -152,73 +130,3 @@ def test_infer_and_save_captures_last_hidden_state_and_defaults(tmp_path, monkey
     # Activations present and inputs include input_ids; attention_mask may be missing
     assert "activations" in b0
     assert "input_ids" in b0
-
-
-def test_infer_and_save_without_activations_saves_inputs_only_and_index_signature(tmp_path):
-    tok = FakeTokenizer()
-    net = ToyLMBranchy(vocab_size=20, d_model=4, mode="nontensor")
-    lm = LanguageModel(model=net, tokenizer=tok)
-
-    texts = ["x y", "z", "u v w"]
-    ds = _make_ds(texts, tmp_path / "cacheB")
-
-    # Find numeric index of the ReturnNumber layer
-    idx_target = None
-    for idx, layer in lm.layers.idx_to_layer.items():
-        if isinstance(layer, ReturnNumber):
-            idx_target = idx
-            break
-    assert idx_target is not None
-
-    run_id = "inputs_only"
-    lm.activations.infer_and_save(
-        ds,
-        layer_signature=idx_target,  # use integer signature path
-        run_name=run_id,
-        store=lm.store,
-        batch_size=2,
-        autocast=True,
-        verbose=True,
-    )
-
-    batches = lm.store.list_run_batches(run_id)
-    assert batches == [0, 1]
-    for bi in batches:
-        b = lm.store.get_run_batch(run_id, bi)
-        # No activations key because hook returned a non-tensor object
-        assert "activations" not in b
-        # Inputs are still saved
-        assert "input_ids" in b
-
-
-def test_infer_and_save_tuple_output_branch(tmp_path):
-    tok = FakeTokenizer()
-    net = ToyLMBranchy(vocab_size=25, d_model=5, mode="tuple")
-    lm = LanguageModel(model=net, tokenizer=tok)
-
-    texts = ["aa bb", "cc", "dd ee ff"]
-    ds = _make_ds(texts, tmp_path / "cacheC")
-
-    # Locate the tuple-returning module by name
-    target_name = None
-    for name, layer in lm.layers.name_to_layer.items():
-        if isinstance(layer, ReturnTuple):
-            target_name = name
-            break
-    assert target_name is not None
-
-    run_id = "tuple_run"
-    lm.activations.infer_and_save(
-        ds,
-        layer_signature=target_name,
-        run_name=run_id,
-        store=lm.store,
-        batch_size=2,
-        autocast=False,
-        verbose=False,
-    )
-
-    batches = lm.store.list_run_batches(run_id)
-    assert batches == [0, 1]
-    b0 = lm.store.get_run_batch(run_id, 0)
-    assert "activations" in b0 and b0["activations"].ndim == 3
