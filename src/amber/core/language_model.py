@@ -145,7 +145,7 @@ class LanguageModel:
         if model_params is None:
             model_params = {}
         tokenizer = AutoTokenizer.from_pretrained(model_name, **tokenizer_params)
-        model = AutoModelWithLMHead.from_pretrained(model_name, **model_params)
+        model = AutoModelForCausalLM.from_pretrained(model_name, **model_params)
         lm = cls(model=model, tokenizer=tokenizer)
         lm.model_name = model_name
         setattr(lm, "hf_repo_id", model_name)
