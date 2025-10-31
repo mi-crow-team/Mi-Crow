@@ -89,54 +89,19 @@ class ConceptDictionary:
         }
 
     @classmethod
-    def from_directory(cls, directory: Path | str) -> "ConceptDictionary":
-        p = Path(directory)
-        if not p.exists():
-            raise FileNotFoundError(p)
-        meta_path = p / "concepts.json"
-        if not meta_path.exists():
-            # Create empty dictionary with best guess of n_size (0)
-            inst = cls(n_size=0)
-            inst.set_directory(p)
-            return inst
-        with meta_path.open("r", encoding="utf-8") as f:
-            meta = json.load(f)
-        n_size = int(meta.get("n_size", 0))
-        max_concepts = meta.get("max_concepts")
-        inst = cls(n_size=n_size, max_concepts=max_concepts)
-        inst.set_directory(p)
-        concepts = meta.get("concepts", {})
-        inst.concepts_map = {int(k): [Concept(**c) for c in v] for k, v in concepts.items()}
-        return inst
-
-    @classmethod
     def from_csv(
-        cls, 
-        csv_filepath: Path | str, 
-        n_size: int,
-        store: Store | None = None,
-        max_concepts: int | None = None
+            cls,
+            csv_filepath: Path | str,
+            n_size: int,
+            store: Store | None = None,
+            max_concepts: int | None = None
     ) -> "ConceptDictionary":
-        """
-        Create ConceptDictionary from CSV file.
-        
-        Expected CSV format: neuron_idx,concept_name,score
-        
-        Args:
-            csv_filepath: Path to CSV file
-            n_size: Number of neurons/concepts
-            store: Optional store for persistence
-            max_concepts: Maximum concepts per neuron
-            
-        Returns:
-            ConceptDictionary with concepts loaded from CSV
-        """
         csv_path = Path(csv_filepath)
         if not csv_path.exists():
             raise FileNotFoundError(f"CSV file not found: {csv_path}")
-        
+
         concept_dict = cls(n_size=n_size, store=store, max_concepts=max_concepts)
-        
+
         with csv_path.open("r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
@@ -144,40 +109,26 @@ class ConceptDictionary:
                 concept_name = row["concept_name"]
                 score = float(row["score"])
                 concept_dict.add(neuron_idx, concept_name, score)
-        
+
         return concept_dict
 
     @classmethod
     def from_json(
-        cls,
-        json_filepath: Path | str,
-        n_size: int,
-        store: Store | None = None,
-        max_concepts: int | None = None
+            cls,
+            json_filepath: Path | str,
+            n_size: int,
+            store: Store | None = None,
+            max_concepts: int | None = None
     ) -> "ConceptDictionary":
-        """
-        Create ConceptDictionary from JSON file.
-        
-        Expected JSON format: {neuron_idx: [{name, score}, ...], ...}
-        
-        Args:
-            json_filepath: Path to JSON file
-            n_size: Number of neurons/concepts
-            store: Optional store for persistence
-            max_concepts: Maximum concepts per neuron
-            
-        Returns:
-            ConceptDictionary with concepts loaded from JSON
-        """
         json_path = Path(json_filepath)
         if not json_path.exists():
             raise FileNotFoundError(f"JSON file not found: {json_path}")
-        
+
         concept_dict = cls(n_size=n_size, store=store, max_concepts=max_concepts)
-        
+
         with json_path.open("r", encoding="utf-8") as f:
             data = json.load(f)
-            
+
         for neuron_idx_str, concepts in data.items():
             neuron_idx = int(neuron_idx_str)
             # Handle case where concepts is not a list
@@ -189,43 +140,24 @@ class ConceptDictionary:
                 concept_name = concept["name"]
                 score = float(concept["score"])
                 concept_dict.add(neuron_idx, concept_name, score)
-        
+
         return concept_dict
 
     @classmethod
     def from_llm(
-        cls,
-        neuron_texts: list[list["NeuronText"]],
-        n_size: int,
-        store: Store | None = None,
-        max_concepts: int | None = None,
-        llm_provider: str | None = None
+            cls,
+            neuron_texts: list[list["NeuronText"]],
+            n_size: int,
+            store: Store | None = None,
+            max_concepts: int | None = None,
+            llm_provider: str | None = None
     ) -> "ConceptDictionary":
-        """
-        Create ConceptDictionary using LLM to generate concept names.
-        
-        This method uses an LLM to automatically name concepts based on the top
-        activating texts and specific tokens that caused the highest activations.
-        
-        Args:
-            neuron_texts: List of top texts with token information for each neuron
-            n_size: Number of neurons/concepts
-            store: Optional store for persistence
-            max_concepts: Maximum concepts per neuron
-            llm_provider: LLM provider identifier (for future implementation)
-            
-        Returns:
-            ConceptDictionary with concepts generated by LLM
-            
-        Raises:
-            NotImplementedError: LLM integration not yet implemented
-        """
         concept_dict = cls(n_size=n_size, store=store, max_concepts=max_concepts)
-        
+
         for neuron_idx, texts in enumerate(neuron_texts):
             if not texts:
                 continue
-                
+
             # Extract texts and their specific activated tokens
             texts_with_tokens = []
             for nt in texts:
@@ -235,31 +167,19 @@ class ConceptDictionary:
                     "token_str": nt.token_str,
                     "token_idx": nt.token_idx
                 })
-            
+
             # Generate concept names using LLM
             concept_names = cls._generate_concept_names_llm(texts_with_tokens, llm_provider)
-            
+
             # Add concepts to dictionary
             for concept_name, score in concept_names:
                 concept_dict.add(neuron_idx, concept_name, score)
-        
+
         return concept_dict
 
     @staticmethod
-    def _generate_concept_names_llm(texts_with_tokens: list[dict], llm_provider: str | None = None) -> list[tuple[str, float]]:
-        """
-        Generate concept names using LLM based on texts and their activated tokens.
-        
-        Args:
-            texts_with_tokens: List of dictionaries containing text, score, token_str, token_idx
-            llm_provider: LLM provider identifier
-            
-        Returns:
-            List of (concept_name, score) tuples
-            
-        Raises:
-            NotImplementedError: LLM provider not configured
-        """
+    def _generate_concept_names_llm(texts_with_tokens: list[dict], llm_provider: str | None = None) -> list[
+        tuple[str, float]]:
         raise NotImplementedError(
             "LLM provider not configured. Please implement _generate_concept_names_llm "
             "method with your preferred LLM provider (OpenAI, Anthropic, etc.)"

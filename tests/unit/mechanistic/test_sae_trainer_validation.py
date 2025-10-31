@@ -45,7 +45,11 @@ def test_validation_skips_invalid_batches(tmp_path):
     hidden_dim = 16
     make_fake_run_with_validation(store, run_id, hidden_dim)
 
-    ae = Autoencoder(n_latents=8, n_inputs=hidden_dim, activation="TopK_4")
+    ae = Autoencoder(
+        n_latents=8,
+        n_inputs=hidden_dim,
+        activation="TopK_4"
+    )
 
     cfg = SAETrainingConfig(
         epochs=1,
@@ -90,7 +94,11 @@ def test_validation_with_different_tensor_shapes(tmp_path):
     store.put_run_batch(run_id, 1, batch1)
     store.put_run_batch(run_id, 2, batch2)
 
-    ae = Autoencoder(n_latents=8, n_inputs=hidden_dim, activation="TopK_4")
+    ae = Autoencoder(
+        n_latents=8,
+        n_inputs=hidden_dim,
+        activation="TopK_4"
+    )
 
     cfg = SAETrainingConfig(
         epochs=1,
@@ -115,7 +123,11 @@ def test_validation_verbose_logging(tmp_path, caplog):
     hidden_dim = 16
     make_fake_run_with_validation(store, run_id, hidden_dim)
 
-    ae = Autoencoder(n_latents=8, n_inputs=hidden_dim, activation="TopK_4")
+    ae = Autoencoder(
+        n_latents=8,
+        n_inputs=hidden_dim,
+        activation="TopK_4"
+    )
 
     cfg = SAETrainingConfig(
         epochs=1,

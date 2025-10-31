@@ -5,18 +5,16 @@ from torch import nn
 from amber.mechanistic.autoencoder.autoencoder import Autoencoder
 
 if TYPE_CHECKING:
-    from amber.core.language_model import LanguageModel
+    from amber.core.language_model_context import LanguageModelContext
 
 
 class LanguageModelLayers:
 
     def __init__(
             self,
-            lm: "LanguageModel",
-            model: nn.Module
+            context: "LanguageModelContext",
     ):
-        self._model = model
-        self._lm = lm
+        self.context = context
         self.name_to_layer: Dict[str, nn.Module] = {}
         self.idx_to_layer: Dict[int, nn.Module] = {}
         self._flatten_layer_names()
@@ -33,7 +31,7 @@ class LanguageModelLayers:
                 self.idx_to_layer[idx_val] = child
                 _recurse(child, clean_name, idx)
 
-        _recurse(self._model, self._model.__class__.__name__.lower(), [])
+        _recurse(self.context.model, self.context.model.__class__.__name__.lower(), [])
 
         return self.name_to_layer, self.idx_to_layer
 
@@ -91,13 +89,6 @@ class LanguageModelLayers:
             layer: nn.Module,
             after_layer_signature: str | int,
     ):
-        """
-        Attach a new layer under an existing module and *replace* the parent's output with the new layer's output.
-        This is the only supported behavior.
-
-        Usage:
-            l1 -> m -> l2   # output of l1 becomes input to m; output of m is passed to l2
-        """
         # Resolve target layer
         if isinstance(after_layer_signature, int):
             after_layer = self._get_layer_by_index(after_layer_signature)
@@ -110,7 +101,7 @@ class LanguageModelLayers:
         new_layer_signature = f"{after_layer_signature}_{layer_name}"
 
         if isinstance(layer, Autoencoder):
-            layer.concepts.lm = self._lm
+            layer.concepts.lm = self.context.model
             layer.concepts.lm_layer_signature = new_layer_signature
 
         def _extract_main_tensor(output):

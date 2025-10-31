@@ -3,6 +3,8 @@ import torch
 
 from amber.mechanistic.autoencoder.concepts.autoencoder_concepts import AutoencoderConcepts
 from amber.mechanistic.autoencoder.concepts.concept_models import NeuronText
+from amber.mechanistic.autoencoder.autoencoder_context import AutoencoderContext
+from amber.mechanistic.autoencoder.autoencoder import Autoencoder
 
 
 class _DummyHandle:
@@ -40,17 +42,26 @@ class _FakeLM:
 
 
 def test_get_top_texts_without_tracker_returns_empty():
-    concepts = AutoencoderConcepts(n_size=4)
+    # Create autoencoder and context
+    autoencoder = Autoencoder(n_latents=4, n_inputs=10)
+    concepts = AutoencoderConcepts(autoencoder.context)
     assert concepts.get_top_texts_for_neuron(0) == []
     assert concepts.get_all_top_texts() == []
 
 
 def test_enable_and_disable_text_tracking_positive_max_over_tokens():
     lm = _FakeLM()
-    concepts = AutoencoderConcepts(n_size=3, lm=lm, lm_layer_signature="sig")
+    # Create autoencoder and context
+    autoencoder = Autoencoder(n_latents=3, n_inputs=10)
+    autoencoder.context.lm = lm
+    autoencoder.context.lm_layer_signature = "sig"
+    concepts = AutoencoderConcepts(autoencoder.context)
 
     # Enable tracking
-    concepts.enable_text_tracking(k=3, negative=False)
+    autoencoder.context.text_tracking_enabled = True
+    autoencoder.context.text_tracking_k = 3
+    autoencoder.context.text_tracking_negative = False
+    concepts.enable_text_tracking()
     assert concepts.top_texts_tracker is not None
 
     tracker = concepts.top_texts_tracker
@@ -71,10 +82,15 @@ def test_enable_and_disable_text_tracking_positive_max_over_tokens():
 
     # Top texts for neuron 0 should be sorted by descending score
     tops0 = concepts.get_top_texts_for_neuron(0)
-    # Scores for neuron 0 are 1.0 (hello) and 0.9 (world); positive mode sorts descending
-    assert [t.text for t in tops0] == ["hello", "world"]
-    assert isinstance(tops0[0], NeuronText)
+    # The new behavior collects individual token activations, not just max per text
+    # So we get: hello (1.0), world (0.9), world (0.7)
+    assert len(tops0) == 3
+    assert tops0[0].text == "hello"
     assert tops0[0].score == pytest.approx(1.0)
+    assert tops0[1].text == "world" 
+    assert tops0[1].score == pytest.approx(0.9)
+    assert tops0[2].text == "world"
+    assert tops0[2].score == pytest.approx(0.7)
 
     # Get all
     all_tops = concepts.get_all_top_texts()
@@ -92,9 +108,16 @@ def test_enable_and_disable_text_tracking_positive_max_over_tokens():
 
 def test_negative_tracking_uses_min_over_tokens_and_asc_sort():
     lm = _FakeLM()
-    concepts = AutoencoderConcepts(n_size=2, lm=lm, lm_layer_signature="sig")
+    # Create autoencoder and context
+    autoencoder = Autoencoder(n_latents=2, n_inputs=10)
+    autoencoder.context.lm = lm
+    autoencoder.context.lm_layer_signature = "sig"
+    concepts = AutoencoderConcepts(autoencoder.context)
 
-    concepts.enable_text_tracking(k=2, negative=True)
+    autoencoder.context.text_tracking_enabled = True
+    autoencoder.context.text_tracking_k = 2
+    autoencoder.context.text_tracking_negative = True
+    concepts.enable_text_tracking()
     tracker = concepts.top_texts_tracker
     assert tracker is not None
 

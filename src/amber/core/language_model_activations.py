@@ -7,12 +7,12 @@ from amber.utils import get_logger
 import torch
 
 if TYPE_CHECKING:
-    from amber.core.language_model import LanguageModel
+    from amber.core.language_model_context import LanguageModelContext
 
 
 class LanguageModelActivations:
-    def __init__(self, language_model: "LanguageModel"):
-        self.lm = language_model
+    def __init__(self, context: "LanguageModelContext"):
+        self.context = context
 
     def infer_and_save(
             self,
@@ -30,29 +30,19 @@ class LanguageModelActivations:
             free_cuda_cache_every: int | None = 0,
             verbose: bool = False,
     ):
-        """Run the model over the dataset and persist activations from a chosen layer.
 
-        - Registers a forward hook on the specified layer (by name or index).
-        - Iterates dataset batches of strings, tokenizes using model.tokenizer.
-        - Executes a forward pass to trigger the hook and capture the layer output.
-        - Saves per-batch tensors via the provided Store under {run_name}/batch_XXXXXX.safetensors.
-
-        Saved keys per batch:
-          - activations: Tensor captured from the layer hook (detached on CPU)
-          - input_ids: Tokenized input IDs (CPU tensor)
-          - attention_mask: Attention mask (CPU tensor), if present
-        """
-        if self.lm.model is None:
+        model = self.context.model
+        if model is None:
             raise ValueError("Model must be initialized before running")
 
         if store is None:
-            store = self.lm.store
+            store = self.context.store
 
         if run_name is None:
             import datetime
             run_name = f"activations_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
-        device = next(self.lm.model.parameters()).device  # type: ignore[attr-defined]
+        device = next(model.parameters()).device  # type: ignore[attr-defined]
         device_type = str(getattr(device, 'type', 'cpu'))
 
         logger = get_logger(__name__)
@@ -69,7 +59,7 @@ class LanguageModelActivations:
             ds_len = -1
         meta = {
             "run_name": run_name,
-            "model": getattr(self.lm, "model_name", self.lm.model.__class__.__name__),
+            "model": getattr(self.context.model, "model_name", self.context.model.__class__.__name__),
             "layer_signature": str(layer_signature),
             "dataset": {
                 "cache_dir": ds_id,
@@ -91,8 +81,7 @@ class LanguageModelActivations:
         captured: dict[str, torch.Tensor] = {}
 
         def save_activations_hook(_module, _inputs, output):
-            # Normalize output to a single tensor
-            tensor: torch.Tensor | None = None
+            tensor = None
             if isinstance(output, torch.Tensor):
                 tensor = output
             elif isinstance(output, (tuple, list)):
@@ -112,10 +101,11 @@ class LanguageModelActivations:
             captured["activations"] = tensor.detach().to("cpu")
 
         # Register the hook on the desired layer and keep a handle for cleanup
-        handle = self.lm.layers.register_forward_hook_for_layer(layer_signature, save_activations_hook)
+        handle = self.context.language_model.layers.register_forward_hook_for_layer(layer_signature,
+                                                                                    save_activations_hook)
         batch_counter = 0
         try:
-            with torch.inference_mode():
+            with (torch.inference_mode()):
                 for batch_index, texts in enumerate(dataset.iter_batches(batch_size)):
                     if not texts:
                         continue
@@ -125,7 +115,7 @@ class LanguageModelActivations:
                         tok_kwargs["max_length"] = max_length
 
                     payload: dict[str, torch.Tensor] = {}
-                    res = self.lm._inference(
+                    res = self.context.language_model._inference(
                         texts,
                         tok_kwargs=tok_kwargs,
                         autocast=autocast,

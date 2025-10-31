@@ -8,7 +8,7 @@ def test_autoencoder_init_methods_cover_branches():
         ae = Autoencoder(n_latents=4, n_inputs=4, init_method=method)
         # Ensure shapes are correct after init
         assert ae.encoder.shape == (4, 4)
-        if not ae.tied:
+        if not ae.context.tied:
             assert ae.decoder.shape == (4, 4)
         # Trigger partial re-init path for neuron_indices
         with torch.no_grad():

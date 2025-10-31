@@ -112,8 +112,8 @@ def test_load_with_metadata(tmp_path):
     loaded_model, norm, target_norm, mean = Autoencoder.load_model(model_file)
     
     # Verify loaded model properties
-    assert loaded_model.n_latents == 6
-    assert loaded_model.n_inputs == 10
+    assert loaded_model.context.n_latents == 6
+    assert loaded_model.context.n_inputs == 10
     assert isinstance(loaded_model.activation, TopK)
     assert norm == dataset_normalize
     assert target_norm == dataset_target_norm
@@ -172,7 +172,7 @@ def test_save_load_with_tied_weights(tmp_path):
     
     # Load and verify tied weights
     loaded_model, _, _, _ = Autoencoder.load_model(save_path / "tied_autoencoder.pt")
-    assert loaded_model.tied == True
+    assert loaded_model.context.tied == True
     
     # Verify tied weights are actually tied
     # When tied=True, decoder should be None and encoder should be used for both
@@ -210,7 +210,7 @@ def test_save_load_with_different_devices(tmp_path):
     loaded_model, _, _, _ = Autoencoder.load_model(model_file)
     
     # Verify model is on correct device
-    assert str(loaded_model.device) == "cpu"
+    assert loaded_model.context.device == "cpu"
 
 
 def test_activation_fallback_serialization(tmp_path):
@@ -251,5 +251,5 @@ def test_save_load_with_detach_flag(tmp_path):
     
     # Load and verify
     loaded_model, _, _, _ = Autoencoder.load_model(save_path / "detach_autoencoder.pt")
-    assert loaded_model.n_latents == 4
-    assert loaded_model.n_inputs == 8
+    assert loaded_model.context.n_latents == 4
+    assert loaded_model.context.n_inputs == 8

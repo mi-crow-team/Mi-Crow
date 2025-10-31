@@ -32,7 +32,8 @@ class TestConceptDictionaryPersistence:
             saved_path = dictionary.save()
             
             # Load from directory
-            loaded_dict = ConceptDictionary.from_directory(save_dir)
+            loaded_dict = ConceptDictionary(n_size=0)
+            loaded_dict.load(directory=save_dir)
             
             # Should match
             assert loaded_dict.n_size == size
@@ -157,7 +158,8 @@ class TestConceptDictionaryPersistence:
         dictionary.set_directory(save_dir)
         saved_path = dictionary.save()
         
-        loaded_dict = ConceptDictionary.from_directory(save_dir)
+        loaded_dict = ConceptDictionary(n_size=0)
+        loaded_dict.load(directory=save_dir)
         
         # Check that all concepts were preserved
         loaded_concepts = loaded_dict.get(0)
@@ -186,7 +188,8 @@ class TestConceptDictionaryPersistence:
         dictionary.set_directory(save_dir)
         saved_path = dictionary.save()
         
-        loaded_dict = ConceptDictionary.from_directory(save_dir)
+        loaded_dict = ConceptDictionary(n_size=0)
+        loaded_dict.load(directory=save_dir)
         
         # Check that all concepts were preserved
         assert loaded_dict.n_size == n_size
@@ -221,7 +224,8 @@ class TestConceptDictionaryPersistence:
         dictionary.set_directory(save_dir)
         saved_path = dictionary.save()
         
-        loaded_dict = ConceptDictionary.from_directory(save_dir)
+        loaded_dict = ConceptDictionary(n_size=0)
+        loaded_dict.load(directory=save_dir)
         
         # Check that all concepts were preserved
         loaded_concepts = loaded_dict.get(0)
@@ -245,7 +249,8 @@ class TestConceptDictionaryPersistence:
         dictionary.set_directory(save_dir)
         saved_path = dictionary.save()
         
-        loaded_dict = ConceptDictionary.from_directory(save_dir)
+        loaded_dict = ConceptDictionary(n_size=0)
+        loaded_dict.load(directory=save_dir)
         
         # Check that all concepts were preserved
         concepts_0 = loaded_dict.get(0)
@@ -265,7 +270,8 @@ class TestConceptDictionaryPersistence:
         dictionary.set_directory(save_dir)
         saved_path = dictionary.save()
         
-        loaded_dict = ConceptDictionary.from_directory(save_dir)
+        loaded_dict = ConceptDictionary(n_size=0)
+        loaded_dict.load(directory=save_dir)
         
         # Check that empty dictionary was preserved
         assert loaded_dict.n_size == 5
@@ -291,7 +297,8 @@ class TestConceptDictionaryPersistence:
         
         # Should raise appropriate error when loading
         with pytest.raises(json.JSONDecodeError):
-            ConceptDictionary.from_directory(save_dir)
+            loaded_dict = ConceptDictionary(n_size=0)
+            loaded_dict.load(directory=save_dir)
 
     def test_save_load_with_missing_directory(self, tmp_path):
         """Test handling of missing directory."""
@@ -299,7 +306,8 @@ class TestConceptDictionaryPersistence:
         
         # Should raise FileNotFoundError
         with pytest.raises(FileNotFoundError):
-            ConceptDictionary.from_directory(missing_dir)
+            loaded_dict = ConceptDictionary(n_size=0)
+            loaded_dict.load(directory=missing_dir)
 
     def test_save_load_with_permission_errors(self, tmp_path):
         """Test handling of permission errors."""

@@ -196,25 +196,25 @@ class TestAutoencoderWeightInitialization:
 
     def test_bias_initialization_with_tensor(self):
         """Test bias initialization with tensor."""
-        bias_tensor = torch.randn(20) * 0.1
+        bias_value = 0.1
         autoencoder = Autoencoder(
             n_latents=10,
             n_inputs=20,
-            bias_init=bias_tensor
+            bias_init=bias_value
         )
         
         # Check pre_bias initialization
-        assert torch.equal(autoencoder.pre_bias, bias_tensor)
+        assert torch.all(autoencoder.pre_bias == bias_value)
 
     def test_initialization_preserves_device(self):
         """Test that initialization preserves device placement."""
         if torch.cuda.is_available():
             device = torch.device("cuda")
             autoencoder = Autoencoder(
-                n_latents=10,
-                n_inputs=20,
-                device=device
-            )
+            n_latents=10,
+            n_inputs=20,
+            device=device
+        )
             
             # All parameters should be on the correct device
             assert autoencoder.encoder.device == device
@@ -241,7 +241,10 @@ class TestAutoencoderWeightInitialization:
 
     def test_initialization_with_zero_norm_raises_error(self):
         """Test that initialization with zero norm raises appropriate error."""
-        autoencoder = Autoencoder(n_latents=10, n_inputs=20)
+        autoencoder = Autoencoder(
+            n_latents=10,
+            n_inputs=20
+        )
         
         # This should not raise an error, but weights should be initialized
         # The actual error handling depends on the specific initialization method

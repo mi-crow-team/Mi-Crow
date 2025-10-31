@@ -56,21 +56,23 @@ def test_save_load_errors_and_from_directory_behaviors(tmp_path):
 
     # from_directory on non-existing path raises
     with pytest.raises(FileNotFoundError):
-        ConceptDictionary.from_directory(base)
+        cd_temp = ConceptDictionary(n_size=0)
+        cd_temp.load(directory=base)
 
-    # Create directory without concepts.json -> returns empty dictionary with n_size=0
-    base.mkdir(parents=True)
-    cd3 = ConceptDictionary.from_directory(base)
-    assert cd3.n_size == 0
-    assert cd3.get_many([]) == {}
+    # Create directory without concepts.json -> load raises FileNotFoundError
+    base.mkdir(parents=True, exist_ok=True)
+    cd3 = ConceptDictionary(n_size=0)
+    with pytest.raises(FileNotFoundError):
+        cd3.load(directory=base)
 
-    # Write a minimal concepts.json and ensure from_directory parses it
+    # Write a minimal concepts.json and ensure load parses it
     meta = {
         "n_size": 4,
         "max_concepts": 2,
         "concepts": {"1": [{"name": "z", "score": 0.7}]},
     }
     (base / "concepts.json").write_text(json.dumps(meta), encoding="utf-8")
-    cd4 = ConceptDictionary.from_directory(base)
+    cd4 = ConceptDictionary(n_size=0)
+    cd4.load(directory=base)
     assert cd4.n_size == 4 and cd4.max_concepts == 2
     assert isinstance(cd4.get(1)[0], Concept)

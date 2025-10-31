@@ -8,6 +8,7 @@ from amber.mechanistic.autoencoder.concepts.autoencoder_concepts import Autoenco
 from amber.mechanistic.autoencoder.modules.modules_list import get_activation
 from amber.mechanistic.autoencoder.modules.topk import TopK
 from amber.mechanistic.autoencoder.sae_module import SaeModuleABC
+from amber.mechanistic.autoencoder.autoencoder_context import AutoencoderContext
 from amber.utils import get_logger
 
 if TYPE_CHECKING:
@@ -23,34 +24,35 @@ class Autoencoder(nn.Module):
             n_inputs: int,
             activation: str | nn.Module = nn.ReLU(),
             tied: bool = False,
-            bias_init: torch.Tensor | float = 0.0,
+            bias_init: float = 0.0,
             init_method: str = "kaiming",
             device: str = 'cpu',
             *args: Any,
             **kwargs: Any
     ) -> None:
         super().__init__(*args, **kwargs)
+
+        self.context = AutoencoderContext(
+            autoencoder=self,
+            n_latents=n_latents,
+            n_inputs=n_inputs
+        )
+        self.context.tied = tied
+        self.context.bias_init = bias_init
+        self.context.init_method = init_method
+        self.context.device = device
+
+        # Initialize components using context
         if isinstance(activation, str):
             activation = get_activation(activation)
 
-        self.tied = tied
-        self.n_latents = n_latents
-        self.n_inputs = n_inputs
-        self.init_method = init_method
-        self.bias_init = bias_init
         self.activation = activation
-        self.device = device
         self.metadata = None
 
-        # Language model refs
-        self.lm: LanguageModel | None = None
-        self.lm_layer_signature: int | str | None = None
+        # Create concepts with context
+        self.concepts = AutoencoderConcepts(self.context)
 
-        self.concepts = AutoencoderConcepts(n_latents, self.lm, self.lm_layer_signature)
-
-        self.pre_bias = nn.Parameter(
-            torch.full((n_inputs,), bias_init) if isinstance(bias_init, float) else bias_init.clone()
-        )
+        self.pre_bias = nn.Parameter(torch.full((n_inputs,), bias_init))
         self.encoder = nn.Parameter(torch.zeros((n_latents, n_inputs)).t())
         self.latent_bias = nn.Parameter(torch.zeros(n_latents))
 
@@ -67,24 +69,27 @@ class Autoencoder(nn.Module):
         self.num_updates = 0
         self.dead_latents: list[int] = []
 
+    def enable_text_tracking(self, k: int = 5, negative: bool = False):
+        self.context.text_tracking_enabled = True
+        self.context.text_tracking_k = k
+        self.context.text_tracking_negative = negative
+        self.concepts.enable_text_tracking()
+
+    def disable_text_tracking(self):
+        """Disable text tracking through context."""
+        self.context.text_tracking_enabled = False
+        if self.concepts.top_texts_tracker is not None:
+            self.concepts.top_texts_tracker.detach()
+            self.concepts.top_texts_tracker = None
+
     @torch.no_grad()
     def _init_weights(self, norm=0.1, neuron_indices: list[int] | None = None) -> None:
-        """
-        Initialize weights for encoder and decoder.
-
-        Args:
-            norm: Target norm for initialized weights
-            neuron_indices: Indices of neurons to reinitialize (None for all)
-
-        Raises:
-            ValueError: If init_method is invalid
-        """
         valid_methods = ["kaiming", "xavier", "uniform", "normal"]
-        if self.init_method not in valid_methods:
-            raise ValueError(f"Invalid init_method: {self.init_method}. Choose from: {valid_methods}")
+        if self.context.init_method not in valid_methods:
+            raise ValueError(f"Invalid init_method: {self.context.init_method}. Choose from: {valid_methods}")
 
         # Get decoder reference (either tied to encoder or separate)
-        if self.tied:
+        if self.context.tied:
             decoder_weight = self.encoder.t()
         else:
             decoder_weight = self.decoder
@@ -92,13 +97,13 @@ class Autoencoder(nn.Module):
         # Create new weights with requested initialization
         new_W_dec = torch.zeros_like(decoder_weight)
 
-        if self.init_method == "kaiming":
+        if self.context.init_method == "kaiming":
             new_W_dec = nn.init.kaiming_uniform_(new_W_dec, nonlinearity='relu')
-        elif self.init_method == "xavier":
+        elif self.context.init_method == "xavier":
             new_W_dec = nn.init.xavier_uniform_(new_W_dec, gain=nn.init.calculate_gain('relu'))
-        elif self.init_method == "uniform":
+        elif self.context.init_method == "uniform":
             new_W_dec = nn.init.uniform_(new_W_dec, a=-1, b=1)
-        elif self.init_method == "normal":
+        elif self.context.init_method == "normal":
             new_W_dec = nn.init.normal_(new_W_dec)
 
         # Scale to target norm
@@ -113,13 +118,13 @@ class Autoencoder(nn.Module):
         # Update parameters, either all or only specified indices
         if neuron_indices is None:
             # Update all weights
-            if not self.tied:
+            if not self.context.tied:
                 self.decoder.data = new_W_dec
             self.encoder.data = new_W_enc
             self.latent_bias.data = new_l_bias
         else:
             # Update only specified neurons
-            if not self.tied:
+            if not self.context.tied:
                 self.decoder.data[neuron_indices] = new_W_dec[neuron_indices]
             self.encoder.data[:, neuron_indices] = new_W_enc[:, neuron_indices]
             self.latent_bias.data[neuron_indices] = new_l_bias[neuron_indices]
@@ -132,7 +137,7 @@ class Autoencoder(nn.Module):
         This ensures that each latent dimension's decoder weights
         maintain a specific norm during training.
         """
-        if self.tied:
+        if self.context.tied:
             weights = self.encoder.data.T
             grad = self.encoder.grad.T
         else:
@@ -147,7 +152,7 @@ class Autoencoder(nn.Module):
         grad_proj = (grad * weights).sum(dim=-1, keepdim=True) * weights
 
         # Subtract parallel component from gradients
-        if self.tied:
+        if self.context.tied:
             self.encoder.grad -= grad_proj.T
         else:
             self.decoder.grad -= grad_proj
@@ -162,7 +167,7 @@ class Autoencoder(nn.Module):
         """
         eps = torch.finfo(self.encoder.dtype).eps
 
-        if self.tied:
+        if self.context.tied:
             # For tied weights, normalize encoder's columns without assigning to .T
             # Compute column norms as shape [1, n_latents]
             norm = self.encoder.data.norm(p=2, dim=0, keepdim=True) + eps
@@ -254,7 +259,7 @@ class Autoencoder(nn.Module):
             info = {}
 
         # Apply decoder weights
-        if self.tied:
+        if self.context.tied:
             reconstructed = latents @ self.encoder.t() + self.pre_bias
         else:
             reconstructed = latents @ self.decoder + self.pre_bias
@@ -317,37 +322,19 @@ class Autoencoder(nn.Module):
     def save(
             self,
             name: str,
-            path: str | Path | None = None,
+            path: str | Path,
             *,
             dataset_normalize: bool | None = None,
             dataset_target_norm: Any | None = None,
             dataset_mean: Any | None = None,
             run_metadata: dict[str, Any] | None = None,
     ) -> None:
-        """
-        Save the model along with required metadata so load_model does NOT rely on filename parsing.
-
-        Args:
-            name: Filename without extension.
-            path: Directory to save into. If None, uses activation.default_model_path (if SaeModuleABC) or ./models/relu.
-            metadata: Optional extra metadata. User-provided metadata will NOT override core fields.
-            dataset_normalize: Optional flag used by `load_model`.
-            dataset_target_norm: Optional target norm used by `load_model`.
-            dataset_mean: Optional mean used by `load_model`.
-            run_metadata: Optional metadata describing the activation run used to train this SAE (e.g., dataset/model/run_id).
-        """
-        if path is None:
-            if isinstance(self.activation, SaeModuleABC):
-                path = self.activation.default_model_path
-            else:
-                path = Path("./models/relu")
         save_dir = Path(path)
         save_dir.mkdir(parents=True, exist_ok=True)
         save_path = save_dir / f"{name}.pt"
 
         state = self.state_dict()
 
-        # Serialize activation to a canonical string understood by get_activation
         def _activation_to_str(act: Any) -> str:
             if isinstance(act, str):
                 return act
@@ -356,10 +343,8 @@ class Autoencoder(nn.Module):
             except Exception:
                 TopK = None  # type: ignore
             if TopK is not None and isinstance(act, TopK):
-                # Determine base name based on act_fn
                 base = "TopKReLU" if isinstance(act.act_fn, nn.ReLU) else "TopK"
                 return f"{base}_{getattr(act, 'k', 0)}"
-            # Fallback to class name
             return act.__class__.__name__
 
         activation_name = _activation_to_str(self.activation)
@@ -367,10 +352,14 @@ class Autoencoder(nn.Module):
         # Always save a rich payload with core metadata
         payload: dict[str, Any] = {
             "model": state,
-            "n_latents": self.n_latents,
-            "n_inputs": self.n_inputs,
+            "n_latents": self.context.n_latents,
+            "n_inputs": self.context.n_inputs,
             "activation": activation_name,
-            "tied": self.tied,
+            "tied": self.context.tied,
+            "bias_init": self.context.bias_init,
+            "init_method": self.context.init_method,
+            "layer_signature": self.context.lm_layer_signature,
+            "model_id": self.context.model_id
         }
         if dataset_normalize is not None:
             payload["dataset_normalize"] = dataset_normalize
@@ -390,7 +379,7 @@ class Autoencoder(nn.Module):
             else:
                 path = Path("./models/relu")
         load_path = Path(path) / f"{name}.pt"
-        payload = torch.load(load_path, map_location=self.device)
+        payload = torch.load(load_path, map_location=self.context.device)
         # Support both raw state_dict and dict payloads
         if isinstance(payload, dict) and all(k in payload for k in ("model",)):
             self.load_state_dict(payload["model"])
@@ -423,8 +412,18 @@ class Autoencoder(nn.Module):
         n_inputs = int(payload["n_inputs"])  # type: ignore
         activation = payload["activation"]  # type: ignore
         tied = bool(payload["tied"])  # type: ignore
-        model = Autoencoder(n_latents, n_inputs, activation, tied=tied)
+
+        # Create model with new constructor
+        model = Autoencoder(
+            n_latents=n_latents,
+            n_inputs=n_inputs,
+            activation=activation,
+            tied=tied
+        )
+
+        # Set layer signature if available
         model.load_state_dict(payload["model"])  # type: ignore[arg-type]
+        model.context.lm_layer_signature = payload.get('layer_signature')
         dataset_normalize = bool(payload.get("dataset_normalize", False))
         dataset_target_norm = bool(payload.get("dataset_target_norm", False))
         dataset_mean = payload.get("dataset_mean", torch.zeros(n_inputs))  # type: ignore[assignment]
