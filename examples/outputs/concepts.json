@@ -1,0 +1,42 @@
+{
+  "n_size": 24,
+  "max_concepts": 2,
+  "concepts": {
+    "0": [
+      {
+        "name": "family",
+        "score": 0.9
+      }
+    ],
+    "1": [
+      {
+        "name": "nature",
+        "score": 0.9
+      }
+    ],
+    "2": [
+      {
+        "name": "problem solving",
+        "score": 0.9
+      }
+    ],
+    "3": [
+      {
+        "name": "story",
+        "score": 0.9
+      }
+    ],
+    "4": [
+      {
+        "name": "flowers",
+        "score": 0.9
+      }
+    ],
+    "5": [
+      {
+        "name": "children",
+        "score": 0.9
+      }
+    ]
+  }
+}
