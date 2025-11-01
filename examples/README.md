@@ -1,172 +1,180 @@
-# SAE Examples
+# Amber Examples
 
-This directory contains three Jupyter notebooks that demonstrate a complete workflow for training Sparse Autoencoders (SAEs) and working with neuron-text associations.
+This directory contains example notebooks demonstrating the core functionality of the Amber library for interpretable AI research.
 
-## Overview
+## Example Flow
 
-The examples build upon each other, with each notebook using outputs from the previous one:
+The examples build on each other and should be run in order:
 
-1. **01_train_sae_model.ipynb** - Train a SAE model on language model activations
-2. **02_attach_sae_and_save_texts.ipynb** - Attach SAE to model and collect top texts for neurons
-3. **03_load_and_manipulate_concepts.ipynb** - Load and manipulate concept dictionaries
+### 01_train_sae_model.ipynb
+**Purpose:** Train a Sparse Autoencoder (SAE) on model activations
 
-## Prerequisites
-
-Make sure you have the required dependencies installed:
-
-```bash
-pip install torch transformers datasets
-```
-
-## Usage
-
-### 1. Training SAE Model
-
-Run the first notebook to train a SAE:
-
-```bash
-jupyter notebook examples/01_train_sae_model.ipynb
-```
-
-This will:
-- Load a small language model (tiny-gpt2)
-- Load a dataset (TinyStories)
+**What you'll learn:**
+- Load a language model
 - Save activations from a specific layer
-- Train a SAE on those activations
-- Save the trained SAE model
+- Train an SAE to learn interpretable features
+- Save the trained SAE for future use
 
-**Outputs:**
-- `outputs/sae_model.pt` - Trained SAE model
-- `outputs/training_metadata.json` - Training configuration and metadata
-- `outputs/store/` - Saved activations
-- `outputs/cache/` - Cached dataset
+**Output:** `outputs/sae_model.pt`, `outputs/training_metadata.json`
 
-### 2. Attach SAE and Collect Texts
+---
 
-Run the second notebook to attach the SAE and collect top texts:
+### 02_attach_sae_and_save_texts.ipynb
+**Purpose:** Collect top activating texts for each SAE neuron
+
+**What you'll learn:**
+- Load a trained SAE model
+- Enable automatic text tracking during inference
+- Run inference to collect neuron-text associations
+- Export top texts for manual concept curation
+
+**Output:** `outputs/top_texts.json`, `outputs/attachment_metadata.json`
+
+**Key functionality:**
+- Text tracking runs automatically during model inference
+- Each neuron tracks its top-K most activating text snippets
+- Results can be exported for manual concept labeling
+
+---
+
+### 03_load_and_manipulate_concepts.ipynb
+**Purpose:** Control model behavior using learned concepts
+
+**What you'll learn:**
+
+#### Part 1: SAE-Level Manipulation
+- Load curated concepts (neuron → concept name mappings)
+- Use `manipulate_concept()` to amplify/suppress specific SAE neurons
+- Compare model behavior with different concept strengths
+
+#### Part 2: Activation Control
+- Create custom activation controllers
+- Amplify or suppress layer activations during inference
+- Enable/disable controllers dynamically
+- Use `with_controllers` parameter for A/B testing
+- Control model generation in real-time
+
+**Key concepts:**
+- **SAE manipulation:** Control specific learned features
+- **Activation controllers:** Fine-grained control over any layer
+- **Dynamic control:** Toggle interventions on/off
+- **Temporary control:** Compare with/without interventions
+
+---
+
+## Quick Start
 
 ```bash
+# Run all examples in order
+jupyter notebook examples/01_train_sae_model.ipynb
 jupyter notebook examples/02_attach_sae_and_save_texts.ipynb
-```
-
-This will:
-- Load the trained SAE from the previous step
-- Attach it to the language model
-- Enable text tracking for neurons
-- Run inference on new text data
-- Collect top activating texts for each neuron
-
-**Outputs:**
-- `outputs/top_texts.json` - Top texts for each neuron
-- `outputs/concept_dictionary/` - Concept dictionary
-- `outputs/attachment_metadata.json` - Attachment metadata
-
-### 3. Load and Manipulate Concepts
-
-Run the third notebook to work with the collected concepts:
-
-```bash
 jupyter notebook examples/03_load_and_manipulate_concepts.ipynb
 ```
 
-This will:
-- Load the top texts and concept dictionary
-- Demonstrate concept manipulation
-- Export concepts to different formats
-- Analyze concept patterns and relationships
-- Create comprehensive analysis reports
+## Requirements
 
-**Outputs:**
-- `outputs/concepts_export.json` - Concept dictionary in JSON format
-- `outputs/concepts_export.csv` - Concept dictionary in CSV format
-- `outputs/concept_analysis_report.json` - Comprehensive analysis report
+- Python 3.10+
+- PyTorch
+- Transformers
+- Jupyter
 
-## Configuration
-
-Each notebook has configuration sections at the top where you can modify:
-
-- **Model**: Change the language model (default: `sshleifer/tiny-gpt2`)
-- **Dataset**: Change the dataset (default: `roneneldan/TinyStories`)
-- **Layer**: Choose which layer to analyze (default: attention projection layer)
-- **Data limits**: Adjust the amount of data to process
-- **SAE parameters**: Modify SAE architecture and training parameters
-- **Text tracking**: Configure how many top texts to collect per neuron
-
-## Key Features Demonstrated
-
-### SAE Training
-- Loading language models and datasets
-- Saving activations from specific layers
-- Training SAEs with various configurations
-- Saving trained models with metadata
-
-### Text Collection
-- Attaching SAEs to language models
-- Enabling text tracking for neurons
-- Collecting top activating texts
-- Managing concept dictionaries
-
-### Concept Manipulation
-- Creating and modifying concept dictionaries
-- Adding, removing, and sorting concepts
-- Exporting to different formats (JSON, CSV)
-- Loading concepts from various sources
-- Analyzing concept patterns and relationships
-
-## File Structure
-
-```
-examples/
-├── 01_train_sae_model.ipynb
-├── 02_attach_sae_and_save_texts.ipynb
-├── 03_load_and_manipulate_concepts.ipynb
-├── README.md
-└── outputs/
-    ├── sae_model.pt
-    ├── training_metadata.json
-    ├── attachment_metadata.json
-    ├── top_texts.json
-    ├── concepts_export.json
-    ├── concepts_export.csv
-    ├── concept_analysis_report.json
-    ├── concept_dictionary/
-    ├── store/
-    └── cache/
+Install dependencies:
+```bash
+pip install -e .
 ```
 
-## Troubleshooting
+## Output Directory Structure
 
-### Common Issues
+```
+examples/outputs/
+├── sae_model.pt                    # Trained SAE model
+├── training_metadata.json          # Training configuration
+├── attachment_metadata.json        # Attachment configuration
+├── top_texts.json                  # Top activating texts per neuron
+├── curated_concepts.csv           # Manual concept labels (create this!)
+├── store/                         # Saved activations
+│   └── activations/
+│       └── sae_training_*/
+│           ├── batch_*.safetensors
+│           └── meta.json
+└── cache/                         # HuggingFace cache
+```
 
-1. **CUDA out of memory**: Reduce `DATA_LIMIT` or `BATCH_SIZE_*` parameters
-2. **Model not found**: Ensure you have internet connection for downloading models
-3. **Previous outputs missing**: Run notebooks in order (01 → 02 → 03)
-4. **Slow performance**: Use smaller models or reduce data limits
+## Creating Curated Concepts
 
-### Performance Tips
+After running Example 2, manually create `outputs/curated_concepts.csv`:
 
-- Use GPU if available (automatically detected)
-- Start with small data limits for testing
-- Use smaller models for quick experimentation
-- Adjust batch sizes based on available memory
+```csv
+neuron_idx,concept_name,score
+0,family relationships,0.9
+0,parent-child interactions,0.8
+1,nature and outdoors,0.9
+1,animals and wildlife,0.8
+```
 
-## Next Steps
+This file maps neurons to human-interpretable concept names for use in Example 3.
 
-After running these examples, you can:
+## Advanced Usage
 
-- Experiment with different language models and layers
-- Modify SAE architectures and training parameters
-- Analyze different types of text data
-- Build custom concept analysis tools
-- Integrate SAEs into your own projects
+### Custom Controllers
 
-## API Reference
+Create your own controllers by inheriting from `Controller`:
 
-The examples demonstrate the following key APIs:
+```python
+from amber.hooks import Controller, HookType
 
-- `LanguageModel.from_huggingface()` - Load language models
-- `TextSnippetDataset.from_huggingface()` - Load text datasets
-- `model.activations.infer_and_save()` - Save activations
-- `SAETrainer` - Train SAE models
-- `AutoencoderConcepts` - Manage neuron-text associations
-- `ConceptDictionary` - Store and manipulate concepts
+class MyController(Controller):
+    def __init__(self, layer_signature):
+        super().__init__(layer_signature, HookType.FORWARD)
+    
+    def modify_activations(self, module, inputs, output):
+        # Your custom modification logic
+        return output * 2.0
+
+# Register and use
+controller = MyController("layer_name")
+hook_id = model.layers.register_hook("layer_name", controller)
+```
+
+### Multiple Controllers
+
+You can register multiple controllers on different layers:
+
+```python
+# Amplify early layer
+early_amplifier = SimpleActivationController("layer_0", scale_factor=2.0)
+model.layers.register_hook("layer_0", early_amplifier)
+
+# Suppress late layer
+late_suppressor = SimpleActivationController("layer_10", scale_factor=0.5)
+model.layers.register_hook("layer_10", late_suppressor)
+
+# All controllers active during inference
+output = model.forwards(texts)
+```
+
+### A/B Testing
+
+Use `with_controllers` to compare results:
+
+```python
+# Get baseline
+baseline = model.forwards(prompt, with_controllers=False)
+
+# Get controlled version
+controlled = model.forwards(prompt, with_controllers=True)
+
+# Compare
+difference = controlled.logits - baseline.logits
+```
+
+## Tips
+
+1. **Start small:** Use small models (like `sshleifer/tiny-gpt2`) for quick experimentation
+2. **Monitor activations:** Check activation ranges when scaling to avoid instability
+3. **Compare results:** Always compare controlled vs uncontrolled inference
+4. **Clean up:** Unregister controllers when done to avoid memory leaks
+
+## Support
+
+For issues or questions, please open an issue on the GitHub repository.

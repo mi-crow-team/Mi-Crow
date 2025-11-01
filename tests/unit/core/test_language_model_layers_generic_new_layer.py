@@ -1,8 +1,19 @@
 import pytest
 import torch
 from torch import nn
+from dataclasses import dataclass, field
+from typing import Dict, List, Any
 
 from amber.core.language_model_layers import LanguageModelLayers
+
+
+@dataclass
+class MockContext:
+    """Mock context for testing."""
+    language_model: Any
+    model: nn.Module | None = None
+    _hook_registry: Dict[str | int, Dict[str, List[tuple[Any, Any]]]] = field(default_factory=dict)
+    _hook_id_map: Dict[str, tuple[str | int, str, Any]] = field(default_factory=dict)
 
 
 class Block(nn.Module):
@@ -72,7 +83,8 @@ def test_register_new_layer_generic_child_output_selection(child_cls):
     torch.manual_seed(0)
     d = 7
     model = TinyModel(d)
-    layers = LanguageModelLayers(lm=object(), model=model)
+    context = MockContext(language_model=object(), model=model)
+    layers = LanguageModelLayers(context=context)
 
     child = child_cls(d)
     hook = layers.register_new_layer("child", child, after_layer_signature=_sig(model))
@@ -88,7 +100,8 @@ def test_register_new_layer_generic_child_output_selection(child_cls):
 def test_register_new_layer_generic_child_unsupported_type_raises():
     d = 5
     model = TinyModel(d)
-    layers = LanguageModelLayers(lm=object(), model=model)
+    context = MockContext(language_model=object(), model=model)
+    layers = LanguageModelLayers(context=context)
 
     bad = ReturnsBad()
     hook = layers.register_new_layer("bad", bad, after_layer_signature=_sig(model))

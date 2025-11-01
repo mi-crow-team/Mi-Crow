@@ -1,8 +1,19 @@
 import pytest
 import torch
 from torch import nn
+from dataclasses import dataclass, field
+from typing import Dict, List, Any
 
 from amber.core.language_model_layers import LanguageModelLayers
+
+
+@dataclass
+class MockContext:
+    """Mock context for testing."""
+    language_model: Any
+    model: nn.Module | None = None
+    _hook_registry: Dict[str | int, Dict[str, List[tuple[Any, Any]]]] = field(default_factory=dict)
+    _hook_id_map: Dict[str, tuple[str | int, str, Any]] = field(default_factory=dict)
 
 
 class ParentReturnsBad(nn.Module):
@@ -35,7 +46,8 @@ class Passthrough(nn.Module):
 
 def test_register_new_layer_raises_when_parent_output_has_no_tensor():
     m = Model(d=3)
-    layers = LanguageModelLayers(lm=object(), model=m)
+    context = MockContext(language_model=object(), model=m)
+    layers = LanguageModelLayers(context=context)
     # child won't be called because parent output can't be converted to tensor input
     hook = layers.register_new_layer("pt", Passthrough(), after_layer_signature=_sig(m))
     try:
@@ -62,7 +74,8 @@ def test_register_new_layer_wraps_child_forward_exception():
             return self.block(x)
 
     m2 = M2(4)
-    layers = LanguageModelLayers(lm=object(), model=m2)
+    context = MockContext(language_model=object(), model=m2)
+    layers = LanguageModelLayers(context=context)
     hook = layers.register_new_layer("bad", ChildRaises(), after_layer_signature=_sig(m2))
     try:
         with pytest.raises(RuntimeError):

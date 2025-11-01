@@ -1,6 +1,8 @@
 import pytest
 import torch
 from torch import nn
+from dataclasses import dataclass, field
+from typing import Dict, List, Any
 
 from amber.core.language_model_layers import LanguageModelLayers
 
@@ -36,9 +38,19 @@ class TinyNestedModel(nn.Module):
         return x
 
 
+@dataclass
+class MockContext:
+    """Mock context for testing."""
+    language_model: Any
+    model: nn.Module | None = None
+    _hook_registry: Dict[str | int, Dict[str, List[tuple[Any, Any]]]] = field(default_factory=dict)
+    _hook_id_map: Dict[str, tuple[str | int, str, Any]] = field(default_factory=dict)
+
+
 def test_get_layer_names_and_errors():
     model = TinyNestedModel(4)
-    layers = LanguageModelLayers(lm=object(), model=model)
+    context = MockContext(language_model=object(), model=model)
+    layers = LanguageModelLayers(context=context)
     names = layers.get_layer_names()
     # Should contain flattened names for a and container_0
     assert any(name.endswith('_a') for name in names)
@@ -60,7 +72,8 @@ def test_get_layer_names_and_errors():
 def test_register_forward_and_pre_forward_hooks_fire():
     torch.manual_seed(0)
     model = TinyNestedModel(3)
-    layers = LanguageModelLayers(lm=object(), model=model)
+    context = MockContext(language_model=object(), model=model)
+    layers = LanguageModelLayers(context=context)
 
     call_order: list[str] = []
 
@@ -92,7 +105,8 @@ class DoubleLayer(nn.Module):
 def test_register_new_layer_replaces_output_for_generic_layer():
     torch.manual_seed(0)
     model = TinyNestedModel(4)
-    layers = LanguageModelLayers(lm=object(), model=model)
+    context = MockContext(language_model=object(), model=model)
+    layers = LanguageModelLayers(context=context)
 
     # Attach a simple layer after BlockA that doubles activations
     # Find the signature for the 'a' block

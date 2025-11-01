@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING, Sequence, Any
 
 import heapq
 import torch
@@ -6,15 +6,17 @@ import torch
 from amber.utils import get_logger
 from amber.mechanistic.autoencoder.concepts.concept_models import NeuronText
 from amber.mechanistic.autoencoder.autoencoder_context import AutoencoderContext
+from amber.hooks.detector import Detector
+from amber.hooks.hook import HookType
 
 if TYPE_CHECKING:
     from amber.core.language_model import LanguageModel
+    from torch import nn
 
 logger = get_logger(__name__)
 
 
-# TODO: Maybe we can make it inherit Tracker ABC?
-class TopNeuronTexts:
+class TopNeuronTexts(Detector):
 
     def __init__(
             self,
@@ -22,8 +24,17 @@ class TopNeuronTexts:
             k: int = 5,
             *,
             nth_tensor: int = 1,
-            negative: bool = False
+            negative: bool = False,
+            hook_id: str | None = None
     ) -> None:
+        # Initialize detector with layer signature
+        super().__init__(
+            layer_signature=context.lm_layer_signature,
+            hook_type=HookType.FORWARD,
+            hook_id=hook_id,
+            store=None  # We don't use store in TopNeuronTexts
+        )
+        
         self.context = context
         if self.context.text_tracking_k <= 0:
             raise ValueError("k must be positive")
@@ -34,10 +45,21 @@ class TopNeuronTexts:
         self._heaps: list[list[tuple[float, tuple[float, str]]]] | None = None
         self.last_activations: torch.Tensor | None = None
 
-        # Register with LM for texts and forward hook for activations
+        # Register with LM for texts and use new hook system
         self.nth_tensor = nth_tensor
-        self._hook_handle = self.context.lm.layers.register_forward_hook_for_layer(self.context.lm_layer_signature,
-                                                                                   self._activations_hook)
+        self._hook_handle = None
+        
+        # Register using the new hook system
+        try:
+            hook_id = self.context.lm.layers.register_hook(
+                self.context.lm_layer_signature,
+                self
+            )
+            self.id = hook_id  # Update our ID to match what was registered
+        except Exception as e:
+            logger.error(f"Failed to register TopNeuronTexts hook: {e}")
+            raise
+        
         try:
             self.context.lm.register_activation_text_tracker(self)
         except Exception:
@@ -45,9 +67,10 @@ class TopNeuronTexts:
         logger.debug("Registered activations hook and tracker for TopNeuronTexts")
 
     def detach(self) -> None:
+        """Unregister this hook from the language model."""
         try:
-            if hasattr(self, "_hook_handle") and self._hook_handle is not None:
-                self._hook_handle.remove()
+            # Use new hook system to unregister
+            self.context.lm.layers.unregister_hook(self.id)
         except Exception:
             pass
         try:
@@ -128,7 +151,12 @@ class TopNeuronTexts:
                     if adj > heap[0][0]:
                         heapq.heapreplace(heap, (adj, (score, text, token_idx)))
 
-    def _activations_hook(self, _module, _input, output):
+    def process_activations(self, module: "nn.Module", inputs: tuple, output: Any) -> None:
+        """
+        Process activations from the hooked layer.
+        
+        Extracts tensor from output, updates heaps with top activations.
+        """
         # Normalize output to a tensor
         tensor: torch.Tensor | None = None
         if isinstance(output, torch.Tensor):

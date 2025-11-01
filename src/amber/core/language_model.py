@@ -80,6 +80,7 @@ class LanguageModel:
             autocast_dtype: torch.dtype | None = None,
             discard_output: bool = False,
             save_inputs: bool = False,
+            with_controllers: bool = True,
     ):
         if tok_kwargs is None:
             tok_kwargs = {}
@@ -111,13 +112,27 @@ class LanguageModel:
             logger.exception("Error setting current texts on activation tracker")
             pass
 
-        with torch.inference_mode():
-            if autocast and device_type == "cuda":
-                amp_dtype = autocast_dtype or torch.float16
-                with torch.autocast(device_type, dtype=amp_dtype):
+        # Temporarily disable controllers if requested
+        controllers_to_restore = []
+        if not with_controllers:
+            controllers = self.layers.get_controllers()
+            for controller in controllers:
+                if controller.enabled:
+                    controller.disable()
+                    controllers_to_restore.append(controller)
+        
+        try:
+            with torch.inference_mode():
+                if autocast and device_type == "cuda":
+                    amp_dtype = autocast_dtype or torch.float16
+                    with torch.autocast(device_type, dtype=amp_dtype):
+                        output = self.model(**enc)
+                else:
                     output = self.model(**enc)
-            else:
-                output = self.model(**enc)
+        finally:
+            # Re-enable controllers that were disabled
+            for controller in controllers_to_restore:
+                controller.enable()
 
         if discard_output:
             if save_inputs:
@@ -138,6 +153,7 @@ class LanguageModel:
             tok_kwargs: Dict | None = None,
             autocast: bool = True,
             autocast_dtype: torch.dtype | None = None,
+            with_controllers: bool = True,
     ):
         return self._inference(
             texts,
@@ -145,7 +161,8 @@ class LanguageModel:
             autocast=autocast,
             autocast_dtype=autocast_dtype,
             discard_output=False,
-            save_inputs=False
+            save_inputs=False,
+            with_controllers=with_controllers
         )
 
     def register_activation_text_tracker(self, tracker: Any) -> None:

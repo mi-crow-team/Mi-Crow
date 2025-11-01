@@ -18,6 +18,15 @@ class _FakeLayers:
         # store for potential introspection if needed
         self._hook = hook
         return _DummyHandle()
+    
+    def register_hook(self, layer_signature, hook, hook_type=None):
+        """Fake register_hook that returns a hook_id."""
+        import uuid
+        return hook.id or str(uuid.uuid4())
+    
+    def unregister_hook(self, hook_id):
+        """Fake unregister_hook."""
+        pass
 
 
 class _FakeLM:
@@ -78,7 +87,7 @@ def test_enable_and_disable_text_tracking_positive_max_over_tokens():
     ])
 
     # Call the internal hook directly to avoid needing a real model
-    tracker._activations_hook(None, None, tens)
+    tracker.process_activations(None, None, tens)
 
     # Top texts for neuron 0 should be sorted by descending score
     tops0 = concepts.get_top_texts_for_neuron(0)
@@ -126,7 +135,7 @@ def test_negative_tracking_uses_min_over_tokens_and_asc_sort():
         [[1.0, -1.0], [2.0, -0.5]],  # sample 0 -> min per D: [1.0, -1.0]
         [[0.3, -0.7], [0.2, -0.9]],  # sample 1 -> min per D: [0.2, -0.9]
     ])
-    tracker._activations_hook(None, None, tens)
+    tracker.process_activations(None, None, tens)
 
     # For negative mode, items should be sorted ascending by actual score
     tops0 = concepts.get_top_texts_for_neuron(1)  # neuron 1 collects -1.0 (a) and -0.9 (b)

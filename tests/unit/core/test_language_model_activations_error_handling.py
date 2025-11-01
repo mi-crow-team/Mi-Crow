@@ -88,8 +88,14 @@ class ErrorProneModel(nn.Module):
         self.emb = nn.Embedding(100, 4)
         self.lin = nn.Linear(4, 4)
         self.error_type = error_type
-        self.config = Mock()
-        self.config.pad_token_id = None
+        
+        # Create a config with proper string attributes
+        class SimpleConfig:
+            def __init__(self):
+                self.pad_token_id = None
+                self.name_or_path = "ErrorProneModel"
+        
+        self.config = SimpleConfig()
     
     def forward(self, input_ids, attention_mask=None):
         if self.error_type == "forward_error":

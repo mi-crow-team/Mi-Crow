@@ -54,8 +54,14 @@ class MockModel(nn.Module):
         super().__init__()
         self.embedding = nn.Embedding(vocab_size, d_model)
         self.linear = nn.Linear(d_model, d_model)
-        self.config = Mock()
-        self.config.pad_token_id = None
+        
+        # Create a config with proper string attributes
+        class SimpleConfig:
+            def __init__(self):
+                self.pad_token_id = None
+                self.name_or_path = "MockModel"
+        
+        self.config = SimpleConfig()
 
     def forward(self, input_ids, attention_mask=None):
         x = self.embedding(input_ids)

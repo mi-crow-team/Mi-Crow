@@ -54,8 +54,14 @@ class MockModel(nn.Module):
         super().__init__()
         self.embedding = nn.Embedding(vocab_size, d_model)
         self.linear = nn.Linear(d_model, d_model)
-        self.config = Mock()
-        self.config.pad_token_id = None
+        
+        # Create a config with proper string attributes
+        class SimpleConfig:
+            def __init__(self):
+                self.pad_token_id = None
+                self.name_or_path = "MockModel"
+        
+        self.config = SimpleConfig()
 
     def forward(self, input_ids, attention_mask=None):
         x = self.embedding(input_ids)
@@ -97,7 +103,7 @@ class TestLanguageModelDeviceHandling:
         lm = LanguageModel(model=model, tokenizer=tokenizer)
         
         # Move model to CUDA
-        lm._model = lm._model.cuda()
+        lm.context.model = lm.context.model.cuda()
         
         # Model should be on CUDA
         assert lm.model.device.type == "cuda"
@@ -117,7 +123,7 @@ class TestLanguageModelDeviceHandling:
         lm = LanguageModel(model=model, tokenizer=tokenizer)
         
         # Move model to MPS
-        lm._model = lm._model.to("mps")
+        lm.context.model = lm.context.model.to("mps")
         
         # Model should be on MPS
         assert lm.model.device.type == "mps"
@@ -142,7 +148,7 @@ class TestLanguageModelDeviceHandling:
         
         for device in devices:
             # Move model to device
-            lm._model = lm._model.to(device)
+            lm.context.model = lm.context.model.to(device)
             
             # Test activation extraction
             input_ids = torch.tensor([[1, 2, 3]]).to(device)
@@ -162,7 +168,7 @@ class TestLanguageModelDeviceHandling:
         
         for dtype in dtypes:
             # Convert model to dtype
-            lm._model = lm._model.to(dtype)
+            lm.context.model = lm.context.model.to(dtype)
             
             # Test forward pass
             input_ids = torch.tensor([[1, 2, 3]])
@@ -180,7 +186,7 @@ class TestLanguageModelDeviceHandling:
         # Test with model on CPU and input on different device
         if torch.cuda.is_available():
             # Model on CPU, input on CUDA
-            lm._model = lm._model.cpu()
+            lm.context.model = lm.context.model.cpu()
             input_ids = torch.tensor([[1, 2, 3]]).cuda()
             
             # Should handle device mismatch gracefully
@@ -202,7 +208,7 @@ class TestLanguageModelDeviceHandling:
         
         for device in devices:
             # Move model to device
-            lm._model = lm._model.to(device)
+            lm.context.model = lm.context.model.to(device)
             
             # Test multiple operations
             input_ids = torch.tensor([[1, 2, 3]]).to(device)
@@ -233,7 +239,7 @@ class TestLanguageModelDeviceHandling:
         
         for device in devices:
             # Move model to device
-            lm._model = lm._model.to(device)
+            lm.context.model = lm.context.model.to(device)
             
             # Test with attention mask
             input_ids = torch.tensor([[1, 2, 3]]).to(device)
@@ -255,7 +261,7 @@ class TestLanguageModelDeviceHandling:
         
         for batch_size in batch_sizes:
             # Test on CPU
-            lm._model = lm._model.cpu()
+            lm.context.model = lm.context.model.cpu()
             input_ids = torch.randint(0, 100, (batch_size, 3))
             output = lm.model(input_ids)
             
@@ -274,7 +280,7 @@ class TestLanguageModelDeviceHandling:
         
         for seq_len in sequence_lengths:
             # Test on CPU
-            lm._model = lm._model.cpu()
+            lm.context.model = lm.context.model.cpu()
             input_ids = torch.randint(0, 100, (2, seq_len))
             output = lm.model(input_ids)
             
@@ -297,7 +303,7 @@ class TestLanguageModelDeviceHandling:
         
         for device in devices:
             # Move model to device
-            lm._model = lm._model.to(device)
+            lm.context.model = lm.context.model.to(device)
             
             # Test with gradient computation
             input_ids = torch.tensor([[1, 2, 3]]).to(device)
@@ -327,7 +333,7 @@ class TestLanguageModelDeviceHandling:
         
         for device in devices:
             # Move model to device
-            lm._model = lm._model.to(device)
+            lm.context.model = lm.context.model.to(device)
             
             # All parameters should be on correct device
             for param in lm.model.parameters():
@@ -352,7 +358,7 @@ class TestLanguageModelDeviceHandling:
         
         for device in devices:
             # Move model to device
-            lm._model = lm._model.to(device)
+            lm.context.model = lm.context.model.to(device)
             
             # Get state dict
             state_dict = lm.model.state_dict()
@@ -376,7 +382,7 @@ class TestLanguageModelDeviceHandling:
         
         for device in devices:
             # Move model to device
-            lm._model = lm._model.to(device)
+            lm.context.model = lm.context.model.to(device)
             
             # Set to eval mode
             lm.model.eval()
@@ -406,7 +412,7 @@ class TestLanguageModelDeviceHandling:
         
         for device in devices:
             # Move model to device
-            lm._model = lm._model.to(device)
+            lm.context.model = lm.context.model.to(device)
             
             # Set to train mode
             lm.model.train()
