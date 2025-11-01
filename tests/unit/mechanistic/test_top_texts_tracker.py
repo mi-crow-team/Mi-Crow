@@ -91,13 +91,19 @@ def test_top_texts_tracker_positive_and_negative(tmp_path):
     target_layer_name = _find_layer_name(lm, net.synthetic)
 
     # Attach via AutoencoderConcepts
-    concepts = AutoencoderConcepts(n_size=3)
+    # AutoencoderConcepts expects a context
+    from amber.mechanistic.autoencoder.autoencoder import Autoencoder
+    sae = Autoencoder(n_latents=3, n_inputs=8)
+    concepts = AutoencoderConcepts(sae.context)
     # Provide LM and layer context and enable tracking
-    concepts.lm = lm
-    concepts.lm_layer_signature = target_layer_name
+    concepts.context.lm = lm
+    concepts.context.lm_layer_signature = target_layer_name
+    concepts.context.text_tracking_k = 2
+    concepts.context.text_tracking_negative = False
+    concepts.context.text_tracking_enabled = True
 
     # Positive tracking: higher token id -> higher score on neuron 0
-    concepts.enable_text_tracking(k=2, negative=False)
+    concepts.enable_text_tracking()
 
     texts1 = ["a", "b", "c"]  # ids will be 1,2,3 (in this call order)
     lm.forwards(texts1)
@@ -118,7 +124,10 @@ def test_top_texts_tracker_positive_and_negative(tmp_path):
     # Now test negative tracking on neuron 1 (-id): most-negative = lowest value
     # Detach previous and re-enable with negative=True
     concepts.disable_text_tracking()
-    concepts.enable_text_tracking(k=3, negative=True)
+    concepts.context.text_tracking_k = 3
+    concepts.context.text_tracking_negative = True
+    concepts.context.text_tracking_enabled = True
+    concepts.enable_text_tracking()
 
     # Re-run over a combined set
     lm.forwards(["a", "b", "c", "d", "e"])  # ids 1..5

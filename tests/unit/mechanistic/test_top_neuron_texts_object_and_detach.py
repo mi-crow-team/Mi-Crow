@@ -2,6 +2,7 @@ import torch
 from torch import nn
 
 from amber.mechanistic.autoencoder.concepts.top_neuron_texts import TopNeuronTexts
+from amber.mechanistic.autoencoder.autoencoder import Autoencoder
 
 
 class FakeLayers:
@@ -13,6 +14,15 @@ class FakeLayers:
                 # no-op
                 pass
         return H()
+    
+    def register_hook(self, layer_signature, hook, hook_type=None):
+        """Fake register_hook that returns a hook_id."""
+        import uuid
+        return hook.id or str(uuid.uuid4())
+    
+    def unregister_hook(self, hook_id):
+        """Fake unregister_hook."""
+        pass
 
 
 class FakeLM:
@@ -35,12 +45,18 @@ class Obj:
 
 def test_hook_accepts_object_with_last_hidden_state_and_detach_is_safe():
     lm = FakeLM()
-    tnt = TopNeuronTexts(lm=lm, layer_signature="sig", k=1)
+    # Create context for TopNeuronTexts
+    sae = Autoencoder(n_latents=8, n_inputs=8)
+    context = sae.context
+    context.lm = lm
+    context.lm_layer_signature = "sig"
+    context.text_tracking_k = 1
+    tnt = TopNeuronTexts(context, k=1)
     tnt.set_current_texts(["hello"])  # set texts for update
 
     tens = torch.randn(1, 2, 3)
     # Call hook with object exposing last_hidden_state to cover that branch
-    tnt._activations_hook(None, None, Obj(tens))
+    tnt.process_activations(None, None, Obj(tens))
 
     # Heaps should have entries now
     all_lists = tnt.get_all()

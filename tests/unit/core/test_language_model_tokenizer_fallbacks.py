@@ -81,7 +81,7 @@ def test_tokenizer_encode_plus_and_pad_fallback_respects_return_tensors():
     assert isinstance(out["input_ids"], torch.Tensor)
     assert out["input_ids"].shape[0] == 2
     # pad_token should be derived from eos and model config updated
-    assert lm.lm_tokenizer._tokenizer.pad_token == "<eos>"
+    assert lm.tokenizer.pad_token == "<eos>"
     assert lm.model.config.pad_token_id == tok.eos_token_id
 
 

@@ -1,8 +1,19 @@
 import pytest
 import torch
 from torch import nn
+from dataclasses import dataclass, field
+from typing import Dict, List, Any
 
 from amber.core.language_model_layers import LanguageModelLayers
+
+
+@dataclass
+class MockContext:
+    """Mock context for testing."""
+    language_model: Any
+    model: nn.Module | None = None
+    _hook_registry: Dict[str | int, Dict[str, List[tuple[Any, Any]]]] = field(default_factory=dict)
+    _hook_id_map: Dict[str, tuple[str | int, str, Any]] = field(default_factory=dict)
 
 
 class ComplexOutputLayer(nn.Module):
@@ -73,7 +84,8 @@ def test_generic_layer_output_extraction_fallbacks():
     """Test generic layer output extraction with various fallback scenarios."""
     d = 8
     model = NestedModel(d)
-    layers = LanguageModelLayers(lm=object(), model=model)
+    context = MockContext(language_model=object(), model=model)
+    layers = LanguageModelLayers(context=context)
     
     # Test with ComplexOutputLayer (returns tuple with tensors)
     complex_layer_name = None
@@ -101,7 +113,8 @@ def test_no_tensor_output_raises_error():
     """Test that layers returning no tensors raise appropriate errors."""
     d = 8
     model = NestedModel(d)
-    layers = LanguageModelLayers(lm=object(), model=model)
+    context = MockContext(language_model=object(), model=model)
+    layers = LanguageModelLayers(context=context)
 
     # Test with NoTensorOutputLayer
     no_tensor_layer_name = None
@@ -128,7 +141,8 @@ def test_complex_nested_layer_scenarios():
     """Test complex nested layer scenarios with multiple levels of nesting."""
     d = 6
     model = NestedModel(d)
-    layers = LanguageModelLayers(lm=object(), model=model)
+    context = MockContext(language_model=object(), model=model)
+    layers = LanguageModelLayers(context=context)
     
     # Test that we can find layers at different nesting levels
     layer_names = layers.get_layer_names()
@@ -176,7 +190,8 @@ def test_layer_output_shape_handling():
             return self.final(x)
     
     model = ShapeTestModel(d)
-    layers = LanguageModelLayers(lm=object(), model=model)
+    context = MockContext(language_model=object(), model=model)
+    layers = LanguageModelLayers(context=context)
     
     # Find the shape test layer
     shape_layer_name = None
@@ -222,7 +237,8 @@ def test_layer_registration_with_complex_signatures():
             return self.deep_block(x)
     
     model = DeepNestedModel(d)
-    layers = LanguageModelLayers(lm=object(), model=model)
+    context = MockContext(language_model=object(), model=model)
+    layers = LanguageModelLayers(context=context)
     
     # Test that we can find deeply nested layers
     layer_names = layers.get_layer_names()
@@ -270,7 +286,8 @@ def test_layer_output_type_handling():
             return self.final(x)
     
     model = TypeTestModel(d)
-    layers = LanguageModelLayers(lm=object(), model=model)
+    context = MockContext(language_model=object(), model=model)
+    layers = LanguageModelLayers(context=context)
     
     # Find the type test layer
     type_layer_name = None

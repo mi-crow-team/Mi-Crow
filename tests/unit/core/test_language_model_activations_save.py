@@ -16,6 +16,7 @@ class TinyLM(nn.Module):
 
         class Cfg:
             pad_token_id = None
+            name_or_path = "TinyLM"
         self.config = Cfg()
 
     def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor | None = None):
@@ -62,7 +63,7 @@ def test_infer_and_save_writes_batches_and_meta(tmp_path):
     tok = FakeTokenizer()
     lm = LanguageModel(model=model, tokenizer=tok, store=LocalStore(tmp_path / "store"))
 
-    lma = LanguageModelActivations(lm)
+    lma = LanguageModelActivations(lm.context)
     run = "unittest_run"
     layer_sig = _layer_sig(model)
 

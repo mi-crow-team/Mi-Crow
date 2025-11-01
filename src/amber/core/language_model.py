@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Callable, Sequence, Any, Dict
+from typing import Callable, Sequence, Any, Dict, Union, TYPE_CHECKING
 
 import torch
 from torch import nn
@@ -8,8 +8,12 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from amber.core.language_model_layers import LanguageModelLayers
 from amber.core.language_model_tokenizer import LanguageModelTokenizer
 from amber.core.language_model_activations import LanguageModelActivations
-from amber.store import Store, LocalStore
+from amber.core.language_model_context import LanguageModelContext
+from amber.store import Store
 from amber.utils import get_logger
+
+if TYPE_CHECKING:
+    pass
 
 logger = get_logger(__name__)
 
@@ -25,23 +29,45 @@ class LanguageModel:
             tokenizer: AutoTokenizer,
             store: Store | None = None
     ):
-        self._model = model
-        self.model_name = model.__class__.__name__
-        self._tokenizer = tokenizer
-        self.layers = LanguageModelLayers(self, model)
-        self.lm_tokenizer = LanguageModelTokenizer(model, tokenizer)
-        self.activations = LanguageModelActivations(self)
-        self.store = store or LocalStore(Path.cwd() / "store" / self.model_name)
+        # Validate context
+        self.context = LanguageModelContext(self)
+        self.context.model = model
+        self.context.tokenizer = tokenizer
+        # Set model ID - handle both HuggingFace models and custom models
+        if hasattr(model, 'config') and hasattr(model.config, 'name_or_path'):
+            self.context.model_id = model.config.name_or_path.replace("/", "_")
+        else:
+            # For custom models without config, use the class name
+            self.context.model_id = model.__class__.__name__
 
-        self._activation_text_trackers: list[Any] = []
+        # Initialize components using context
+        self.layers = LanguageModelLayers(self.context)
+        self.lm_tokenizer = LanguageModelTokenizer(self.context)
+        self.activations = LanguageModelActivations(self.context)
+
+        if store is not None:
+            self.context.store = store
+        else:
+            from amber.store import LocalStore
+            self.context.store = LocalStore(Path.cwd() / "store" / self.context.model_id)
+
+        self._activation_text_trackers = []
 
     @property
     def model(self) -> nn.Module | None:
-        return self._model
+        return self.context.model
 
     @property
     def tokenizer(self) -> AutoTokenizer | None:
-        return self._tokenizer
+        return self.context.tokenizer
+
+    @property
+    def model_id(self) -> str:
+        return self.context.model_id
+
+    @property
+    def store(self) -> Store | None:
+        return self.context.store
 
     def tokenize(self, texts: Sequence[str], **kwargs: Any):
         return self.lm_tokenizer.tokenize(texts, **kwargs)
@@ -54,6 +80,7 @@ class LanguageModel:
             autocast_dtype: torch.dtype | None = None,
             discard_output: bool = False,
             save_inputs: bool = False,
+            with_controllers: bool = True,
     ):
         if tok_kwargs is None:
             tok_kwargs = {}
@@ -66,7 +93,7 @@ class LanguageModel:
         }
         enc = self.tokenize(texts, **tok_kwargs)
 
-        first_param = next(self._model.parameters(), None)
+        first_param = next(self.model.parameters(), None)
         device = first_param.device if first_param is not None else torch.device("cpu")
         device_type = str(getattr(device, 'type', 'cpu'))
 
@@ -75,24 +102,37 @@ class LanguageModel:
         else:
             enc = {k: v.to(device) for k, v in enc.items()}
 
-        self._model.eval()
+        self.model.eval()
 
-        # Provide current texts to any registered trackers prior to forward
         try:
-            for _tracker in getattr(self, "_activation_text_trackers", []):
+            for _tracker in self._activation_text_trackers:
                 if hasattr(_tracker, "set_current_texts"):
                     _tracker.set_current_texts(texts)
         except Exception:
             logger.exception("Error setting current texts on activation tracker")
             pass
 
-        with torch.inference_mode():
-            if autocast and device_type == "cuda":
-                amp_dtype = autocast_dtype or torch.float16
-                with torch.autocast(device_type, dtype=amp_dtype):
-                    output = self._model(**enc)
-            else:
-                output = self._model(**enc)
+        # Temporarily disable controllers if requested
+        controllers_to_restore = []
+        if not with_controllers:
+            controllers = self.layers.get_controllers()
+            for controller in controllers:
+                if controller.enabled:
+                    controller.disable()
+                    controllers_to_restore.append(controller)
+        
+        try:
+            with torch.inference_mode():
+                if autocast and device_type == "cuda":
+                    amp_dtype = autocast_dtype or torch.float16
+                    with torch.autocast(device_type, dtype=amp_dtype):
+                        output = self.model(**enc)
+                else:
+                    output = self.model(**enc)
+        finally:
+            # Re-enable controllers that were disabled
+            for controller in controllers_to_restore:
+                controller.enable()
 
         if discard_output:
             if save_inputs:
@@ -113,6 +153,7 @@ class LanguageModel:
             tok_kwargs: Dict | None = None,
             autocast: bool = True,
             autocast_dtype: torch.dtype | None = None,
+            with_controllers: bool = True,
     ):
         return self._inference(
             texts,
@@ -120,7 +161,8 @@ class LanguageModel:
             autocast=autocast,
             autocast_dtype=autocast_dtype,
             discard_output=False,
-            save_inputs=False
+            save_inputs=False,
+            with_controllers=with_controllers
         )
 
     def register_activation_text_tracker(self, tracker: Any) -> None:
@@ -144,11 +186,11 @@ class LanguageModel:
             tokenizer_params = {}
         if model_params is None:
             model_params = {}
+
         tokenizer = AutoTokenizer.from_pretrained(model_name, **tokenizer_params)
         model = AutoModelForCausalLM.from_pretrained(model_name, **model_params)
-        lm = cls(model=model, tokenizer=tokenizer)
-        lm.model_name = model_name
-        setattr(lm, "hf_repo_id", model_name)
+
+        lm = cls(model, tokenizer)
         return lm
 
     @classmethod

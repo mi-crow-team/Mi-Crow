@@ -107,7 +107,7 @@ def test_tokenizer_sets_pad_from_eos_and_updates_model_config():
     # Request padding; LM wrapper should set pad_token from eos and update config
     out = lm.tokenize(["a", "bb"], padding=True, return_tensors="pt")
     assert isinstance(out["input_ids"], torch.Tensor)
-    assert lm.lm_tokenizer._tokenizer.pad_token == "<eos>"
+    assert lm.tokenizer.pad_token == "<eos>"
     assert model.config.pad_token_id == tok.eos_token_id
 
     # Run a tiny forward via _inference and ensure tensors are on CPU
@@ -126,7 +126,7 @@ def test_tokenizer_non_callable_uses_batch_encode_plus(tmp_path):
     # Ensure padding logic also sets pad token from eos
     out = lm.tokenize(["x", "yyy"], padding=True, return_tensors="pt")
     assert out["input_ids"].shape[0] == 2
-    assert lm.lm_tokenizer._tokenizer.pad_token == "<eos>"
+    assert lm.tokenizer.pad_token == "<eos>"
 
 
 def test_inference_invokes_text_trackers_and_forwards_returns_output_and_enc():

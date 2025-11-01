@@ -3,7 +3,19 @@
 import pytest
 import torch
 from torch import nn
+from dataclasses import dataclass, field
+from typing import Dict, List, Any
+
 from amber.core.language_model_layers import LanguageModelLayers
+
+
+@dataclass
+class MockContext:
+    """Mock context for testing."""
+    language_model: Any
+    model: nn.Module | None = None
+    _hook_registry: Dict[str | int, Dict[str, List[tuple[Any, Any]]]] = field(default_factory=dict)
+    _hook_id_map: Dict[str, tuple[str | int, str, Any]] = field(default_factory=dict)
 
 
 class MockModel(nn.Module):
@@ -29,7 +41,8 @@ class MockModel(nn.Module):
 def test_print_layer_names_output(capsys):
     """Test that print_layer_names produces expected output."""
     model = MockModel()
-    layers = LanguageModelLayers(lm=object(), model=model)
+    context = MockContext(language_model=object(), model=model)
+    layers = LanguageModelLayers(context=context)
     
     # Capture the print output
     layers.print_layer_names()
@@ -60,7 +73,8 @@ def test_print_layer_names_with_no_weight_layers(capsys):
             return self.dropout(self.relu(x))
     
     model = NoWeightModel()
-    layers = LanguageModelLayers(lm=object(), model=model)
+    context = MockContext(language_model=object(), model=model)
+    layers = LanguageModelLayers(context=context)
     
     # Capture the print output
     layers.print_layer_names()
@@ -86,7 +100,8 @@ def test_print_layer_names_with_mixed_layers(capsys):
             return self.linear2(x)
     
     model = MixedModel()
-    layers = LanguageModelLayers(lm=object(), model=model)
+    context = MockContext(language_model=object(), model=model)
+    layers = LanguageModelLayers(context=context)
     
     # Capture the print output
     layers.print_layer_names()
@@ -105,7 +120,8 @@ def test_print_layer_names_empty_model(capsys):
             return x
     
     model = EmptyModel()
-    layers = LanguageModelLayers(lm=object(), model=model)
+    context = MockContext(language_model=object(), model=model)
+    layers = LanguageModelLayers(context=context)
     
     # Capture the print output
     layers.print_layer_names()

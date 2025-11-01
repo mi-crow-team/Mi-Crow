@@ -4,6 +4,17 @@ from torch import nn
 
 from amber.mechanistic.autoencoder.concepts.top_neuron_texts import TopNeuronTexts
 from amber.mechanistic.autoencoder.concepts.concept_models import NeuronText
+from amber.mechanistic.autoencoder.autoencoder import Autoencoder
+
+
+def create_top_neuron_texts(lm, layer_signature, k=5, nth_tensor=1):
+    """Helper to create TopNeuronTexts with proper context."""
+    sae = Autoencoder(n_latents=8, n_inputs=8)
+    context = sae.context
+    context.lm = lm
+    context.lm_layer_signature = layer_signature
+    context.text_tracking_k = k
+    return TopNeuronTexts(context, k=k, nth_tensor=nth_tensor)
 
 
 class TinyLM(nn.Module):
@@ -31,6 +42,15 @@ class FakeLayers:
             def remove(self_inner):
                 pass
         return H()
+    
+    def register_hook(self, layer_signature, hook, hook_type=None):
+        """Fake register_hook that returns a hook_id."""
+        import uuid
+        return hook.id or str(uuid.uuid4())
+    
+    def unregister_hook(self, hook_id):
+        """Fake unregister_hook."""
+        pass
 
 
 class FakeLMWrapper:
@@ -50,22 +70,22 @@ class FakeLMWrapper:
 def test_nth_tensor_out_of_range_raises():
     lm = FakeLMWrapper(TinyLM())
     # ask for 2nd index (third item) but model returns 2 items -> should raise in hook
-    tnt = TopNeuronTexts(lm=lm, layer_signature="sig", k=2, nth_tensor=2)
+    tnt = create_top_neuron_texts(lm=lm, layer_signature="sig", k=2, nth_tensor=2)
     tnt.set_current_texts(["a"])  # set texts to avoid assert
 
     with pytest.raises(ValueError):
         # Call hook directly with a 2-item tuple
-        tnt._activations_hook(None, None, (torch.randn(1, 2, 4), torch.randn(1, 2)))
+        tnt.process_activations(None, None, (torch.randn(1, 2, 4), torch.randn(1, 2)))
 
 
 def test_reduce_with_bd_tensor_is_noop_and_getters_bounds():
     lm = FakeLMWrapper(TinyLM())
-    tnt = TopNeuronTexts(lm=lm, layer_signature="sig", k=2)
+    tnt = create_top_neuron_texts(lm=lm, layer_signature="sig", k=2)
     tnt.set_current_texts(["txt1"])  # B=1
 
     # Provide [B, D] tensor (no token dimension) and ensure it is accepted
     bd = torch.randn(1, 3)
-    tnt._activations_hook(None, None, bd)
+    tnt.process_activations(None, None, bd)
 
     # For [B, D], reduction is a no-op, so scores are taken directly and heaps get one entry per neuron
     # get_top_texts out of bounds returns empty

@@ -83,3 +83,4 @@ activations_store
 cache
 store
 wandb
+outputs
