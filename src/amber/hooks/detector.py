@@ -75,7 +75,7 @@ class Detector(Hook):
             output: Output from the module
         """
         pass
-    
+
     def collect_metadata(self, module: "nn.Module", inputs: tuple, output: Any) -> Dict[str, Any] | None:
         """
         Collect metadata for the current batch.
