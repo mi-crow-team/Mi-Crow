@@ -74,8 +74,7 @@ class AutoencoderConcepts:
         self.dictionary = ConceptDictionary.from_csv(
             csv_filepath=csv_filepath,
             n_size=self._n_size,
-            store=self.dictionary.store if self.dictionary else None,
-            max_concepts=self.dictionary.max_concepts if self.dictionary else None
+            store=self.dictionary.store if self.dictionary else None
         )
 
     def load_concepts_from_json(self, json_filepath: str | Path):
@@ -83,8 +82,7 @@ class AutoencoderConcepts:
         self.dictionary = ConceptDictionary.from_json(
             json_filepath=json_filepath,
             n_size=self._n_size,
-            store=self.dictionary.store if self.dictionary else None,
-            max_concepts=self.dictionary.max_concepts if self.dictionary else None
+            store=self.dictionary.store if self.dictionary else None
         )
 
     def generate_concepts_with_llm(self, llm_provider: str | None = None):
@@ -99,7 +97,6 @@ class AutoencoderConcepts:
             neuron_texts=neuron_texts,
             n_size=self._n_size,
             store=self.dictionary.store if self.dictionary else None,
-            max_concepts=self.dictionary.max_concepts if self.dictionary else None,
             llm_provider=llm_provider
         )
 

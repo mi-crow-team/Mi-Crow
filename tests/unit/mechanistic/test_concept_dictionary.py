@@ -6,13 +6,14 @@ from amber.mechanistic.autoencoder.concepts.concept_dictionary import ConceptDic
 
 
 def test_add_and_get_and_max_concepts_enforces_topk(tmp_path):
-    cd = ConceptDictionary(n_size=5, max_concepts=2)
-    # Add 3 concepts to index 1; only top-2 by score are kept
+    cd = ConceptDictionary(n_size=5, max_concepts=1)
+    # max_concepts is 1, so only the top concept by score is kept
     cd.add(1, "a", 0.1)
     cd.add(1, "b", 0.9)
     cd.add(1, "c", 0.5)
     got = cd.get(1)
-    assert [c.name for c in got] == ["b", "c"]
+    # Only "b" (score 0.9) should be kept since max_concepts=1
+    assert [c.name for c in got] == ["b"]
 
     # Out-of-bounds add/get raise IndexError
     with pytest.raises(IndexError):
@@ -28,7 +29,7 @@ def test_add_and_get_and_max_concepts_enforces_topk(tmp_path):
 
 def test_save_and_load_roundtrip(tmp_path):
     base = tmp_path / "concepts_dir"
-    cd = ConceptDictionary(n_size=3, max_concepts=3)
+    cd = ConceptDictionary(n_size=3)
     cd.add(0, "x", 0.2)
     cd.add(2, "y", 0.8)
 
@@ -68,11 +69,11 @@ def test_save_load_errors_and_from_directory_behaviors(tmp_path):
     # Write a minimal concepts.json and ensure load parses it
     meta = {
         "n_size": 4,
-        "max_concepts": 2,
         "concepts": {"1": [{"name": "z", "score": 0.7}]},
     }
     (base / "concepts.json").write_text(json.dumps(meta), encoding="utf-8")
     cd4 = ConceptDictionary(n_size=0)
     cd4.load(directory=base)
-    assert cd4.n_size == 4 and cd4.max_concepts == 2
+    assert cd4.n_size == 4
+    assert cd4.max_concepts is None  # max_concepts defaults to None after load
     assert isinstance(cd4.get(1)[0], Concept)

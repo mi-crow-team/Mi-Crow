@@ -1,4 +1,4 @@
-from typing import Dict, List, Callable, Sequence, Any, TYPE_CHECKING
+from typing import Dict, List, Callable, Sequence, Any, TYPE_CHECKING, Union
 
 from torch import nn
 from transformers import AutoTokenizer
@@ -14,6 +14,61 @@ class LanguageModelTokenizer:
             context: "LanguageModelContext"
     ):
         self.context = context
+
+    def split_to_tokens(self, text: Union[str, Sequence[str]], add_special_tokens: bool = False) -> Union[List[str], List[List[str]]]:
+        """Split text into token strings.
+        
+        Args:
+            text: Single string or sequence of strings to tokenize
+            add_special_tokens: Whether to add special tokens (e.g., BOS, EOS)
+        
+        Returns:
+            For a single string: list of token strings
+            For a sequence of strings: list of lists of token strings
+        """
+        # Handle single string
+        if isinstance(text, str):
+            return self._split_single_text_to_tokens(text, add_special_tokens)
+        
+        # Handle sequence of strings
+        return [self._split_single_text_to_tokens(t, add_special_tokens) for t in text]
+    
+    def _split_single_text_to_tokens(self, text: str, add_special_tokens: bool) -> List[str]:
+        """Split a single text into token strings.
+        
+        Uses the tokenizer from LanguageModelContext to split text into tokens.
+        """
+        tokenizer = self.context.tokenizer
+        
+        if tokenizer is None:
+            return text.split()
+        
+        if hasattr(tokenizer, "tokenize"):
+            try:
+                tokens = tokenizer.tokenize(text, add_special_tokens=add_special_tokens)
+                return tokens
+            except Exception:
+                pass
+        
+        if hasattr(tokenizer, "encode") and hasattr(tokenizer, "convert_ids_to_tokens"):
+            try:
+                token_ids = tokenizer.encode(text, add_special_tokens=add_special_tokens)
+                tokens = tokenizer.convert_ids_to_tokens(token_ids)
+                return tokens
+            except Exception:
+                pass
+        
+        if hasattr(tokenizer, "encode_plus") and hasattr(tokenizer, "convert_ids_to_tokens"):
+            try:
+                encoded = tokenizer.encode_plus(text, add_special_tokens=add_special_tokens)
+                if isinstance(encoded, dict) and "input_ids" in encoded:
+                    token_ids = encoded["input_ids"]
+                    tokens = tokenizer.convert_ids_to_tokens(token_ids)
+                    return tokens
+            except Exception:
+                pass
+        
+        return text.split()
 
     def tokenize(self, texts: Sequence[str], **kwargs: Any):
         """Robust batch tokenization that works across tokenizer variants.

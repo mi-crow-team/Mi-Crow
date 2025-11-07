@@ -41,9 +41,22 @@ class ConceptDictionary:
             raise IndexError(f"index {index} out of bounds for n_size={self.n_size}")
         lst = self.concepts_map.setdefault(index, [])
         lst.append(Concept(name=name, score=score))
-        if self.max_concepts is not None and len(lst) > self.max_concepts:
-            # Keep the top-k by score
-            lst.sort(key=lambda c: c.score, reverse=True)
+        
+        # Handle max_concepts limiting
+        if self.max_concepts is None:
+            # Unlimited concepts - no trimming needed
+            return
+        
+        # Sort by score (descending) for top-k selection
+        lst.sort(key=lambda c: c.score, reverse=True)
+        
+        # Handle negative max_concepts (delete all)
+        if self.max_concepts < 0:
+            lst.clear()
+            return
+        
+        # Trim to max_concepts if needed
+        if len(lst) > self.max_concepts:
             del lst[self.max_concepts:]
 
     def get(self, index: int) -> List[Concept]:
@@ -63,7 +76,6 @@ class ConceptDictionary:
         serializable = {str(k): [asdict(c) for c in v] for k, v in self.concepts_map.items()}
         meta = {
             "n_size": self.n_size,
-            "max_concepts": self.max_concepts,
             "concepts": serializable,
         }
         with path.open("w", encoding="utf-8") as f:
@@ -81,7 +93,7 @@ class ConceptDictionary:
         with path.open("r", encoding="utf-8") as f:
             meta = json.load(f)
         self.n_size = int(meta.get("n_size", self.n_size))
-        self.max_concepts = meta.get("max_concepts", self.max_concepts)
+        # max_concepts always remains 1, not saved/loaded
         concepts = meta.get("concepts", {})
         self.concepts_map = {
             int(k): [Concept(**c) for c in v]
@@ -93,14 +105,13 @@ class ConceptDictionary:
             cls,
             csv_filepath: Path | str,
             n_size: int,
-            store: Store | None = None,
-            max_concepts: int | None = None
+            store: Store | None = None
     ) -> "ConceptDictionary":
         csv_path = Path(csv_filepath)
         if not csv_path.exists():
             raise FileNotFoundError(f"CSV file not found: {csv_path}")
 
-        concept_dict = cls(n_size=n_size, store=store, max_concepts=max_concepts)
+        concept_dict = cls(n_size=n_size, store=store)
 
         with csv_path.open("r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
@@ -117,14 +128,13 @@ class ConceptDictionary:
             cls,
             json_filepath: Path | str,
             n_size: int,
-            store: Store | None = None,
-            max_concepts: int | None = None
+            store: Store | None = None
     ) -> "ConceptDictionary":
         json_path = Path(json_filepath)
         if not json_path.exists():
             raise FileNotFoundError(f"JSON file not found: {json_path}")
 
-        concept_dict = cls(n_size=n_size, store=store, max_concepts=max_concepts)
+        concept_dict = cls(n_size=n_size, store=store)
 
         with json_path.open("r", encoding="utf-8") as f:
             data = json.load(f)
@@ -149,10 +159,9 @@ class ConceptDictionary:
             neuron_texts: list[list["NeuronText"]],
             n_size: int,
             store: Store | None = None,
-            max_concepts: int | None = None,
             llm_provider: str | None = None
     ) -> "ConceptDictionary":
-        concept_dict = cls(n_size=n_size, store=store, max_concepts=max_concepts)
+        concept_dict = cls(n_size=n_size, store=store)
 
         for neuron_idx, texts in enumerate(neuron_texts):
             if not texts:

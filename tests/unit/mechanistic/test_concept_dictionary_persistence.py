@@ -108,6 +108,116 @@ class TestConceptDictionaryPersistence:
         assert len(concepts_1) == 1
         assert concepts_1[0].name == "concept_2" and concepts_1[0].score == 0.9
 
+    def test_from_csv_file_not_found(self, tmp_path):
+        """Test from_csv with non-existent file."""
+        csv_path = tmp_path / "non_existent.csv"
+        
+        with pytest.raises(FileNotFoundError, match="CSV file not found"):
+            ConceptDictionary.from_csv(csv_path, n_size=3)
+
+    def test_from_json_factory_method(self, tmp_path):
+        """Test from_json factory method."""
+        # Create a JSON file
+        json_path = tmp_path / "concepts.json"
+        json_data = {
+            "0": [
+                {"name": "concept_0", "score": 0.8},
+                {"name": "concept_1", "score": 0.6}
+            ],
+            "1": [
+                {"name": "concept_2", "score": 0.9}
+            ]
+        }
+        with json_path.open("w", encoding="utf-8") as f:
+            json.dump(json_data, f)
+        
+        # Create dictionary from JSON
+        dictionary = ConceptDictionary.from_json(json_path, n_size=3)
+        
+        # Check that concepts were added correctly
+        assert dictionary.n_size == 3
+        
+        concepts_0 = dictionary.get(0)
+        assert len(concepts_0) == 2
+        assert any(c.name == "concept_0" and c.score == 0.8 for c in concepts_0)
+        assert any(c.name == "concept_1" and c.score == 0.6 for c in concepts_0)
+        
+        concepts_1 = dictionary.get(1)
+        assert len(concepts_1) == 1
+        assert concepts_1[0].name == "concept_2" and concepts_1[0].score == 0.9
+
+    def test_from_json_file_not_found(self, tmp_path):
+        """Test from_json with non-existent file."""
+        json_path = tmp_path / "non_existent.json"
+        
+        with pytest.raises(FileNotFoundError, match="JSON file not found"):
+            ConceptDictionary.from_json(json_path, n_size=3)
+
+    def test_from_json_with_non_list_concepts(self, tmp_path):
+        """Test from_json handles non-list concepts gracefully."""
+        json_path = tmp_path / "concepts.json"
+        json_data = {
+            "0": [
+                {"name": "concept_0", "score": 0.8}
+            ],
+            "1": "not_a_list",  # Should be skipped
+            "2": 123,  # Should be skipped
+            "3": [
+                {"name": "concept_1", "score": 0.9}
+            ]
+        }
+        with json_path.open("w", encoding="utf-8") as f:
+            json.dump(json_data, f)
+        
+        dictionary = ConceptDictionary.from_json(json_path, n_size=5)
+        
+        # Should only have concepts from neuron 0 and 3
+        assert len(dictionary.get(0)) == 1
+        assert len(dictionary.get(1)) == 0
+        assert len(dictionary.get(2)) == 0
+        assert len(dictionary.get(3)) == 1
+
+    def test_from_json_with_non_dict_concepts(self, tmp_path):
+        """Test from_json handles non-dict concept entries gracefully."""
+        json_path = tmp_path / "concepts.json"
+        json_data = {
+            "0": [
+                {"name": "concept_0", "score": 0.8},
+                "not_a_dict",  # Should be skipped
+                123,  # Should be skipped
+                {"name": "concept_1", "score": 0.6}
+            ]
+        }
+        with json_path.open("w", encoding="utf-8") as f:
+            json.dump(json_data, f)
+        
+        dictionary = ConceptDictionary.from_json(json_path, n_size=3)
+        
+        # Should only have 2 concepts (skipping non-dict entries)
+        concepts = dictionary.get(0)
+        assert len(concepts) == 2
+        assert any(c.name == "concept_0" and c.score == 0.8 for c in concepts)
+        assert any(c.name == "concept_1" and c.score == 0.6 for c in concepts)
+
+    def test_from_llm_raises_not_implemented(self):
+        """Test from_llm raises NotImplementedError."""
+        neuron_texts = [
+            [NeuronText(text="test", score=0.8, token_str="test", token_idx=0)]
+        ]
+        
+        with pytest.raises(NotImplementedError, match="LLM provider not configured"):
+            ConceptDictionary.from_llm(neuron_texts, n_size=3)
+
+    def test_from_llm_with_empty_texts(self):
+        """Test from_llm handles empty neuron texts."""
+        neuron_texts = [
+            [],  # Empty list for neuron 0
+            [NeuronText(text="test", score=0.8, token_str="test", token_idx=0)]  # Neuron 1 has text
+        ]
+        
+        with pytest.raises(NotImplementedError):
+            ConceptDictionary.from_llm(neuron_texts, n_size=3)
+
     def test_save_load_with_special_characters(self, tmp_path):
         """Test save/load with special characters in concept names."""
         dictionary = ConceptDictionary(n_size=3)
