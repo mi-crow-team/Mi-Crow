@@ -268,7 +268,19 @@ class LanguageModelLayers:
 
         # Convert string to enum if needed for backward compatibility
         if isinstance(hook_type, str):
+            # Validate that it's a valid HookType value
+            if hook_type not in [ht.value for ht in HookType]:
+                raise ValueError(
+                    f"Invalid hook_type string '{hook_type}'. "
+                    f"Must be one of: {[ht.value for ht in HookType]}"
+                )
             hook_type = HookType(hook_type)
+        
+        # Ensure hook_type is a HookType enum
+        if not isinstance(hook_type, HookType):
+            raise ValueError(
+                f"hook_type must be a HookType enum, got {type(hook_type)}: {hook_type}"
+            )
 
         # Check for duplicate hook ID
         if hook.id in self.context._hook_id_map:

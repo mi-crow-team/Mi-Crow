@@ -7,6 +7,7 @@ without side effects.
 
 # A tiny bit of executable code to make the package measurable by coverage.
 PACKAGE_NAME = "amber"
+__version__ = "0.0.0"
 
 
 def ping() -> str:

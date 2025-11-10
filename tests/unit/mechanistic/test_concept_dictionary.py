@@ -5,15 +5,28 @@ import pytest
 from amber.mechanistic.autoencoder.concepts.concept_dictionary import ConceptDictionary, Concept
 
 
-def test_add_and_get_and_max_concepts_enforces_topk(tmp_path):
-    cd = ConceptDictionary(n_size=5, max_concepts=1)
-    # max_concepts is 1, so only the top concept by score is kept
+def test_add_and_get_enforces_one_concept_per_neuron(tmp_path):
+    cd = ConceptDictionary(n_size=5)
+    # Only 1 concept per neuron is allowed - adding a new one replaces the old one
     cd.add(1, "a", 0.1)
+    got = cd.get(1)
+    assert got is not None
+    assert got.name == "a"
+    assert got.score == 0.1
+    
+    # Adding a new concept with higher score replaces the old one
     cd.add(1, "b", 0.9)
+    got = cd.get(1)
+    assert got is not None
+    assert got.name == "b"
+    assert got.score == 0.9
+    
+    # Adding a new concept with lower score still replaces (only 1 allowed)
     cd.add(1, "c", 0.5)
     got = cd.get(1)
-    # Only "b" (score 0.9) should be kept since max_concepts=1
-    assert [c.name for c in got] == ["b"]
+    assert got is not None
+    assert got.name == "c"
+    assert got.score == 0.5
 
     # Out-of-bounds add/get raise IndexError
     with pytest.raises(IndexError):
@@ -24,7 +37,9 @@ def test_add_and_get_and_max_concepts_enforces_topk(tmp_path):
     # get_many returns mapping for requested indices
     many = cd.get_many([0, 1, 2])
     assert set(many.keys()) == {0, 1, 2}
-    assert many[0] == [] and isinstance(many[1], list)
+    assert many[0] is None  # No concept for neuron 0
+    assert many[1] is not None  # Has concept "c"
+    assert many[2] is None  # No concept for neuron 2
 
 
 def test_save_and_load_roundtrip(tmp_path):
@@ -39,7 +54,9 @@ def test_save_and_load_roundtrip(tmp_path):
     cd2 = ConceptDictionary(n_size=0)
     cd2.load(directory=base)
     assert cd2.n_size == 3
-    assert [c.name for c in cd2.get(2)] == ["y"]
+    concept = cd2.get(2)
+    assert concept is not None
+    assert concept.name == "y"
 
 
 def test_save_load_errors_and_from_directory_behaviors(tmp_path):
@@ -75,5 +92,8 @@ def test_save_load_errors_and_from_directory_behaviors(tmp_path):
     cd4 = ConceptDictionary(n_size=0)
     cd4.load(directory=base)
     assert cd4.n_size == 4
-    assert cd4.max_concepts is None  # max_concepts defaults to None after load
-    assert isinstance(cd4.get(1)[0], Concept)
+    concept = cd4.get(1)
+    assert concept is not None
+    assert isinstance(concept, Concept)
+    assert concept.name == "z"
+    assert concept.score == 0.7

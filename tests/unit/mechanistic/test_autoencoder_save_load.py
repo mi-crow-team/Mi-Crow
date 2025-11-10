@@ -8,7 +8,7 @@ from amber.mechanistic.autoencoder.modules.topk import TopK
 
 
 def test_save_with_normalization_metadata(tmp_path):
-    """Test saving autoencoder with dataset normalization metadata."""
+    """Test saving sae with dataset normalization metadata."""
     ae = Autoencoder(n_latents=8, n_inputs=16, activation="TopK_4")
     
     # Add some test data
@@ -44,7 +44,7 @@ def test_save_with_normalization_metadata(tmp_path):
 
 
 def test_save_without_normalization_metadata(tmp_path):
-    """Test saving autoencoder without normalization metadata."""
+    """Test saving sae without normalization metadata."""
     ae = Autoencoder(n_latents=6, n_inputs=12, activation="TopK_4")
     
     # Add some test data
@@ -88,7 +88,7 @@ def test_save_activation_serialization(tmp_path):
 
 
 def test_load_with_metadata(tmp_path):
-    """Test loading autoencoder with metadata."""
+    """Test loading sae with metadata."""
     # Create and save a model with metadata
     ae = Autoencoder(n_latents=6, n_inputs=10, activation="TopK_3")
     

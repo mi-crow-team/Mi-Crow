@@ -24,7 +24,7 @@ class _LiteDetector(Detector):
         raise_in_process: bool = False,
         raise_in_collect: bool = False,
     ):
-        super().__init__(layer_signature, hook_type, hook_id, store)
+        super().__init__(hook_type=hook_type, hook_id=hook_id, store=store, layer_signature=layer_signature)
         self.calls: List[str] = []
         self.last_args: Dict[str, Any] | None = None
         self._collect_returns = collect_returns

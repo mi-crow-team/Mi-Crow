@@ -13,7 +13,7 @@ from amber.store import Store
 from amber.utils import get_logger
 
 if TYPE_CHECKING:
-    pass
+    from amber.mechanistic.autoencoder.concepts.input_tracker import InputTracker
 
 logger = get_logger(__name__)
 
@@ -33,11 +33,10 @@ class LanguageModel:
         self.context = LanguageModelContext(self)
         self.context.model = model
         self.context.tokenizer = tokenizer
-        # Set model ID - handle both HuggingFace models and custom models
+
         if hasattr(model, 'config') and hasattr(model.config, 'name_or_path'):
             self.context.model_id = model.config.name_or_path.replace("/", "_")
         else:
-            # For custom models without config, use the class name
             self.context.model_id = model.__class__.__name__
 
         # Initialize components using context
@@ -51,7 +50,8 @@ class LanguageModel:
             from amber.store import LocalStore
             self.context.store = LocalStore(Path.cwd() / "store" / self.context.model_id)
 
-        self._activation_text_trackers = []
+        self._input_tracker: "InputTracker | None" = None
+        self._activation_text_trackers: list[Any] = []
 
     @property
     def model(self) -> nn.Module | None:
@@ -78,8 +78,6 @@ class LanguageModel:
             tok_kwargs: Dict | None = None,
             autocast: bool = True,
             autocast_dtype: torch.dtype | None = None,
-            discard_output: bool = False,
-            save_inputs: bool = False,
             with_controllers: bool = True,
     ):
         if tok_kwargs is None:
@@ -104,15 +102,13 @@ class LanguageModel:
 
         self.model.eval()
 
-        try:
-            for _tracker in self._activation_text_trackers:
-                if hasattr(_tracker, "set_current_texts"):
-                    _tracker.set_current_texts(texts)
-        except Exception:
-            logger.exception("Error setting current texts on activation tracker")
-            pass
+        if self._input_tracker is not None and self._input_tracker.enabled:
+            self._input_tracker.set_current_texts(texts)
+        # Also set on any other activation text trackers (for backward compatibility)
+        for _tracker in self._activation_text_trackers:
+            if hasattr(_tracker, "set_current_texts") and _tracker is not self._input_tracker:
+                _tracker.set_current_texts(texts)
 
-        # Temporarily disable controllers if requested
         controllers_to_restore = []
         if not with_controllers:
             controllers = self.layers.get_controllers()
@@ -120,7 +116,7 @@ class LanguageModel:
                 if controller.enabled:
                     controller.disable()
                     controllers_to_restore.append(controller)
-        
+
         try:
             with torch.inference_mode():
                 if autocast and device_type == "cuda":
@@ -129,23 +125,11 @@ class LanguageModel:
                         output = self.model(**enc)
                 else:
                     output = self.model(**enc)
+
+            return output, enc
         finally:
-            # Re-enable controllers that were disabled
             for controller in controllers_to_restore:
                 controller.enable()
-
-        if discard_output:
-            if save_inputs:
-                input_ids = enc.get("input_ids")
-                attn = enc.get("attention_mask")
-                if input_ids is not None:
-                    input_ids = input_ids.detach().to("cpu", non_blocking=(device_type == "cuda"))
-                if attn is not None:
-                    attn = attn.detach().to("cpu", non_blocking=(device_type == "cuda"))
-                return input_ids, attn
-            return None
-
-        return output, enc
 
     def forwards(
             self,
@@ -160,10 +144,65 @@ class LanguageModel:
             tok_kwargs=tok_kwargs,
             autocast=autocast,
             autocast_dtype=autocast_dtype,
-            discard_output=False,
-            save_inputs=False,
             with_controllers=with_controllers
         )
+
+    def generate(
+            self,
+            texts: Sequence[str],
+            tok_kwargs: Dict | None = None,
+            autocast: bool = True,
+            autocast_dtype: torch.dtype | None = None,
+            with_controllers: bool = True,
+            skip_special_tokens: bool = True,
+    ) -> Sequence[str]:
+        """
+        Run inference and automatically decode the output with the tokenizer.
+        
+        Args:
+            texts: Input texts to process
+            tok_kwargs: Optional tokenizer keyword arguments
+            autocast: Whether to use automatic mixed precision
+            autocast_dtype: Optional dtype for autocast
+            with_controllers: Whether to use controllers during inference
+            skip_special_tokens: Whether to skip special tokens when decoding
+            
+        Returns:
+            Sequence of decoded text strings
+        """
+        output, enc = self._inference(
+            texts,
+            tok_kwargs=tok_kwargs,
+            autocast=autocast,
+            autocast_dtype=autocast_dtype,
+            with_controllers=with_controllers
+        )
+        
+        # Extract logits from output
+        if hasattr(output, 'logits'):
+            logits = output.logits
+        elif isinstance(output, tuple) and len(output) > 0:
+            logits = output[0]
+        elif isinstance(output, torch.Tensor):
+            logits = output
+        else:
+            raise ValueError(f"Unable to extract logits from output type: {type(output)}")
+        
+        # Get predicted token IDs (argmax on last dimension)
+        # logits shape: [batch_size, sequence_length, vocab_size]
+        predicted_token_ids = logits.argmax(dim=-1)
+        
+        # Decode each sequence in the batch
+        if self.tokenizer is None:
+            raise ValueError("Tokenizer is required for decoding but is None")
+        
+        decoded_texts = []
+        for i in range(predicted_token_ids.shape[0]):
+            token_ids = predicted_token_ids[i].cpu().tolist()
+            decoded_text = self.tokenizer.decode(token_ids, skip_special_tokens=skip_special_tokens)
+            decoded_texts.append(decoded_text)
+        
+        return decoded_texts
 
     def register_activation_text_tracker(self, tracker: Any) -> None:
         if tracker not in self._activation_text_trackers:
@@ -175,12 +214,35 @@ class LanguageModel:
         except ValueError:
             pass
 
+    def get_input_tracker(self) -> "InputTracker | None":
+        """Get the InputTracker singleton for this LanguageModel."""
+        return self._input_tracker
+
+    def _ensure_input_tracker(self) -> "InputTracker":
+        """
+        Ensure InputTracker singleton exists.
+        
+        Returns:
+            The InputTracker instance
+        """
+        if self._input_tracker is not None:
+            return self._input_tracker
+
+        from amber.mechanistic.autoencoder.concepts.input_tracker import InputTracker
+
+        self._input_tracker = InputTracker(language_model=self)
+
+        logger.debug(f"Created InputTracker singleton for {self.context.model_id}")
+
+        return self._input_tracker
+
     @classmethod
     def from_huggingface(
             cls,
             model_name: str,
             tokenizer_params: dict = None,
             model_params: dict = None,
+            store: Store | None = None,
     ) -> "LanguageModel":
         if tokenizer_params is None:
             tokenizer_params = {}
@@ -190,7 +252,7 @@ class LanguageModel:
         tokenizer = AutoTokenizer.from_pretrained(model_name, **tokenizer_params)
         model = AutoModelForCausalLM.from_pretrained(model_name, **model_params)
 
-        lm = cls(model, tokenizer)
+        lm = cls(model, tokenizer, store)
         return lm
 
     @classmethod

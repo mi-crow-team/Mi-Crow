@@ -112,8 +112,9 @@ def test_tokenizer_sets_pad_from_eos_and_updates_model_config():
 
     # Run a tiny forward via _inference and ensure tensors are on CPU
     inputs = ["hello", "world!"]
-    res = lm._inference(inputs, discard_output=True, save_inputs=True)
-    input_ids, attn = res
+    output, enc = lm._inference(inputs)
+    input_ids = enc["input_ids"]
+    attn = enc["attention_mask"]
     assert isinstance(input_ids, torch.Tensor) and isinstance(attn, torch.Tensor)
     assert input_ids.device.type == "cpu" and attn.device.type == "cpu"
 

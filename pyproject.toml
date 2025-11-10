@@ -22,6 +22,7 @@ dependencies = [
     "transformers>=4.56.1",
     "safetensors>=0.4.5",
     "wandb>=0.22.1",
+    "pytest>=8.4.2",
 ]
 dynamic = ["version"]
 
@@ -122,3 +123,8 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 docstring-code-format = false
 docstring-code-line-length = "dynamic"
+
+[dependency-groups]
+dev = [
+    "pytest-cov>=7.0.0",
+]

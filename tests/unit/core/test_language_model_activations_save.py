@@ -44,18 +44,19 @@ class _FakeLM:
     def __init__(self, layers: _FakeLayers):
         self.layers = layers
 
-    def _inference(self, texts, *, tok_kwargs=None, autocast=True, autocast_dtype=None, discard_output=True, save_inputs=False):
+    def _inference(self, texts, *, tok_kwargs=None, autocast=True, autocast_dtype=None, with_controllers=True):
         B = len(texts)
         T = 3
         D = 4
         # simulate captured flattened activations with N = B*T
         for det in list(self.layers.id_to_detector.values()):
             setattr(det, "captured_activations", torch.ones(B * T, D))
-        if save_inputs:
-            inp_ids = torch.arange(B * T).view(B, T)
-            attn = torch.ones(B, T, dtype=torch.long)
-            return inp_ids, attn
-        return None
+        # Return (output, enc) tuple
+        inp_ids = torch.arange(B * T).view(B, T)
+        attn = torch.ones(B, T, dtype=torch.long)
+        enc = {"input_ids": inp_ids, "attention_mask": attn}
+        output = torch.ones(B, T, D)
+        return output, enc
 
 
 class _FakeStore:

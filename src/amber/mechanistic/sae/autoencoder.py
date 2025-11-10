@@ -78,9 +78,8 @@ class Autoencoder(nn.Module):
     def disable_text_tracking(self):
         """Disable text tracking through context."""
         self.context.text_tracking_enabled = False
-        if self.concepts.top_texts_tracker is not None:
-            self.concepts.top_texts_tracker.detach()
-            self.concepts.top_texts_tracker = None
+        # Reset top texts heaps
+        self.concepts.reset_top_texts()
 
     @torch.no_grad()
     def _init_weights(self, norm=0.1, neuron_indices: list[int] | None = None) -> None:
@@ -289,7 +288,7 @@ class Autoencoder(nn.Module):
             detach: bool = False,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
-        Forward pass through the autoencoder.
+        Forward pass through the sae.
 
         Args:
             x: Input tensor of shape [batch_size, n_inputs]
@@ -389,7 +388,7 @@ class Autoencoder(nn.Module):
     @staticmethod
     def load_model(path: str | Path) -> tuple["Autoencoder", bool, bool, torch.Tensor]:
         """
-        Load a saved autoencoder model from a path. Prefer metadata inside the file; fallback to filename parsing for legacy files.
+        Load a saved sae model from a path. Prefer metadata inside the file; fallback to filename parsing for legacy files.
 
         Args:
             path: Path to saved model file

@@ -29,11 +29,12 @@ class ActivationSaverDetector(Detector):
             hook_id: Unique identifier for this hook
         """
         super().__init__(
-            layer_signature=layer_signature,
             hook_type=HookType.FORWARD,
             hook_id=hook_id,
             store=None
         )
+        # Set layer_signature attribute
+        self.layer_signature = layer_signature
         self.captured_activations: torch.Tensor | None = None
     
     def process_activations(self, module: "nn.Module", inputs: tuple, output: Any) -> None:

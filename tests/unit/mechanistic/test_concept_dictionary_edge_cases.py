@@ -32,7 +32,7 @@ class TestConceptDictionaryEdgeCases:
             dictionary.add(10, "test", 0.5)
 
     def test_duplicate_concept_names(self):
-        """Test handling of duplicate concept names."""
+        """Test handling of duplicate concept names - only last one is kept."""
         dictionary = ConceptDictionary(n_size=3)
         
         # Add concepts with same name to same neuron
@@ -40,70 +40,70 @@ class TestConceptDictionaryEdgeCases:
         dictionary.add(0, "duplicate", 0.6)
         dictionary.add(0, "duplicate", 0.9)
         
-        # Should all be stored (not necessarily sorted unless max_concepts is set)
-        concepts = dictionary.get(0)
-        assert len(concepts) == 3
-        assert all(c.name == "duplicate" for c in concepts)
-        
-        # Concepts are stored in order of addition, not sorted by score
-        scores = [c.score for c in concepts]
-        assert scores == [0.8, 0.6, 0.9]  # Order of addition
+        # Only 1 concept per neuron - last one added is kept
+        concept = dictionary.get(0)
+        assert concept is not None
+        assert concept.name == "duplicate"
+        assert concept.score == 0.9  # Last one added
 
-    def test_concept_sorting_by_score(self):
-        """Test that concepts are sorted by score when max_concepts is set."""
-        dictionary = ConceptDictionary(n_size=3, max_concepts=3)
+    def test_concept_replacement(self):
+        """Test that adding a new concept replaces the old one."""
+        dictionary = ConceptDictionary(n_size=3)
         
         # Add concepts with different scores
         scores = [0.1, 0.9, 0.3, 0.7, 0.5]
         for i, score in enumerate(scores):
             dictionary.add(0, f"concept_{i}", score)
         
-        # Should be sorted by score (descending) due to max_concepts limiting
-        concepts = dictionary.get(0)
-        assert len(concepts) == 3  # Limited by max_concepts
-        
-        concept_scores = [c.score for c in concepts]
-        assert concept_scores == sorted(scores, reverse=True)[:3]  # Top 3 scores
+        # Only 1 concept per neuron - last one added is kept
+        concept = dictionary.get(0)
+        assert concept is not None
+        assert concept.name == "concept_4"
+        assert concept.score == 0.5  # Last one added
 
     def test_empty_dictionary_operations(self):
         """Test operations on empty dictionary."""
         dictionary = ConceptDictionary(n_size=5)
         
-        # All neurons should return empty lists
+        # All neurons should return None (no concept)
         for i in range(5):
-            assert dictionary.get(i) == []
+            assert dictionary.get(i) is None
         
-        # get_many should return empty dicts
+        # get_many should return None values
         many_concepts = dictionary.get_many([0, 1, 2])
-        assert many_concepts == {0: [], 1: [], 2: []}
+        assert many_concepts == {0: None, 1: None, 2: None}
         
         # Should handle empty operations gracefully
         assert len(dictionary.concepts_map) == 0
 
-    def test_max_concepts_edge_cases(self):
-        """Test max_concepts with edge cases."""
-        # Test max_concepts = 0
-        dictionary = ConceptDictionary(n_size=3, max_concepts=0)
-        dictionary.add(0, "test", 0.5)
+    def test_concept_replacement_edge_cases(self):
+        """Test concept replacement behavior."""
+        dictionary = ConceptDictionary(n_size=3)
         
-        # Should not store any concepts
-        assert dictionary.get(0) == []
-        
-        # Test max_concepts = 1
-        dictionary = ConceptDictionary(n_size=3, max_concepts=1)
+        # Add first concept
         dictionary.add(0, "first", 0.5)
-        dictionary.add(0, "second", 0.8)
-        dictionary.add(0, "third", 0.3)
+        concept = dictionary.get(0)
+        assert concept is not None
+        assert concept.name == "first"
+        assert concept.score == 0.5
         
-        # Should only keep the highest scoring concept
-        concepts = dictionary.get(0)
-        assert len(concepts) == 1
-        assert concepts[0].name == "second"
-        assert concepts[0].score == 0.8
+        # Replace with higher score
+        dictionary.add(0, "second", 0.8)
+        concept = dictionary.get(0)
+        assert concept is not None
+        assert concept.name == "second"
+        assert concept.score == 0.8
+        
+        # Replace with lower score (still replaces)
+        dictionary.add(0, "third", 0.3)
+        concept = dictionary.get(0)
+        assert concept is not None
+        assert concept.name == "third"
+        assert concept.score == 0.3
 
     def test_concept_with_extreme_scores(self):
         """Test concepts with extreme score values."""
-        dictionary = ConceptDictionary(n_size=3, max_concepts=3)
+        dictionary = ConceptDictionary(n_size=3)
         
         # Test with extreme scores
         extreme_scores = [
@@ -119,14 +119,11 @@ class TestConceptDictionaryEdgeCases:
         for i, score in enumerate(extreme_scores):
             dictionary.add(0, f"concept_{i}", score)
         
-        # Should handle extreme scores (only top 3 due to max_concepts)
-        concepts = dictionary.get(0)
-        assert len(concepts) == 3  # Limited by max_concepts
-        
-        # Should be sorted correctly (inf > finite > -inf)
-        concept_scores = [c.score for c in concepts]
-        assert concept_scores[0] == float('inf')  # Highest
-        assert concept_scores[-1] == 1e-10  # Third highest
+        # Only last concept is kept (1 per neuron)
+        concept = dictionary.get(0)
+        assert concept is not None
+        assert concept.name == "concept_6"
+        assert concept.score == -1e10  # Last one added
 
     def test_concept_with_special_characters_in_names(self):
         """Test concepts with special characters in names."""
@@ -159,14 +156,11 @@ class TestConceptDictionaryEdgeCases:
         for i, name in enumerate(special_names):
             dictionary.add(0, name, float(i))
         
-        # Should handle all special characters
-        concepts = dictionary.get(0)
-        assert len(concepts) == len(special_names)
-        
-        # Check that all names were preserved
-        concept_names = [c.name for c in concepts]
-        for name in special_names:
-            assert name in concept_names
+        # Only last concept is kept (1 per neuron)
+        concept = dictionary.get(0)
+        assert concept is not None
+        assert concept.name == special_names[-1]  # Last one added
+        assert concept.score == float(len(special_names) - 1)
 
     def test_concept_with_very_long_names(self):
         """Test concepts with very long names."""
@@ -182,14 +176,11 @@ class TestConceptDictionaryEdgeCases:
         for i, name in enumerate(long_names):
             dictionary.add(0, name, float(i))
         
-        # Should handle very long names
-        concepts = dictionary.get(0)
-        assert len(concepts) == len(long_names)
-        
-        # Check that all names were preserved
-        concept_names = [c.name for c in concepts]
-        for name in long_names:
-            assert name in concept_names
+        # Only last concept is kept (1 per neuron)
+        concept = dictionary.get(0)
+        assert concept is not None
+        assert concept.name == long_names[-1]  # Last one added
+        assert concept.score == float(len(long_names) - 1)
 
     def test_concept_with_none_values(self):
         """Test concepts with None values."""
@@ -197,17 +188,17 @@ class TestConceptDictionaryEdgeCases:
         
         # Test with None name (should work, no validation)
         dictionary.add(0, None, 0.5)
-        concepts = dictionary.get(0)
-        assert len(concepts) == 1
-        assert concepts[0].name is None
-        assert concepts[0].score == 0.5
+        concept = dictionary.get(0)
+        assert concept is not None
+        assert concept.name is None
+        assert concept.score == 0.5
         
-        # Test with None score (should work, no validation)
+        # Test with None score (should work, no validation) - replaces previous
         dictionary.add(0, "test", None)
-        concepts = dictionary.get(0)
-        assert len(concepts) == 2
-        assert concepts[1].name == "test"
-        assert concepts[1].score is None
+        concept = dictionary.get(0)
+        assert concept is not None
+        assert concept.name == "test"
+        assert concept.score is None
 
     def test_concept_with_invalid_types(self):
         """Test concepts with invalid types (no validation, should work)."""
@@ -215,29 +206,29 @@ class TestConceptDictionaryEdgeCases:
         
         # Test with invalid name types (should work, no validation)
         dictionary.add(0, 123, 0.5)
-        concepts = dictionary.get(0)
-        assert len(concepts) == 1
-        assert concepts[0].name == 123
-        assert concepts[0].score == 0.5
+        concept = dictionary.get(0)
+        assert concept is not None
+        assert concept.name == 123
+        assert concept.score == 0.5
         
         dictionary.add(0, [], 0.6)
-        concepts = dictionary.get(0)
-        assert len(concepts) == 2
-        assert concepts[1].name == []
-        assert concepts[1].score == 0.6
+        concept = dictionary.get(0)
+        assert concept is not None
+        assert concept.name == []
+        assert concept.score == 0.6
         
         dictionary.add(0, {}, 0.7)
-        concepts = dictionary.get(0)
-        assert len(concepts) == 3
-        assert concepts[2].name == {}
-        assert concepts[2].score == 0.7
+        concept = dictionary.get(0)
+        assert concept is not None
+        assert concept.name == {}
+        assert concept.score == 0.7
         
         # Test with invalid score types (should work, no validation)
         dictionary.add(1, "test", "invalid")
-        concepts = dictionary.get(1)
-        assert len(concepts) == 1
-        assert concepts[0].name == "test"
-        assert concepts[0].score == "invalid"
+        concept = dictionary.get(1)
+        assert concept is not None
+        assert concept.name == "test"
+        assert concept.score == "invalid"
 
     def test_concept_dictionary_with_zero_size(self):
         """Test concept dictionary with zero size."""
@@ -262,10 +253,10 @@ class TestConceptDictionaryEdgeCases:
         
         # Should be able to add concepts at the end
         dictionary.add(large_size - 1, "test", 0.5)
-        concepts = dictionary.get(large_size - 1)
-        assert len(concepts) == 1
-        assert concepts[0].name == "test"
-        assert concepts[0].score == 0.5
+        concept = dictionary.get(large_size - 1)
+        assert concept is not None
+        assert concept.name == "test"
+        assert concept.score == 0.5
 
     def test_concept_dictionary_with_negative_size(self):
         """Test concept dictionary with negative size (no validation)."""
@@ -277,46 +268,16 @@ class TestConceptDictionaryEdgeCases:
         with pytest.raises(IndexError):
             dictionary.add(0, "test", 0.5)
 
-    def test_concept_dictionary_with_negative_max_concepts(self):
-        """Test concept dictionary with negative max_concepts (no validation)."""
-        # Should work with negative max_concepts (no validation)
-        dictionary = ConceptDictionary(n_size=5, max_concepts=-1)
-        assert dictionary.max_concepts == -1
+    def test_concept_dictionary_replacement_behavior(self):
+        """Test that adding a concept always replaces the previous one."""
+        dictionary = ConceptDictionary(n_size=5)
         
-        # Adding concepts should work but be deleted due to negative max_concepts
-        dictionary.add(0, "test", 0.5)
-        concepts = dictionary.get(0)
-        assert len(concepts) == 0  # All concepts deleted due to negative max_concepts
-
-    def test_concept_dictionary_with_none_max_concepts(self):
-        """Test concept dictionary with None max_concepts."""
-        dictionary = ConceptDictionary(n_size=5, max_concepts=None)
-        
-        # Should handle None max_concepts (unlimited)
+        # Add multiple concepts - only last one is kept
         for i in range(100):
             dictionary.add(0, f"concept_{i}", float(i))
         
-        # Should store all concepts
-        concepts = dictionary.get(0)
-        assert len(concepts) == 100
-
-    def test_concept_dictionary_with_float_max_concepts(self):
-        """Test concept dictionary with float max_concepts (no validation)."""
-        # Should work with float max_concepts (no validation)
-        dictionary = ConceptDictionary(n_size=5, max_concepts=3.5)
-        assert dictionary.max_concepts == 3.5
-        
-        # Adding concepts should work normally
-        dictionary.add(0, "test", 0.5)
-        concepts = dictionary.get(0)
-        assert len(concepts) == 1
-
-    def test_concept_dictionary_with_string_max_concepts(self):
-        """Test concept dictionary with string max_concepts (causes TypeError)."""
-        # Should work with string max_concepts (no validation)
-        dictionary = ConceptDictionary(n_size=5, max_concepts="3")
-        assert dictionary.max_concepts == "3"
-        
-        # Adding concepts should fail due to type comparison error
-        with pytest.raises(TypeError):
-            dictionary.add(0, "test", 0.5)
+        # Should only store the last concept
+        concept = dictionary.get(0)
+        assert concept is not None
+        assert concept.name == "concept_99"
+        assert concept.score == 99.0

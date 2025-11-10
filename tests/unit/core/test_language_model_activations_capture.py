@@ -35,12 +35,13 @@ class _FakeLanguageModel:
     def __init__(self, layers: _FakeLayers):
         self.layers = layers
 
-    def _inference(self, texts, *, autocast=True, autocast_dtype=None, discard_output=True, save_inputs=False, tok_kwargs=None):
+    def _inference(self, texts, *, tok_kwargs=None, autocast=True, autocast_dtype=None, with_controllers=True):
         # Simulate that each registered detector captured some tensor
         for detector in list(self.layers.id_to_detector.values()):
             # ActivationSaverDetector exposes captured_activations via method, but we can set attribute directly
             setattr(detector, "captured_activations", torch.ones(2, 3))
-        return None
+        # Return (output, enc) tuple
+        return torch.ones(2, 3), {"input_ids": torch.ones(2, 3), "attention_mask": torch.ones(2, 3)}
 
 
 class _FakeContext:

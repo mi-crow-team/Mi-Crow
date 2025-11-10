@@ -7,13 +7,14 @@ from amber.store import Store
 if TYPE_CHECKING:
     from amber.core.language_model import LanguageModel
     from amber.mechanistic.autoencoder.autoencoder import Autoencoder
+    from amber.mechanistic.autoencoder.sae import Sae
 
 
 @dataclass
 class AutoencoderContext:
     """Shared context for Autoencoder and its nested components."""
 
-    autoencoder: "Autoencoder"
+    autoencoder: "Sae"
 
     # Core SAE parameters
     n_latents: int

@@ -15,28 +15,29 @@ class Detector(Hook):
     
     Detectors can accumulate data across batches and optionally save it to a Store.
     """
-    
+
     def __init__(
-        self,
-        layer_signature: str | int,
-        hook_type: HookType | str = HookType.FORWARD,
-        hook_id: str | None = None,
-        store: "Store | None" = None
+            self,
+            hook_type: HookType | str = HookType.FORWARD,
+            hook_id: str | None = None,
+            store: "Store | None" = None,
+            layer_signature: str | int | None = None
     ):
         """
         Initialize a detector hook.
         
         Args:
-            layer_signature: Layer to attach to
             hook_type: Type of hook (HookType.FORWARD or HookType.PRE_FORWARD)
             hook_id: Unique identifier
             store: Optional Store for saving metadata
+            layer_signature: Layer to attach to (optional, for compatibility)
         """
-        super().__init__(layer_signature, hook_type, hook_id)
+        super().__init__(layer_signature=layer_signature, hook_type=hook_type, hook_id=hook_id)
         self.store = store
         self._batch_metadata: List[Dict[str, Any]] = []
+        self._metadata: Dict[str, Any] = {}
         self._current_batch_index = 0
-    
+
     def _hook_fn(self, module: "nn.Module", inputs: tuple, output: Any) -> Any:
         """
         Internal hook function that collects metadata.
@@ -45,11 +46,11 @@ class Detector(Hook):
         """
         if not self._enabled:
             return None
-        
+
         try:
             # Process activations (subclass-specific logic)
             self.process_activations(module, inputs, output)
-            
+
             # Collect metadata for this batch
             metadata = self.collect_metadata(module, inputs, output)
             if metadata is not None:
@@ -57,10 +58,10 @@ class Detector(Hook):
         except Exception:
             # Don't let hook errors crash inference
             pass
-        
+
         # Return None to not modify output
         return None
-    
+
     @abc.abstractmethod
     def process_activations(self, module: "nn.Module", inputs: tuple, output: Any) -> None:
         """
@@ -98,7 +99,7 @@ class Detector(Hook):
             Dictionary with metadata or None
         """
         return None
-    
+
     def get_accumulated_metadata(self) -> List[Dict[str, Any]]:
         """
         Get all accumulated metadata across batches.
@@ -107,12 +108,12 @@ class Detector(Hook):
             List of metadata dictionaries
         """
         return self._batch_metadata.copy()
-    
+
     def reset_metadata(self) -> None:
         """Clear accumulated metadata."""
         self._batch_metadata.clear()
         self._current_batch_index = 0
-    
+
     def save_metadata(self, run_name: str, store: "Store | None" = None) -> None:
         """
         Save accumulated metadata to a Store.
@@ -124,7 +125,7 @@ class Detector(Hook):
         target_store = store or self.store
         if target_store is None:
             raise ValueError("No store available for saving metadata")
-        
+
         # Convert metadata to saveable format
         metadata_list = []
         for meta in self._batch_metadata:
@@ -136,7 +137,7 @@ class Detector(Hook):
                 else:
                     meta_dict[key] = value
             metadata_list.append(meta_dict)
-        
+
         # Save using store's metadata API
         save_data = {
             'hook_id': self.id,
@@ -145,7 +146,7 @@ class Detector(Hook):
             'num_batches': len(metadata_list),
             'metadata': metadata_list
         }
-        
+
         try:
             target_store.put_run_meta(f"{run_name}_detector_{self.id}", save_data)
         except Exception:

@@ -16,7 +16,7 @@ class _LiteController(Controller):
         raise_in_modify: bool = False,
         return_value: Any | None = None,
     ) -> None:
-        super().__init__(layer_signature, hook_type, hook_id)
+        super().__init__(hook_type=hook_type, hook_id=hook_id, layer_signature=layer_signature)
         self.calls: list[str] = []
         self.last_inputs: tuple | None = None
         self.last_output: Any | None = None

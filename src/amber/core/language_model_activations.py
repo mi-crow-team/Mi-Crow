@@ -14,11 +14,11 @@ if TYPE_CHECKING:
 class LanguageModelActivations:
     def __init__(self, context: "LanguageModelContext"):
         self.context = context
-    
+
     def _setup_detector(
-        self,
-        layer_signature: str | int,
-        hook_id_suffix: str
+            self,
+            layer_signature: str | int,
+            hook_id_suffix: str
     ) -> tuple[ActivationSaverDetector, str]:
         """
         Create and register an activation detector.
@@ -30,28 +30,28 @@ class LanguageModelActivations:
             layer_signature=layer_signature,
             hook_id=f"detector_{hook_id_suffix}"
         )
-        
+
         hook_id = self.context.language_model.layers.register_hook(
             layer_signature,
             detector
         )
-        
+
         return detector, hook_id
-    
+
     def _cleanup_detector(self, hook_id: str) -> None:
         """Unregister a detector hook."""
         try:
             self.context.language_model.layers.unregister_hook(hook_id)
         except Exception:
             pass
-    
+
     def capture_activations(
-        self,
-        texts: Sequence[str],
-        layer_signature: str | int,
-        *,
-        autocast: bool = True,
-        autocast_dtype: torch.dtype | None = None,
+            self,
+            texts: Sequence[str],
+            layer_signature: str | int,
+            *,
+            autocast: bool = True,
+            autocast_dtype: torch.dtype | None = None,
     ) -> torch.Tensor:
         """
         Capture activations from a single layer for a batch of texts.
@@ -67,34 +67,32 @@ class LanguageModelActivations:
         """
         # Setup detector
         detector, hook_id = self._setup_detector(layer_signature, f"capture_{id(texts)}")
-        
+
         try:
             # Run inference
             _ = self.context.language_model._inference(
                 texts,
                 autocast=autocast,
                 autocast_dtype=autocast_dtype,
-                discard_output=True,
-                save_inputs=False,
             )
-            
+
             # Get captured activations
             activations = detector.get_captured()
             if activations is None:
                 raise RuntimeError(f"Failed to capture activations from layer '{layer_signature}'")
-            
+
             return activations
-            
+
         finally:
             self._cleanup_detector(hook_id)
-    
+
     def capture_activations_all_layers(
-        self,
-        texts: Sequence[str],
-        layer_signatures: list[str | int] | None = None,
-        *,
-        autocast: bool = True,
-        autocast_dtype: torch.dtype | None = None,
+            self,
+            texts: Sequence[str],
+            layer_signatures: list[str | int] | None = None,
+            *,
+            autocast: bool = True,
+            autocast_dtype: torch.dtype | None = None,
     ) -> Dict[str | int, torch.Tensor]:
         """
         Capture activations from multiple layers for a batch of texts.
@@ -111,35 +109,33 @@ class LanguageModelActivations:
         # If no layer signatures provided, get all layers
         if layer_signatures is None:
             layer_signatures = self.context.language_model.layers.get_layer_names()
-        
+
         # Setup detectors for each layer
         detectors = {}
         hook_ids = []
-        
+
         for layer_sig in layer_signatures:
             detector, hook_id = self._setup_detector(layer_sig, f"all_{layer_sig}_{id(texts)}")
             detectors[layer_sig] = detector
             hook_ids.append(hook_id)
-        
+
         try:
             # Run inference
             _ = self.context.language_model._inference(
                 texts,
                 autocast=autocast,
                 autocast_dtype=autocast_dtype,
-                discard_output=True,
-                save_inputs=False,
             )
-            
+
             # Collect activations from all detectors
             all_activations = {}
             for layer_sig, detector in detectors.items():
                 activations = detector.get_captured()
                 if activations is not None:
                     all_activations[layer_sig] = activations
-            
+
             return all_activations
-            
+
         finally:
             # Clean up all hooks
             for hook_id in hook_ids:
@@ -228,11 +224,11 @@ class LanguageModelActivations:
                         tok_kwargs=tok_kwargs,
                         autocast=autocast,
                         autocast_dtype=autocast_dtype,
-                        discard_output=True,
-                        save_inputs=save_inputs,
                     )
+                    output, enc = res
                     if save_inputs:
-                        inp_ids, attn = res
+                        inp_ids = enc.get("input_ids")
+                        attn = enc.get("attention_mask")
                         if isinstance(inp_ids, torch.Tensor):
                             payload["input_ids"] = inp_ids
                         if isinstance(attn, torch.Tensor):
@@ -282,22 +278,22 @@ class LanguageModelActivations:
             self._cleanup_detector(hook_id)
             if verbose:
                 logger.info(f"Completed save_model_activations: run={run_name}, batches_saved={batch_counter}")
-    
+
     def infer_and_save_all_layers(
-        self,
-        dataset: TextSnippetDataset,
-        layer_signatures: list[str | int] | None = None,
-        run_name: str | None = None,
-        store: Store | None = None,
-        batch_size: int = 32,
-        *,
-        dtype: torch.dtype | None = None,
-        max_length: int | None = None,
-        autocast: bool = True,
-        autocast_dtype: torch.dtype | None = None,
-        save_inputs: bool = True,
-        free_cuda_cache_every: int | None = 0,
-        verbose: bool = False,
+            self,
+            dataset: TextSnippetDataset,
+            layer_signatures: list[str | int] | None = None,
+            run_name: str | None = None,
+            store: Store | None = None,
+            batch_size: int = 32,
+            *,
+            dtype: torch.dtype | None = None,
+            max_length: int | None = None,
+            autocast: bool = True,
+            autocast_dtype: torch.dtype | None = None,
+            save_inputs: bool = True,
+            free_cuda_cache_every: int | None = 0,
+            verbose: bool = False,
     ):
         """
         Run inference on a dataset and save activations from multiple layers.
@@ -319,28 +315,28 @@ class LanguageModelActivations:
         model = self.context.model
         if model is None:
             raise ValueError("Model must be initialized before running")
-        
+
         if store is None:
             store = self.context.store
-        
+
         if run_name is None:
             import datetime
             run_name = f"activations_all_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        
+
         # If no layer signatures provided, get all layers
         if layer_signatures is None:
             layer_signatures = self.context.language_model.layers.get_layer_names()
-        
+
         device = next(model.parameters()).device
         device_type = str(getattr(device, 'type', 'cpu'))
-        
+
         logger = get_logger(__name__)
         if verbose:
             logger.info(
                 f"Starting save_all_layers: run={run_name}, layers={len(layer_signatures)}, "
                 f"batch_size={batch_size}, device={device_type}"
             )
-        
+
         # Save run metadata
         try:
             ds_id = str(getattr(dataset, "cache_dir", ""))
@@ -348,7 +344,7 @@ class LanguageModelActivations:
         except Exception:
             ds_id = ""
             ds_len = -1
-        
+
         meta = {
             "run_name": run_name,
             "model": getattr(self.context.model, "model_name", self.context.model.__class__.__name__),
@@ -365,49 +361,49 @@ class LanguageModelActivations:
                 "batch_size": int(batch_size),
             },
         }
-        
+
         try:
             store.put_run_meta(run_name, meta)
         except Exception:
             pass
-        
+
         # Setup detectors for all layers
         detectors = {}
         hook_ids = []
-        
+
         for layer_sig in layer_signatures:
             detector, hook_id = self._setup_detector(layer_sig, f"save_all_{layer_sig}_{run_name}")
             detectors[layer_sig] = detector
             hook_ids.append(hook_id)
-        
+
         batch_counter = 0
         try:
             with torch.inference_mode():
                 for batch_index, texts in enumerate(dataset.iter_batches(batch_size)):
                     if not texts:
                         continue
-                    
+
                     tok_kwargs = {}
                     if max_length is not None:
                         tok_kwargs["max_length"] = max_length
-                    
+
                     payload: dict[str, torch.Tensor] = {}
                     res = self.context.language_model._inference(
                         texts,
                         tok_kwargs=tok_kwargs,
                         autocast=autocast,
                         autocast_dtype=autocast_dtype,
-                        discard_output=True,
-                        save_inputs=save_inputs,
                     )
-                    
+
                     if save_inputs:
-                        inp_ids, attn = res
+                        output, enc = res
+                        inp_ids = enc.get("input_ids")
+                        attn = enc.get("attention_mask")
                         if isinstance(inp_ids, torch.Tensor):
                             payload["input_ids"] = inp_ids
                         if isinstance(attn, torch.Tensor):
                             payload["attention_mask"] = attn
-                    
+
                     # Collect activations from all layers
                     for layer_sig, detector in detectors.items():
                         act = detector.get_captured()
@@ -423,23 +419,23 @@ class LanguageModelActivations:
                                             act = act.view(B, T, D)
                             except Exception:
                                 pass
-                            
+
                             if dtype is not None:
                                 try:
                                     act = act.to(dtype, copy=False)
                                 except Exception:
                                     act = act.to(dtype)
-                            
+
                             if device_type == "cuda":
                                 act = act.to("cpu", non_blocking=True)
                             else:
                                 act = act.to("cpu")
-                            
+
                             # Store with layer prefix
                             safe_layer_name = str(layer_sig).replace("/", "_")
                             payload[f"activations_{safe_layer_name}"] = act
                             detector.clear_captured()
-                    
+
                     store.put_run_batch(run_name, batch_index, payload)
                     if verbose:
                         logger.info(
@@ -448,18 +444,18 @@ class LanguageModelActivations:
                         )
                     del payload
                     batch_counter += 1
-                    
+
                     if device_type == "cuda" and free_cuda_cache_every and free_cuda_cache_every > 0:
                         if (batch_counter % free_cuda_cache_every) == 0:
                             torch.cuda.empty_cache()
                             if verbose:
                                 logger.info("Emptied CUDA cache")
-        
+
         finally:
             # Clean up all hooks
             for hook_id in hook_ids:
                 self._cleanup_detector(hook_id)
-            
+
             if verbose:
                 logger.info(
                     f"Completed save_all_layers: run={run_name}, batches_saved={batch_counter}, "

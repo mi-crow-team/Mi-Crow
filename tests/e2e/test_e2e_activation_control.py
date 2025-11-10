@@ -19,7 +19,7 @@ class SimpleActivationController(Controller):
     """
     
     def __init__(self, layer_signature, scale_factor=1.0, hook_id=None):
-        super().__init__(layer_signature, HookType.FORWARD, hook_id)
+        super().__init__(hook_type=HookType.FORWARD, hook_id=hook_id, layer_signature=layer_signature)
         self.scale_factor = scale_factor
     
     def modify_activations(self, module, inputs, output):
@@ -41,7 +41,7 @@ class ActivationCapturingController(Controller):
     """
     
     def __init__(self, layer_signature, hook_id=None):
-        super().__init__(layer_signature, HookType.FORWARD, hook_id)
+        super().__init__(hook_type=HookType.FORWARD, hook_id=hook_id, layer_signature=layer_signature)
         self.captured_inputs = []
         self.captured_outputs = []
         self.captured_modified = []

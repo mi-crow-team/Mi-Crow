@@ -21,12 +21,12 @@ class Hook(abc.ABC):
     They expose PyTorch-compatible callables via get_torch_hook() while providing
     additional functionality like enable/disable and unique identification.
     """
-    
+
     def __init__(
-        self,
-        layer_signature: str | int,
-        hook_type: HookType | str = HookType.FORWARD,
-        hook_id: str | None = None
+            self,
+            layer_signature: str | int | None = None,
+            hook_type: HookType | str = HookType.FORWARD,
+            hook_id: str | None = None
     ):
         """
         Initialize a hook.
@@ -45,20 +45,20 @@ class Hook(abc.ABC):
         self.id = hook_id if hook_id is not None else str(uuid.uuid4())
         self._enabled = True
         self._torch_hook_handle = None
-        
+
     @property
     def enabled(self) -> bool:
         """Whether this hook is currently enabled."""
         return self._enabled
-    
+
     def enable(self) -> None:
         """Enable this hook."""
         self._enabled = True
-    
+
     def disable(self) -> None:
         """Disable this hook."""
         self._enabled = False
-    
+
     def get_torch_hook(self) -> Callable:
         """
         Return a PyTorch-compatible hook function.
@@ -75,14 +75,16 @@ class Hook(abc.ABC):
                 if not self._enabled:
                     return None  # PyTorch pre-hooks return None to not modify inputs
                 return self._hook_fn(module, inputs, None)
+
             return pre_forward_wrapper
         else:  # forward
             def forward_wrapper(module: "nn.Module", inputs: tuple, output: Any) -> Any:
                 if not self._enabled:
                     return None  # PyTorch forward hooks return None to not modify output
                 return self._hook_fn(module, inputs, output)
+
             return forward_wrapper
-    
+
     @abc.abstractmethod
     def _hook_fn(self, module: "nn.Module", inputs: tuple, output: Any) -> Any:
         """

@@ -41,7 +41,7 @@ class FunctionController(Controller):
             hook_type: Type of hook (HookType.FORWARD or HookType.PRE_FORWARD)
             hook_id: Unique identifier
         """
-        super().__init__(layer_signature, hook_type, hook_id)
+        super().__init__(hook_type=hook_type, hook_id=hook_id, layer_signature=layer_signature)
         self.function = function
     
     def modify_activations(

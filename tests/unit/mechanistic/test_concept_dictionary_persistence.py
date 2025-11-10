@@ -39,21 +39,19 @@ class TestConceptDictionaryPersistence:
             assert loaded_dict.n_size == size
             assert loaded_dict.concepts_map == dictionary.concepts_map
 
-    def test_max_concepts_limiting_behavior(self, tmp_path):
-        """Test max_concepts limiting behavior."""
-        dictionary = ConceptDictionary(n_size=5, max_concepts=3)
+    def test_one_concept_per_neuron_behavior(self, tmp_path):
+        """Test that only one concept per neuron is kept."""
+        dictionary = ConceptDictionary(n_size=5)
         
-        # Add more concepts than max_concepts
+        # Add multiple concepts - only last one is kept
         for i in range(5):
             dictionary.add(0, f"concept_{i}", float(i))
         
-        # Should only keep top 3 by score
-        concepts = dictionary.get(0)
-        assert len(concepts) == 3
-        
-        # Should be sorted by score (descending)
-        scores = [c.score for c in concepts]
-        assert scores == sorted(scores, reverse=True)
+        # Should only keep last one (1 per neuron)
+        concept = dictionary.get(0)
+        assert concept is not None
+        assert concept.name == "concept_4"
+        assert concept.score == 4.0
 
     def test_export_to_csv_format(self, tmp_path):
         """Test export to CSV format."""
@@ -79,8 +77,17 @@ class TestConceptDictionaryPersistence:
             assert "concepts" in data
             assert "0" in data["concepts"]
             assert "1" in data["concepts"]
-            assert len(data["concepts"]["0"]) == 2
-            assert len(data["concepts"]["1"]) == 1
+            # Only 1 concept per neuron - check it's a dict (single concept) or list (backward compat)
+            concept_0 = data["concepts"]["0"]
+            if isinstance(concept_0, list):
+                assert len(concept_0) >= 1  # At least 1 concept
+            else:
+                assert isinstance(concept_0, dict)  # Single concept dict
+            concept_1 = data["concepts"]["1"]
+            if isinstance(concept_1, list):
+                assert len(concept_1) >= 1
+            else:
+                assert isinstance(concept_1, dict)
 
     def test_from_csv_factory_method(self, tmp_path):
         """Test from_csv factory method."""
@@ -99,14 +106,16 @@ class TestConceptDictionaryPersistence:
         # Check that concepts were added correctly
         assert dictionary.n_size == 3
         
-        concepts_0 = dictionary.get(0)
-        assert len(concepts_0) == 2
-        assert any(c.name == "concept_0" and c.score == 0.8 for c in concepts_0)
-        assert any(c.name == "concept_1" and c.score == 0.6 for c in concepts_0)
+        # Only highest scoring concept per neuron is kept
+        concept_0 = dictionary.get(0)
+        assert concept_0 is not None
+        assert concept_0.name == "concept_0"  # Highest score (0.8 > 0.6)
+        assert concept_0.score == 0.8
         
-        concepts_1 = dictionary.get(1)
-        assert len(concepts_1) == 1
-        assert concepts_1[0].name == "concept_2" and concepts_1[0].score == 0.9
+        concept_1 = dictionary.get(1)
+        assert concept_1 is not None
+        assert concept_1.name == "concept_2"
+        assert concept_1.score == 0.9
 
     def test_from_csv_file_not_found(self, tmp_path):
         """Test from_csv with non-existent file."""
@@ -137,14 +146,16 @@ class TestConceptDictionaryPersistence:
         # Check that concepts were added correctly
         assert dictionary.n_size == 3
         
-        concepts_0 = dictionary.get(0)
-        assert len(concepts_0) == 2
-        assert any(c.name == "concept_0" and c.score == 0.8 for c in concepts_0)
-        assert any(c.name == "concept_1" and c.score == 0.6 for c in concepts_0)
+        # Only highest scoring concept per neuron is kept
+        concept_0 = dictionary.get(0)
+        assert concept_0 is not None
+        assert concept_0.name == "concept_0"  # Highest score (0.8 > 0.6)
+        assert concept_0.score == 0.8
         
-        concepts_1 = dictionary.get(1)
-        assert len(concepts_1) == 1
-        assert concepts_1[0].name == "concept_2" and concepts_1[0].score == 0.9
+        concept_1 = dictionary.get(1)
+        assert concept_1 is not None
+        assert concept_1.name == "concept_2"
+        assert concept_1.score == 0.9
 
     def test_from_json_file_not_found(self, tmp_path):
         """Test from_json with non-existent file."""
@@ -172,10 +183,10 @@ class TestConceptDictionaryPersistence:
         dictionary = ConceptDictionary.from_json(json_path, n_size=5)
         
         # Should only have concepts from neuron 0 and 3
-        assert len(dictionary.get(0)) == 1
-        assert len(dictionary.get(1)) == 0
-        assert len(dictionary.get(2)) == 0
-        assert len(dictionary.get(3)) == 1
+        assert dictionary.get(0) is not None
+        assert dictionary.get(1) is None
+        assert dictionary.get(2) is None
+        assert dictionary.get(3) is not None
 
     def test_from_json_with_non_dict_concepts(self, tmp_path):
         """Test from_json handles non-dict concept entries gracefully."""
@@ -193,11 +204,11 @@ class TestConceptDictionaryPersistence:
         
         dictionary = ConceptDictionary.from_json(json_path, n_size=3)
         
-        # Should only have 2 concepts (skipping non-dict entries)
-        concepts = dictionary.get(0)
-        assert len(concepts) == 2
-        assert any(c.name == "concept_0" and c.score == 0.8 for c in concepts)
-        assert any(c.name == "concept_1" and c.score == 0.6 for c in concepts)
+        # Should only have 1 concept (highest scoring, skipping non-dict entries)
+        concept = dictionary.get(0)
+        assert concept is not None
+        assert concept.name == "concept_0"  # Highest score (0.8 > 0.6)
+        assert concept.score == 0.8
 
     def test_from_llm_raises_not_implemented(self):
         """Test from_llm raises NotImplementedError."""
@@ -271,12 +282,11 @@ class TestConceptDictionaryPersistence:
         loaded_dict = ConceptDictionary(n_size=0)
         loaded_dict.load(directory=save_dir)
         
-        # Check that all concepts were preserved
-        loaded_concepts = loaded_dict.get(0)
-        assert len(loaded_concepts) == len(special_names)
-        
-        for i, name in enumerate(special_names):
-            assert any(c.name == name and c.score == float(i) for c in loaded_concepts)
+        # Only last concept is kept (1 per neuron)
+        loaded_concept = loaded_dict.get(0)
+        assert loaded_concept is not None
+        assert loaded_concept.name == special_names[-1]  # Last one added
+        assert loaded_concept.score == float(len(special_names) - 1)
 
     def test_save_load_with_large_concept_dictionary(self, tmp_path):
         """Test save/load with large concept dictionary."""
@@ -304,11 +314,12 @@ class TestConceptDictionaryPersistence:
         # Check that all concepts were preserved
         assert loaded_dict.n_size == n_size
         
-        # Check a few random neurons
+        # Check a few random neurons - only last concept per neuron is kept
         for neuron_idx in range(0, n_size, 100):  # Every 100th neuron
-            concepts = loaded_dict.get(neuron_idx)
-            assert len(concepts) == 5
-            assert all(c.name.startswith(f"neuron_{neuron_idx}_") for c in concepts)
+            concept = loaded_dict.get(neuron_idx)
+            assert concept is not None
+            assert concept.name.startswith(f"neuron_{neuron_idx}_")
+            assert concept.name == f"neuron_{neuron_idx}_concept_4"  # Last one added
 
     def test_save_load_with_nested_concept_structure(self, tmp_path):
         """Test save/load with nested concept structure."""
@@ -337,12 +348,11 @@ class TestConceptDictionaryPersistence:
         loaded_dict = ConceptDictionary(n_size=0)
         loaded_dict.load(directory=save_dir)
         
-        # Check that all concepts were preserved
-        loaded_concepts = loaded_dict.get(0)
-        assert len(loaded_concepts) == len(hierarchical_concepts)
-        
-        for i, name in enumerate(hierarchical_concepts):
-            assert any(c.name == name and c.score == float(i) for c in loaded_concepts)
+        # Only last concept is kept (1 per neuron)
+        loaded_concept = loaded_dict.get(0)
+        assert loaded_concept is not None
+        assert loaded_concept.name == hierarchical_concepts[-1]  # Last one added
+        assert loaded_concept.score == float(len(hierarchical_concepts) - 1)
 
     def test_save_load_with_duplicate_concept_names(self, tmp_path):
         """Test save/load with duplicate concept names."""
@@ -362,14 +372,16 @@ class TestConceptDictionaryPersistence:
         loaded_dict = ConceptDictionary(n_size=0)
         loaded_dict.load(directory=save_dir)
         
-        # Check that all concepts were preserved
-        concepts_0 = loaded_dict.get(0)
-        assert len(concepts_0) == 2
-        assert all(c.name == "duplicate" for c in concepts_0)
+        # Only last concept per neuron is kept
+        concept_0 = loaded_dict.get(0)
+        assert concept_0 is not None
+        assert concept_0.name == "duplicate"
+        assert concept_0.score == 0.6  # Last one added for neuron 0
         
-        concepts_1 = loaded_dict.get(1)
-        assert len(concepts_1) == 2
-        assert all(c.name == "duplicate" for c in concepts_1)
+        concept_1 = loaded_dict.get(1)
+        assert concept_1 is not None
+        assert concept_1.name == "duplicate"
+        assert concept_1.score == 0.7  # Last one added for neuron 1
 
     def test_save_load_with_empty_dictionary(self, tmp_path):
         """Test save/load with empty dictionary."""
@@ -387,9 +399,9 @@ class TestConceptDictionaryPersistence:
         assert loaded_dict.n_size == 5
         assert len(loaded_dict.concepts_map) == 0
         
-        # All neurons should return empty lists
+        # All neurons should return None (no concepts)
         for i in range(5):
-            assert loaded_dict.get(i) == []
+            assert loaded_dict.get(i) is None
 
     def test_save_load_with_corrupted_file_handling(self, tmp_path):
         """Test handling of corrupted save files."""
