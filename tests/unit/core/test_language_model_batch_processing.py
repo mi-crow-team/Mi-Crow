@@ -4,8 +4,11 @@ import pytest
 import torch
 from torch import nn
 from unittest.mock import Mock, patch
+from pathlib import Path
+import tempfile
 
 from amber.core.language_model import LanguageModel
+from amber.store.local_store import LocalStore
 
 
 class MockTokenizer:
@@ -83,7 +86,9 @@ class TestLanguageModelBatchProcessing:
         """Test handling of variable-length sequences in batch."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / "store")
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with variable-length sequences
         texts = ["a", "bb", "ccc", "dddd"]
@@ -107,7 +112,9 @@ class TestLanguageModelBatchProcessing:
         """Test padding token handling."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / "store")
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with different padding strategies
         texts = ["a", "bb", "ccc"]
@@ -134,7 +141,9 @@ class TestLanguageModelBatchProcessing:
         """Test attention mask application."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / "store")
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with attention mask
         texts = ["a", "bb", "ccc"]
@@ -153,7 +162,9 @@ class TestLanguageModelBatchProcessing:
         """Test batch size edge cases."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / "store")
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with different batch sizes
         batch_sizes = [1, 2, 4, 8, 16, 32]
@@ -175,7 +186,9 @@ class TestLanguageModelBatchProcessing:
         """Test handling of empty batch."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / "store")
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with empty batch
         texts = []
@@ -191,7 +204,9 @@ class TestLanguageModelBatchProcessing:
         """Test handling of single sequence batch."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / "store")
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with single sequence
         texts = ["hello"]
@@ -210,7 +225,9 @@ class TestLanguageModelBatchProcessing:
         """Test handling of large batches."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / "store")
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with large batch
         batch_size = 100
@@ -230,7 +247,9 @@ class TestLanguageModelBatchProcessing:
         """Test batch with different sequence lengths."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / "store")
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with sequences of different lengths
         texts = ["a", "bb", "ccc", "dddd", "eeeee"]
@@ -249,7 +268,9 @@ class TestLanguageModelBatchProcessing:
         """Test batch with special tokens."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / "store")
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with special tokens
         texts = ["<start>hello<end>", "<pad>world<pad>", "<unk>test<unk>"]
@@ -268,7 +289,9 @@ class TestLanguageModelBatchProcessing:
         """Test batch with unicode text."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / "store")
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with unicode text
         texts = ["hello", "世界", "مرحبا", "🌍"]
@@ -287,7 +310,9 @@ class TestLanguageModelBatchProcessing:
         """Test batch with empty sequences."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / "store")
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with empty sequences
         texts = ["", "a", "", "bb"]
@@ -306,7 +331,9 @@ class TestLanguageModelBatchProcessing:
         """Test batch with very long sequences."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / "store")
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with very long sequences
         long_text = "a" * 1000
@@ -326,7 +353,9 @@ class TestLanguageModelBatchProcessing:
         """Test batch with mixed data types."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / "store")
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with mixed data types
         texts = ["text", "123", "text123", "123text"]
@@ -345,7 +374,9 @@ class TestLanguageModelBatchProcessing:
         """Test batch with duplicate sequences."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / "store")
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with duplicate sequences
         texts = ["hello", "hello", "world", "world"]
@@ -364,7 +395,9 @@ class TestLanguageModelBatchProcessing:
         """Test batch with None values."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / "store")
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with None values
         texts = ["hello", None, "world"]
@@ -377,7 +410,9 @@ class TestLanguageModelBatchProcessing:
         """Test batch with non-string values."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / "store")
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with non-string values
         texts = ["hello", 123, "world"]
@@ -390,7 +425,9 @@ class TestLanguageModelBatchProcessing:
         """Test batch with very small sequences."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / "store")
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with very small sequences
         texts = ["a", "b", "c", "d"]
@@ -409,7 +446,9 @@ class TestLanguageModelBatchProcessing:
         """Test batch with single character sequences."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / "store")
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with single character sequences
         texts = ["a", "b", "c", "d", "e"]

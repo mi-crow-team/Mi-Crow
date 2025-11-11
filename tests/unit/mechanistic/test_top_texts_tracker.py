@@ -5,7 +5,17 @@ import torch
 from torch import nn
 
 from amber.core.language_model import LanguageModel
-from amber.mechanistic.sae.concepts.autoencoder_concepts import AutoencoderConcepts
+from amber.store.local_store import LocalStore
+from pathlib import Path
+import tempfile
+try:
+    from amber.mechanistic.sae.concepts.autoencoder_concepts import AutoencoderConcepts
+    from amber.mechanistic.sae.modules.topk_sae import TopKSae
+    OVERCOMPLETE_AVAILABLE = True
+except ImportError:
+    OVERCOMPLETE_AVAILABLE = False
+    AutoencoderConcepts = None  # type: ignore
+    TopKSae = None  # type: ignore
 
 
 class FakeTokenizer:
@@ -86,14 +96,15 @@ def _find_layer_name(lm: LanguageModel, submod: nn.Module) -> str:
     raise AssertionError("Layer not found in flattened names")
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_top_texts_tracker_positive_and_negative(tmp_path):
     """Test text tracking with SAE hook - requires overcomplete."""
-    from amber.mechanistic.sae.modules.topk_sae import TopKSae
-    
     # Build LM wrapper around deterministic TinyLM
     tok = FakeTokenizer()
     net = TinyLM()
-    lm = LanguageModel(model=net, tokenizer=tok)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=net, tokenizer=tok, store=store)
 
     # Determine the layer name for the synthetic submodule
     target_layer_name = _find_layer_name(lm, net.synthetic)
@@ -148,6 +159,7 @@ def test_top_texts_tracker_positive_and_negative(tmp_path):
     sae_hook.concepts.reset_top_texts()
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_top_texts_tracker_metadata_serialization(tmp_path):
     """Test that top texts can be serialized to and loaded from metadata."""
     from amber.mechanistic.sae.modules.topk_sae import TopKSae

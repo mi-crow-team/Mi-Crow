@@ -3,10 +3,12 @@
 import pytest
 from unittest.mock import patch
 
-from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary, Concept
-from amber.mechanistic.sae.concepts.concept_models import NeuronText
-
-
+try:
+    from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary, Concept
+    from amber.mechanistic.sae.concepts.concept_models import NeuronText
+    OVERCOMPLETE_AVAILABLE = True
+except ImportError:
+    OVERCOMPLETE_AVAILABLE = False
 class TestConceptDictionaryEdgeCases:
     """Test edge cases and error handling functionality."""
 

@@ -2,8 +2,14 @@ import types
 import torch
 from torch import nn
 import pytest
+import tempfile
+from pathlib import Path
+from amber.store.local_store import LocalStore
 
 from amber.core.language_model import LanguageModel
+import tempfile
+from pathlib import Path
+from amber.store.local_store import LocalStore
 
 
 class TinyConfig:
@@ -75,7 +81,9 @@ class EncodePlusOnlyTokenizer:
 def test_tokenizer_encode_plus_and_pad_fallback_respects_return_tensors():
     model = TinyLM()
     tok = EncodePlusOnlyTokenizer(has_eos=True)
-    lm = LanguageModel(model=model, tokenizer=tok)  # type: ignore[arg-type]
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tok, store=store)  # type: ignore[arg-type]
 
     out = lm.tokenize(["a", "bbbb"], padding=True, return_tensors="pt")
     assert isinstance(out["input_ids"], torch.Tensor)
@@ -99,7 +107,9 @@ def test_tokenizer_adds_pad_token_and_resizes_embeddings_when_no_eos(monkeypatch
     # Attach method to model instance
     model.resize_token_embeddings = fake_resize  # type: ignore[attr-defined]
 
-    lm = LanguageModel(model=model, tokenizer=tok)  # type: ignore[arg-type]
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tok, store=store)  # type: ignore[arg-type]
 
     out = lm.tokenize(["x", "yy"], padding=True, return_tensors="pt")
     assert isinstance(out["input_ids"], torch.Tensor)

@@ -2,8 +2,14 @@ import types
 import pytest
 import torch
 from torch import nn
+import tempfile
+from pathlib import Path
+from amber.store.local_store import LocalStore
 
 from amber.core.language_model import LanguageModel
+import tempfile
+from pathlib import Path
+from amber.store.local_store import LocalStore
 
 
 class TinyConfig:
@@ -102,7 +108,9 @@ class FakeNonCallableTokenizer(FakeTokenizer):
 def test_tokenizer_sets_pad_from_eos_and_updates_model_config():
     model = TinyLM()
     tok = FakeTokenizer(pad_token=None, eos_token="<eos>", eos_token_id=0)
-    lm = LanguageModel(model=model, tokenizer=tok)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tok, store=store)
 
     # Request padding; LM wrapper should set pad_token from eos and update config
     out = lm.tokenize(["a", "bb"], padding=True, return_tensors="pt")
@@ -122,7 +130,9 @@ def test_tokenizer_sets_pad_from_eos_and_updates_model_config():
 def test_tokenizer_non_callable_uses_batch_encode_plus(tmp_path):
     model = TinyLM()
     tok = FakeNonCallableTokenizer(pad_token=None, eos_token="<eos>")
-    lm = LanguageModel(model=model, tokenizer=tok)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tok, store=store)
 
     # Ensure padding logic also sets pad token from eos
     out = lm.tokenize(["x", "yyy"], padding=True, return_tensors="pt")
@@ -133,7 +143,9 @@ def test_tokenizer_non_callable_uses_batch_encode_plus(tmp_path):
 def test_inference_invokes_text_trackers_and_forwards_returns_output_and_enc():
     model = TinyLM()
     tok = FakeTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tok)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tok, store=store)
 
     # Register a tracker that records received texts
     class Tracker:

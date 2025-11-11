@@ -3,14 +3,20 @@ import pytest
 import torch
 
 try:
-    from overcomplete.sae import TopKSAE as OvercompleteTopKSAE
+    from amber.mechanistic.sae.modules.topk_sae import TopKSae
+    from amber.mechanistic.sae.sae_trainer import SaeTrainer, SaeTrainingConfig, StoreDataloader
+    from amber.store.local_store import LocalStore
+    OVERCOMPLETE_AVAILABLE = True
 except ImportError:
+    OVERCOMPLETE_AVAILABLE = False
+    TopKSae = None  # type: ignore
+    SaeTrainer = None  # type: ignore
+    SaeTrainingConfig = None  # type: ignore
+    StoreDataloader = None  # type: ignore
+    LocalStore = None  # type: ignore
 
-from amber.mechanistic.sae.modules.topk_sae import TopKSae
-from amber.mechanistic.sae.sae_trainer import SaeTrainer, SaeTrainingConfig, StoreDataloader
-from amber.store.local_store import LocalStore
 
-
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_reusable_store_data_loader_edge_cases(tmp_path):
     """Test ReusableStoreDataLoader with edge cases."""
     store = LocalStore(tmp_path)
@@ -41,6 +47,7 @@ def test_reusable_store_data_loader_edge_cases(tmp_path):
     assert len(batches_limited) <= 1
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_reusable_store_data_loader_with_invalid_batches(tmp_path):
     """Test ReusableStoreDataLoader handles invalid batches gracefully."""
     store = LocalStore(tmp_path)
@@ -63,6 +70,7 @@ def test_reusable_store_data_loader_with_invalid_batches(tmp_path):
         assert isinstance(batch, torch.Tensor)
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_reusable_store_data_loader_with_different_shapes(tmp_path):
     """Test ReusableStoreDataLoader handles different tensor shapes."""
     store = LocalStore(tmp_path)
@@ -83,6 +91,7 @@ def test_reusable_store_data_loader_with_different_shapes(tmp_path):
         assert batch.shape[-1] == 8  # Last dimension preserved
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_sae_trainer_with_empty_store(tmp_path):
     """Test SaeTrainer handles empty store gracefully."""
     store = LocalStore(tmp_path)
@@ -104,6 +113,7 @@ def test_sae_trainer_with_empty_store(tmp_path):
         pass
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_sae_trainer_with_dtype_conversion(tmp_path):
     """Test SaeTrainer handles dtype conversion."""
     store = LocalStore(tmp_path)
@@ -135,6 +145,7 @@ def test_sae_trainer_with_dtype_conversion(tmp_path):
     assert isinstance(history["loss"], list)
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_sae_training_config_defaults():
     """Test SaeTrainingConfig has correct defaults."""
     config = SaeTrainingConfig()
@@ -156,6 +167,7 @@ def test_sae_training_config_defaults():
     assert config.max_nan_fallbacks == 5
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_reusable_store_data_loader_with_zero_batch_size(tmp_path):
     """Test ReusableStoreDataLoader handles zero batch size."""
     store = LocalStore(tmp_path)

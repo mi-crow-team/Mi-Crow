@@ -1,11 +1,20 @@
+from amber.store.local_store import LocalStore
+from pathlib import Path
+import tempfile
 """Test device handling functionality in LanguageModel."""
 
 import pytest
 import torch
 from torch import nn
 from unittest.mock import Mock, patch
+import tempfile
+from pathlib import Path
+from amber.store.local_store import LocalStore
 
 from amber.core.language_model import LanguageModel
+import tempfile
+from pathlib import Path
+from amber.store.local_store import LocalStore
 
 
 class MockTokenizer:
@@ -83,7 +92,9 @@ class TestLanguageModelDeviceHandling:
         """Test model on CPU device."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / 'store')
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Model should be on CPU
         assert lm.model.device.type == "cpu"
@@ -100,7 +111,9 @@ class TestLanguageModelDeviceHandling:
         
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / 'store')
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Move model to CUDA
         lm.context.model = lm.context.model.cuda()
@@ -120,7 +133,9 @@ class TestLanguageModelDeviceHandling:
         
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / 'store')
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Move model to MPS
         lm.context.model = lm.context.model.to("mps")
@@ -137,7 +152,9 @@ class TestLanguageModelDeviceHandling:
         """Test device transfer for activations."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / 'store')
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with different devices
         devices = ["cpu"]
@@ -161,7 +178,9 @@ class TestLanguageModelDeviceHandling:
         """Test dtype conversion functionality."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / 'store')
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with different dtypes
         dtypes = [torch.float32, torch.float16, torch.bfloat16]
@@ -181,7 +200,9 @@ class TestLanguageModelDeviceHandling:
         """Test handling of tensors on different devices."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / 'store')
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with model on CPU and input on different device
         if torch.cuda.is_available():
@@ -197,7 +218,9 @@ class TestLanguageModelDeviceHandling:
         """Test device consistency across operations."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / 'store')
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with different devices
         devices = ["cpu"]
@@ -228,7 +251,9 @@ class TestLanguageModelDeviceHandling:
         """Test device handling with attention mask."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / 'store')
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with different devices
         devices = ["cpu"]
@@ -254,7 +279,9 @@ class TestLanguageModelDeviceHandling:
         """Test device handling with different batch sizes."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / 'store')
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with different batch sizes
         batch_sizes = [1, 2, 4, 8, 16]
@@ -273,7 +300,9 @@ class TestLanguageModelDeviceHandling:
         """Test device handling with different sequence lengths."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / 'store')
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with different sequence lengths
         sequence_lengths = [1, 2, 4, 8, 16, 32]
@@ -292,7 +321,9 @@ class TestLanguageModelDeviceHandling:
         """Test device handling with gradient computation."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / 'store')
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with different devices
         devices = ["cpu"]
@@ -322,7 +353,9 @@ class TestLanguageModelDeviceHandling:
         """Test device handling with model parameters."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / 'store')
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with different devices
         devices = ["cpu"]
@@ -347,7 +380,9 @@ class TestLanguageModelDeviceHandling:
         """Test device handling with model state dict."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / 'store')
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with different devices
         devices = ["cpu"]
@@ -371,7 +406,9 @@ class TestLanguageModelDeviceHandling:
         """Test device handling with model in eval mode."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / 'store')
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with different devices
         devices = ["cpu"]
@@ -401,7 +438,9 @@ class TestLanguageModelDeviceHandling:
         """Test device handling with model in train mode."""
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / 'store')
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         # Test with different devices
         devices = ["cpu"]

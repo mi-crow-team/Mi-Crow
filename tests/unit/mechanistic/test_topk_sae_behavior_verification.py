@@ -4,11 +4,13 @@ import torch
 from pathlib import Path
 
 try:
-    from overcomplete.sae import TopKSAE as OvercompleteTopKSAE
-except ImportError:
-
     from amber.mechanistic.sae.modules.topk_sae import TopKSae
     from amber.core.language_model import LanguageModel
+    OVERCOMPLETE_AVAILABLE = True
+except ImportError:
+    OVERCOMPLETE_AVAILABLE = False
+    TopKSae = None  # type: ignore
+    LanguageModel = None  # type: ignore
 
 
 class MockTokenizer:
@@ -65,6 +67,7 @@ class MockModel(torch.nn.Module):
         return self.linear(x)
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 class TestTopKSaeEncodeSparsity:
     """Test encode sparsity verification."""
     
@@ -106,6 +109,7 @@ class TestTopKSaeEncodeSparsity:
             assert sparsity <= (3 / 8) * 100, f"Row {i} should be sparse (at most 3/8 non-zero)"
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 class TestTopKSaeModifyActivations:
     """Test modify_activations behavior."""
     

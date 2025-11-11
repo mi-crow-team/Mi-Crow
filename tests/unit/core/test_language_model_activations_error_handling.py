@@ -154,7 +154,7 @@ def test_metadata_extraction_error_handling(tmp_path):
     
     model = ErrorProneModel()
     tokenizer = ErrorProneTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
@@ -183,7 +183,7 @@ def test_cache_dir_error_handling(tmp_path):
     
     model = ErrorProneModel()
     tokenizer = ErrorProneTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
@@ -214,7 +214,7 @@ def test_model_name_extraction_error_handling(tmp_path):
     # Create model without model_name attribute
     model = ErrorProneModel()
     tokenizer = ErrorProneTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
     # Remove model_name attribute if it exists
     if hasattr(lm, 'model_name'):
@@ -248,7 +248,7 @@ def test_store_metadata_error_handling(tmp_path):
     
     model = ErrorProneModel()
     tokenizer = ErrorProneTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
     # Mock store to raise error on put_run_meta
     store = LocalStore(tmp_path)
@@ -285,7 +285,7 @@ def test_activation_capture_edge_cases(tmp_path):
     
     model = ErrorProneModel()
     tokenizer = ErrorProneTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
     store = LocalStore(tmp_path)
     
@@ -328,7 +328,7 @@ def test_device_handling_errors(tmp_path):
     # Test with model that has device issues
     model = ErrorProneModel("device_error")
     tokenizer = ErrorProneTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
     store = LocalStore(tmp_path)
     
@@ -355,7 +355,7 @@ def test_tokenization_error_handling(tmp_path):
     
     model = ErrorProneModel()
     tokenizer = ErrorProneTokenizer("tokenization_error")
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
     store = LocalStore(tmp_path)
     
@@ -382,7 +382,7 @@ def test_return_tensors_error_handling(tmp_path):
     
     model = ErrorProneModel()
     tokenizer = ErrorProneTokenizer("return_tensors_error")
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
     store = LocalStore(tmp_path)
     
@@ -411,7 +411,7 @@ def test_verbose_logging_with_errors(tmp_path, caplog):
     
     model = ErrorProneModel()
     tokenizer = ErrorProneTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
     store = LocalStore(tmp_path)
     

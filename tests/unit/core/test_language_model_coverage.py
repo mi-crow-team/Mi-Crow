@@ -1,9 +1,18 @@
+from amber.store.local_store import LocalStore
+from pathlib import Path
+import tempfile
 """Additional tests to improve coverage for language_model.py."""
 import pytest
 import torch
 from torch import nn
+import tempfile
+from pathlib import Path
+from amber.store.local_store import LocalStore
 
 from amber.core.language_model import LanguageModel
+import tempfile
+from pathlib import Path
+from amber.store.local_store import LocalStore
 
 
 class MockModel(nn.Module):
@@ -65,7 +74,9 @@ def test_inference_device_handling_cuda_path(tmp_path):
     """Test _inference device handling for CUDA path (line 101)."""
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     # Test CUDA device handling (if available)
     if torch.cuda.is_available():
@@ -84,7 +95,9 @@ def test_inference_autocast_cuda_path(tmp_path):
     """Test _inference autocast path for CUDA (lines 113->112, 115->117)."""
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     if torch.cuda.is_available():
         model = model.cuda()
@@ -101,7 +114,9 @@ def test_inference_non_cuda_device_path(tmp_path):
     """Test _inference non-CUDA device path (line 124->123)."""
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     # Test with CPU (non-CUDA) device
     result = lm._inference(["test"], autocast=True)
@@ -114,7 +129,9 @@ def test_inference_with_input_tracker(tmp_path):
     """Test _inference with input tracker enabled."""
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     # Create and enable input tracker
     tracker = lm._ensure_input_tracker()
@@ -133,7 +150,9 @@ def test_inference_controller_restoration_after_exception(tmp_path):
     """Test _inference restores controllers after exception (lines 145->147)."""
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     # Create a controller that tracks its state
     class TrackedController:

@@ -5,13 +5,16 @@ from pathlib import Path
 import tempfile
 
 try:
-    from overcomplete.sae import TopKSAE as OvercompleteTopKSAE
+    from amber.mechanistic.sae.modules.topk_sae import TopKSae
+    from amber.hooks.hook import HookType
+    OVERCOMPLETE_AVAILABLE = True
 except ImportError:
+    OVERCOMPLETE_AVAILABLE = False
+    TopKSae = None  # type: ignore
+    HookType = None  # type: ignore
 
-from amber.mechanistic.sae.modules.topk_sae import TopKSae
-from amber.hooks.hook import HookType
 
-
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_modify_activations_with_none_target():
     """Test modify_activations handles None target gracefully."""
     topk_sae = TopKSae(n_latents=8, n_inputs=16, k=4, device='cpu')
@@ -32,6 +35,7 @@ def test_topk_sae_modify_activations_with_none_target():
 
 @pytest.mark.skipif(not hasattr(__import__('sys').modules.get('overcomplete', None), 'sae'), 
                     reason="Overcomplete not available")
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_modify_activations_with_tuple_output():
     """Test modify_activations handles tuple outputs."""
     topk_sae = TopKSae(n_latents=8, n_inputs=16, k=4, device='cpu')
@@ -51,6 +55,7 @@ def test_topk_sae_modify_activations_with_tuple_output():
 
 @pytest.mark.skipif(not hasattr(__import__('sys').modules.get('overcomplete', None), 'sae'), 
                     reason="Overcomplete not available")
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_modify_activations_with_list_output():
     """Test modify_activations handles list outputs."""
     topk_sae = TopKSae(n_latents=8, n_inputs=16, k=4, device='cpu')
@@ -70,6 +75,7 @@ def test_topk_sae_modify_activations_with_list_output():
 
 @pytest.mark.skipif(not hasattr(__import__('sys').modules.get('overcomplete', None), 'sae'), 
                     reason="Overcomplete not available")
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_modify_activations_with_object_output():
     """Test modify_activations handles object with last_hidden_state attribute."""
     topk_sae = TopKSae(n_latents=8, n_inputs=16, k=4, device='cpu')
@@ -90,6 +96,7 @@ def test_topk_sae_modify_activations_with_object_output():
     assert result.last_hidden_state.shape == (2, 3, 16)
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_modify_activations_pre_forward_hook():
     """Test modify_activations with PRE_FORWARD hook type."""
     topk_sae = TopKSae(n_latents=8, n_inputs=16, k=4, device='cpu', hook_type=HookType.PRE_FORWARD)
@@ -112,6 +119,7 @@ def test_topk_sae_modify_activations_pre_forward_hook():
 
 @pytest.mark.skipif(not hasattr(__import__('sys').modules.get('overcomplete', None), 'sae'), 
                     reason="Overcomplete not available")
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_modify_activations_with_concept_manipulation():
     """Test modify_activations applies concept manipulation when set."""
     topk_sae = TopKSae(n_latents=8, n_inputs=16, k=4, device='cpu')
@@ -133,6 +141,7 @@ def test_topk_sae_modify_activations_with_concept_manipulation():
 
 @pytest.mark.skipif(not hasattr(__import__('sys').modules.get('overcomplete', None), 'sae'), 
                     reason="Overcomplete not available")
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_modify_activations_with_text_tracking():
     """Test modify_activations with text tracking enabled."""
     from amber.core.language_model import LanguageModel
@@ -170,6 +179,7 @@ def test_topk_sae_modify_activations_with_text_tracking():
 
 @pytest.mark.skipif(not hasattr(__import__('sys').modules.get('overcomplete', None), 'sae'), 
                     reason="Overcomplete not available")
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_modify_activations_with_non_tensor_in_tuple():
     """Test modify_activations handles tuple with non-tensor elements."""
     topk_sae = TopKSae(n_latents=8, n_inputs=16, k=4, device='cpu')
@@ -190,6 +200,7 @@ def test_topk_sae_modify_activations_with_non_tensor_in_tuple():
     assert result[2] == 42
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_modify_activations_with_2d_tensor():
     """Test modify_activations handles 2D tensors (overcomplete requires 2D)."""
     topk_sae = TopKSae(n_latents=8, n_inputs=16, k=4, device='cpu')
@@ -207,6 +218,7 @@ def test_topk_sae_modify_activations_with_2d_tensor():
 
 @pytest.mark.skipif(not hasattr(__import__('sys').modules.get('overcomplete', None), 'sae'), 
                     reason="Overcomplete not available")
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_save_load_edge_cases(tmp_path):
     """Test save and load with various edge cases."""
     topk_sae = TopKSae(n_latents=8, n_inputs=16, k=4, device='cpu')
@@ -230,6 +242,7 @@ def test_topk_sae_save_load_edge_cases(tmp_path):
 
 @pytest.mark.skipif(not hasattr(__import__('sys').modules.get('overcomplete', None), 'sae'), 
                     reason="Overcomplete not available")
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_to_device():
     """Test moving TopKSae to different device."""
     topk_sae = TopKSae(n_latents=8, n_inputs=16, k=4, device='cpu')

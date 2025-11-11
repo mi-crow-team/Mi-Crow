@@ -5,7 +5,17 @@ import torch
 from torch import nn
 
 from amber.core.language_model import LanguageModel
-from amber.mechanistic.sae.concepts.input_tracker import InputTracker
+from amber.store.local_store import LocalStore
+from pathlib import Path
+import tempfile
+try:
+    from amber.mechanistic.sae.concepts.input_tracker import InputTracker
+    from amber.mechanistic.sae.modules.topk_sae import TopKSae
+    OVERCOMPLETE_AVAILABLE = True
+except ImportError:
+    OVERCOMPLETE_AVAILABLE = False
+    InputTracker = None  # type: ignore
+    TopKSae = None  # type: ignore
 
 
 class MockTokenizer:
@@ -67,11 +77,16 @@ class MockModel(nn.Module):
         pass
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_set_current_texts_saves_texts():
     """Test that set_current_texts correctly saves texts."""
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+
+    store = LocalStore(Path(temp_dir) / 'store')
+
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     tracker = InputTracker(language_model=lm)
     tracker.enable()  # Enable tracking
@@ -88,11 +103,16 @@ def test_set_current_texts_saves_texts():
     assert tracker._current_texts == ["hello", "world", "test"]
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_texts_persist_through_multiple_calls():
     """Test that texts persist correctly through multiple set_current_texts calls."""
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+
+    store = LocalStore(Path(temp_dir) / 'store')
+
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     tracker = InputTracker(language_model=lm)
     tracker.enable()  # Enable tracking
@@ -109,13 +129,17 @@ def test_texts_persist_through_multiple_calls():
     assert len(tracker._current_texts) == 3
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_sae_hook_updates_top_texts_during_inference():
     """Test that SAE hook updates top texts during modify_activations."""
-    from amber.mechanistic.sae.modules.topk_sae import TopKSae
     
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+
+    store = LocalStore(Path(temp_dir) / 'store')
+
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     # Create and register SAE hook
     sae_hook = TopKSae(n_latents=4, n_inputs=8, k=2, device='cpu')
@@ -150,11 +174,16 @@ def test_sae_hook_updates_top_texts_during_inference():
     lm.layers.unregister_hook(sae_hook.id)
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_input_tracker_get_current_texts():
     """Test that get_current_texts returns a copy of saved texts."""
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+
+    store = LocalStore(Path(temp_dir) / 'store')
+
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     tracker = InputTracker(language_model=lm)
     tracker.enable()  # Enable tracking
@@ -171,13 +200,17 @@ def test_input_tracker_get_current_texts():
     assert retrieved is not tracker._current_texts
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_sae_hook_tracks_texts_correctly():
     """Test that SAE hook correctly tracks texts during inference."""
-    from amber.mechanistic.sae.modules.topk_sae import TopKSae
     
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+
+    store = LocalStore(Path(temp_dir) / 'store')
+
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     # Create and register SAE hook
     sae_hook = TopKSae(n_latents=3, n_inputs=8, k=2, device='cpu')
@@ -213,11 +246,16 @@ def test_sae_hook_tracks_texts_correctly():
     lm.layers.unregister_hook(sae_hook.id)
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_language_model_calls_set_current_texts():
     """Test that LanguageModel correctly calls set_current_texts on InputTracker."""
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+
+    store = LocalStore(Path(temp_dir) / 'store')
+
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     # Create InputTracker (should be done via _ensure_input_tracker, but we can test directly)
     from amber.mechanistic.sae.concepts.input_tracker import InputTracker

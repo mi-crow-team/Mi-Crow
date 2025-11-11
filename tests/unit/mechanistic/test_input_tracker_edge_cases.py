@@ -1,14 +1,17 @@
 """Additional tests for InputTracker edge cases."""
 import pytest
 
-from amber.mechanistic.sae.concepts.input_tracker import InputTracker
-
-
+try:
+    from amber.mechanistic.sae.concepts.input_tracker import InputTracker
+    OVERCOMPLETE_AVAILABLE = True
+except ImportError:
+    OVERCOMPLETE_AVAILABLE = False
 class _FakeLM:
     def __init__(self):
         self.model_id = "test_model"
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_input_tracker_enable_disable():
     """Test enable and disable methods."""
     lm = _FakeLM()
@@ -23,6 +26,7 @@ def test_input_tracker_enable_disable():
     assert not tracker.enabled
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_input_tracker_set_current_texts_when_disabled():
     """Test set_current_texts doesn't save when disabled."""
     lm = _FakeLM()
@@ -35,6 +39,7 @@ def test_input_tracker_set_current_texts_when_disabled():
     assert len(tracker.get_current_texts()) == 0
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_input_tracker_set_current_texts_when_enabled():
     """Test set_current_texts saves when enabled."""
     lm = _FakeLM()
@@ -49,6 +54,7 @@ def test_input_tracker_set_current_texts_when_enabled():
     assert texts == ["text1", "text2"]
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_input_tracker_reset():
     """Test reset clears stored texts."""
     lm = _FakeLM()
@@ -63,6 +69,7 @@ def test_input_tracker_reset():
     assert len(tracker.get_current_texts()) == 0
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_input_tracker_get_current_texts_returns_copy():
     """Test get_current_texts returns a copy, not reference."""
     lm = _FakeLM()
@@ -83,6 +90,7 @@ def test_input_tracker_get_current_texts_returns_copy():
     assert len(tracker.get_current_texts()) == 2  # Original unchanged
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_input_tracker_with_empty_texts():
     """Test InputTracker handles empty text list."""
     lm = _FakeLM()
@@ -95,6 +103,7 @@ def test_input_tracker_with_empty_texts():
     assert texts == []
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_input_tracker_with_single_text():
     """Test InputTracker handles single text."""
     lm = _FakeLM()
@@ -107,6 +116,7 @@ def test_input_tracker_with_single_text():
     assert texts == ["single text"]
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_input_tracker_multiple_set_calls():
     """Test InputTracker overwrites on multiple set calls."""
     lm = _FakeLM()
@@ -121,6 +131,7 @@ def test_input_tracker_multiple_set_calls():
     assert texts == ["text3", "text4", "text5"]
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_input_tracker_with_sequence_types():
     """Test InputTracker handles different sequence types."""
     lm = _FakeLM()

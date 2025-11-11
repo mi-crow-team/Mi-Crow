@@ -1,3 +1,5 @@
+from pathlib import Path
+import tempfile
 """Test advanced functionality in LanguageModelActivations."""
 
 import torch
@@ -6,6 +8,8 @@ from datasets import Dataset
 from amber.core.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
 from amber.store.local_store import LocalStore
+import tempfile
+from pathlib import Path
 
 
 class MockTokenizer:
@@ -98,7 +102,9 @@ def test_metadata_extraction_with_cache_dir_error(tmp_path):
     
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     store = LocalStore(tmp_path)
     
@@ -136,7 +142,9 @@ def test_metadata_extraction_with_model_name_error(tmp_path):
     
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     # Remove model_name attribute to simulate error
     if hasattr(lm, 'model_name'):
@@ -170,7 +178,9 @@ def test_metadata_storage_error_handling(tmp_path):
     
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     store = LocalStore(tmp_path)
     
@@ -206,7 +216,9 @@ def test_activation_capture_edge_cases(tmp_path):
     
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     store = LocalStore(tmp_path)
     
@@ -238,7 +250,9 @@ def test_verbose_logging_with_errors(tmp_path, caplog):
     
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     store = LocalStore(tmp_path)
     
@@ -268,7 +282,9 @@ def test_layer_signature_edge_cases(tmp_path):
     
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     store = LocalStore(tmp_path)
     
@@ -309,7 +325,9 @@ def test_activation_capture_with_different_shapes(tmp_path):
     
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     store = LocalStore(tmp_path)
     
