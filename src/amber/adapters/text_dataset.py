@@ -5,7 +5,7 @@ from typing import Iterator, List, Sequence, Union, Optional, Dict, Any
 
 from datasets import Dataset, load_dataset, IterableDataset
 
-from amber.store import Store
+from amber.store.store import Store
 from amber.adapters.base_dataset import BaseDataset
 from amber.adapters.loading_strategy import LoadingStrategy, IndexLike
 
@@ -17,20 +17,18 @@ class TextDataset(BaseDataset):
     """
 
     def __init__(
-        self,
-        ds: Dataset | IterableDataset,
-        store: Optional[Store] = None,
-        cache_dir: Optional[Union[str, Path]] = None,
-        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-        text_field: str = "text",
+            self,
+            ds: Dataset | IterableDataset,
+            store: Store,
+            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+            text_field: str = "text",
     ):
         """
         Initialize text dataset.
 
         Args:
             ds: HuggingFace Dataset or IterableDataset
-            store: Optional Store instance
-            cache_dir: Optional cache directory
+            store: Store instance
             loading_strategy: Loading strategy
             text_field: Name of the column containing text
         """
@@ -48,7 +46,7 @@ class TextDataset(BaseDataset):
             ds.set_format("python", columns=["text"])
 
         self._text_field = text_field
-        super().__init__(ds, store=store, cache_dir=cache_dir, loading_strategy=loading_strategy)
+        super().__init__(ds, store=store, loading_strategy=loading_strategy)
 
     def __len__(self) -> int:
         """Return the number of items in the dataset."""
@@ -60,7 +58,7 @@ class TextDataset(BaseDataset):
         """Get text item(s) by index."""
         if self._is_iterable:
             raise NotImplementedError("Indexing not supported for streaming datasets. Use iter_items or iter_batches.")
-        
+
         if isinstance(idx, int):
             return self._ds[idx]["text"]
         if isinstance(idx, slice):
@@ -88,7 +86,7 @@ class TextDataset(BaseDataset):
         """Iterate over text items in batches."""
         if batch_size <= 0:
             raise ValueError("batch_size must be > 0")
-        
+
         if self._is_iterable:
             batch = []
             for row in self._ds:
@@ -107,28 +105,26 @@ class TextDataset(BaseDataset):
 
     @classmethod
     def from_huggingface(
-        cls,
-        repo_id: str,
-        *,
-        split: str = "train",
-        cache_dir: Optional[Union[str, Path]] = None,
-        store: Optional[Store] = None,
-        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-        revision: Optional[str] = None,
-        text_field: str = "text",
-        filters: Optional[Dict[str, Any]] = None,
-        limit: Optional[int] = None,
-        streaming: Optional[bool] = None,
-        **kwargs,
+            cls,
+            repo_id: str,
+            store: Store,
+            *,
+            split: str = "train",
+            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+            revision: Optional[str] = None,
+            text_field: str = "text",
+            filters: Optional[Dict[str, Any]] = None,
+            limit: Optional[int] = None,
+            streaming: Optional[bool] = None,
+            **kwargs,
     ) -> "TextDataset":
         """
         Load text dataset from HuggingFace Hub.
 
         Args:
             repo_id: HuggingFace dataset repository ID
+            store: Store instance
             split: Dataset split
-            cache_dir: Optional cache directory
-            store: Optional Store instance
             loading_strategy: Loading strategy
             revision: Optional git revision
             text_field: Name of the column containing text
@@ -138,7 +134,7 @@ class TextDataset(BaseDataset):
             **kwargs: Additional arguments for load_dataset
         """
         use_streaming = streaming if streaming is not None else (loading_strategy == LoadingStrategy.STREAM)
-        
+
         ds = load_dataset(
             path=repo_id,
             split=split,
@@ -147,64 +143,58 @@ class TextDataset(BaseDataset):
             **kwargs,
         )
 
-        # Apply filters and limit for non-streaming datasets
         if not use_streaming:
             if filters:
                 def _pred(example):
                     return all(example.get(k) == v for k, v in filters.items())
+
                 ds = ds.filter(_pred)
 
             if limit is not None:
                 ds = ds.select(range(min(limit, len(ds))))
 
-        return cls(ds, store=store, cache_dir=cache_dir, loading_strategy=loading_strategy, text_field=text_field)
+        return cls(ds, store=store, loading_strategy=loading_strategy, text_field=text_field)
 
     @classmethod
     def from_csv(
-        cls,
-        source: Union[str, Path],
-        *,
-        cache_dir: Optional[Union[str, Path]] = None,
-        store: Optional[Store] = None,
-        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-        text_field: str = "text",
-        delimiter: str = ",",
-        **kwargs,
+            cls,
+            source: Union[str, Path],
+            store: Store,
+            *,
+            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+            text_field: str = "text",
+            delimiter: str = ",",
+            **kwargs,
     ) -> "TextDataset":
         """Load text dataset from CSV file."""
         dataset = super().from_csv(
             source,
-            cache_dir=cache_dir,
             store=store,
             loading_strategy=loading_strategy,
             text_field=text_field,
             delimiter=delimiter,
             **kwargs,
         )
-        # Re-initialize with text_field
         return cls(
             dataset._ds,
             store=store,
-            cache_dir=cache_dir,
             loading_strategy=loading_strategy,
             text_field=text_field,
         )
 
     @classmethod
     def from_json(
-        cls,
-        source: Union[str, Path],
-        *,
-        cache_dir: Optional[Union[str, Path]] = None,
-        store: Optional[Store] = None,
-        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-        text_field: str = "text",
-        **kwargs,
+            cls,
+            source: Union[str, Path],
+            store: Store,
+            *,
+            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+            text_field: str = "text",
+            **kwargs,
     ) -> "TextDataset":
         """Load text dataset from JSON/JSONL file."""
         dataset = super().from_json(
             source,
-            cache_dir=cache_dir,
             store=store,
             loading_strategy=loading_strategy,
             text_field=text_field,
@@ -214,21 +204,19 @@ class TextDataset(BaseDataset):
         return cls(
             dataset._ds,
             store=store,
-            cache_dir=cache_dir,
             loading_strategy=loading_strategy,
             text_field=text_field,
         )
 
     @classmethod
     def from_local(
-        cls,
-        source: Union[str, Path],
-        *,
-        cache_dir: Optional[Union[str, Path]] = None,
-        store: Optional[Store] = None,
-        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-        text_field: str = "text",
-        recursive: bool = True,
+            cls,
+            source: Union[str, Path],
+            store: Store,
+            *,
+            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+            text_field: str = "text",
+            recursive: bool = True,
     ) -> "TextDataset":
         """
         Load from a local directory or file(s).
@@ -239,8 +227,7 @@ class TextDataset(BaseDataset):
 
         Args:
             source: Path to directory or file
-            cache_dir: Optional cache directory
-            store: Optional Store instance
+            store: Store instance
             loading_strategy: Loading strategy
             text_field: Name of the column/field containing text
             recursive: Whether to recursively search directories for .txt files
@@ -260,7 +247,6 @@ class TextDataset(BaseDataset):
             if suffix in {".jsonl", ".json"}:
                 return cls.from_json(
                     source,
-                    cache_dir=cache_dir,
                     store=store,
                     loading_strategy=loading_strategy,
                     text_field=text_field,
@@ -268,7 +254,6 @@ class TextDataset(BaseDataset):
             elif suffix in {".csv"}:
                 return cls.from_csv(
                     source,
-                    cache_dir=cache_dir,
                     store=store,
                     loading_strategy=loading_strategy,
                     text_field=text_field,
@@ -276,7 +261,6 @@ class TextDataset(BaseDataset):
             elif suffix in {".tsv"}:
                 return cls.from_csv(
                     source,
-                    cache_dir=cache_dir,
                     store=store,
                     loading_strategy=loading_strategy,
                     text_field=text_field,
@@ -288,5 +272,4 @@ class TextDataset(BaseDataset):
                     f"Use directory of .txt, or JSON/JSONL/CSV/TSV."
                 )
 
-        return cls(ds, store=store, cache_dir=cache_dir, loading_strategy=loading_strategy, text_field=text_field)
-
+        return cls(ds, store=store, loading_strategy=loading_strategy, text_field=text_field)

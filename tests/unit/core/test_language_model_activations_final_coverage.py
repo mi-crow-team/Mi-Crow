@@ -1,13 +1,7 @@
 """Final tests to push coverage over 85% for language_model_activations.py."""
 import pytest
-import torch
-from pathlib import Path
-from unittest.mock import Mock, MagicMock
-from datasets import Dataset
 
 from amber.core.language_model_activations import LanguageModelActivations
-from amber.adapters.text_snippet_dataset import TextSnippetDataset
-from amber.store import LocalStore
 
 
 class _FakeContext:

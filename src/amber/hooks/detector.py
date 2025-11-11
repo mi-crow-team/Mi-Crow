@@ -2,11 +2,10 @@ import abc
 from typing import Any, TYPE_CHECKING, List, Dict
 import torch
 
-from amber.hooks.hook import Hook, HookType
+from amber.hooks.hook import Hook, HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
 
 if TYPE_CHECKING:
-    from torch import nn
-    from amber.store import Store
+    pass
 
 
 class Detector(Hook):
@@ -38,7 +37,12 @@ class Detector(Hook):
         self._metadata: Dict[str, Any] = {}
         self._current_batch_index = 0
 
-    def _hook_fn(self, module: "nn.Module", inputs: tuple, output: Any) -> Any:
+    def _hook_fn(
+        self, 
+        module: torch.nn.Module, 
+        input: HOOK_FUNCTION_INPUT, 
+        output: HOOK_FUNCTION_OUTPUT
+    ) -> None:
         """
         Internal hook function that collects metadata.
         
@@ -49,10 +53,10 @@ class Detector(Hook):
 
         try:
             # Process activations (subclass-specific logic)
-            self.process_activations(module, inputs, output)
+            self.process_activations(module, input, output)
 
             # Collect metadata for this batch
-            metadata = self.collect_metadata(module, inputs, output)
+            metadata = self.collect_metadata(module, input, output)
             if metadata is not None:
                 self._batch_metadata.append(metadata)
         except Exception:
@@ -63,7 +67,12 @@ class Detector(Hook):
         return None
 
     @abc.abstractmethod
-    def process_activations(self, module: "nn.Module", inputs: tuple, output: Any) -> None:
+    def process_activations(
+        self, 
+        module: torch.nn.Module, 
+        input: HOOK_FUNCTION_INPUT, 
+        output: HOOK_FUNCTION_OUTPUT
+    ) -> None:
         """
         Process activations from the hooked layer.
         
@@ -72,12 +81,17 @@ class Detector(Hook):
         
         Args:
             module: The PyTorch module being hooked
-            inputs: Tuple of inputs to the module
-            output: Output from the module
+            input: Tuple of input tensors to the module
+            output: Output tensor(s) from the module
         """
         pass
 
-    def collect_metadata(self, module: "nn.Module", inputs: tuple, output: Any) -> Dict[str, Any] | None:
+    def collect_metadata(
+        self, 
+        module: torch.nn.Module, 
+        input: HOOK_FUNCTION_INPUT, 
+        output: HOOK_FUNCTION_OUTPUT
+    ) -> Dict[str, Any] | None:
         """
         Collect metadata for the current batch.
         

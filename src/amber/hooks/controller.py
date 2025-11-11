@@ -1,9 +1,10 @@
 import abc
 from typing import Any, TYPE_CHECKING
 
+import torch
 import torch.nn as nn
 
-from amber.hooks.hook import Hook, HookType
+from amber.hooks.hook import Hook, HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
 
 
 class Controller(Hook):
@@ -29,47 +30,82 @@ class Controller(Hook):
         """
         super().__init__(layer_signature=layer_signature, hook_type=hook_type, hook_id=hook_id)
 
-    def _hook_fn(self, module: "nn.Module", inputs: tuple, output: Any) -> Any:
+    def _hook_fn(
+        self, 
+        module: torch.nn.Module, 
+        input: HOOK_FUNCTION_INPUT, 
+        output: HOOK_FUNCTION_OUTPUT
+    ) -> None | HOOK_FUNCTION_INPUT:
         """
         Internal hook function that modifies activations.
         
-        Calls modify_activations to get the modified tensor.
+        Extracts tensors from input/output and calls modify_activations with tensors.
         """
         if not self._enabled:
             return None
 
         try:
             if self.hook_type == HookType.PRE_FORWARD:
-                # Modify inputs - inputs is a tuple, return modified version
-                modified = self.modify_activations(module, inputs, None)
-                return modified
-            else:  # forward
-                # Modify output
-                modified = self.modify_activations(module, inputs, output)
-                return modified
+                input_tensor = None
+                if len(input) > 0:
+                    if isinstance(input[0], torch.Tensor):
+                        input_tensor = input[0]
+                    elif isinstance(input[0], (tuple, list)):
+                        for item in input[0]:
+                            if isinstance(item, torch.Tensor):
+                                input_tensor = item
+                                break
+
+                if input_tensor is None or not isinstance(input_tensor, torch.Tensor):
+                    return None
+                modified_tensor = self.modify_activations(module, input_tensor, input_tensor)
+
+                if modified_tensor is not None:
+                    result = list(input)
+                    if len(result) > 0:
+                        result[0] = modified_tensor
+                    return tuple(result)
+                return None
+            else:
+                # For forward hooks, output is the tensor to modify
+                if output is None:
+                    return None
+                # Extract input tensor if available for modify_activations
+                input_tensor = None
+                if len(input) > 0 and isinstance(input[0], torch.Tensor):
+                    input_tensor = input[0]
+                # Handle both single tensor and tuple outputs
+                if isinstance(output, torch.Tensor):
+                    modified_tensor = self.modify_activations(module, input_tensor, output)
+                    # Note: forward hooks can't modify output in PyTorch, but we call modify_activations
+                    # for consistency. The actual modification happens via the hook mechanism.
+                elif isinstance(output, tuple):
+                    # For tuple outputs, modify the first tensor
+                    if len(output) > 0 and isinstance(output[0], torch.Tensor):
+                        self.modify_activations(module, input_tensor, output[0])
+                return None
         except Exception:
-            # Don't let hook errors crash inference
             return None
 
     @abc.abstractmethod
     def modify_activations(
             self,
             module: nn.Module,
-            inputs: tuple,
-            output: Any
-    ) -> Any:
+            inputs: torch.Tensor,
+            output: torch.Tensor
+    ) -> torch.Tensor:
         """
         Modify activations from the hooked layer.
         
-        For pre_forward hooks: receives inputs tuple, should return modified inputs.
-        For forward hooks: receives output, should return modified output.
+        For pre_forward hooks: receives input tensor, should return modified input tensor.
+        For forward hooks: receives input and output tensors, should return modified output tensor.
         
         Args:
             module: The PyTorch module being hooked
-            inputs: Tuple of inputs to the module
-            output: Output from the module (None for pre_forward hooks)
+            inputs: Input tensor (None for forward hooks if not available)
+            output: Output tensor (None for pre_forward hooks)
             
         Returns:
-            Modified inputs (for pre_forward) or modified output (for forward)
+            Modified input tensor (for pre_forward) or modified output tensor (for forward)
         """
         pass

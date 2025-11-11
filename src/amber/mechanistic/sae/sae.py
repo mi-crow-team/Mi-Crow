@@ -1,21 +1,35 @@
 import abc
 from pathlib import Path
-from typing import Any, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING, Literal
 
 import torch
-from overcomplete.sae import SAE as OvercompleteSAE
 from torch import nn
 
 from amber.hooks.controller import Controller
 from amber.hooks.hook import HookType
-from amber.mechanistic.autoencoder.autoencoder_context import AutoencoderContext
-from amber.mechanistic.autoencoder.concepts.autoencoder_concepts import AutoencoderConcepts
-from amber.mechanistic.autoencoder.concepts.concept_dictionary import ConceptDictionary
-from amber.mechanistic.autoencoder.sae_trainer import SaeTrainer
+from amber.mechanistic.sae.autoencoder_context import AutoencoderContext
+from amber.mechanistic.sae.concepts.autoencoder_concepts import AutoencoderConcepts
+from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary
+from amber.mechanistic.sae.sae_trainer import SaeTrainer
 from amber.utils import get_logger
+
+try:
+    from overcomplete.sae import SAE as OvercompleteSAE
+    OVERCOMPLETE_AVAILABLE = True
+except ImportError:
+    OVERCOMPLETE_AVAILABLE = False
+    # Create a dummy type for type checking when overcomplete is not available
+    if TYPE_CHECKING:
+        from typing import Protocol
+        class OvercompleteSAE(Protocol):  # type: ignore
+            pass
+    else:
+        OvercompleteSAE = None  # type: ignore
 
 if TYPE_CHECKING:
     pass
+
+ActivationFn = Literal["relu", "linear"] | None
 
 logger = get_logger(__name__)
 
@@ -30,6 +44,11 @@ class Sae(Controller, abc.ABC):
             *args: Any,
             **kwargs: Any
     ) -> None:
+        if not OVERCOMPLETE_AVAILABLE:
+            raise ImportError(
+                "overcomplete package is required but not installed. "
+                "Please install it to use SAE functionality."
+            )
         super().__init__(HookType.FORWARD, hook_id)
         self.context = AutoencoderContext(
             autoencoder=self,
@@ -56,7 +75,7 @@ class Sae(Controller, abc.ABC):
             module: nn.Module,
             inputs: torch.Tensor,
             output: torch.Tensor
-    ) -> Any:
+    ) -> torch.Tensor:
         raise NotImplementedError("Modify activations method not implemented.")
 
     @abc.abstractmethod
@@ -82,3 +101,25 @@ class Sae(Controller, abc.ABC):
 
     def attach_dictionary(self, concept_dictionary: ConceptDictionary):
         self.concepts.dictionary = concept_dictionary
+
+    @staticmethod
+    def _apply_activation_fn(
+            tensor: torch.Tensor,
+            activation_fn: ActivationFn
+    ) -> torch.Tensor:
+        """
+        Apply activation function to tensor.
+        
+        Args:
+            tensor: Input tensor
+            activation_fn: Activation function to apply ("relu", "linear", or None)
+            
+        Returns:
+            Tensor with activation function applied
+        """
+        if activation_fn == "relu":
+            return torch.relu(tensor)
+        elif activation_fn == "linear" or activation_fn is None:
+            return tensor
+        else:
+            raise ValueError(f"Unknown activation function: {activation_fn}. Use 'relu', 'linear', or None")

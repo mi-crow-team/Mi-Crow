@@ -1,7 +1,7 @@
 """Additional tests for InputTracker edge cases."""
 import pytest
 
-from amber.mechanistic.autoencoder.concepts.input_tracker import InputTracker
+from amber.mechanistic.sae.concepts.input_tracker import InputTracker
 
 
 class _FakeLM:

@@ -1,9 +1,5 @@
 from typing import Any, Dict, Iterable, List, Tuple
 
-import torch
-
-from amber.core.language_model_activations import LanguageModelActivations
-
 
 class _Param:
     def __init__(self):
@@ -210,7 +206,7 @@ from datasets import Dataset
 from amber.core.language_model import LanguageModel
 from amber.core.language_model_activations import LanguageModelActivations
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
-from amber.store import LocalStore
+from amber.store.local_store import LocalStore
 
 
 class TinyLM(nn.Module):

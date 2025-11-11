@@ -10,7 +10,7 @@ try:
 except ImportError:
     OVERCOMPLETE_AVAILABLE = False
 
-from amber.mechanistic.autoencoder.modules.topk_sae import TopKSae
+from amber.mechanistic.sae.modules.topk_sae import TopKSae
 from amber.hooks.hook import HookType
 
 

@@ -1,13 +1,11 @@
 """Test advanced functionality in LanguageModelActivations."""
 
-import pytest
 import torch
 from torch import nn
 from datasets import Dataset
 from amber.core.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
-from amber.store import LocalStore
-from unittest.mock import Mock, patch
+from amber.store.local_store import LocalStore
 
 
 class MockTokenizer:
@@ -114,7 +112,6 @@ def test_metadata_extraction_with_cache_dir_error(tmp_path):
         raise AttributeError("cache_dir not accessible")
     
     # Patch the cache_dir property
-    import types
     ds.cache_dir = property(error_cache_dir)
     
     # Should handle cache_dir error gracefully

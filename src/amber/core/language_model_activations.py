@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, Sequence, Dict
 
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
-from amber.store import Store
 from amber.utils import get_logger
 from amber.hooks.activation_saver import ActivationSaverDetector
 
@@ -9,6 +8,9 @@ import torch
 
 if TYPE_CHECKING:
     from amber.core.language_model_context import LanguageModelContext
+    from amber.store.store import Store
+else:
+    from amber.store.store import Store
 
 
 class LanguageModelActivations:

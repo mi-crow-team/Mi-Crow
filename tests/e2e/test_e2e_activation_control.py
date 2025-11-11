@@ -10,6 +10,7 @@ from typing import Any
 
 from amber.core.language_model import LanguageModel
 from amber.hooks import Controller, HookType
+from amber.store.local_store import LocalStore
 
 
 class SimpleActivationController(Controller):
@@ -83,7 +84,11 @@ def test_e2e_activation_control_amplification():
     
     # Step 1: Load language model
     print("\n📥 Loading language model...")
-    model = LanguageModel.from_huggingface(MODEL_ID)
+    import tempfile
+    from pathlib import Path
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / "store")
+    model = LanguageModel.from_huggingface(MODEL_ID, store=store)
     model.model.to(DEVICE)
     
     assert model.model is not None
@@ -165,7 +170,11 @@ def test_e2e_activation_control_with_controllers_parameter():
     DEVICE = "cpu"
     
     print("\n📥 Loading language model...")
-    model = LanguageModel.from_huggingface(MODEL_ID)
+    import tempfile
+    from pathlib import Path
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / "store")
+    model = LanguageModel.from_huggingface(MODEL_ID, store=store)
     model.model.to(DEVICE)
     
     print("\n🎛️ Creating and registering capturing controller...")
@@ -230,7 +239,11 @@ def test_e2e_multiple_controllers():
     DEVICE = "cpu"
     
     print("\n📥 Loading language model...")
-    model = LanguageModel.from_huggingface(MODEL_ID)
+    import tempfile
+    from pathlib import Path
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / "store")
+    model = LanguageModel.from_huggingface(MODEL_ID, store=store)
     model.model.to(DEVICE)
     
     print("\n🎛️ Creating multiple controllers...")

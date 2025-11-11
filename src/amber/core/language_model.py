@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Callable, Sequence, Any, Dict, Union, TYPE_CHECKING
+from typing import Sequence, Any, Dict, TYPE_CHECKING
 
 import torch
 from torch import nn
@@ -9,11 +9,12 @@ from amber.core.language_model_layers import LanguageModelLayers
 from amber.core.language_model_tokenizer import LanguageModelTokenizer
 from amber.core.language_model_activations import LanguageModelActivations
 from amber.core.language_model_context import LanguageModelContext
-from amber.store import Store
+from amber.store.local_store import LocalStore
+from amber.store.store import Store
 from amber.utils import get_logger
 
 if TYPE_CHECKING:
-    from amber.mechanistic.autoencoder.concepts.input_tracker import InputTracker
+    from amber.mechanistic.sae.concepts.input_tracker import InputTracker
 
 logger = get_logger(__name__)
 
@@ -27,7 +28,7 @@ class LanguageModel:
             self,
             model: nn.Module,
             tokenizer: AutoTokenizer,
-            store: Store | None = None
+            store: Store
     ):
         # Validate context
         self.context = LanguageModelContext(self)
@@ -44,21 +45,16 @@ class LanguageModel:
         self.lm_tokenizer = LanguageModelTokenizer(self.context)
         self.activations = LanguageModelActivations(self.context)
 
-        if store is not None:
-            self.context.store = store
-        else:
-            from amber.store import LocalStore
-            self.context.store = LocalStore(Path.cwd() / "store" / self.context.model_id)
-
+        self.context.store = store
         self._input_tracker: "InputTracker | None" = None
         self._activation_text_trackers: list[Any] = []
 
     @property
-    def model(self) -> nn.Module | None:
+    def model(self) -> nn.Module:
         return self.context.model
 
     @property
-    def tokenizer(self) -> AutoTokenizer | None:
+    def tokenizer(self) -> AutoTokenizer:
         return self.context.tokenizer
 
     @property
@@ -66,7 +62,7 @@ class LanguageModel:
         return self.context.model_id
 
     @property
-    def store(self) -> Store | None:
+    def store(self) -> Store:
         return self.context.store
 
     def tokenize(self, texts: Sequence[str], **kwargs: Any):
@@ -177,7 +173,7 @@ class LanguageModel:
             autocast_dtype=autocast_dtype,
             with_controllers=with_controllers
         )
-        
+
         # Extract logits from output
         if hasattr(output, 'logits'):
             logits = output.logits
@@ -187,21 +183,21 @@ class LanguageModel:
             logits = output
         else:
             raise ValueError(f"Unable to extract logits from output type: {type(output)}")
-        
+
         # Get predicted token IDs (argmax on last dimension)
         # logits shape: [batch_size, sequence_length, vocab_size]
         predicted_token_ids = logits.argmax(dim=-1)
-        
+
         # Decode each sequence in the batch
         if self.tokenizer is None:
             raise ValueError("Tokenizer is required for decoding but is None")
-        
+
         decoded_texts = []
         for i in range(predicted_token_ids.shape[0]):
             token_ids = predicted_token_ids[i].cpu().tolist()
             decoded_text = self.tokenizer.decode(token_ids, skip_special_tokens=skip_special_tokens)
             decoded_texts.append(decoded_text)
-        
+
         return decoded_texts
 
     def register_activation_text_tracker(self, tracker: Any) -> None:
@@ -228,7 +224,7 @@ class LanguageModel:
         if self._input_tracker is not None:
             return self._input_tracker
 
-        from amber.mechanistic.autoencoder.concepts.input_tracker import InputTracker
+        from amber.mechanistic.sae.concepts.input_tracker import InputTracker
 
         self._input_tracker = InputTracker(language_model=self)
 
@@ -240,9 +236,9 @@ class LanguageModel:
     def from_huggingface(
             cls,
             model_name: str,
+            store: Store,
             tokenizer_params: dict = None,
             model_params: dict = None,
-            store: Store | None = None,
     ) -> "LanguageModel":
         if tokenizer_params is None:
             tokenizer_params = {}

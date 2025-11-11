@@ -11,11 +11,17 @@ import tempfile
 import shutil
 from datasets import Dataset
 
+try:
+    from overcomplete.sae import TopKSAE as OvercompleteTopKSAE
+    OVERCOMPLETE_AVAILABLE = True
+except ImportError:
+    OVERCOMPLETE_AVAILABLE = False
+
 from amber.core.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
-from amber.store import LocalStore
-from amber.mechanistic.autoencoder.modules.topk_sae import TopKSae
-from amber.mechanistic.autoencoder.sae_trainer import SaeTrainingConfig
+from amber.store.local_store import LocalStore
+from amber.mechanistic.sae.modules.topk_sae import TopKSae
+from amber.mechanistic.sae.sae_trainer import SaeTrainingConfig
 
 
 @pytest.fixture
@@ -37,6 +43,7 @@ def temp_dirs():
     shutil.rmtree(temp_dir, ignore_errors=True)
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")
 def test_e2e_train_sae_workflow(temp_dirs):
     """
     Test complete SAE training workflow:
@@ -58,7 +65,8 @@ def test_e2e_train_sae_workflow(temp_dirs):
     
     # Step 1: Load language model
     print("\n📥 Loading language model...")
-    lm = LanguageModel.from_huggingface(MODEL_ID)
+    store = LocalStore(store_dir)
+    lm = LanguageModel.from_huggingface(MODEL_ID, store=store)
     lm.model.to(DEVICE)
     
     assert lm.model is not None

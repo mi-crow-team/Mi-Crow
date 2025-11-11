@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 import pytest
 
-from amber.mechanistic.autoencoder.concepts.concept_dictionary import ConceptDictionary, Concept
+from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary, Concept
 
 
 def test_add_and_get_enforces_one_concept_per_neuron(tmp_path):

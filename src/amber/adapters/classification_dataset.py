@@ -5,7 +5,7 @@ from typing import Iterator, List, Sequence, Union, Optional, Dict, Any
 
 from datasets import Dataset, load_dataset, IterableDataset
 
-from amber.store import Store
+from amber.store.store import Store
 from amber.adapters.base_dataset import BaseDataset
 from amber.adapters.loading_strategy import LoadingStrategy, IndexLike
 
@@ -19,8 +19,7 @@ class ClassificationDataset(BaseDataset):
     def __init__(
         self,
         ds: Dataset | IterableDataset,
-        store: Optional[Store] = None,
-        cache_dir: Optional[Union[str, Path]] = None,
+        store: Store,
         loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
         text_field: str = "text",
         category_field: str = "category",
@@ -30,8 +29,7 @@ class ClassificationDataset(BaseDataset):
 
         Args:
             ds: HuggingFace Dataset or IterableDataset
-            store: Optional Store instance
-            cache_dir: Optional cache directory
+            store: Store instance
             loading_strategy: Loading strategy
             text_field: Name of the column containing text
             category_field: Name of the column containing category/label
@@ -47,7 +45,7 @@ class ClassificationDataset(BaseDataset):
 
         self._text_field = text_field
         self._category_field = category_field
-        super().__init__(ds, store=store, cache_dir=cache_dir, loading_strategy=loading_strategy)
+        super().__init__(ds, store=store, loading_strategy=loading_strategy)
 
     def __len__(self) -> int:
         """Return the number of items in the dataset."""
@@ -150,10 +148,9 @@ class ClassificationDataset(BaseDataset):
     def from_huggingface(
         cls,
         repo_id: str,
+        store: Store,
         *,
         split: str = "train",
-        cache_dir: Optional[Union[str, Path]] = None,
-        store: Optional[Store] = None,
         loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
         revision: Optional[str] = None,
         text_field: str = "text",
@@ -186,7 +183,6 @@ class ClassificationDataset(BaseDataset):
         return cls(
             ds,
             store=store,
-            cache_dir=cache_dir,
             loading_strategy=loading_strategy,
             text_field=text_field,
             category_field=category_field,
@@ -196,9 +192,8 @@ class ClassificationDataset(BaseDataset):
     def from_csv(
         cls,
         source: Union[str, Path],
+        store: Store,
         *,
-        cache_dir: Optional[Union[str, Path]] = None,
-        store: Optional[Store] = None,
         loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
         text_field: str = "text",
         category_field: str = "category",
@@ -208,7 +203,6 @@ class ClassificationDataset(BaseDataset):
         """Load classification dataset from CSV file."""
         dataset = super().from_csv(
             source,
-            cache_dir=cache_dir,
             store=store,
             loading_strategy=loading_strategy,
             text_field=text_field,
@@ -218,7 +212,6 @@ class ClassificationDataset(BaseDataset):
         return cls(
             dataset._ds,
             store=store,
-            cache_dir=cache_dir,
             loading_strategy=loading_strategy,
             text_field=text_field,
             category_field=category_field,
@@ -226,20 +219,18 @@ class ClassificationDataset(BaseDataset):
 
     @classmethod
     def from_json(
-        cls,
-        source: Union[str, Path],
-        *,
-        cache_dir: Optional[Union[str, Path]] = None,
-        store: Optional[Store] = None,
-        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-        text_field: str = "text",
-        category_field: str = "category",
-        **kwargs,
+            cls,
+            source: Union[str, Path],
+            store: Store,
+            *,
+            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+            text_field: str = "text",
+            category_field: str = "category",
+            **kwargs,
     ) -> "ClassificationDataset":
         """Load classification dataset from JSON/JSONL file."""
         dataset = super().from_json(
             source,
-            cache_dir=cache_dir,
             store=store,
             loading_strategy=loading_strategy,
             text_field=text_field,
@@ -248,7 +239,6 @@ class ClassificationDataset(BaseDataset):
         return cls(
             dataset._ds,
             store=store,
-            cache_dir=cache_dir,
             loading_strategy=loading_strategy,
             text_field=text_field,
             category_field=category_field,

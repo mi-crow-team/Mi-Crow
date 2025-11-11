@@ -47,25 +47,24 @@ class FunctionController(Controller):
     def modify_activations(
         self,
         module: "nn.Module",
-        inputs: tuple,
-        output: Any
-    ) -> Any:
+        inputs: torch.Tensor | None,
+        output: torch.Tensor | None
+    ) -> torch.Tensor | None:
         """
         Apply the user-provided function to activations.
         
         Args:
             module: The PyTorch module being hooked
-            inputs: Tuple of input tensors to the module
-            output: Output tensor or tuple/list of tensors from the module (None for pre_forward hooks)
+            inputs: Input tensor (None for forward hooks)
+            output: Output tensor (None for pre_forward hooks)
             
         Returns:
-            Modified activations with function applied
+            Modified tensor with function applied
         """
         target = output if self.hook_type == HookType.FORWARD else inputs
         
-        if isinstance(target, torch.Tensor):
+        if target is not None and isinstance(target, torch.Tensor):
             return self.function(target)
-        
         
         return target
 

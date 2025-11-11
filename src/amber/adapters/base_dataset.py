@@ -6,7 +6,7 @@ from typing import Iterator, List, Union, Optional, Any
 
 from datasets import Dataset, load_dataset, load_from_disk, IterableDataset
 
-from amber.store import Store
+from amber.store.store import Store
 from amber.adapters.loading_strategy import LoadingStrategy, IndexLike
 
 
@@ -17,42 +17,28 @@ class BaseDataset(ABC):
     """
 
     def __init__(
-        self,
-        ds: Dataset | IterableDataset,
-        store: Optional[Store] = None,
-        cache_dir: Optional[Union[str, Path]] = None,
-        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+            self,
+            ds: Dataset | IterableDataset,
+            store: Store,
+            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
     ):
         """
         Initialize dataset.
 
         Args:
             ds: HuggingFace Dataset or IterableDataset
-            store: Optional Store instance for caching/persistence
-            cache_dir: Optional cache directory path (used if store is None)
+            store: Store instance for caching/persistence
             loading_strategy: How to load data (STREAM or MEMORY)
         """
         self._store = store
         self._loading_strategy = loading_strategy
-        self._cache_dir: Optional[Path] = None
+        self._cache_dir: Path = Path(store.base_path) / store.dataset_prefix
 
-        # Determine cache directory
-        if store is not None:
-            if hasattr(store, "base_path"):
-                self._cache_dir = Path(store.base_path) / "datasets"
-            else:
-                self._cache_dir = Path(cache_dir) if cache_dir else None
-        else:
-            self._cache_dir = Path(cache_dir) if cache_dir else None
-
-        # Handle loading strategy
         is_iterable_input = isinstance(ds, IterableDataset)
         if loading_strategy == LoadingStrategy.MEMORY and is_iterable_input:
-            # Convert IterableDataset to regular Dataset for memory loading
             ds = Dataset.from_generator(lambda: iter(ds))
             self._is_iterable = False
         elif loading_strategy == LoadingStrategy.STREAM and not is_iterable_input:
-            # Convert Dataset to IterableDataset for streaming
             ds = ds.to_iterable_dataset()
             self._is_iterable = True
         else:
@@ -60,7 +46,6 @@ class BaseDataset(ABC):
 
         self._ds = ds
 
-        # Cache to disk if cache_dir is provided and not streaming
         if self._cache_dir and not self._is_iterable:
             self._cache_dir.mkdir(parents=True, exist_ok=True)
             self._ds.save_to_disk(str(self._cache_dir))
@@ -95,25 +80,23 @@ class BaseDataset(ABC):
 
     @classmethod
     def from_huggingface(
-        cls,
-        repo_id: str,
-        *,
-        split: str = "train",
-        cache_dir: Optional[Union[str, Path]] = None,
-        store: Optional[Store] = None,
-        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-        revision: Optional[str] = None,
-        streaming: Optional[bool] = None,
-        **kwargs,
+            cls,
+            repo_id: str,
+            store: Store,
+            *,
+            split: str = "train",
+            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+            revision: Optional[str] = None,
+            streaming: Optional[bool] = None,
+            **kwargs,
     ) -> "BaseDataset":
         """
         Load dataset from HuggingFace Hub.
 
         Args:
             repo_id: HuggingFace dataset repository ID
+            store: Store instance
             split: Dataset split (e.g., "train", "validation")
-            cache_dir: Optional cache directory
-            store: Optional Store instance
             loading_strategy: Loading strategy (STREAM or MEMORY)
             revision: Optional git revision/branch/tag
             streaming: Optional override for streaming (if None, uses loading_strategy)
@@ -130,27 +113,25 @@ class BaseDataset(ABC):
             **kwargs,
         )
 
-        return cls(ds, store=store, cache_dir=cache_dir, loading_strategy=loading_strategy)
+        return cls(ds, store=store, loading_strategy=loading_strategy)
 
     @classmethod
     def from_csv(
-        cls,
-        source: Union[str, Path],
-        *,
-        cache_dir: Optional[Union[str, Path]] = None,
-        store: Optional[Store] = None,
-        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-        text_field: str = "text",
-        delimiter: str = ",",
-        **kwargs,
+            cls,
+            source: Union[str, Path],
+            store: Store,
+            *,
+            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+            text_field: str = "text",
+            delimiter: str = ",",
+            **kwargs,
     ) -> "BaseDataset":
         """
         Load dataset from CSV file.
 
         Args:
             source: Path to CSV file
-            cache_dir: Optional cache directory
-            store: Optional Store instance
+            store: Store instance
             loading_strategy: Loading strategy
             text_field: Name of the column containing text
             delimiter: CSV delimiter (default: comma)
@@ -178,26 +159,24 @@ class BaseDataset(ABC):
                 **kwargs,
             )
 
-        return cls(ds, store=store, cache_dir=cache_dir, loading_strategy=loading_strategy)
+        return cls(ds, store=store, loading_strategy=loading_strategy)
 
     @classmethod
     def from_json(
-        cls,
-        source: Union[str, Path],
-        *,
-        cache_dir: Optional[Union[str, Path]] = None,
-        store: Optional[Store] = None,
-        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-        text_field: str = "text",
-        **kwargs,
+            cls,
+            source: Union[str, Path],
+            store: Store,
+            *,
+            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+            text_field: str = "text",
+            **kwargs,
     ) -> "BaseDataset":
         """
         Load dataset from JSON or JSONL file.
 
         Args:
             source: Path to JSON or JSONL file
-            cache_dir: Optional cache directory
-            store: Optional Store instance
+            store: Store instance
             loading_strategy: Loading strategy
             text_field: Name of the field containing text (for JSON objects)
             **kwargs: Additional arguments passed to load_dataset
@@ -222,7 +201,7 @@ class BaseDataset(ABC):
                 **kwargs,
             )
 
-        return cls(ds, store=store, cache_dir=cache_dir, loading_strategy=loading_strategy)
+        return cls(ds, store=store, loading_strategy=loading_strategy)
 
     def get_batch(self, start: int, batch_size: int) -> List[Any]:
         """
@@ -254,4 +233,3 @@ class BaseDataset(ABC):
                 items.append(item)
             return items
         return self[:n]
-

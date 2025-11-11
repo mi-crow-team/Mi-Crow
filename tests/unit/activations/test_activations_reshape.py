@@ -6,7 +6,7 @@ from datasets import Dataset
 
 from amber.core.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
-from amber.store import LocalStore
+from amber.store.local_store import LocalStore
 
 
 class Tok:
@@ -55,7 +55,8 @@ def test_captured_2d_activations_are_reshaped_to_3d(tmp_path):
     """Test that 2D activations captured from flattened layers are properly reshaped to 3D."""
     tok = Tok()
     net = FlattenThenReshapeLM()
-    lm = LanguageModel(model=net, tokenizer=tok)
+    store = LocalStore(tmp_path / "store")
+    lm = LanguageModel(model=net, tokenizer=tok, store=store)
 
     # Find the flat_proj layer name
     layer_name = None

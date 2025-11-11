@@ -1,12 +1,10 @@
 """Tests that verify actual behavior of LanguageModel, not just compilation."""
-import pytest
 import torch
 from pathlib import Path
 from torch import nn
-from unittest.mock import Mock, patch
 
 from amber.core.language_model import LanguageModel
-from amber.store import LocalStore
+from amber.store.local_store import LocalStore
 
 
 class MockModel(nn.Module):

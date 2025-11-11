@@ -23,7 +23,7 @@ class _LiteController(Controller):
         self._raise_in_modify = raise_in_modify
         self._return_value = return_value
 
-    def modify_activations(self, module: Any, inputs: tuple, output: Any) -> Any:
+    def modify_activations(self, module: Any, inputs: torch.Tensor | None, output: torch.Tensor | None) -> torch.Tensor | None:
         self.calls.append("modify")
         self.last_inputs = inputs
         self.last_output = output
@@ -49,19 +49,23 @@ def test_forward_controller_modifies_output():
     ctrl = _LiteController(hook_type=HookType.FORWARD, return_value=expected)
     ret = _call_hook(ctrl)
     assert ctrl.calls == ["modify"]
-    assert torch.equal(ret, expected)
+    # Forward hooks return None (PyTorch signature), but modify_activations was called
+    assert ret is None
     assert isinstance(ctrl.last_output, torch.Tensor)
+    # Verify modify_activations received the correct output
+    assert torch.equal(ctrl.last_output, torch.tensor([2.0]))  # Original output passed to modify_activations
 
 
 def test_pre_forward_controller_modifies_inputs_tuple():
-    modified_inputs: Tuple[torch.Tensor, ...] = (torch.tensor([10.0]),)
-    ctrl = _LiteController(hook_type=HookType.PRE_FORWARD, return_value=modified_inputs)
+    modified_tensor = torch.tensor([10.0])
+    ctrl = _LiteController(hook_type=HookType.PRE_FORWARD, return_value=modified_tensor)
     ret = _call_hook(ctrl)
     assert ctrl.calls == ["modify"]
     assert isinstance(ret, tuple)
-    assert torch.equal(ret[0], modified_inputs[0])
-    # In pre hooks, output passed to modify is None
-    assert ctrl.last_output is None
+    assert torch.equal(ret[0], modified_tensor)
+    # In pre hooks, Controller passes input_tensor as both inputs and output to modify_activations
+    assert isinstance(ctrl.last_output, torch.Tensor)
+    assert torch.equal(ctrl.last_output, torch.tensor([1.0]))  # Original input tensor
 
 
 def test_disabled_controller_returns_none_and_does_not_call_modify():
@@ -81,11 +85,14 @@ def test_controller_errors_are_swallowed_and_return_none():
 
 def test_hook_type_accepts_string_and_uses_correct_wrapper():
     # Use string to ensure conversion works
-    ctrl = _LiteController(hook_type="pre_forward", return_value=(torch.tensor([7.0]),))
+    modified_tensor = torch.tensor([7.0])
+    ctrl = _LiteController(hook_type="pre_forward", return_value=modified_tensor)
     assert ctrl.hook_type == HookType.PRE_FORWARD
     ret = _call_hook(ctrl)
     # Ensure wrapper used pre-forward path and returned modified inputs
     assert isinstance(ret, tuple)
-    assert ctrl.last_output is None
+    assert torch.equal(ret[0], modified_tensor)
+    # In pre hooks, Controller passes input_tensor as both inputs and output to modify_activations
+    assert isinstance(ctrl.last_output, torch.Tensor)
 
 

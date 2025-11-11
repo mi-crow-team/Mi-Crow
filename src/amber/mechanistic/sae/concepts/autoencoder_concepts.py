@@ -9,12 +9,12 @@ import heapq
 import torch
 from torch import nn
 
-from amber.mechanistic.autoencoder.concepts.concept_models import NeuronText
-from amber.mechanistic.autoencoder.autoencoder_context import AutoencoderContext
+from amber.mechanistic.sae.concepts.concept_models import NeuronText
+from amber.mechanistic.sae.autoencoder_context import AutoencoderContext
 from amber.utils import get_logger
 
 if TYPE_CHECKING:
-    from amber.mechanistic.autoencoder.concepts.concept_dictionary import ConceptDictionary
+    from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary
 
 logger = get_logger(__name__)
 
@@ -60,12 +60,12 @@ class AutoencoderConcepts:
 
     def _ensure_dictionary(self):
         if self.dictionary is None:
-            from amber.mechanistic.autoencoder.concepts.concept_dictionary import ConceptDictionary
+            from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary
             self.dictionary = ConceptDictionary(self._n_size)
         return self.dictionary
 
     def load_concepts_from_csv(self, csv_filepath: str | Path):
-        from amber.mechanistic.autoencoder.concepts.concept_dictionary import ConceptDictionary
+        from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary
         self.dictionary = ConceptDictionary.from_csv(
             csv_filepath=csv_filepath,
             n_size=self._n_size,
@@ -73,7 +73,7 @@ class AutoencoderConcepts:
         )
 
     def load_concepts_from_json(self, json_filepath: str | Path):
-        from amber.mechanistic.autoencoder.concepts.concept_dictionary import ConceptDictionary
+        from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary
         self.dictionary = ConceptDictionary.from_json(
             json_filepath=json_filepath,
             n_size=self._n_size,
@@ -85,7 +85,7 @@ class AutoencoderConcepts:
         if self._top_texts_heaps is None:
             raise ValueError("No top texts available. Enable text tracking and run inference first.")
 
-        from amber.mechanistic.autoencoder.concepts.concept_dictionary import ConceptDictionary
+        from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary
         neuron_texts = self.get_all_top_texts()
 
         self.dictionary = ConceptDictionary.from_llm(

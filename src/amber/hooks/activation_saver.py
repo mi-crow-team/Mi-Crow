@@ -2,7 +2,7 @@ from typing import Any, TYPE_CHECKING
 import torch
 
 from amber.hooks.detector import Detector
-from amber.hooks.hook import HookType
+from amber.hooks.hook import HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
 
 if TYPE_CHECKING:
     from torch import nn
@@ -37,7 +37,12 @@ class ActivationSaverDetector(Detector):
         self.layer_signature = layer_signature
         self.captured_activations: torch.Tensor | None = None
     
-    def process_activations(self, module: "nn.Module", inputs: tuple, output: Any) -> None:
+    def process_activations(
+        self, 
+        module: torch.nn.Module, 
+        input: HOOK_FUNCTION_INPUT, 
+        output: HOOK_FUNCTION_OUTPUT
+    ) -> None:
         """
         Extract and store activations from output.
         

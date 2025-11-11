@@ -3,8 +3,8 @@
 import pytest
 from unittest.mock import patch
 
-from amber.mechanistic.autoencoder.concepts.concept_dictionary import ConceptDictionary, Concept
-from amber.mechanistic.autoencoder.concepts.concept_models import NeuronText
+from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary, Concept
+from amber.mechanistic.sae.concepts.concept_models import NeuronText
 
 
 class TestConceptDictionaryEdgeCases:

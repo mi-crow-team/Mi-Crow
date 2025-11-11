@@ -1,13 +1,10 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional, TYPE_CHECKING
-from pathlib import Path
 
-from amber.store import Store
+from amber.store.store import Store
 
 if TYPE_CHECKING:
-    from amber.core.language_model import LanguageModel
-    from amber.mechanistic.autoencoder.autoencoder import Autoencoder
-    from amber.mechanistic.autoencoder.sae import Sae
+    pass
 
 
 @dataclass

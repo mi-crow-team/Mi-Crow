@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass, asdict
 from pathlib import Path
-from typing import Dict, List, Sequence, TYPE_CHECKING, Optional
+from typing import Dict, Sequence, TYPE_CHECKING, Optional
 import json
 import csv
 
-from amber.store import Store
+from amber.store.store import Store
 
 if TYPE_CHECKING:
-    from amber.mechanistic.autoencoder.concepts.concept_models import NeuronText
+    pass
 
 
 @dataclass

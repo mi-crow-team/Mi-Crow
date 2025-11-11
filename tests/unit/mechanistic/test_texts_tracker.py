@@ -5,7 +5,7 @@ import torch
 from torch import nn
 
 from amber.core.language_model import LanguageModel
-from amber.mechanistic.autoencoder.concepts.input_tracker import InputTracker
+from amber.mechanistic.sae.concepts.input_tracker import InputTracker
 
 
 class MockTokenizer:
@@ -111,7 +111,7 @@ def test_texts_persist_through_multiple_calls():
 
 def test_sae_hook_updates_top_texts_during_inference():
     """Test that SAE hook updates top texts during modify_activations."""
-    from amber.mechanistic.autoencoder.modules.topk_sae import TopKSae
+    from amber.mechanistic.sae.modules.topk_sae import TopKSae
     
     model = MockModel()
     tokenizer = MockTokenizer()
@@ -173,7 +173,7 @@ def test_input_tracker_get_current_texts():
 
 def test_sae_hook_tracks_texts_correctly():
     """Test that SAE hook correctly tracks texts during inference."""
-    from amber.mechanistic.autoencoder.modules.topk_sae import TopKSae
+    from amber.mechanistic.sae.modules.topk_sae import TopKSae
     
     model = MockModel()
     tokenizer = MockTokenizer()
@@ -220,7 +220,7 @@ def test_language_model_calls_set_current_texts():
     lm = LanguageModel(model=model, tokenizer=tokenizer)
     
     # Create InputTracker (should be done via _ensure_input_tracker, but we can test directly)
-    from amber.mechanistic.autoencoder.concepts.input_tracker import InputTracker
+    from amber.mechanistic.sae.concepts.input_tracker import InputTracker
     tracker = InputTracker(language_model=lm)
     tracker.enable()  # Enable tracking
     lm._input_tracker = tracker  # Set as singleton

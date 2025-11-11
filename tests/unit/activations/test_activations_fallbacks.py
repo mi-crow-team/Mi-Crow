@@ -6,7 +6,7 @@ from datasets import Dataset
 
 from amber.core.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
-from amber.store import LocalStore
+from amber.store.local_store import LocalStore
 
 
 class Tok:
@@ -62,7 +62,8 @@ def test_hook_fallback_reads_last_hidden_state_attr(tmp_path):
     """Test that hook fallback mechanism works for layers returning objects with last_hidden_state attribute."""
     tok = Tok()
     net = ObjOutLM()
-    lm = LanguageModel(model=net, tokenizer=tok)
+    store = LocalStore(tmp_path / "store2")
+    lm = LanguageModel(model=net, tokenizer=tok, store=store)
 
     # target the obj layer whose output is a custom object
     layer_name = None

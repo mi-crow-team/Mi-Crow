@@ -8,9 +8,9 @@ try:
 except ImportError:
     OVERCOMPLETE_AVAILABLE = False
 
-from amber.mechanistic.autoencoder.modules.topk_sae import TopKSae
-from amber.mechanistic.autoencoder.sae_trainer import SaeTrainer, SaeTrainingConfig, ReusableStoreDataLoader
-from amber.store import LocalStore
+from amber.mechanistic.sae.modules.topk_sae import TopKSae
+from amber.mechanistic.sae.sae_trainer import SaeTrainer, SaeTrainingConfig, StoreDataloader
+from amber.store.local_store import LocalStore
 
 
 @pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")
@@ -23,7 +23,7 @@ def test_reusable_store_data_loader_skips_non_dict_batches(tmp_path):
     store.put_run_batch(run_id, 0, {"activations": torch.randn(10, 8)})
     
     config = SaeTrainingConfig(batch_size=5)
-    loader = ReusableStoreDataLoader(store, run_id, config.batch_size, config.dtype, config.max_batches_per_epoch)
+    loader = StoreDataloader(store, run_id, config.batch_size, config.dtype, config.max_batches_per_epoch)
     
     # Should yield valid batches
     batches = list(loader)
@@ -40,7 +40,7 @@ def test_reusable_store_data_loader_skips_missing_activations_key(tmp_path):
     store.put_run_batch(run_id, 0, {"other_key": torch.randn(10, 8)})
     
     config = SaeTrainingConfig(batch_size=5)
-    loader = ReusableStoreDataLoader(store, run_id, config.batch_size, config.dtype, config.max_batches_per_epoch)
+    loader = StoreDataloader(store, run_id, config.batch_size, config.dtype, config.max_batches_per_epoch)
     
     # Should skip this batch (no 'activations' key)
     batches = list(loader)

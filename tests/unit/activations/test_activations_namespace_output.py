@@ -5,6 +5,7 @@ from torch import nn
 from datasets import Dataset
 
 from amber.core.language_model import LanguageModel
+from amber.store.local_store import LocalStore
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
 
 
@@ -89,7 +90,8 @@ def test_infer_and_save_captures_last_hidden_state_and_defaults(tmp_path, monkey
 
     tok = FakeTokenizer()
     net = ToyLMBranchy(vocab_size=30, d_model=6)
-    lm = LanguageModel(model=net, tokenizer=tok)
+    store = LocalStore(tmp_path / "store")
+    lm = LanguageModel(model=net, tokenizer=tok, store=store)
 
     texts = ["a b", "c d e", "f", "g h", "i j k"]  # 5 items -> batches (2,2,1)
     ds = _make_ds(texts, tmp_path / "cacheA")

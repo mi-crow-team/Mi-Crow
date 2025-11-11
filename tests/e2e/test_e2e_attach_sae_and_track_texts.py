@@ -5,17 +5,22 @@ Based on examples/02_attach_sae_and_save_texts.ipynb - demonstrates
 attaching an SAE to a language model and collecting top activating texts.
 """
 import pytest
-import torch
 from pathlib import Path
 import tempfile
 import shutil
 from datasets import Dataset
 
+try:
+    from overcomplete.sae import TopKSAE as OvercompleteTopKSAE
+    OVERCOMPLETE_AVAILABLE = True
+except ImportError:
+    OVERCOMPLETE_AVAILABLE = False
+
 from amber.core.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
-from amber.store import LocalStore
-from amber.mechanistic.autoencoder.modules.topk_sae import TopKSae
-from amber.mechanistic.autoencoder.sae_trainer import SaeTrainer, SaeTrainingConfig
+from amber.store.local_store import LocalStore
+from amber.mechanistic.sae.modules.topk_sae import TopKSae
+from amber.mechanistic.sae.sae_trainer import SaeTrainingConfig
 
 
 @pytest.fixture
@@ -32,7 +37,8 @@ def trained_sae_setup():
     DEVICE = "cpu"
     
     # Load model and create dataset
-    lm = LanguageModel.from_huggingface(MODEL_ID)
+    store = LocalStore(store_dir)
+    lm = LanguageModel.from_huggingface(MODEL_ID, store=store)
     lm.model.to(DEVICE)
     
     texts = [
@@ -100,6 +106,7 @@ def trained_sae_setup():
     shutil.rmtree(temp_dir, ignore_errors=True)
 
 
+@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")
 def test_e2e_sae_attachment_and_text_tracking(trained_sae_setup):
     """
     Test complete SAE attachment and text tracking workflow:
@@ -118,7 +125,11 @@ def test_e2e_sae_attachment_and_text_tracking(trained_sae_setup):
     
     # Step 1: Load language model
     print("\n📥 Loading language model...")
-    model = LanguageModel.from_huggingface(MODEL_ID)
+    import tempfile
+    from pathlib import Path
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / "store")
+    model = LanguageModel.from_huggingface(MODEL_ID, store=store)
     model.model.to(DEVICE)
     
     assert model.model is not None

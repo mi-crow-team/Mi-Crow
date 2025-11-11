@@ -9,8 +9,8 @@ except ImportError:
     OVERCOMPLETE_AVAILABLE = False
 
 if OVERCOMPLETE_AVAILABLE:
-    from amber.mechanistic.autoencoder.modules.topk_sae import TopKSae
-    from amber.mechanistic.autoencoder.concepts.concept_dictionary import ConceptDictionary
+    from amber.mechanistic.sae.modules.topk_sae import TopKSae
+    from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary
 
 
 @pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")

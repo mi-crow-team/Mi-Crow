@@ -2,11 +2,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Dict, Any, TYPE_CHECKING, List
 
 if TYPE_CHECKING:
-    from transformers import AutoTokenizer
-    from torch import nn
-    from amber.store import Store
-    from amber.core.language_model import LanguageModel
-    from amber.hooks.hook import Hook
+    pass
 
 
 @dataclass

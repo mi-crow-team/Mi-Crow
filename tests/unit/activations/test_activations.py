@@ -5,7 +5,7 @@ from torch import nn
 
 from amber.core.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
-from amber.store import LocalStore
+from amber.store.local_store import LocalStore
 from datasets import Dataset
 
 
@@ -71,7 +71,8 @@ def test_save_model_activations_persists_batches_and_shapes(tmp_path):
     # Build tiny LM wrapper
     tok = FakeTokenizer()
     net = ToyLM(vocab_size=50, d_model=8)
-    lm = LanguageModel(model=net, tokenizer=tok)
+    store = LocalStore(tmp_path / "store")
+    lm = LanguageModel(model=net, tokenizer=tok, store=store)
 
     # Dataset of 10 items, batch size 4 -> 3 batches (4,4,2)
     texts = [f"hello {i}" for i in range(10)]
@@ -118,7 +119,8 @@ def test_save_model_activations_persists_batches_and_shapes(tmp_path):
 def test_save_model_activations_options_maxlen_dtype_noinputs(tmp_path):
     tok = FakeTokenizer()
     net = ToyLM(vocab_size=30, d_model=6)
-    lm = LanguageModel(model=net, tokenizer=tok)
+    store = LocalStore(tmp_path / "store2")
+    lm = LanguageModel(model=net, tokenizer=tok, store=store)
 
     texts = ["a b c d", "e f", "g", "h i j k l m", "n o p"]
     ds = make_snippet_ds(texts, tmp_path / "ds2")

@@ -2,11 +2,10 @@ import pytest
 import torch
 from torch import nn
 from datasets import Dataset
-from unittest.mock import Mock, patch
 
 from amber.core.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
-from amber.store import LocalStore
+from amber.store.local_store import LocalStore
 
 
 class ErrorProneTokenizer:

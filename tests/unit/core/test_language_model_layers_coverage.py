@@ -2,11 +2,14 @@
 import pytest
 import torch
 from torch import nn
+from pathlib import Path
+import tempfile
 
 from amber.core.language_model import LanguageModel
 from amber.hooks.controller import Controller
 from amber.hooks.detector import Detector
-from amber.hooks.hook import HookType
+from amber.hooks.hook import HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
+from amber.store.local_store import LocalStore
 
 
 class MockModel(nn.Module):
@@ -71,7 +74,7 @@ class SimpleController(Controller):
         super().__init__(HookType.FORWARD, hook_id, layer_signature)
         self.modified = False
     
-    def modify_activations(self, module, inputs, output):
+    def modify_activations(self, module, inputs: torch.Tensor | None, output: torch.Tensor | None) -> torch.Tensor | None:
         if isinstance(output, torch.Tensor):
             self.modified = True
             return output * 1.1  # Simple scaling
@@ -86,7 +89,7 @@ class SimpleDetector(Detector):
         super().__init__(HookType.FORWARD, hook_id, None, layer_signature)
         self.captured = None
     
-    def process_activations(self, module, inputs, output):
+    def process_activations(self, module, input: HOOK_FUNCTION_INPUT, output: HOOK_FUNCTION_OUTPUT) -> None:
         """Required abstract method implementation."""
         if isinstance(output, torch.Tensor):
             self.captured = output.clone()
@@ -96,7 +99,9 @@ def test_get_controllers():
     """Test get_controllers method (line 459->461)."""
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / "store")
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     # Get actual layer name from model
     layer_names = lm.layers.get_layer_names()
@@ -124,7 +129,9 @@ def test_get_detectors():
     """Test get_detectors method (line 463->465)."""
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / "store")
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     # Get actual layer name from model
     layer_names = lm.layers.get_layer_names()
@@ -152,7 +159,9 @@ def test_enable_hook():
     """Test enable_hook method (lines 417->431)."""
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / "store")
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     # Get actual layer name from model
     layer_names = lm.layers.get_layer_names()
@@ -181,7 +190,9 @@ def test_disable_hook():
     """Test disable_hook method (lines 433->447)."""
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / "store")
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     # Get actual layer name from model
     layer_names = lm.layers.get_layer_names()
@@ -209,7 +220,9 @@ def test_enable_all_hooks():
     """Test enable_all_hooks method (lines 449->452)."""
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / "store")
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     # Get actual layer name from model
     layer_names = lm.layers.get_layer_names()
@@ -240,7 +253,9 @@ def test_disable_all_hooks():
     """Test disable_all_hooks method (lines 454->457)."""
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / "store")
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     # Get actual layer name from model
     layer_names = lm.layers.get_layer_names()

@@ -5,7 +5,7 @@ import torch
 from torch import nn
 
 from amber.core.language_model import LanguageModel
-from amber.mechanistic.autoencoder.concepts.autoencoder_concepts import AutoencoderConcepts
+from amber.mechanistic.sae.concepts.autoencoder_concepts import AutoencoderConcepts
 
 
 class FakeTokenizer:
@@ -88,7 +88,7 @@ def _find_layer_name(lm: LanguageModel, submod: nn.Module) -> str:
 
 def test_top_texts_tracker_positive_and_negative(tmp_path):
     """Test text tracking with SAE hook - requires overcomplete."""
-    from amber.mechanistic.autoencoder.modules.topk_sae import TopKSae
+    from amber.mechanistic.sae.modules.topk_sae import TopKSae
     
     # Build LM wrapper around deterministic TinyLM
     tok = FakeTokenizer()
@@ -150,7 +150,7 @@ def test_top_texts_tracker_positive_and_negative(tmp_path):
 
 def test_top_texts_tracker_metadata_serialization(tmp_path):
     """Test that top texts can be serialized to and loaded from metadata."""
-    from amber.mechanistic.autoencoder.modules.topk_sae import TopKSae
+    from amber.mechanistic.sae.modules.topk_sae import TopKSae
 
     # Build LM wrapper around deterministic TinyLM
     tok = FakeTokenizer()

@@ -2,7 +2,7 @@
 import pytest
 import torch
 import logging
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 try:
     from overcomplete.sae import TopKSAE as OvercompleteTopKSAE
@@ -11,9 +11,9 @@ except ImportError:
     OVERCOMPLETE_AVAILABLE = False
 
 if OVERCOMPLETE_AVAILABLE:
-    from amber.mechanistic.autoencoder.modules.topk_sae import TopKSae
-    from amber.mechanistic.autoencoder.sae_trainer import SaeTrainer, SaeTrainingConfig, ReusableStoreDataLoader
-    from amber.store import LocalStore
+    from amber.mechanistic.sae.modules.topk_sae import TopKSae
+    from amber.mechanistic.sae.sae_trainer import SaeTrainer, SaeTrainingConfig, StoreDataloader
+    from amber.store.local_store import LocalStore
 
 
 @pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")
@@ -31,7 +31,7 @@ def test_reusable_store_data_loader_logs_skipped_batches(tmp_path, caplog):
     logger = logging.getLogger("amber.mechanistic.sae.sae_trainer")
     logger.setLevel(logging.DEBUG)
     
-    loader = ReusableStoreDataLoader(store, run_id, batch_size=5, logger_instance=logger)
+    loader = StoreDataloader(store, run_id, batch_size=5, logger_instance=logger)
     
     with caplog.at_level(logging.DEBUG):
         batches = list(loader)
@@ -52,7 +52,7 @@ def test_reusable_store_data_loader_handles_1d_tensor(tmp_path):
     # Create batch with 1D tensor
     store.put_run_batch(run_id, 0, {"activations": torch.randn(8)})  # 1D
     
-    loader = ReusableStoreDataLoader(store, run_id, batch_size=5)
+    loader = StoreDataloader(store, run_id, batch_size=5)
     
     batches = list(loader)
     

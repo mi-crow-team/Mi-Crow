@@ -6,7 +6,7 @@ from datasets import Dataset
 
 from amber.core.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
-from amber.store import LocalStore
+from amber.store.local_store import LocalStore
 
 
 class FakeTokenizer:
@@ -49,7 +49,8 @@ def test_tuple_output_handling(tmp_path):
     """Test that tuple outputs from model layers are handled correctly."""
     tok = FakeTokenizer()
     net = TupleOutLM()
-    lm = LanguageModel(model=net, tokenizer=tok)
+    store = LocalStore(tmp_path/"store")
+    lm = LanguageModel(model=net, tokenizer=tok, store=store)
 
     # pick the linear layer by name
     target_name = None

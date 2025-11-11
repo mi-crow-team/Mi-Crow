@@ -3,6 +3,7 @@ from torch import nn
 from datasets import Dataset
 
 from amber.core.language_model import LanguageModel
+from amber.store.local_store import LocalStore
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
 
 
@@ -75,7 +76,8 @@ def test_infer_and_save_tuple_output_branch(tmp_path):
     """Test that tuple outputs are handled correctly."""
     tok = FakeTokenizer()
     net = ToyLMBranchy(vocab_size=25, d_model=5)
-    lm = LanguageModel(model=net, tokenizer=tok)
+    store = LocalStore(tmp_path / "store")
+    lm = LanguageModel(model=net, tokenizer=tok, store=store)
 
     texts = ["aa bb", "cc", "dd ee ff"]
     ds = _make_ds(texts, tmp_path / "cacheC")

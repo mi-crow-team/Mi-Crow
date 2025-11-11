@@ -7,7 +7,7 @@ from datasets import Dataset
 
 from amber.core.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
-from amber.store import LocalStore
+from amber.store.local_store import LocalStore
 
 
 class FakeTokenizer:
@@ -48,7 +48,8 @@ def test_verbose_logging_output(tmp_path, caplog):
     """Test that verbose logging produces expected log messages."""
     tok = FakeTokenizer()
     net = SimpleLM()
-    lm = LanguageModel(model=net, tokenizer=tok)
+    store = LocalStore(tmp_path/"store")
+    lm = LanguageModel(model=net, tokenizer=tok, store=store)
 
     # pick the linear layer by name
     target_name = None

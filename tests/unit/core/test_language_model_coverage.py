@@ -1,11 +1,9 @@
 """Additional tests to improve coverage for language_model.py."""
 import pytest
 import torch
-from pathlib import Path
 from torch import nn
 
 from amber.core.language_model import LanguageModel
-from amber.store import LocalStore
 
 
 class MockModel(nn.Module):
