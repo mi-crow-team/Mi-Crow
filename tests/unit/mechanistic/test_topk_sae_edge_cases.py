@@ -6,15 +6,12 @@ import tempfile
 
 try:
     from overcomplete.sae import TopKSAE as OvercompleteTopKSAE
-    OVERCOMPLETE_AVAILABLE = True
 except ImportError:
-    OVERCOMPLETE_AVAILABLE = False
 
 from amber.mechanistic.sae.modules.topk_sae import TopKSae
 from amber.hooks.hook import HookType
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")
 def test_topk_sae_modify_activations_with_none_target():
     """Test modify_activations handles None target gracefully."""
     topk_sae = TopKSae(n_latents=8, n_inputs=16, k=4, device='cpu')
@@ -93,7 +90,6 @@ def test_topk_sae_modify_activations_with_object_output():
     assert result.last_hidden_state.shape == (2, 3, 16)
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")
 def test_topk_sae_modify_activations_pre_forward_hook():
     """Test modify_activations with PRE_FORWARD hook type."""
     topk_sae = TopKSae(n_latents=8, n_inputs=16, k=4, device='cpu', hook_type=HookType.PRE_FORWARD)
@@ -194,7 +190,6 @@ def test_topk_sae_modify_activations_with_non_tensor_in_tuple():
     assert result[2] == 42
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")
 def test_topk_sae_modify_activations_with_2d_tensor():
     """Test modify_activations handles 2D tensors (overcomplete requires 2D)."""
     topk_sae = TopKSae(n_latents=8, n_inputs=16, k=4, device='cpu')

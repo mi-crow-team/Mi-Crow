@@ -11,9 +11,9 @@ from overcomplete import (
 )
 
 from amber.hooks.hook import HookType
-from amber.mechanistic.autoencoder.sae import Sae
-from amber.mechanistic.autoencoder.sae_trainer import SaeTrainingConfig
-from amber.store import Store
+from amber.mechanistic.sae.sae import Sae
+from amber.mechanistic.sae.sae_trainer import SaeTrainingConfig
+from amber.store.store import Store
 from amber.utils import get_logger
 
 try:

@@ -10,17 +10,18 @@ import tempfile
 import shutil
 from datasets import Dataset
 
-try:
-    from overcomplete.sae import TopKSAE as OvercompleteTopKSAE
-    OVERCOMPLETE_AVAILABLE = True
-except ImportError:
-    OVERCOMPLETE_AVAILABLE = False
-
 from amber.core.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
 from amber.store.local_store import LocalStore
-from amber.mechanistic.sae.modules.topk_sae import TopKSae
-from amber.mechanistic.sae.sae_trainer import SaeTrainingConfig
+
+try:
+    from amber.mechanistic.sae.modules.topk_sae import TopKSae
+    from amber.mechanistic.sae.sae_trainer import SaeTrainingConfig
+    OVERCOMPLETE_AVAILABLE = True
+except ImportError:
+    OVERCOMPLETE_AVAILABLE = False
+    TopKSae = None  # type: ignore
+    SaeTrainingConfig = None  # type: ignore
 
 
 @pytest.fixture

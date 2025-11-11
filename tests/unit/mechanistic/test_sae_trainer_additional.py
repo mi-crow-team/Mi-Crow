@@ -4,16 +4,13 @@ import torch
 
 try:
     from overcomplete.sae import TopKSAE as OvercompleteTopKSAE
-    OVERCOMPLETE_AVAILABLE = True
 except ImportError:
-    OVERCOMPLETE_AVAILABLE = False
 
 from amber.mechanistic.sae.modules.topk_sae import TopKSae
 from amber.mechanistic.sae.sae_trainer import SaeTrainer, SaeTrainingConfig, StoreDataloader
 from amber.store.local_store import LocalStore
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")
 def test_reusable_store_data_loader_skips_non_dict_batches(tmp_path):
     """Test ReusableStoreDataLoader skips non-dict batches."""
     store = LocalStore(tmp_path)
@@ -30,7 +27,6 @@ def test_reusable_store_data_loader_skips_non_dict_batches(tmp_path):
     assert len(batches) > 0
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")
 def test_reusable_store_data_loader_skips_missing_activations_key(tmp_path):
     """Test ReusableStoreDataLoader skips batches without 'activations' key."""
     store = LocalStore(tmp_path)
@@ -47,7 +43,6 @@ def test_reusable_store_data_loader_skips_missing_activations_key(tmp_path):
     assert len(batches) == 0
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")
 def test_sae_trainer_with_use_amp_false(tmp_path):
     """Test SaeTrainer with use_amp=False."""
     store = LocalStore(tmp_path)
@@ -72,7 +67,6 @@ def test_sae_trainer_with_use_amp_false(tmp_path):
     assert "loss" in history
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")
 def test_sae_trainer_with_scheduler(tmp_path):
     """Test SaeTrainer with scheduler."""
     store = LocalStore(tmp_path)

@@ -3,14 +3,13 @@ import pytest
 import torch
 
 try:
-    from overcomplete.sae import TopKSAE as OvercompleteTopKSAE
+    from amber.mechanistic.sae.modules.topk_sae import TopKSae
+    from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary
     OVERCOMPLETE_AVAILABLE = True
 except ImportError:
     OVERCOMPLETE_AVAILABLE = False
-
-if OVERCOMPLETE_AVAILABLE:
-    from amber.mechanistic.sae.modules.topk_sae import TopKSae
-    from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary
+    TopKSae = None  # type: ignore
+    ConceptDictionary = None  # type: ignore
 
 
 @pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")

@@ -22,7 +22,7 @@ class LanguageModelContext:
 
     # Model references (set after initialization)
     model: Optional["nn.Module"] = None
-    tokenizer: Optional["AutoTokenizer"] = None
+    tokenizer: Optional["PreTrainedTokenizerBase"] = None
 
     # Store
     store: Optional["Store"] = None

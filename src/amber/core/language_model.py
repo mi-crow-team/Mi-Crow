@@ -3,7 +3,7 @@ from typing import Sequence, Any, Dict, TYPE_CHECKING
 
 import torch
 from torch import nn
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, PreTrainedTokenizerBase
 
 from amber.core.language_model_layers import LanguageModelLayers
 from amber.core.language_model_tokenizer import LanguageModelTokenizer
@@ -27,20 +27,21 @@ class LanguageModel:
     def __init__(
             self,
             model: nn.Module,
-            tokenizer: AutoTokenizer,
-            store: Store
+            tokenizer: PreTrainedTokenizerBase,
+            store: Store,
+            model_id: str | None = None,
     ):
-        # Validate context
         self.context = LanguageModelContext(self)
         self.context.model = model
         self.context.tokenizer = tokenizer
 
-        if hasattr(model, 'config') and hasattr(model.config, 'name_or_path'):
+        if model_id is not None:
+            self.context.model_id = model_id
+        elif hasattr(model, 'config') and hasattr(model.config, 'name_or_path'):
             self.context.model_id = model.config.name_or_path.replace("/", "_")
         else:
             self.context.model_id = model.__class__.__name__
 
-        # Initialize components using context
         self.layers = LanguageModelLayers(self.context)
         self.lm_tokenizer = LanguageModelTokenizer(self.context)
         self.activations = LanguageModelActivations(self.context)
@@ -54,7 +55,7 @@ class LanguageModel:
         return self.context.model
 
     @property
-    def tokenizer(self) -> AutoTokenizer:
+    def tokenizer(self) -> PreTrainedTokenizerBase:
         return self.context.tokenizer
 
     @property

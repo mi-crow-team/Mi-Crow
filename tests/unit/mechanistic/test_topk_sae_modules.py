@@ -6,11 +6,8 @@ from pathlib import Path
 
 try:
     from overcomplete.sae import TopKSAE as OvercompleteTopKSAE
-    OVERCOMPLETE_AVAILABLE = True
 except ImportError:
-    OVERCOMPLETE_AVAILABLE = False
 
-if OVERCOMPLETE_AVAILABLE:
     from amber.mechanistic.sae.modules.topk_sae import TopKSae
     from amber.core.language_model import LanguageModel
     from amber.mechanistic.sae.concepts.concept_models import NeuronText
@@ -81,7 +78,6 @@ def mock_lm():
     return LanguageModel(model=model, tokenizer=tokenizer)
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")
 def test_topk_sae_modules_basic():
     """Test basic TopKSAE functionality."""
     
@@ -93,7 +89,6 @@ def test_topk_sae_modules_basic():
     assert topk_sae.sae_engine is not None
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")
 def test_topk_sae_modules_encode_decode():
     """Test TopKSAE encode and decode."""
     
@@ -115,7 +110,6 @@ def test_topk_sae_modules_encode_decode():
     assert recon.shape == (5, 16)
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")
 def test_topk_sae_modules_save_load(tmp_path, mock_lm):
     """Test TopKSAE save and load."""
     
@@ -149,7 +143,6 @@ def test_topk_sae_modules_save_load(tmp_path, mock_lm):
     assert torch.allclose(loaded.concepts.bias.data, torch.zeros(8))
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")
 def test_topk_sae_modules_save_load_with_top_texts(tmp_path, mock_lm):
     """Test TopKSAE save and load - top texts are not saved/loaded (export separately)."""
     
@@ -198,7 +191,6 @@ def test_topk_sae_modules_save_load_with_top_texts(tmp_path, mock_lm):
     assert loaded.context.n_inputs == 16
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")
 def test_topk_sae_modules_save_load_without_top_texts(tmp_path):
     """Test TopKSAE save and load without top texts."""
     
@@ -217,7 +209,6 @@ def test_topk_sae_modules_save_load_without_top_texts(tmp_path):
     assert loaded.concepts._top_texts_heaps is None
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")
 def test_topk_sae_modules_modify_activations():
     """Test TopKSAE modify_activations."""
     
@@ -247,7 +238,6 @@ def test_topk_sae_modules_modify_activations():
     assert not torch.allclose(modified, x, atol=1e-5)
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")
 def test_topk_sae_modules_modify_activations_with_concepts():
     """Test TopKSAE modify_activations with concept manipulation."""
     
@@ -281,7 +271,6 @@ def test_topk_sae_modules_modify_activations_with_concepts():
     assert not torch.allclose(modified, x, atol=1e-5)
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")
 def test_topk_sae_modules_load_invalid_format(tmp_path):
     """Test TopKSAE load with invalid format raises error."""
     

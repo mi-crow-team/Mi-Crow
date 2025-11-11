@@ -13,18 +13,7 @@ from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary
 from amber.mechanistic.sae.sae_trainer import SaeTrainer
 from amber.utils import get_logger
 
-try:
-    from overcomplete.sae import SAE as OvercompleteSAE
-    OVERCOMPLETE_AVAILABLE = True
-except ImportError:
-    OVERCOMPLETE_AVAILABLE = False
-    # Create a dummy type for type checking when overcomplete is not available
-    if TYPE_CHECKING:
-        from typing import Protocol
-        class OvercompleteSAE(Protocol):  # type: ignore
-            pass
-    else:
-        OvercompleteSAE = None  # type: ignore
+from overcomplete.sae import SAE as OvercompleteSAE
 
 if TYPE_CHECKING:
     pass
@@ -44,11 +33,6 @@ class Sae(Controller, abc.ABC):
             *args: Any,
             **kwargs: Any
     ) -> None:
-        if not OVERCOMPLETE_AVAILABLE:
-            raise ImportError(
-                "overcomplete package is required but not installed. "
-                "Please install it to use SAE functionality."
-            )
         super().__init__(HookType.FORWARD, hook_id)
         self.context = AutoencoderContext(
             autoencoder=self,

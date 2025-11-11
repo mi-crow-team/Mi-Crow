@@ -17,12 +17,12 @@ class ClassificationDataset(BaseDataset):
     """
 
     def __init__(
-        self,
-        ds: Dataset | IterableDataset,
-        store: Store,
-        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-        text_field: str = "text",
-        category_field: str = "category",
+            self,
+            ds: Dataset | IterableDataset,
+            store: Store,
+            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+            text_field: str = "text",
+            category_field: str = "category",
     ):
         """
         Initialize classification dataset.
@@ -57,7 +57,7 @@ class ClassificationDataset(BaseDataset):
         """Get item(s) by index. Returns dict with 'text' and 'category' keys."""
         if self._is_iterable:
             raise NotImplementedError("Indexing not supported for streaming datasets. Use iter_items or iter_batches.")
-        
+
         if isinstance(idx, int):
             row = self._ds[idx]
             return {"text": row[self._text_field], "category": row[self._category_field]}
@@ -95,7 +95,7 @@ class ClassificationDataset(BaseDataset):
         """Iterate over items in batches. Each batch is a list of dicts with 'text' and 'category' keys."""
         if batch_size <= 0:
             raise ValueError("batch_size must be > 0")
-        
+
         if self._is_iterable:
             batch = []
             for row in self._ds:
@@ -120,13 +120,16 @@ class ClassificationDataset(BaseDataset):
                 yield batch_list
 
     def get_categories(self) -> List[Any]:
-        """Get list of unique categories in the dataset."""
+        """Get list of unique categories in the dataset, excluding None values."""
         if self._is_iterable:
             categories = set()
             for item in self.iter_items():
-                categories.add(item["category"])
+                cat = item["category"]
+                if cat is not None:
+                    categories.add(cat)
             return sorted(list(categories))
-        return sorted(list(set(self._ds[self._category_field])))
+        categories = [cat for cat in set(self._ds[self._category_field]) if cat is not None]
+        return sorted(categories)
 
     def get_texts(self) -> List[str]:
         """Get all texts as a list."""
@@ -146,23 +149,23 @@ class ClassificationDataset(BaseDataset):
 
     @classmethod
     def from_huggingface(
-        cls,
-        repo_id: str,
-        store: Store,
-        *,
-        split: str = "train",
-        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-        revision: Optional[str] = None,
-        text_field: str = "text",
-        category_field: str = "category",
-        filters: Optional[Dict[str, Any]] = None,
-        limit: Optional[int] = None,
-        streaming: Optional[bool] = None,
-        **kwargs,
+            cls,
+            repo_id: str,
+            store: Store,
+            *,
+            split: str = "train",
+            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+            revision: Optional[str] = None,
+            text_field: str = "text",
+            category_field: str = "category",
+            filters: Optional[Dict[str, Any]] = None,
+            limit: Optional[int] = None,
+            streaming: Optional[bool] = None,
+            **kwargs,
     ) -> "ClassificationDataset":
         """Load classification dataset from HuggingFace Hub."""
         use_streaming = streaming if streaming is not None else (loading_strategy == LoadingStrategy.STREAM)
-        
+
         ds = load_dataset(
             path=repo_id,
             split=split,
@@ -175,6 +178,7 @@ class ClassificationDataset(BaseDataset):
             if filters:
                 def _pred(example):
                     return all(example.get(k) == v for k, v in filters.items())
+
                 ds = ds.filter(_pred)
 
             if limit is not None:
@@ -190,15 +194,15 @@ class ClassificationDataset(BaseDataset):
 
     @classmethod
     def from_csv(
-        cls,
-        source: Union[str, Path],
-        store: Store,
-        *,
-        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-        text_field: str = "text",
-        category_field: str = "category",
-        delimiter: str = ",",
-        **kwargs,
+            cls,
+            source: Union[str, Path],
+            store: Store,
+            *,
+            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+            text_field: str = "text",
+            category_field: str = "category",
+            delimiter: str = ",",
+            **kwargs,
     ) -> "ClassificationDataset":
         """Load classification dataset from CSV file."""
         dataset = super().from_csv(
@@ -243,4 +247,3 @@ class ClassificationDataset(BaseDataset):
             text_field=text_field,
             category_field=category_field,
         )
-
