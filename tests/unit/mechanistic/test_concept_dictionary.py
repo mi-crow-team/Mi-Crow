@@ -2,12 +2,9 @@ import json
 from pathlib import Path
 import pytest
 
-try:
-    from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary, Concept
-    OVERCOMPLETE_AVAILABLE = True
-except ImportError:
-    OVERCOMPLETE_AVAILABLE = False
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
+from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary, Concept
+
+
 def test_add_and_get_enforces_one_concept_per_neuron(tmp_path):
     cd = ConceptDictionary(n_size=5)
     # Only 1 concept per neuron is allowed - adding a new one replaces the old one
@@ -45,7 +42,6 @@ def test_add_and_get_enforces_one_concept_per_neuron(tmp_path):
     assert many[2] is None  # No concept for neuron 2
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_save_and_load_roundtrip(tmp_path):
     base = tmp_path / "concepts_dir"
     cd = ConceptDictionary(n_size=3)
@@ -63,7 +59,6 @@ def test_save_and_load_roundtrip(tmp_path):
     assert concept.name == "y"
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_save_load_errors_and_from_directory_behaviors(tmp_path):
     base = tmp_path / "empty_dir"
 

@@ -156,7 +156,8 @@ def test_inference_invokes_text_trackers_and_forwards_returns_output_and_enc():
             self.seen = list(texts)
 
     tr = Tracker()
-    lm.register_activation_text_tracker(tr)
+    # Directly add to activation text trackers list
+    lm._activation_text_trackers.append(tr)
 
     texts = ["foo", "barbaz"]
     out, enc = lm.forwards(texts)
@@ -164,6 +165,6 @@ def test_inference_invokes_text_trackers_and_forwards_returns_output_and_enc():
     assert set(enc.keys()) >= {"input_ids", "attention_mask"}
     assert tr.seen == texts
 
-    # Unregister should not raise and should remove
-    lm.unregister_activation_text_tracker(tr)
-    lm.unregister_activation_text_tracker(tr)  # idempotent
+    # Remove tracker
+    if tr in lm._activation_text_trackers:
+        lm._activation_text_trackers.remove(tr)

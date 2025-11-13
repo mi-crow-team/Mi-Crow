@@ -2,15 +2,11 @@
 import pytest
 import torch
 from pathlib import Path
+import tempfile
 
-try:
-    from amber.mechanistic.sae.modules.topk_sae import TopKSae
-    from amber.core.language_model import LanguageModel
-    OVERCOMPLETE_AVAILABLE = True
-except ImportError:
-    OVERCOMPLETE_AVAILABLE = False
-    TopKSae = None  # type: ignore
-    LanguageModel = None  # type: ignore
+from amber.mechanistic.sae.modules.topk_sae import TopKSae
+from amber.core.language_model import LanguageModel
+from amber.store.local_store import LocalStore
 
 
 class MockTokenizer:
@@ -67,7 +63,6 @@ class MockModel(torch.nn.Module):
         return self.linear(x)
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 class TestTopKSaeEncodeSparsity:
     """Test encode sparsity verification."""
     
@@ -109,7 +104,6 @@ class TestTopKSaeEncodeSparsity:
             assert sparsity <= (3 / 8) * 100, f"Row {i} should be sparse (at most 3/8 non-zero)"
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 class TestTopKSaeModifyActivations:
     """Test modify_activations behavior."""
     
@@ -122,7 +116,9 @@ class TestTopKSaeModifyActivations:
         # Set up language model and enable text tracking
         model = MockModel()
         tokenizer = MockTokenizer()
-        lm = LanguageModel(model=model, tokenizer=tokenizer)
+        temp_dir = tempfile.mkdtemp()
+        store = LocalStore(Path(temp_dir) / 'store')
+        lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
         topk_sae.context.lm = lm
         topk_sae.context.lm_layer_signature = "test_layer"
@@ -153,11 +149,10 @@ class TestTopKSaeModifyActivations:
         topk_sae.concepts.update_top_texts_from_latents = mock_update
         
         # Call modify_activations
-        hook_fn = topk_sae.get_torch_hook()
         class DummyModule:
             pass
         module = DummyModule()
-        modified = hook_fn(module, (), x)
+        modified = topk_sae.modify_activations(module, (), x)
         
         # Verify pre_codes (full activations) were passed, not sparse codes
         assert len(captured_latents) > 0
@@ -184,12 +179,11 @@ class TestTopKSaeModifyActivations:
         x = torch.randn(2, 3, 16)  # [B, T, D]
         original_shape = x.shape
         
-        hook_fn = topk_sae.get_torch_hook()
         class DummyModule:
             pass
         module = DummyModule()
         
-        modified = hook_fn(module, (), x)
+        modified = topk_sae.modify_activations(module, (), x)
         
         # Should return tensor of same shape
         assert modified.shape == original_shape
@@ -205,12 +199,11 @@ class TestTopKSaeModifyActivations:
         x = torch.randn(2, 16)
         output_tuple = (x, torch.tensor([1, 2]))
         
-        hook_fn = topk_sae.get_torch_hook()
         class DummyModule:
             pass
         module = DummyModule()
         
-        modified = hook_fn(module, (), output_tuple)
+        modified = topk_sae.modify_activations(module, (), output_tuple)
         
         # Should return tuple with first element modified
         assert isinstance(modified, tuple)
@@ -229,12 +222,11 @@ class TestTopKSaeModifyActivations:
         x = torch.randn(2, 16)
         output_list = [x, torch.tensor([1, 2])]
         
-        hook_fn = topk_sae.get_torch_hook()
         class DummyModule:
             pass
         module = DummyModule()
         
-        modified = hook_fn(module, (), output_list)
+        modified = topk_sae.modify_activations(module, (), output_list)
         
         # Should return list with first element modified
         assert isinstance(modified, list)

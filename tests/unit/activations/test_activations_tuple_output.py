@@ -69,7 +69,7 @@ def test_tuple_output_handling(tmp_path):
     ds = make_ds(["ab", "cde", "f"], tmp_path/"cache")
     store = LocalStore(tmp_path/"store")
 
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         ds,
         layer_signature=target_name,
         run_name="tuple_run",

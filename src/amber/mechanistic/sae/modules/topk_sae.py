@@ -140,6 +140,33 @@ class TopKSae(Sae):
         if tensor is None:
             return output if self.hook_type == HookType.FORWARD else inputs
 
+        # Check if tensor is actually a torch.Tensor before processing
+        if not isinstance(tensor, torch.Tensor):
+            # For non-tensor outputs in FORWARD hooks, try to extract tensor from tuple/list/object
+            if self.hook_type == HookType.FORWARD:
+                if isinstance(output, (tuple, list)):
+                    # Try to find first tensor in tuple/list
+                    for item in output:
+                        if isinstance(item, torch.Tensor):
+                            tensor = item
+                            break
+                    else:
+                        # No tensor found in tuple/list, return unchanged
+                        return output
+                elif hasattr(output, "last_hidden_state"):
+                    # Try to get tensor from last_hidden_state attribute
+                    if isinstance(output.last_hidden_state, torch.Tensor):
+                        tensor = output.last_hidden_state
+                    else:
+                        # last_hidden_state is not a tensor, return unchanged
+                        return output
+                else:
+                    # No tensor found, return unchanged
+                    return output
+            else:
+                # PRE_FORWARD: no tensor in inputs, return unchanged
+                return inputs
+
         original_shape = tensor.shape
 
         # Flatten to 2D if needed: (batch, seq_len, hidden) -> (batch * seq_len, hidden)

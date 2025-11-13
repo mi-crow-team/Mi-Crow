@@ -121,7 +121,7 @@ def test_metadata_extraction_with_cache_dir_error(tmp_path):
     ds.cache_dir = property(error_cache_dir)
     
     # Should handle cache_dir error gracefully
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         ds,
         layer_signature=valid_layer,
         run_name="cache_error_test",
@@ -157,7 +157,7 @@ def test_metadata_extraction_with_model_name_error(tmp_path):
     valid_layer = layer_names[0] if layer_names else "linear"
     
     # Should handle missing model_name gracefully
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         ds,
         layer_signature=valid_layer,
         run_name="model_name_error_test",
@@ -195,7 +195,7 @@ def test_metadata_storage_error_handling(tmp_path):
     valid_layer = layer_names[0] if layer_names else "linear"
     
     # Should handle metadata storage error gracefully
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         ds,
         layer_signature=valid_layer,
         run_name="metadata_error_test",
@@ -227,7 +227,7 @@ def test_activation_capture_edge_cases(tmp_path):
     valid_layer = layer_names[0] if layer_names else "linear"
     
     # Test with different batch sizes and edge cases
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         ds,
         layer_signature=valid_layer,
         run_name="edge_case_test",
@@ -261,7 +261,7 @@ def test_verbose_logging_with_errors(tmp_path, caplog):
     valid_layer = layer_names[0] if layer_names else "linear"
     
     with caplog.at_level(logging.INFO):
-        lm.activations.infer_and_save(
+        lm.activations.save_activations_dataset(
             ds,
             layer_signature=valid_layer,
             run_name="verbose_error_test",
@@ -271,8 +271,8 @@ def test_verbose_logging_with_errors(tmp_path, caplog):
         )
     
     log_messages = [rec.message for rec in caplog.records]
-    assert any("Starting save_model_activations" in msg for msg in log_messages)
-    assert any("Completed save_model_activations" in msg for msg in log_messages)
+    assert any("Starting save_activations_dataset" in msg for msg in log_messages)
+    assert any("Completed save_activations_dataset" in msg for msg in log_messages)
 
 
 def test_layer_signature_edge_cases(tmp_path):
@@ -295,7 +295,7 @@ def test_layer_signature_edge_cases(tmp_path):
     
     for i, signature in enumerate(layer_signatures):
         try:
-            lm.activations.infer_and_save(
+            lm.activations.save_activations_dataset(
                 ds,
                 layer_signature=signature,
                 run_name=f"edge_case_test_{i}",
@@ -337,7 +337,7 @@ def test_activation_capture_with_different_shapes(tmp_path):
     
     # Test with different batch sizes
     for batch_size in [1, 2, 4]:
-        lm.activations.infer_and_save(
+        lm.activations.save_activations_dataset(
             ds,
             layer_signature=valid_layer,
             run_name=f"shape_test_{batch_size}",

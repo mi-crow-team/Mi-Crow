@@ -76,7 +76,7 @@ def _make_ds(texts: list[str], cache_dir) -> TextSnippetDataset:
     return TextSnippetDataset(base, cache_dir=cache_dir)
 
 
-def test_infer_and_save_tuple_output_branch(tmp_path):
+def test_save_activations_dataset_tuple_output_branch(tmp_path):
     """Test that tuple outputs are handled correctly."""
     tok = FakeTokenizer()
     net = ToyLMBranchy(vocab_size=25, d_model=5)
@@ -95,7 +95,7 @@ def test_infer_and_save_tuple_output_branch(tmp_path):
     assert target_name is not None
 
     run_id = "tuple_run"
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         ds,
         layer_signature=target_name,
         run_name=run_id,

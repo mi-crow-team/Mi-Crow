@@ -96,7 +96,7 @@ def test_e2e_train_sae_workflow(temp_dirs):
     print("\n💾 Saving activations...")
     store = LocalStore(store_dir)
     
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         dataset,
         layer_signature=LAYER_SIGNATURE,
         run_name=RUN_ID,

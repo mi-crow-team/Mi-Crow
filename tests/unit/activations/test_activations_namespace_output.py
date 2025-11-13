@@ -77,7 +77,7 @@ def _make_ds(texts: list[str], cache_dir) -> TextSnippetDataset:
     return TextSnippetDataset(base, cache_dir=cache_dir)
 
 
-def test_infer_and_save_captures_last_hidden_state_and_defaults(tmp_path, monkeypatch):
+def test_save_activations_dataset_captures_last_hidden_state_and_defaults(tmp_path, monkeypatch):
     """Test that namespace outputs with last_hidden_state are captured correctly."""
     # Monkeypatch datetime used in LanguageModelActivations to force deterministic run_name
     class _FixedDT:
@@ -114,7 +114,7 @@ def test_infer_and_save_captures_last_hidden_state_and_defaults(tmp_path, monkey
     before_runs = {p.name for p in runs_dir.iterdir() if p.is_dir()}
 
     # store=None and run_name=None exercise defaults; verbose=True exercises logging path
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         ds,
         layer_signature=target_name,
         run_name=None,
@@ -125,8 +125,9 @@ def test_infer_and_save_captures_last_hidden_state_and_defaults(tmp_path, monkey
     )
 
     # Discover newly created run_id under the default store path
+    # Filter out detector metadata directories (they have _detector_metadata suffix)
     after_runs = {p.name for p in runs_dir.iterdir() if p.is_dir()}
-    new_runs = sorted(after_runs - before_runs)
+    new_runs = sorted([r for r in (after_runs - before_runs) if not r.endswith('_detector_metadata')])
     assert len(new_runs) == 1
     run_id = new_runs[0]
     batches = lm.store.list_run_batches(run_id)

@@ -2,17 +2,10 @@
 import pytest
 import torch
 
-try:
-    from amber.mechanistic.sae.modules.topk_sae import TopKSae
-    from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary
-    OVERCOMPLETE_AVAILABLE = True
-except ImportError:
-    OVERCOMPLETE_AVAILABLE = False
-    TopKSae = None  # type: ignore
-    ConceptDictionary = None  # type: ignore
+from amber.mechanistic.sae.modules.topk_sae import TopKSae
+from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")
 def test_sae_attach_dictionary():
     """Test attach_dictionary method (lines 84-85)."""
     topk_sae = TopKSae(n_latents=8, n_inputs=16, k=4)

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Sequence, Any, Dict, TYPE_CHECKING
+from typing import Sequence, Any, Dict, List, TYPE_CHECKING
 
 import torch
 from torch import nn
@@ -201,19 +201,83 @@ class LanguageModel:
 
         return decoded_texts
 
-    def register_activation_text_tracker(self, tracker: Any) -> None:
-        if tracker not in self._activation_text_trackers:
-            self._activation_text_trackers.append(tracker)
-
-    def unregister_activation_text_tracker(self, tracker: Any) -> None:
-        try:
-            self._activation_text_trackers.remove(tracker)
-        except ValueError:
-            pass
-
     def get_input_tracker(self) -> "InputTracker | None":
         """Get the InputTracker singleton for this LanguageModel."""
         return self._input_tracker
+
+    def get_all_detector_metadata(self) -> Dict[str, Dict[str, Any]]:
+        """
+        Gather all metadata from all detectors attached to the language model.
+        
+        Returns:
+            Dictionary mapping detector hook IDs to their metadata structure.
+            Each detector's entry contains:
+            - 'metadata': JSON-serializable metadata dictionary
+            - 'tensor_metadata': Dictionary mapping tensor keys to lists of tensors (accumulated from _tensor_batches)
+        """
+        detectors = self.layers.get_detectors()
+        result: Dict[str, Dict[str, Any]] = {}
+        
+        for detector in detectors:
+            detector_data: Dict[str, Any] = {}
+            
+            # Copy JSON-serializable metadata
+            if hasattr(detector, '_metadata') and detector._metadata:
+                detector_data['metadata'] = detector._metadata.copy()
+            else:
+                detector_data['metadata'] = {}
+            
+            # Copy tensor metadata (accumulated batches per key)
+            if hasattr(detector, '_tensor_batches') and detector._tensor_batches:
+                # Use accumulated batches for saving
+                tensor_meta: Dict[str, List[torch.Tensor]] = {}
+                for key, tensor_list in detector._tensor_batches.items():
+                    tensor_meta[key] = list(tensor_list)  # Copy list, tensors are already detached
+                detector_data['tensor_metadata'] = tensor_meta
+            else:
+                detector_data['tensor_metadata'] = {}
+            
+            result[detector.id] = detector_data
+        
+        return result
+
+    def save_detector_metadata(self, path: str, store: Store | None = None) -> str:
+        """
+        Save all detector metadata to the store at the specified path.
+        
+        Aggregates metadata and tensor_metadata from all detectors and saves them
+        using the new structure (JSON metadata + safetensors files).
+        
+        Args:
+            path: Path/key where the metadata should be saved
+            store: Store to save to (uses model's store if not provided)
+            
+        Returns:
+            The key/path used for storage
+        """
+        if store is None:
+            store = self.store
+        
+        if store is None:
+            raise ValueError("Store must be provided or set on the language model")
+        
+        all_detector_data = self.get_all_detector_metadata()
+        
+        # Aggregate all JSON-serializable metadata
+        aggregated_metadata: Dict[str, Any] = {}
+        for detector_id, detector_data in all_detector_data.items():
+            aggregated_metadata[detector_id] = detector_data.get('metadata', {})
+        
+        # Aggregate all tensor metadata, prefixing keys with detector ID to avoid conflicts
+        aggregated_tensor_metadata: Dict[str, List[torch.Tensor]] = {}
+        for detector_id, detector_data in all_detector_data.items():
+            tensor_meta = detector_data.get('tensor_metadata', {})
+            for key, tensor_list in tensor_meta.items():
+                # Prefix key with detector ID to avoid conflicts between detectors
+                prefixed_key = f"{detector_id}_{key}"
+                aggregated_tensor_metadata[prefixed_key] = tensor_list
+        
+        return store.put_detector_metadata(path, aggregated_metadata, aggregated_tensor_metadata)
 
     def _ensure_input_tracker(self) -> "InputTracker":
         """

@@ -163,7 +163,7 @@ def test_metadata_extraction_error_handling(tmp_path):
     store = LocalStore(tmp_path)
     
     # Should handle dataset length error gracefully
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         error_dataset,
         layer_signature=valid_layer,
         run_name="error_test",
@@ -192,7 +192,7 @@ def test_cache_dir_error_handling(tmp_path):
     store = LocalStore(tmp_path)
     
     # Should handle cache_dir error gracefully
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         error_dataset,
         layer_signature=valid_layer,
         run_name="cache_error_test",
@@ -227,7 +227,7 @@ def test_model_name_extraction_error_handling(tmp_path):
     valid_layer = layer_names[0] if layer_names else "lin"
     
     # Should handle missing model_name gracefully
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         ds,
         layer_signature=valid_layer,
         run_name="model_name_error_test",
@@ -264,7 +264,7 @@ def test_store_metadata_error_handling(tmp_path):
     valid_layer = layer_names[0] if layer_names else "lin"
     
     # Should handle metadata storage error gracefully
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         ds,
         layer_signature=valid_layer,
         run_name="metadata_error_test",
@@ -296,7 +296,7 @@ def test_activation_capture_edge_cases(tmp_path):
     
     for i, signature in enumerate(layer_signatures):
         try:
-            lm.activations.infer_and_save(
+            lm.activations.save_activations_dataset(
                 ds,
                 layer_signature=signature,
                 run_name=f"edge_case_test_{i}",
@@ -338,7 +338,7 @@ def test_device_handling_errors(tmp_path):
     
     # Should handle device errors gracefully
     with pytest.raises(Exception):  # This should raise due to device error
-        lm.activations.infer_and_save(
+        lm.activations.save_activations_dataset(
             ds,
             layer_signature=valid_layer,
             run_name="device_error_test",
@@ -365,7 +365,7 @@ def test_tokenization_error_handling(tmp_path):
     
     # Should handle tokenization errors gracefully
     with pytest.raises(Exception):  # This should raise due to tokenization error
-        lm.activations.infer_and_save(
+        lm.activations.save_activations_dataset(
             ds,
             layer_signature=valid_layer,
             run_name="tokenization_error_test",
@@ -392,7 +392,7 @@ def test_return_tensors_error_handling(tmp_path):
     
     # Should handle return_tensors errors gracefully
     with pytest.raises(Exception):  # This should raise due to return_tensors error
-        lm.activations.infer_and_save(
+        lm.activations.save_activations_dataset(
             ds,
             layer_signature=valid_layer,
             run_name="return_tensors_error_test",
@@ -420,7 +420,7 @@ def test_verbose_logging_with_errors(tmp_path, caplog):
     valid_layer = layer_names[0] if layer_names else "lin"
     
     with caplog.at_level(logging.INFO):
-        lm.activations.infer_and_save(
+        lm.activations.save_activations_dataset(
             ds,
             layer_signature=valid_layer,
             run_name="verbose_error_test",
@@ -431,4 +431,4 @@ def test_verbose_logging_with_errors(tmp_path, caplog):
     
     # Should have logged the start message
     log_messages = [rec.message for rec in caplog.records]
-    assert any("Starting save_model_activations" in msg for msg in log_messages)
+    assert any("Starting save_activations_dataset" in msg for msg in log_messages)

@@ -42,13 +42,13 @@ def test_language_model_activations_save_calls_infer(monkeypatch):
 
     called = {}
 
-    def fake_infer_and_save(dataset, layer_signature, **kwargs):
+    def fake_save_activations_dataset(dataset, layer_signature, **kwargs):
         called["ok"] = (dataset, layer_signature, kwargs)
-        return 123
+        return "test_run"
 
-    monkeypatch.setattr(LanguageModelActivations, "infer_and_save", staticmethod(fake_infer_and_save))
+    monkeypatch.setattr(LanguageModelActivations, "save_activations_dataset", staticmethod(fake_save_activations_dataset))
 
     # Call save wrapper and ensure delegation works
-    ret = act.infer_and_save(dataset=SimpleNamespace(iter_batches=lambda bs: [["hi"]]), layer_signature="x")
-    assert ret == 123
+    ret = act.save_activations_dataset(dataset=SimpleNamespace(iter_batches=lambda bs: [["hi"]]), layer_signature="x")
+    assert ret == "test_run"
     assert "ok" in called

@@ -53,7 +53,7 @@ def trained_sae_setup():
     
     # Save activations
     store = LocalStore(store_dir)
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         dataset,
         layer_signature=LAYER_SIGNATURE,
         run_name=RUN_ID,

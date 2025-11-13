@@ -75,7 +75,7 @@ def test_captured_2d_activations_are_reshaped_to_3d(tmp_path):
     ds = make_ds(["aa", "bbb", "c"], tmp_path / "cache")
     store = LocalStore(tmp_path / "store")
 
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         ds,
         layer_signature=layer_name,
         run_name="reshape",

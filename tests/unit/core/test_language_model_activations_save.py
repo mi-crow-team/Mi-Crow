@@ -22,7 +22,7 @@ class _FakeLayers:
         self.layer_names = layer_names
         self.unregistered: List[str] = []
 
-    def register_hook(self, layer_signature: str | int, detector: Any) -> str:
+    def register_hook(self, layer_signature: str | int, detector: Any, hook_type: Any = None) -> str:
         self._next += 1
         hid = f"hid{self._next}"
         self.id_to_detector[hid] = detector
@@ -46,7 +46,16 @@ class _FakeLM:
         D = 4
         # simulate captured flattened activations with N = B*T
         for det in list(self.layers.id_to_detector.values()):
-            setattr(det, "captured_activations", torch.ones(B * T, D))
+            # LayerActivationDetector stores activations in _tensor_metadata['activations'] (one tensor per batch)
+            if not hasattr(det, '_tensor_metadata'):
+                det._tensor_metadata = {}
+            if not hasattr(det, '_tensor_batches'):
+                det._tensor_batches = {}
+            tensor = torch.ones(B * T, D)
+            det._tensor_metadata['activations'] = tensor
+            if 'activations' not in det._tensor_batches:
+                det._tensor_batches['activations'] = []
+            det._tensor_batches['activations'].append(tensor)
         # Return (output, enc) tuple
         inp_ids = torch.arange(B * T).view(B, T)
         attn = torch.ones(B, T, dtype=torch.long)
@@ -87,7 +96,7 @@ class _FakeContext:
         self.store = store
 
 
-def test_infer_and_save_happy_path_cpu_with_inputs_and_reshape():
+def test_save_activations_dataset_happy_path_cpu_with_inputs_and_reshape():
     layers = _FakeLayers(["L0"])
     lm = _FakeLM(layers)
     model = _FakeModel()
@@ -97,7 +106,7 @@ def test_infer_and_save_happy_path_cpu_with_inputs_and_reshape():
 
     ds = _FakeDataset([["a", "b"], ["c", "d"]])
 
-    acts.infer_and_save(
+    acts.save_activations_dataset(
         ds,
         layer_signature="L0",
         run_name="run1",
@@ -126,7 +135,7 @@ def test_infer_and_save_happy_path_cpu_with_inputs_and_reshape():
     assert len(layers.unregistered) == 1
 
 
-def test_infer_and_save_all_layers_without_inputs_and_dtype_copy_path():
+def test_save_activations_dataset_all_layers_without_inputs_and_dtype_copy_path():
     layers = _FakeLayers(["A", "B"]) 
     lm = _FakeLM(layers)
     model = _FakeModel()
@@ -136,7 +145,7 @@ def test_infer_and_save_all_layers_without_inputs_and_dtype_copy_path():
 
     ds = _FakeDataset([["x", "y", "z"]])
 
-    acts.infer_and_save_all_layers(
+    acts.save_activations_dataset_all_layers(
         ds,
         layer_signatures=None,
         run_name="run_all",
@@ -159,12 +168,13 @@ def test_infer_and_save_all_layers_without_inputs_and_dtype_copy_path():
     for k, v in payload.items():
         if k.startswith("activations_"):
             assert isinstance(v, torch.Tensor)
-            # With save_inputs=False, reshape is not attempted; expect flattened [B*T, D]
-            assert tuple(v.shape) == (3 * 3, 4)
+            # Reshape is attempted when inp_ids is available (even if save_inputs=False)
+            # B=3, T=3, D=4 -> (3, 3, 4)
+            assert tuple(v.shape) == (3, 3, 4)
             assert not v.is_cuda
 
 
-def test_infer_and_save_all_layers_with_inputs_and_verbose_logs_and_reshape():
+def test_save_activations_dataset_all_layers_with_inputs_and_verbose_logs_and_reshape():
     layers = _FakeLayers(["Lx", "Ly", "Lz"]) 
     lm = _FakeLM(layers)
     model = _FakeModel()
@@ -174,7 +184,7 @@ def test_infer_and_save_all_layers_with_inputs_and_verbose_logs_and_reshape():
 
     ds = _FakeDataset([["p", "q"], ["r", "s"]])
 
-    acts.infer_and_save_all_layers(
+    acts.save_activations_dataset_all_layers(
         ds,
         layer_signatures=None,
         run_name="run_all_verbose",
@@ -255,7 +265,7 @@ def _layer_sig(lm: nn.Module) -> str:
     return f"{lm.__class__.__name__.lower()}_proj"
 
 
-def test_infer_and_save_writes_batches_and_meta(tmp_path):
+def test_save_activations_dataset_writes_batches_and_meta(tmp_path):
     # Build tiny dataset
     base = Dataset.from_dict({"text": ["a", "bb", "ccc", "dddd", "ee"]})
     ds = TextSnippetDataset(base, cache_dir=tmp_path)
@@ -268,7 +278,7 @@ def test_infer_and_save_writes_batches_and_meta(tmp_path):
     run = "unittest_run"
     layer_sig = _layer_sig(model)
 
-    lma.infer_and_save(
+    lma.save_activations_dataset(
         ds,
         layer_signature=layer_sig,
         run_name=run,

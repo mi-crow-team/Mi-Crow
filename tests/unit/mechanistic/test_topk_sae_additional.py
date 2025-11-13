@@ -3,15 +3,9 @@ import pytest
 import torch
 from pathlib import Path
 
-try:
-    from amber.mechanistic.sae.modules.topk_sae import TopKSae
-    OVERCOMPLETE_AVAILABLE = True
-except ImportError:
-    OVERCOMPLETE_AVAILABLE = False
-    TopKSae = None  # type: ignore
+from amber.mechanistic.sae.modules.topk_sae import TopKSae
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_load_with_old_format(tmp_path):
     """Test TopKSae.load handles old format (model key)."""
     topk_sae = TopKSae(n_latents=8, n_inputs=16, k=4, device='cpu')
@@ -34,7 +28,6 @@ def test_topk_sae_load_with_old_format(tmp_path):
     assert loaded.context.n_latents == 8
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_load_with_direct_state_dict(tmp_path):
     """Test TopKSae.load handles direct state_dict format (backward compatibility)."""
     topk_sae = TopKSae(n_latents=8, n_inputs=16, k=4, device='cpu')
@@ -61,7 +54,6 @@ def test_topk_sae_load_with_direct_state_dict(tmp_path):
     assert loaded.k == 4
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_modify_activations_with_object_no_last_hidden_state():
     """Test modify_activations with object that doesn't have last_hidden_state."""
     topk_sae = TopKSae(n_latents=8, n_inputs=16, k=4, device='cpu')
@@ -82,7 +74,6 @@ def test_topk_sae_modify_activations_with_object_no_last_hidden_state():
     assert result is output
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_modify_activations_with_tuple_no_tensor():
     """Test modify_activations with tuple containing no tensors."""
     topk_sae = TopKSae(n_latents=8, n_inputs=16, k=4, device='cpu')
@@ -98,7 +89,6 @@ def test_topk_sae_modify_activations_with_tuple_no_tensor():
     assert result == output
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_modify_activations_with_list_no_tensor():
     """Test modify_activations with list containing no tensors."""
     topk_sae = TopKSae(n_latents=8, n_inputs=16, k=4, device='cpu')

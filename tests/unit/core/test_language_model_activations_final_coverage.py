@@ -11,8 +11,8 @@ class _FakeContext:
         self.store = store
 
 
-def test_infer_and_save_raises_when_model_is_none():
-    """Test infer_and_save raises ValueError when model is None (line 167)."""
+def test_save_activations_dataset_raises_when_model_is_none():
+    """Test save_activations_dataset raises ValueError when model is None (line 167)."""
     ctx = _FakeContext(model=None)
     acts = LanguageModelActivations(ctx)
     
@@ -24,7 +24,7 @@ def test_infer_and_save_raises_when_model_is_none():
     dataset = MockDataset()
     
     with pytest.raises(ValueError, match="Model must be initialized"):
-        acts.infer_and_save(dataset, layer_signature="layer1")
+        acts.save_activations_dataset(dataset, layer_signature="layer1")
 
 
 

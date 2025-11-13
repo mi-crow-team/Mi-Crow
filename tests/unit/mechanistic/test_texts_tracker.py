@@ -8,14 +8,8 @@ from amber.core.language_model import LanguageModel
 from amber.store.local_store import LocalStore
 from pathlib import Path
 import tempfile
-try:
-    from amber.mechanistic.sae.concepts.input_tracker import InputTracker
-    from amber.mechanistic.sae.modules.topk_sae import TopKSae
-    OVERCOMPLETE_AVAILABLE = True
-except ImportError:
-    OVERCOMPLETE_AVAILABLE = False
-    InputTracker = None  # type: ignore
-    TopKSae = None  # type: ignore
+from amber.mechanistic.sae.concepts.input_tracker import InputTracker
+from amber.mechanistic.sae.modules.topk_sae import TopKSae
 
 
 class MockTokenizer:
@@ -77,7 +71,6 @@ class MockModel(nn.Module):
         pass
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_set_current_texts_saves_texts():
     """Test that set_current_texts correctly saves texts."""
     model = MockModel()
@@ -103,7 +96,6 @@ def test_set_current_texts_saves_texts():
     assert tracker._current_texts == ["hello", "world", "test"]
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_texts_persist_through_multiple_calls():
     """Test that texts persist correctly through multiple set_current_texts calls."""
     model = MockModel()
@@ -129,7 +121,6 @@ def test_texts_persist_through_multiple_calls():
     assert len(tracker._current_texts) == 3
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_sae_hook_updates_top_texts_during_inference():
     """Test that SAE hook updates top texts during modify_activations."""
     
@@ -174,7 +165,6 @@ def test_sae_hook_updates_top_texts_during_inference():
     lm.layers.unregister_hook(sae_hook.id)
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_input_tracker_get_current_texts():
     """Test that get_current_texts returns a copy of saved texts."""
     model = MockModel()
@@ -200,7 +190,6 @@ def test_input_tracker_get_current_texts():
     assert retrieved is not tracker._current_texts
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_sae_hook_tracks_texts_correctly():
     """Test that SAE hook correctly tracks texts during inference."""
     
@@ -246,7 +235,6 @@ def test_sae_hook_tracks_texts_correctly():
     lm.layers.unregister_hook(sae_hook.id)
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_language_model_calls_set_current_texts():
     """Test that LanguageModel correctly calls set_current_texts on InputTracker."""
     model = MockModel()

@@ -4,16 +4,9 @@ import torch
 import pytest
 from pathlib import Path
 
-try:
-    from amber.mechanistic.sae.modules.topk_sae import TopKSae
-    from amber.core.language_model import LanguageModel
-    from amber.mechanistic.sae.concepts.concept_models import NeuronText
-    OVERCOMPLETE_AVAILABLE = True
-except ImportError:
-    OVERCOMPLETE_AVAILABLE = False
-    TopKSae = None  # type: ignore
-    LanguageModel = None  # type: ignore
-    NeuronText = None  # type: ignore
+from amber.mechanistic.sae.modules.topk_sae import TopKSae
+from amber.core.language_model import LanguageModel
+from amber.mechanistic.sae.concepts.concept_models import NeuronText
 
 
 class MockTokenizer:
@@ -74,14 +67,15 @@ class MockModel(torch.nn.Module):
 
 
 @pytest.fixture
-def mock_lm():
+def mock_lm(tmp_path):
     """Create a mock language model."""
+    from amber.store.local_store import LocalStore
     model = MockModel()
     tokenizer = MockTokenizer()
-    return LanguageModel(model=model, tokenizer=tokenizer)
+    store = LocalStore(tmp_path / 'store')
+    return LanguageModel(model=model, tokenizer=tokenizer, store=store)
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_modules_basic():
     """Test basic TopKSAE functionality."""
     
@@ -93,7 +87,6 @@ def test_topk_sae_modules_basic():
     assert topk_sae.sae_engine is not None
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_modules_encode_decode():
     """Test TopKSAE encode and decode."""
     
@@ -115,7 +108,6 @@ def test_topk_sae_modules_encode_decode():
     assert recon.shape == (5, 16)
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_modules_save_load(tmp_path, mock_lm):
     """Test TopKSAE save and load."""
     
@@ -149,7 +141,6 @@ def test_topk_sae_modules_save_load(tmp_path, mock_lm):
     assert torch.allclose(loaded.concepts.bias.data, torch.zeros(8))
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_modules_save_load_with_top_texts(tmp_path, mock_lm):
     """Test TopKSAE save and load - top texts are not saved/loaded (export separately)."""
     
@@ -198,7 +189,6 @@ def test_topk_sae_modules_save_load_with_top_texts(tmp_path, mock_lm):
     assert loaded.context.n_inputs == 16
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_modules_save_load_without_top_texts(tmp_path):
     """Test TopKSAE save and load without top texts."""
     
@@ -217,7 +207,6 @@ def test_topk_sae_modules_save_load_without_top_texts(tmp_path):
     assert loaded.concepts._top_texts_heaps is None
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_modules_modify_activations():
     """Test TopKSAE modify_activations."""
     
@@ -229,7 +218,6 @@ def test_topk_sae_modules_modify_activations():
     x = torch.randn(2, 3, 16)
     
     # Get hook function
-    hook_fn = topk_sae.get_torch_hook()
     
     class DummyModule:
         pass
@@ -237,8 +225,8 @@ def test_topk_sae_modules_modify_activations():
     module = DummyModule()
     output = x
     
-    # Call hook
-    modified = hook_fn(module, (), output)
+    # Call modify_activations directly
+    modified = topk_sae.modify_activations(module, (), output)
     
     # Should return tensor of same shape
     assert modified.shape == x.shape
@@ -247,7 +235,6 @@ def test_topk_sae_modules_modify_activations():
     assert not torch.allclose(modified, x, atol=1e-5)
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_modules_modify_activations_with_concepts():
     """Test TopKSAE modify_activations with concept manipulation."""
     
@@ -263,7 +250,6 @@ def test_topk_sae_modules_modify_activations_with_concepts():
     x = torch.randn(2, 3, 16)
     
     # Get hook function
-    hook_fn = topk_sae.get_torch_hook()
     
     class DummyModule:
         pass
@@ -271,8 +257,8 @@ def test_topk_sae_modules_modify_activations_with_concepts():
     module = DummyModule()
     output = x
     
-    # Call hook
-    modified = hook_fn(module, (), output)
+    # Call modify_activations directly
+    modified = topk_sae.modify_activations(module, (), output)
     
     # Should return tensor of same shape
     assert modified.shape == x.shape
@@ -281,7 +267,6 @@ def test_topk_sae_modules_modify_activations_with_concepts():
     assert not torch.allclose(modified, x, atol=1e-5)
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_topk_sae_modules_load_invalid_format(tmp_path):
     """Test TopKSAE load with invalid format raises error."""
     

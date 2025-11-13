@@ -4,21 +4,11 @@ import torch
 import logging
 from unittest.mock import patch
 
-try:
-    from amber.mechanistic.sae.modules.topk_sae import TopKSae
-    from amber.mechanistic.sae.sae_trainer import SaeTrainer, SaeTrainingConfig, StoreDataloader
-    from amber.store.local_store import LocalStore
-    OVERCOMPLETE_AVAILABLE = True
-except ImportError:
-    OVERCOMPLETE_AVAILABLE = False
-    TopKSae = None  # type: ignore
-    SaeTrainer = None  # type: ignore
-    SaeTrainingConfig = None  # type: ignore
-    StoreDataloader = None  # type: ignore
-    LocalStore = None  # type: ignore
+from amber.mechanistic.sae.modules.topk_sae import TopKSae
+from amber.mechanistic.sae.sae_trainer import SaeTrainer, SaeTrainingConfig, StoreDataloader
+from amber.store.local_store import LocalStore
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_reusable_store_data_loader_logs_skipped_batches(tmp_path, caplog):
     """Test that ReusableStoreDataLoader logs when skipping batches (lines 67->69, 72->74)."""
     store = LocalStore(tmp_path)
@@ -45,7 +35,6 @@ def test_reusable_store_data_loader_logs_skipped_batches(tmp_path, caplog):
     assert any("Skipping non-dict or missing 'activations'" in msg for msg in log_messages)
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_reusable_store_data_loader_handles_1d_tensor(tmp_path):
     """Test ReusableStoreDataLoader handles 1D tensors (line 80)."""
     store = LocalStore(tmp_path)
@@ -64,7 +53,6 @@ def test_reusable_store_data_loader_handles_1d_tensor(tmp_path):
     assert batches[0].shape == (1, 8)
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_sae_trainer_monitoring_override_with_verbose(tmp_path):
     """Test that SaeTrainer overrides monitoring when verbose is True (line 199)."""
     store = LocalStore(tmp_path)
@@ -98,7 +86,6 @@ def test_sae_trainer_monitoring_override_with_verbose(tmp_path):
         assert call_kwargs["monitoring"] == 2
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_sae_trainer_verbose_logging(tmp_path, caplog):
     """Test that SaeTrainer logs verbose messages (lines 202, 267)."""
     store = LocalStore(tmp_path)
@@ -135,7 +122,6 @@ def test_sae_trainer_verbose_logging(tmp_path, caplog):
     assert any("Completed training" in msg for msg in log_messages)
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_sae_trainer_history_with_z_batch_list(tmp_path):
     """Test SaeTrainer history conversion with z batch list (lines 251->257)."""
     store = LocalStore(tmp_path)
@@ -179,7 +165,6 @@ def test_sae_trainer_history_with_z_batch_list(tmp_path):
             assert l1_val >= 0
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_sae_trainer_history_with_empty_z_batch_list(tmp_path):
     """Test SaeTrainer history conversion with empty z batch list (line 257)."""
     store = LocalStore(tmp_path)
@@ -217,7 +202,6 @@ def test_sae_trainer_history_with_empty_z_batch_list(tmp_path):
         assert history["l1"][1] == 0.0
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason='Overcomplete not available')
 def test_sae_trainer_history_with_non_list_z_batch(tmp_path):
     """Test SaeTrainer history conversion with non-list z batch (line 257)."""
     store = LocalStore(tmp_path)

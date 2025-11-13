@@ -14,7 +14,7 @@ class _FakeLayers:
         self.layer_names = layer_names or ["L0", "L1"]
         self.raise_on_unregister = raise_on_unregister
 
-    def register_hook(self, layer_signature: str | int, detector: Any) -> str:
+    def register_hook(self, layer_signature: str | int, detector: Any, hook_type: Any = None) -> str:
         self._next_id += 1
         hook_id = f"h{self._next_id}"
         self.id_to_detector[hook_id] = detector
@@ -38,8 +38,16 @@ class _FakeLanguageModel:
     def _inference(self, texts, *, tok_kwargs=None, autocast=True, autocast_dtype=None, with_controllers=True):
         # Simulate that each registered detector captured some tensor
         for detector in list(self.layers.id_to_detector.values()):
-            # ActivationSaverDetector exposes captured_activations via method, but we can set attribute directly
-            setattr(detector, "captured_activations", torch.ones(2, 3))
+            # LayerActivationDetector stores activations in _tensor_metadata['activations'] (one tensor per batch)
+            if not hasattr(detector, '_tensor_metadata'):
+                detector._tensor_metadata = {}
+            if not hasattr(detector, '_tensor_batches'):
+                detector._tensor_batches = {}
+            tensor = torch.ones(2, 3)
+            detector._tensor_metadata['activations'] = tensor
+            if 'activations' not in detector._tensor_batches:
+                detector._tensor_batches['activations'] = []
+            detector._tensor_batches['activations'].append(tensor)
         # Return (output, enc) tuple
         return torch.ones(2, 3), {"input_ids": torch.ones(2, 3), "attention_mask": torch.ones(2, 3)}
 

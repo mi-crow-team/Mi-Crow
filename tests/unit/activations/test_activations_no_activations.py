@@ -72,7 +72,7 @@ def _make_ds(texts: list[str], cache_dir) -> TextSnippetDataset:
     return TextSnippetDataset(base, cache_dir=cache_dir)
 
 
-def test_infer_and_save_without_activations_saves_inputs_only_and_index_signature(tmp_path):
+def test_save_activations_dataset_without_activations_saves_inputs_only_and_index_signature(tmp_path):
     """Test that when no activations are captured, inputs are still saved and index signatures work."""
     tok = FakeTokenizer()
     net = ToyLMBranchy(vocab_size=20, d_model=4)
@@ -91,7 +91,7 @@ def test_infer_and_save_without_activations_saves_inputs_only_and_index_signatur
     assert idx_target is not None
 
     run_id = "inputs_only"
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         ds,
         layer_signature=idx_target,  # use integer signature path
         run_name=run_id,

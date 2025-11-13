@@ -69,7 +69,7 @@ def test_verbose_logging_output(tmp_path, caplog):
     store = LocalStore(tmp_path/"store")
 
     with caplog.at_level(logging.INFO):
-        lm.activations.infer_and_save(
+        lm.activations.save_activations_dataset(
             ds,
             layer_signature=target_name,
             run_name="vrun",
@@ -81,9 +81,9 @@ def test_verbose_logging_output(tmp_path, caplog):
         )
     
     # Ensure some verbose logs present
-    assert any("Starting save_model_activations" in rec.message for rec in caplog.records)
+    assert any("Starting save_activations_dataset" in rec.message for rec in caplog.records)
     assert any("Saved batch" in rec.message for rec in caplog.records)
-    assert any("Completed save_model_activations" in rec.message for rec in caplog.records)
+    assert any("Completed save_activations_dataset" in rec.message for rec in caplog.records)
 
     # Validate payload exists
     batches = store.list_run_batches("vrun")
