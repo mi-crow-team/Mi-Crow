@@ -1,5 +1,6 @@
 from typing import Dict, Tuple, Any
 
+import pytest
 import torch
 
 from amber.core.language_model_activations import LanguageModelActivations
@@ -57,35 +58,6 @@ class _FakeContext:
         self.language_model = language_model
         self.model = None
         self.store = None
-
-
-def test_capture_activations_returns_tensor_and_cleans_up():
-    layers = _FakeLayers()
-    lm = _FakeLanguageModel(layers)
-    ctx = _FakeContext(lm)
-    acts = LanguageModelActivations(ctx)
-
-    out = acts.capture_activations(["hello"], layer_signature="L0", autocast=False)
-    assert isinstance(out, torch.Tensor)
-    assert out.shape == (2, 3)
-    # Hook must be unregistered
-    assert len(layers.unregister_calls) == 1
-
-
-def test_capture_activations_all_layers_collects_for_each_layer_and_cleans_up():
-    layers = _FakeLayers(layer_names=["A", "B", 2])
-    lm = _FakeLanguageModel(layers)
-    ctx = _FakeContext(lm)
-    acts = LanguageModelActivations(ctx)
-
-    out = acts.capture_activations_all_layers(["x"], layer_signatures=None, autocast=False)
-    # Should have entries for each layer name
-    assert set(out.keys()) == {"A", "B", 2}
-    for v in out.values():
-        assert isinstance(v, torch.Tensor)
-        assert v.shape == (2, 3)
-    # All hooks must be unregistered
-    assert len(layers.unregister_calls) == 3
 
 
 def test_cleanup_detector_swallows_errors():

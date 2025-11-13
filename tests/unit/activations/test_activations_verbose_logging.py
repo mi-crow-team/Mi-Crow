@@ -73,7 +73,6 @@ def test_verbose_logging_output(tmp_path, caplog):
             ds,
             layer_signature=target_name,
             run_name="vrun",
-            store=store,
             batch_size=2,
             autocast=False,
             verbose=True,
@@ -89,4 +88,4 @@ def test_verbose_logging_output(tmp_path, caplog):
     batches = store.list_run_batches("vrun")
     assert batches == [0, 1]
     b0 = store.get_run_batch("vrun", 0)
-    assert set(b0.keys()) >= {"activations", "input_ids", "attention_mask"}
+    assert "activations" in b0

@@ -92,14 +92,13 @@ def test_save_model_activations_persists_batches_and_shapes(tmp_path):
             break
     assert target_layer_name is not None, "Expected to find proj linear layer in flattened names"
 
-    store = LocalStore(tmp_path / "store")
+    # Store is already set on lm from initialization
 
     # Run activation saver via new API
     lm.activations.save_activations_dataset(
         ds,
         layer_signature=target_layer_name,
         run_name="runA",
-        store=store,
         batch_size=4,
         autocast=False,  # keep CPU simple
     )
@@ -110,16 +109,13 @@ def test_save_model_activations_persists_batches_and_shapes(tmp_path):
 
     # Load first batch and validate keys and shapes
     batch0 = store.get_run_batch("runA", 0)
-    assert set(batch0.keys()) >= {"activations", "input_ids", "attention_mask"}
+    assert "activations" in batch0
     acts = batch0["activations"]
-    inp = batch0["input_ids"]
-    attn = batch0["attention_mask"]
 
-    # Shapes: [B, T, D] for activations; [B, T] for inputs
+    # Shapes: [B, T, D] for activations
     assert acts.ndim == 3
-    assert inp.ndim == 2 and attn.ndim == 2
     B, T, D = acts.shape
-    assert B == 4 and D == 8 and T == inp.shape[1] == attn.shape[1]
+    assert B == 4 and D == 8
 
 
 def test_save_model_activations_options_maxlen_dtype_noinputs(tmp_path):
@@ -139,18 +135,16 @@ def test_save_model_activations_options_maxlen_dtype_noinputs(tmp_path):
             break
     assert target_layer_name is not None
 
-    store = LocalStore(tmp_path / "store2")
+    # Store is already set on lm from initialization
 
-    # Use max_length=3 and downcast to float16; don't save inputs
+    # Use max_length=3 and downcast to float16
     lm.activations.save_activations_dataset(
         ds,
         layer_signature=target_layer_name,
         run_name="runB",
-        store=store,
         batch_size=2,
         max_length=3,
         dtype=torch.float16,
-        save_inputs=False,
         autocast=False,
     )
 
@@ -159,8 +153,6 @@ def test_save_model_activations_options_maxlen_dtype_noinputs(tmp_path):
     assert batches == [0, 1, 2]
 
     b1 = store.get_run_batch("runB", 1)
-    # Inputs should not be present
-    assert "input_ids" not in b1 and "attention_mask" not in b1
     acts = b1["activations"]
     assert acts.dtype == torch.float16
     # Sequence length should be truncated to 3

@@ -100,7 +100,6 @@ def test_e2e_train_sae_workflow(temp_dirs):
         dataset,
         layer_signature=LAYER_SIGNATURE,
         run_name=RUN_ID,
-        store=store,
         batch_size=4,
         autocast=False,
     )
@@ -144,7 +143,7 @@ def test_e2e_train_sae_workflow(temp_dirs):
         verbose=False,  # Reduce noise in tests
     )
     
-    history = sae.train(store, RUN_ID, config)
+    history = sae.train(store, RUN_ID, LAYER_SIGNATURE, config)
     
     # Verify training completed
     assert "loss" in history

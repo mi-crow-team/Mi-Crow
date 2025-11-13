@@ -154,7 +154,6 @@ class LanguageModelActivations:
             max_length: int | None = None,
             autocast: bool = True,
             autocast_dtype: torch.dtype | None = None,
-            save_inputs: bool = True,
             free_cuda_cache_every: int | None = 0,
             verbose: bool = False,
     ) -> str:
@@ -171,7 +170,6 @@ class LanguageModelActivations:
         options = {
             "dtype": str(dtype) if dtype is not None else None,
             "max_length": max_length,
-            "save_inputs": bool(save_inputs),
             "batch_size": int(batch_size),
         }
 
@@ -187,7 +185,7 @@ class LanguageModelActivations:
 
         self._save_run_metadata(store, run_name, meta, verbose)
 
-        self._setup_detector(layer_signature, f"save_{run_name}")
+        detector, hook_id = self._setup_detector(layer_signature, f"save_{run_name}")
         batch_counter = 0
 
         try:
@@ -207,6 +205,13 @@ class LanguageModelActivations:
                         autocast_dtype=autocast_dtype,
                     )
 
+                    # Apply dtype conversion if specified
+                    if dtype is not None:
+                        detectors = self.context.language_model.layers.get_detectors()
+                        for detector in detectors:
+                            if "activations" in detector.tensor_metadata:
+                                detector.tensor_metadata["activations"] = detector.tensor_metadata["activations"].to(dtype)
+
                     self.context.language_model.save_detector_metadata(
                         run_name,
                         batch_index
@@ -222,5 +227,6 @@ class LanguageModelActivations:
                             if verbose:
                                 logger.info("Emptied CUDA cache")
         finally:
+            self._cleanup_detector(hook_id)
             if verbose:
                 logger.info(f"Completed save_activations_dataset: run={run_name}, batches_saved={batch_counter}")

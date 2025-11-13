@@ -52,18 +52,16 @@ def trained_sae_setup():
     dataset = TextSnippetDataset(hf_dataset, store_dir / "dataset_cache")
     
     # Save activations
-    store = LocalStore(store_dir)
     lm.activations.save_activations_dataset(
         dataset,
         layer_signature=LAYER_SIGNATURE,
         run_name=RUN_ID,
-        store=store,
         batch_size=2,
         autocast=False,
     )
     
     # Get dimensions and create TopKSAE
-    first_batch = store.get_run_batch(RUN_ID, 0)
+    first_batch = lm.store.get_run_batch(RUN_ID, 0)
     if isinstance(first_batch, dict):
         activations = first_batch["activations"]
     else:
@@ -87,7 +85,7 @@ def trained_sae_setup():
         max_batches_per_epoch=2,
         verbose=False,
     )
-    sae.train(store, RUN_ID, config)
+    sae.train(store, RUN_ID, LAYER_SIGNATURE, config)
     
     # Save SAE
     sae_path = store_dir / "topk_sae_model.pt"

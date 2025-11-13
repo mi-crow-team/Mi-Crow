@@ -99,7 +99,6 @@ def test_save_activations_dataset_tuple_output_branch(tmp_path):
         ds,
         layer_signature=target_name,
         run_name=run_id,
-        store=lm.store,
         batch_size=2,
         autocast=False,
         verbose=False,

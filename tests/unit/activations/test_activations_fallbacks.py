@@ -80,13 +80,12 @@ def test_hook_fallback_reads_last_hidden_state_attr(tmp_path):
     assert layer_name is not None
 
     ds = make_ds(["x", "yy"], tmp_path / "cache2")
-    store = LocalStore(tmp_path / "store2")
+    # Store is already set on lm from initialization
 
     lm.activations.save_activations_dataset(
         ds,
         layer_signature=layer_name,
         run_name="obj",
-        store=store,
         batch_size=2,
         autocast=False,
     )

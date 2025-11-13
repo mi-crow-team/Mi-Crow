@@ -160,20 +160,17 @@ def test_metadata_extraction_error_handling(tmp_path):
     layer_names = lm.layers.get_layer_names()
     valid_layer = layer_names[0] if layer_names else "lin"
     
-    store = LocalStore(tmp_path)
-    
     # Should handle dataset length error gracefully
     lm.activations.save_activations_dataset(
         error_dataset,
         layer_signature=valid_layer,
         run_name="error_test",
-        store=store,
         batch_size=2,
         verbose=True,
     )
     
     # Should still complete despite errors
-    batches = store.list_run_batches("error_test")
+    batches = lm.store.list_run_batches("error_test")
     assert len(batches) > 0
 
 
@@ -189,20 +186,17 @@ def test_cache_dir_error_handling(tmp_path):
     layer_names = lm.layers.get_layer_names()
     valid_layer = layer_names[0] if layer_names else "lin"
     
-    store = LocalStore(tmp_path)
-    
     # Should handle cache_dir error gracefully
     lm.activations.save_activations_dataset(
         error_dataset,
         layer_signature=valid_layer,
         run_name="cache_error_test",
-        store=store,
         batch_size=2,
         verbose=True,
     )
     
     # Should still complete despite errors
-    batches = store.list_run_batches("cache_error_test")
+    batches = lm.store.list_run_batches("cache_error_test")
     assert len(batches) > 0
 
 
@@ -220,8 +214,6 @@ def test_model_name_extraction_error_handling(tmp_path):
     if hasattr(lm, 'model_name'):
         delattr(lm, 'model_name')
     
-    store = LocalStore(tmp_path)
-    
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
     valid_layer = layer_names[0] if layer_names else "lin"
@@ -231,13 +223,12 @@ def test_model_name_extraction_error_handling(tmp_path):
         ds,
         layer_signature=valid_layer,
         run_name="model_name_error_test",
-        store=store,
         batch_size=2,
         verbose=True,
     )
     
     # Should still complete despite errors
-    batches = store.list_run_batches("model_name_error_test")
+    batches = lm.store.list_run_batches("model_name_error_test")
     assert len(batches) > 0
 
 
@@ -251,13 +242,12 @@ def test_store_metadata_error_handling(tmp_path):
     lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
     # Mock store to raise error on put_run_meta
-    store = LocalStore(tmp_path)
-    original_put_meta = store.put_run_meta
+    original_put_meta = lm.store.put_run_meta
     
     def error_put_meta(run_name, meta):
         raise RuntimeError("Metadata storage failed")
     
-    store.put_run_meta = error_put_meta
+    lm.store.put_run_meta = error_put_meta
     
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
@@ -268,13 +258,12 @@ def test_store_metadata_error_handling(tmp_path):
         ds,
         layer_signature=valid_layer,
         run_name="metadata_error_test",
-        store=store,
         batch_size=2,
         verbose=True,
     )
     
     # Should still complete despite errors
-    batches = store.list_run_batches("metadata_error_test")
+    batches = lm.store.list_run_batches("metadata_error_test")
     assert len(batches) > 0
 
 
@@ -287,8 +276,6 @@ def test_activation_capture_edge_cases(tmp_path):
     tokenizer = ErrorProneTokenizer()
     lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
-    store = LocalStore(tmp_path)
-    
     # Test with different layer signatures
     layer_names = lm.layers.get_layer_names()
     valid_layer = layer_names[0] if layer_names else "lin"
@@ -300,7 +287,6 @@ def test_activation_capture_edge_cases(tmp_path):
                 ds,
                 layer_signature=signature,
                 run_name=f"edge_case_test_{i}",
-                store=store,
                 batch_size=2,
                 verbose=True,
             )
@@ -312,7 +298,7 @@ def test_activation_capture_edge_cases(tmp_path):
     all_batches = []
     for i in range(len(layer_signatures)):
         try:
-            batches = store.list_run_batches(f"edge_case_test_{i}")
+            batches = lm.store.list_run_batches(f"edge_case_test_{i}")
             all_batches.extend(batches)
         except Exception:
             pass
@@ -330,8 +316,6 @@ def test_device_handling_errors(tmp_path):
     tokenizer = ErrorProneTokenizer()
     lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
-    store = LocalStore(tmp_path)
-    
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
     valid_layer = layer_names[0] if layer_names else "lin"
@@ -342,7 +326,6 @@ def test_device_handling_errors(tmp_path):
             ds,
             layer_signature=valid_layer,
             run_name="device_error_test",
-            store=store,
             batch_size=2,
             verbose=True,
         )
@@ -357,8 +340,6 @@ def test_tokenization_error_handling(tmp_path):
     tokenizer = ErrorProneTokenizer("tokenization_error")
     lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
-    store = LocalStore(tmp_path)
-    
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
     valid_layer = layer_names[0] if layer_names else "lin"
@@ -369,7 +350,6 @@ def test_tokenization_error_handling(tmp_path):
             ds,
             layer_signature=valid_layer,
             run_name="tokenization_error_test",
-            store=store,
             batch_size=2,
             verbose=True,
         )
@@ -384,8 +364,6 @@ def test_return_tensors_error_handling(tmp_path):
     tokenizer = ErrorProneTokenizer("return_tensors_error")
     lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
-    store = LocalStore(tmp_path)
-    
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
     valid_layer = layer_names[0] if layer_names else "lin"
@@ -396,7 +374,6 @@ def test_return_tensors_error_handling(tmp_path):
             ds,
             layer_signature=valid_layer,
             run_name="return_tensors_error_test",
-            store=store,
             batch_size=2,
             verbose=True,
         )
@@ -413,8 +390,6 @@ def test_verbose_logging_with_errors(tmp_path, caplog):
     tokenizer = ErrorProneTokenizer()
     lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
-    store = LocalStore(tmp_path)
-    
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
     valid_layer = layer_names[0] if layer_names else "lin"
@@ -424,7 +399,6 @@ def test_verbose_logging_with_errors(tmp_path, caplog):
             ds,
             layer_signature=valid_layer,
             run_name="verbose_error_test",
-            store=store,
             batch_size=2,
             verbose=True,
         )
