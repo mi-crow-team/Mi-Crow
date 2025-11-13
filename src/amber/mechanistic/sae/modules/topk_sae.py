@@ -95,6 +95,7 @@ class TopKSae(Sae):
             self,
             store: Store,
             run_id: str,
+            layer_signature: str | int,
             config: SaeTrainingConfig | None = None
     ) -> dict[str, list[float]]:
         """
@@ -110,7 +111,7 @@ class TopKSae(Sae):
         Returns:
             Dictionary with training history
         """
-        return self.trainer.train(store, run_id, config)
+        return self.trainer.train(store, run_id, layer_signature, config)
 
     def modify_activations(
             self,

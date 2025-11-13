@@ -48,14 +48,14 @@ class _FakeLM:
         for det in list(self.layers.id_to_detector.values()):
             # LayerActivationDetector stores activations in _tensor_metadata['activations'] (one tensor per batch)
             if not hasattr(det, '_tensor_metadata'):
-                det._tensor_metadata = {}
+                det.tensor_metadata = {}
             if not hasattr(det, '_tensor_batches'):
-                det._tensor_batches = {}
+                det.tensor_batches = {}
             tensor = torch.ones(B * T, D)
-            det._tensor_metadata['activations'] = tensor
-            if 'activations' not in det._tensor_batches:
-                det._tensor_batches['activations'] = []
-            det._tensor_batches['activations'].append(tensor)
+            det.tensor_metadata['activations'] = tensor
+            if 'activations' not in det.tensor_batches:
+                det.tensor_batches['activations'] = []
+            det.tensor_batches['activations'].append(tensor)
         # Return (output, enc) tuple
         inp_ids = torch.arange(B * T).view(B, T)
         attn = torch.ones(B, T, dtype=torch.long)

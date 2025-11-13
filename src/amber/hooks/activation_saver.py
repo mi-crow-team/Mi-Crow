@@ -69,11 +69,7 @@ class LayerActivationDetector(Detector):
         if tensor is not None:
             tensor_cpu = tensor.detach().to("cpu")
             # Store current batch's tensor (overwrites previous)
-            self._tensor_metadata['activations'] = tensor_cpu
-            # Accumulate for saving multiple batches
-            if 'activations' not in self._tensor_batches:
-                self._tensor_batches['activations'] = []
-            self._tensor_batches['activations'].append(tensor_cpu)
+            self.tensor_metadata['activations'] = tensor_cpu
 
     def get_captured(self) -> torch.Tensor | None:
         """
@@ -82,8 +78,8 @@ class LayerActivationDetector(Detector):
         Returns:
             The captured activation tensor from the current batch or None if no activations captured yet
         """
-        return self._tensor_metadata.get('activations')
+        return self.tensor_metadata.get('activations')
 
     def clear_captured(self) -> None:
         """Clear captured activations for current batch."""
-        self._tensor_metadata.pop('activations', None)
+        self.tensor_metadata.pop('activations', None)

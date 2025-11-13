@@ -40,14 +40,14 @@ class _FakeLanguageModel:
         for detector in list(self.layers.id_to_detector.values()):
             # LayerActivationDetector stores activations in _tensor_metadata['activations'] (one tensor per batch)
             if not hasattr(detector, '_tensor_metadata'):
-                detector._tensor_metadata = {}
+                detector.tensor_metadata = {}
             if not hasattr(detector, '_tensor_batches'):
-                detector._tensor_batches = {}
+                detector.tensor_batches = {}
             tensor = torch.ones(2, 3)
-            detector._tensor_metadata['activations'] = tensor
-            if 'activations' not in detector._tensor_batches:
-                detector._tensor_batches['activations'] = []
-            detector._tensor_batches['activations'].append(tensor)
+            detector.tensor_metadata['activations'] = tensor
+            if 'activations' not in detector.tensor_batches:
+                detector.tensor_batches['activations'] = []
+            detector.tensor_batches['activations'].append(tensor)
         # Return (output, enc) tuple
         return torch.ones(2, 3), {"input_ids": torch.ones(2, 3), "attention_mask": torch.ones(2, 3)}
 

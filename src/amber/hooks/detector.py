@@ -1,4 +1,5 @@
 import abc
+from dataclasses import dataclass
 from typing import Any, TYPE_CHECKING, List, Dict
 import torch
 
@@ -34,10 +35,8 @@ class Detector(Hook):
         """
         super().__init__(layer_signature=layer_signature, hook_type=hook_type, hook_id=hook_id)
         self.store = store
-        self._metadata: Dict[str, Any] = {}
-        self._tensor_metadata: Dict[str, torch.Tensor] = {}
-        # Internal accumulator for saving multiple batches
-        self._tensor_batches: Dict[str, List[torch.Tensor]] = {}
+        self.metadata: Dict[str, Any] = {}
+        self.tensor_metadata: Dict[str, torch.Tensor] = {}
 
     def _hook_fn(
             self,

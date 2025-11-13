@@ -20,7 +20,7 @@ def test_reusable_store_data_loader_edge_cases(tmp_path):
         store.put_run_batch(run_id, i, batch)
     
     config = SaeTrainingConfig(batch_size=5, max_batches_per_epoch=2)
-    loader = StoreDataloader(store, run_id, config.batch_size, config.dtype, config.max_batches_per_epoch)
+    loader = StoreDataloader(store, run_id, layer="test_layer", batch_size=config.batch_size, dtype=config.dtype, max_batches=config.max_batches_per_epoch)
     
     # Test iteration
     batches = list(loader)
@@ -32,7 +32,7 @@ def test_reusable_store_data_loader_edge_cases(tmp_path):
     
     # Test with max_batches limit
     config_limited = SaeTrainingConfig(batch_size=5, max_batches_per_epoch=1)
-    loader_limited = StoreDataloader(store, run_id, config_limited.batch_size, config_limited.dtype, config_limited.max_batches_per_epoch)
+    loader_limited = StoreDataloader(store, run_id, layer="test_layer", batch_size=config_limited.batch_size, dtype=config_limited.dtype, max_batches=config_limited.max_batches_per_epoch)
     batches_limited = list(loader_limited)
     assert len(batches_limited) <= 1
 
@@ -50,7 +50,7 @@ def test_reusable_store_data_loader_with_invalid_batches(tmp_path):
     store.put_run_batch(run_id, 2, {"activations": torch.randn(10, 8)})  # Valid
     
     config = SaeTrainingConfig(batch_size=5)
-    loader = StoreDataloader(store, run_id, config.batch_size, config.dtype, config.max_batches_per_epoch)
+    loader = StoreDataloader(store, run_id, layer="test_layer", batch_size=config.batch_size, dtype=config.dtype, max_batches=config.max_batches_per_epoch)
     
     # Should skip invalid batches and only yield valid ones
     batches = list(loader)
@@ -70,7 +70,7 @@ def test_reusable_store_data_loader_with_different_shapes(tmp_path):
     store.put_run_batch(run_id, 2, {"activations": torch.randn(1, 8)})  # 2D (1D gets reshaped)
     
     config = SaeTrainingConfig(batch_size=5)
-    loader = StoreDataloader(store, run_id, config.batch_size, config.dtype, config.max_batches_per_epoch)
+    loader = StoreDataloader(store, run_id, layer="test_layer", batch_size=config.batch_size, dtype=config.dtype, max_batches=config.max_batches_per_epoch)
     
     # Should flatten all to 2D
     batches = list(loader)
@@ -160,7 +160,7 @@ def test_reusable_store_data_loader_with_zero_batch_size(tmp_path):
     store.put_run_batch(run_id, 0, {"activations": torch.randn(10, 8)})
     
     config = SaeTrainingConfig(batch_size=0)  # Should default to 1
-    loader = StoreDataloader(store, run_id, config.batch_size, config.dtype, config.max_batches_per_epoch)
+    loader = StoreDataloader(store, run_id, layer="test_layer", batch_size=config.batch_size, dtype=config.dtype, max_batches=config.max_batches_per_epoch)
     
     # Should still work (batch_size defaults to 1 in implementation)
     batches = list(loader)

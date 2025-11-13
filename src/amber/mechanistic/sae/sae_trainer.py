@@ -66,22 +66,9 @@ class SaeTrainer:
             self,
             store: "Store",
             run_id: str,
+            layer_signature: str | int,
             config: SaeTrainingConfig | None = None
     ) -> dict[str, list[float]]:
-        """
-        Train SAE using activations from a Store.
-        
-        This method uses overcomplete's train_sae or train_sae_amp functions
-        to train the underlying overcomplete SAE engine.
-        
-        Args:
-            store: Store instance containing activations
-            run_id: Run ID to train on
-            config: Training configuration
-            
-        Returns:
-            Dictionary with training history (converted from overcomplete logs format)
-        """
         try:
             from overcomplete.sae.train import train_sae, train_sae_amp
         except ImportError:
@@ -154,13 +141,14 @@ class SaeTrainer:
         dataloader = StoreDataloader(
             store=store,
             run_id=run_id,
+            layer=layer_signature,
+            key="activations",
             batch_size=cfg.batch_size,
             dtype=cfg.dtype,
             max_batches=cfg.max_batches_per_epoch,
             logger_instance=self.logger
         )
 
-        # Set monitoring level - use config value, but override with 2 if verbose is True
         monitoring = cfg.monitoring
         if cfg.verbose and monitoring < 2:
             monitoring = 2
@@ -185,7 +173,6 @@ class SaeTrainer:
                 max_nan_fallbacks=cfg.max_nan_fallbacks
             )
         else:
-            # Use train_sae for standard training
             logs = train_sae(
                 model=self.sae.sae_engine,
                 dataloader=dataloader,
@@ -217,18 +204,19 @@ class SaeTrainer:
         # Extract L1 sparsity (fast metric - computed every epoch)
         # L0 and dead features (slow metrics - computed less frequently)
         if "z" in logs and logs["z"]:
-            n_latents = self.sae.context.n_latents if hasattr(self.sae, 'context') and hasattr(self.sae.context, 'n_latents') else None
+            n_latents = self.sae.context.n_latents if hasattr(self.sae, 'context') and hasattr(self.sae.context,
+                                                                                               'n_latents') else None
             slow_metrics_freq = cfg.wandb_slow_metrics_frequency if cfg.use_wandb else 1
-            
+
             for epoch_idx, z_batch_list in enumerate(logs["z"]):
                 if isinstance(z_batch_list, list) and len(z_batch_list) > 0:
                     # Fast metric: Compute L1 (mean absolute value) - average across all batches
                     l1_vals = [z.abs().mean().item() for z in z_batch_list if isinstance(z, torch.Tensor)]
                     history["l1"].append(sum(l1_vals) / len(l1_vals) if l1_vals else 0.0)
-                    
+
                     # Slow metrics: Only compute when needed (every N epochs or last epoch)
                     should_compute_slow = (epoch_idx % slow_metrics_freq == 0) or (epoch_idx == len(logs["z"]) - 1)
-                    
+
                     if should_compute_slow:
                         # Compute L0 (number of active features) - average across all batches
                         l0_vals = []
@@ -240,9 +228,9 @@ class SaeTrainer:
                                 active = (z.abs() > 1e-6).float()  # Threshold for "active"
                                 l0_vals.append(active.sum(dim=-1).mean().item())
                                 all_z_epoch.append(z)
-                        
+
                         history["l0"].append(sum(l0_vals) / len(l0_vals) if l0_vals else 0.0)
-                        
+
                         # Compute dead features percentage across all batches in epoch
                         if all_z_epoch and n_latents is not None:
                             # Concatenate all batches: [batch_size_1, n_latents], [batch_size_2, n_latents], ... -> [total_samples, n_latents]
@@ -279,7 +267,7 @@ class SaeTrainer:
                 # Log metrics for each epoch
                 num_epochs = len(history["loss"])
                 slow_metrics_freq = cfg.wandb_slow_metrics_frequency
-                
+
                 # Helper to get last known value for slow metrics
                 def get_last_known_value(values, idx):
                     """Get the last non-None value up to idx, or 0.0 if none found."""
@@ -287,35 +275,42 @@ class SaeTrainer:
                         if i < len(values) and values[i] is not None:
                             return values[i]
                     return 0.0
-                
+
                 for epoch in range(1, num_epochs + 1):
                     epoch_idx = epoch - 1
                     should_log_slow = (epoch % slow_metrics_freq == 0) or (epoch == num_epochs)
-                    
+
                     # Fast metrics (logged every epoch)
                     metrics = {
                         "epoch": epoch,
                         "train/loss": history["loss"][epoch_idx] if epoch_idx < len(history["loss"]) else 0.0,
-                        "train/reconstruction_mse": history["recon_mse"][epoch_idx] if epoch_idx < len(history["recon_mse"]) else 0.0,
+                        "train/reconstruction_mse": history["recon_mse"][epoch_idx] if epoch_idx < len(
+                            history["recon_mse"]) else 0.0,
                         "train/r2_score": history["r2"][epoch_idx] if epoch_idx < len(history["r2"]) else 0.0,
                         "train/l1_penalty": history["l1"][epoch_idx] if epoch_idx < len(history["l1"]) else 0.0,
                         "train/learning_rate": cfg.lr,
                     }
-                    
+
                     # Slow metrics (logged only when computed)
                     if should_log_slow:
-                        l0_val = history["l0"][epoch_idx] if epoch_idx < len(history["l0"]) and history["l0"][epoch_idx] is not None else get_last_known_value(history["l0"], epoch_idx)
-                        dead_pct = history["dead_features_pct"][epoch_idx] if epoch_idx < len(history["dead_features_pct"]) and history["dead_features_pct"][epoch_idx] is not None else get_last_known_value(history["dead_features_pct"], epoch_idx)
+                        l0_val = history["l0"][epoch_idx] if epoch_idx < len(history["l0"]) and history["l0"][
+                            epoch_idx] is not None else get_last_known_value(history["l0"], epoch_idx)
+                        dead_pct = history["dead_features_pct"][epoch_idx] if epoch_idx < len(
+                            history["dead_features_pct"]) and history["dead_features_pct"][
+                                                                                  epoch_idx] is not None else get_last_known_value(
+                            history["dead_features_pct"], epoch_idx)
                         metrics["train/l0_sparsity"] = l0_val
                         metrics["train/dead_features_pct"] = dead_pct
-                    
+
                     wandb_run.log(metrics)
 
                 # Log final metrics to summary
                 # Get last computed values for slow metrics (handle None values)
                 final_l0 = get_last_known_value(history["l0"], len(history["l0"]) - 1) if history["l0"] else 0.0
-                final_dead_pct = get_last_known_value(history["dead_features_pct"], len(history["dead_features_pct"]) - 1) if history["dead_features_pct"] else 0.0
-                
+                final_dead_pct = get_last_known_value(history["dead_features_pct"],
+                                                      len(history["dead_features_pct"]) - 1) if history[
+                    "dead_features_pct"] else 0.0
+
                 final_metrics = {
                     "final/loss": history["loss"][-1] if history["loss"] else 0.0,
                     "final/reconstruction_mse": history["recon_mse"][-1] if history["recon_mse"] else 0.0,
@@ -325,18 +320,18 @@ class SaeTrainer:
                     "final/dead_features_pct": final_dead_pct,
                     "training/num_epochs": num_epochs,
                 }
-                
+
                 # Add best metrics
                 if history["loss"]:
                     best_loss_idx = min(range(len(history["loss"])), key=lambda i: history["loss"][i])
                     final_metrics["best/loss"] = history["loss"][best_loss_idx]
                     final_metrics["best/loss_epoch"] = best_loss_idx + 1
-                
+
                 if history["r2"]:
                     best_r2_idx = max(range(len(history["r2"])), key=lambda i: history["r2"][i])
                     final_metrics["best/r2_score"] = history["r2"][best_r2_idx]
                     final_metrics["best/r2_epoch"] = best_r2_idx + 1
-                
+
                 wandb_run.summary.update(final_metrics)
 
                 if cfg.verbose:

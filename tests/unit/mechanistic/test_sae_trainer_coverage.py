@@ -23,7 +23,7 @@ def test_reusable_store_data_loader_logs_skipped_batches(tmp_path, caplog):
     logger = logging.getLogger("amber.mechanistic.sae.sae_trainer")
     logger.setLevel(logging.DEBUG)
     
-    loader = StoreDataloader(store, run_id, batch_size=5, logger_instance=logger)
+    loader = StoreDataloader(store, run_id, layer="test_layer", batch_size=5, logger_instance=logger)
     
     with caplog.at_level(logging.DEBUG):
         batches = list(loader)
@@ -43,7 +43,7 @@ def test_reusable_store_data_loader_handles_1d_tensor(tmp_path):
     # Create batch with 1D tensor
     store.put_run_batch(run_id, 0, {"activations": torch.randn(8)})  # 1D
     
-    loader = StoreDataloader(store, run_id, batch_size=5)
+    loader = StoreDataloader(store, run_id, layer="test_layer", batch_size=5)
     
     batches = list(loader)
     

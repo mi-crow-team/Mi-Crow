@@ -185,7 +185,7 @@ class TestLanguageModelActivationsSave:
         assert len(batches) > 0
     
     def test_infer_and_save_all_layers(self, setup_lm, setup_dataset):
-        """Test save_activations_dataset_all_layers functionality."""
+        """Test save_activations_dataset with multiple layers (call separately for each)."""
         lm = setup_lm
         dataset = setup_dataset
         
@@ -193,34 +193,43 @@ class TestLanguageModelActivationsSave:
         layer_names = lm.layers.get_layer_names()
         test_layers = layer_names[:2] if len(layer_names) >= 2 else layer_names
         
-        lm.activations.save_activations_dataset_all_layers(
-            dataset=dataset,
-            layer_signatures=test_layers,
-            run_name="test_run_all",
-            batch_size=2,
-            verbose=False
-        )
+        # Save activations for each layer separately
+        for layer in test_layers:
+            lm.activations.save_activations_dataset(
+                dataset=dataset,
+                layer_signature=layer,
+                run_name=f"test_run_all_{layer}",
+                batch_size=2,
+                verbose=False
+            )
         
-        # Verify run was created
-        batches = lm.store.list_run_batches("test_run_all")
-        assert len(batches) >= 0  # May be empty but should not crash
+        # Verify runs were created
+        for layer in test_layers:
+            batches = lm.store.list_run_batches(f"test_run_all_{layer}")
+            assert len(batches) >= 0  # May be empty but should not crash
     
     def test_infer_and_save_all_layers_with_none_signatures(self, setup_lm, setup_dataset):
-        """Test save_activations_dataset_all_layers with None layer_signatures (all layers)."""
+        """Test save_activations_dataset for all layers."""
         lm = setup_lm
         dataset = setup_dataset
         
-        lm.activations.save_activations_dataset_all_layers(
-            dataset=dataset,
-            layer_signatures=None,  # Should use all layers
-            run_name="test_run_all_none",
-            batch_size=2,
-            verbose=False
-        )
+        # Get all layers
+        layer_names = lm.layers.get_layer_names()
+        
+        # Save activations for each layer
+        for layer in layer_names:
+            lm.activations.save_activations_dataset(
+                dataset=dataset,
+                layer_signature=layer,
+                run_name=f"test_run_all_none_{layer}",
+                batch_size=2,
+                verbose=False
+            )
         
         # Should complete without error
-        batches = lm.store.list_run_batches("test_run_all_none")
-        assert isinstance(batches, list)
+        for layer in layer_names:
+            batches = lm.store.list_run_batches(f"test_run_all_none_{layer}")
+            assert isinstance(batches, list)
 
 
 class TestLanguageModelActivationsCapture:

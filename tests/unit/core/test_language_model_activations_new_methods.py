@@ -324,8 +324,8 @@ class TestHelperMethods:
         # Create a detector and set its tensor metadata
         detector = LayerActivationDetector(layer_signature=layer_name)
         tensor = torch.ones(2, 3, 8)
-        detector._tensor_metadata['activations'] = tensor
-        detector._tensor_batches['activations'] = [tensor]
+        detector.tensor_metadata['activations'] = tensor
+        detector.tensor_batches['activations'] = [tensor]
         
         payload = {}
         inp_ids = torch.ones(2, 3, dtype=torch.long)
@@ -348,8 +348,8 @@ class TestHelperMethods:
         for layer_name in layer_names:
             detector = LayerActivationDetector(layer_signature=layer_name)
             tensor = torch.ones(2, 3, 8)
-            detector._tensor_metadata['activations'] = tensor
-            detector._tensor_batches['activations'] = [tensor]
+            detector.tensor_metadata['activations'] = tensor
+            detector.tensor_batches['activations'] = [tensor]
             detectors[layer_name] = detector
         
         payload = {}

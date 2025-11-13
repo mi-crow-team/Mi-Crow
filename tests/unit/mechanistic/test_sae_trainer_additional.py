@@ -16,7 +16,7 @@ def test_reusable_store_data_loader_skips_non_dict_batches(tmp_path):
     store.put_run_batch(run_id, 0, {"activations": torch.randn(10, 8)})
     
     config = SaeTrainingConfig(batch_size=5)
-    loader = StoreDataloader(store, run_id, config.batch_size, config.dtype, config.max_batches_per_epoch)
+    loader = StoreDataloader(store, run_id, layer="test_layer", batch_size=config.batch_size, dtype=config.dtype, max_batches=config.max_batches_per_epoch)
     
     # Should yield valid batches
     batches = list(loader)
@@ -32,7 +32,7 @@ def test_reusable_store_data_loader_skips_missing_activations_key(tmp_path):
     store.put_run_batch(run_id, 0, {"other_key": torch.randn(10, 8)})
     
     config = SaeTrainingConfig(batch_size=5)
-    loader = StoreDataloader(store, run_id, config.batch_size, config.dtype, config.max_batches_per_epoch)
+    loader = StoreDataloader(store, run_id, layer="test_layer", batch_size=config.batch_size, dtype=config.dtype, max_batches=config.max_batches_per_epoch)
     
     # Should skip this batch (no 'activations' key)
     batches = list(loader)
