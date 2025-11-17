@@ -30,7 +30,7 @@ jobs:
         uses: astral-sh/setup-uv@v3
 
       - name: Install project with dev extras
-        run: uv pip install -e ".[dev]"
+        run: uv pip install -e ".[dev]" --system
 
       - name: Verify package installation
         run: |
