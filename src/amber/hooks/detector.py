@@ -4,7 +4,7 @@ from typing import Any, TYPE_CHECKING, List, Dict
 import torch
 
 from amber.hooks.hook import Hook, HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
-from amber.store import Store
+from amber.store.store import Store
 
 if TYPE_CHECKING:
     pass
