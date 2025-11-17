@@ -138,8 +138,6 @@ def test_sae_hook_updates_top_texts_during_inference():
     # Find layer to register SAE hook on
     layer_names = lm.layers.get_layer_names()
     sae_layer = layer_names[0] if layer_names else None
-    if not sae_layer:
-        pytest.skip("Need at least 1 layer for this test")
     
     # Register SAE hook
     lm.layers.register_hook(sae_layer, sae_hook)
@@ -207,8 +205,6 @@ def test_sae_hook_tracks_texts_correctly():
     # Find layer to register SAE hook on
     layer_names = lm.layers.get_layer_names()
     sae_layer = layer_names[0] if layer_names else None
-    if not sae_layer:
-        pytest.skip("Need at least 1 layer for this test")
     
     # Register SAE hook
     lm.layers.register_hook(sae_layer, sae_hook)

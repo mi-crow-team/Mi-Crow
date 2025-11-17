@@ -86,9 +86,6 @@ def test_inference_device_handling_cuda_path(tmp_path):
         assert result is not None
         assert isinstance(result, tuple)
         assert len(result) == 2
-    else:
-        # Skip if CUDA not available
-        pytest.skip("CUDA not available")
 
 
 def test_inference_autocast_cuda_path(tmp_path):
@@ -106,8 +103,6 @@ def test_inference_autocast_cuda_path(tmp_path):
         assert result is not None
         assert isinstance(result, tuple)
         assert len(result) == 2
-    else:
-        pytest.skip("CUDA not available")
 
 
 def test_inference_non_cuda_device_path(tmp_path):
@@ -180,9 +175,24 @@ def test_inference_controller_restoration_after_exception(tmp_path):
     assert True  # Placeholder - actual test would require hook registration
 
 
-def test_from_local_returns_none(tmp_path):
-    """Test from_local currently returns None (line 225 - just pass)."""
-    # Currently from_local just has 'pass', so it returns None
-    result = LanguageModel.from_local("model_path", "tokenizer_path")
-    assert result is None
+def test_from_local_requires_store(tmp_path):
+    """Test from_local requires store parameter."""
+    from unittest.mock import patch, MagicMock
+    
+    store = LocalStore(tmp_path)
+    
+    mock_tokenizer = MagicMock()
+    mock_model = MagicMock()
+    
+    with patch('transformers.AutoTokenizer') as mock_tok_class, \
+         patch('transformers.AutoModelForCausalLM') as mock_model_class:
+        mock_tok_class.from_pretrained.return_value = mock_tokenizer
+        mock_model_class.from_pretrained.return_value = mock_model
+        
+        result = LanguageModel.from_local("model_path", "tokenizer_path", store)
+        assert isinstance(result, LanguageModel)
+        mock_tok_class.from_pretrained.assert_called_once_with("tokenizer_path")
+        mock_model_class.from_pretrained.assert_called_once_with("model_path")
+        assert result.tokenizer == mock_tokenizer
+        assert result.model == mock_model
 

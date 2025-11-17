@@ -68,7 +68,7 @@ The examples build on each other and should be run in order:
 # Run all examples in order
 jupyter notebook examples/01_train_sae_model.ipynb
 jupyter notebook examples/02_attach_sae_and_save_texts.ipynb
-jupyter notebook examples/03_load_and_manipulate_concepts.ipynb
+jupyter notebook examples/03_load_concepts.ipynb
 ```
 
 ## Requirements

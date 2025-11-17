@@ -1,7 +1,7 @@
 """
 End-to-end test for activation control with custom controllers.
 
-Based on examples/03_load_and_manipulate_concepts.ipynb - demonstrates
+Based on examples/03_load_concepts.ipynb - demonstrates
 creating custom controllers to manipulate model activations during inference.
 """
 import pytest

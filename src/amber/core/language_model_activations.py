@@ -9,10 +9,10 @@ from amber.hooks.activation_saver import LayerActivationDetector
 from amber.store.store import Store
 
 import torch
+from torch import nn
 
 if TYPE_CHECKING:
     from amber.core.language_model_context import LanguageModelContext
-    from amber.core.language_model import LanguageModel
 
 
 class LanguageModelActivations:
@@ -47,8 +47,42 @@ class LanguageModelActivations:
         """Unregister a detector hook."""
         try:
             self.context.language_model.layers.unregister_hook(hook_id)
-        except Exception:
+        except (KeyError, ValueError, RuntimeError):
             pass
+
+    def _normalize_layer_signatures(
+            self,
+            layer_signatures: str | int | list[str | int] | None
+    ) -> tuple[str | None, list[str]]:
+        """Normalize layer signatures to string format."""
+        if isinstance(layer_signatures, (str, int)):
+            layer_sig_str = str(layer_signatures)
+            layer_sig_list = [layer_sig_str]
+        elif isinstance(layer_signatures, list):
+            layer_sig_list = [str(sig) for sig in layer_signatures]
+            layer_sig_str = layer_sig_list[0] if len(layer_sig_list) == 1 else None
+        else:
+            layer_sig_str = None
+            layer_sig_list = []
+        return layer_sig_str, layer_sig_list
+
+    def _extract_dataset_info(self, dataset: BaseDataset | None) -> Dict[str, Any]:
+        """Extract dataset information for metadata."""
+        if dataset is None:
+            return {}
+        
+        try:
+            ds_id = str(getattr(dataset, "cache_dir", ""))
+            ds_len = int(len(dataset))
+            return {
+                "cache_dir": ds_id,
+                "length": ds_len,
+            }
+        except (AttributeError, TypeError, ValueError, RuntimeError):
+            return {
+                "cache_dir": "",
+                "length": -1,
+            }
 
     def _prepare_run_metadata(
             self,
@@ -75,34 +109,9 @@ class LanguageModelActivations:
         if options is None:
             options = {}
 
-        # Prepare layer signature info
-        if isinstance(layer_signatures, (str, int)):
-            layer_sig_str = str(layer_signatures)
-            layer_sig_list = [layer_sig_str]
-        elif isinstance(layer_signatures, list):
-            layer_sig_list = [str(sig) for sig in layer_signatures]
-            layer_sig_str = layer_sig_list[0] if len(layer_sig_list) == 1 else None
-        else:
-            layer_sig_str = None
-            layer_sig_list = []
+        layer_sig_str, layer_sig_list = self._normalize_layer_signatures(layer_signatures)
+        dataset_info = self._extract_dataset_info(dataset)
 
-        # Prepare dataset info
-        dataset_info = {}
-        if dataset is not None:
-            try:
-                ds_id = str(getattr(dataset, "cache_dir", ""))
-                ds_len = int(len(dataset))
-                dataset_info = {
-                    "cache_dir": ds_id,
-                    "length": ds_len,
-                }
-            except Exception:
-                dataset_info = {
-                    "cache_dir": "",
-                    "length": -1,
-                }
-
-        # Build metadata
         meta: Dict[str, Any] = {
             "run_name": run_name,
             "model": getattr(self.context.model, "model_name", self.context.model.__class__.__name__),
@@ -138,10 +147,9 @@ class LanguageModelActivations:
         logger = get_logger(__name__)
         try:
             store.put_run_meta(run_name, meta)
-        except Exception:
-            # Non-fatal if metadata cannot be stored
+        except (OSError, IOError, ValueError, RuntimeError) as e:
             if verbose:
-                logger.warning(f"Failed to save run metadata for {run_name}")
+                logger.warning(f"Failed to save run metadata for {run_name}: {e}")
 
     def save_activations_dataset(
             self,
@@ -157,13 +165,16 @@ class LanguageModelActivations:
             free_cuda_cache_every: int | None = 0,
             verbose: bool = False,
     ) -> str:
-        model: LanguageModel | None = self.context.model
+        model: nn.Module | None = self.context.model
         if model is None:
             raise ValueError("Model must be initialized before running")
 
         store = self.context.store
-        device = self.context.device
-        device_type = str(getattr(device, 'type', 'cpu'))
+        if store is None:
+            raise ValueError("Store must be provided or set on the language model")
+        
+        device = self.context.language_model._get_device()
+        device_type = str(device.type)
 
         logger = get_logger(__name__)
 
@@ -205,7 +216,6 @@ class LanguageModelActivations:
                         autocast_dtype=autocast_dtype,
                     )
 
-                    # Apply dtype conversion if specified
                     if dtype is not None:
                         detectors = self.context.language_model.layers.get_detectors()
                         for detector in detectors:

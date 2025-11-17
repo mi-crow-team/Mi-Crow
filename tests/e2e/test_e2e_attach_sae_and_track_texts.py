@@ -14,14 +14,8 @@ from amber.core.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
 from amber.store.local_store import LocalStore
 
-try:
-    from amber.mechanistic.sae.modules.topk_sae import TopKSae
-    from amber.mechanistic.sae.sae_trainer import SaeTrainingConfig
-    OVERCOMPLETE_AVAILABLE = True
-except ImportError:
-    OVERCOMPLETE_AVAILABLE = False
-    TopKSae = None  # type: ignore
-    SaeTrainingConfig = None  # type: ignore
+from amber.mechanistic.sae.modules.topk_sae import TopKSae
+from amber.mechanistic.sae.sae_trainer import SaeTrainingConfig
 
 
 @pytest.fixture
@@ -105,7 +99,6 @@ def trained_sae_setup():
     shutil.rmtree(temp_dir, ignore_errors=True)
 
 
-@pytest.mark.skipif(not OVERCOMPLETE_AVAILABLE, reason="Overcomplete not available")
 def test_e2e_sae_attachment_and_text_tracking(trained_sae_setup):
     """
     Test complete SAE attachment and text tracking workflow:

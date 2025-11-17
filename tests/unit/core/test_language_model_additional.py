@@ -134,24 +134,26 @@ class TestLanguageModelGenerate:
         assert len(results) == 1
         assert isinstance(results[0], str)
     
-    def test_generate_without_tokenizer_raises_error(self, setup_lm):
-        """Test generate raises error when tokenizer is None."""
-        from unittest.mock import patch
-        
+    def test_generate_with_empty_texts_raises_error(self, setup_lm):
+        """Test generate raises error when texts list is empty."""
         lm = setup_lm
         
-        # Mock tokenize and forward to succeed, then test decode path
-        with patch.object(lm, 'tokenize', return_value={"input_ids": torch.tensor([[1, 2, 3]])}):
-            with patch.object(lm.model, 'forward', return_value=type('obj', (object,), {'logits': torch.randn(1, 3, 100)})()):
-                # Set tokenizer to None right before decode
-                original_tokenizer = lm.context.tokenizer
-                lm.context.tokenizer = None
-                
-                try:
-                    with pytest.raises(ValueError, match="Tokenizer is required"):
-                        lm.generate(["test"])
-                finally:
-                    lm.context.tokenizer = original_tokenizer
+        with pytest.raises(ValueError, match="Texts list cannot be empty"):
+            lm.generate([])
+    
+    def test_generate_without_tokenizer_raises_error(self, setup_lm):
+        """Test generate raises error when tokenizer is None."""
+        lm = setup_lm
+        
+        # Set tokenizer to None - validation happens at start of generate()
+        original_tokenizer = lm.context.tokenizer
+        lm.context.tokenizer = None
+        
+        try:
+            with pytest.raises(ValueError, match="Tokenizer is required"):
+                lm.generate(["test"])
+        finally:
+            lm.context.tokenizer = original_tokenizer
     
     def test_generate_with_invalid_output_raises_error(self, setup_lm):
         """Test generate raises error with invalid output type."""
@@ -216,6 +218,13 @@ class TestLanguageModelInference:
         output, enc = lm.forwards(texts, with_controllers=False)
         
         assert output is not None
+    
+    def test_forwards_with_empty_texts_raises_error(self, setup_lm):
+        """Test forwards raises error when texts list is empty."""
+        lm = setup_lm
+        
+        with pytest.raises(ValueError, match="Texts list cannot be empty"):
+            lm.forwards([])
     
     def test_inference_sets_texts_on_tracker(self, setup_lm):
         """Test that inference sets texts on input tracker."""

@@ -1,252 +1,307 @@
-"""Additional tests for LanguageModelActivations to improve coverage."""
 import pytest
 import torch
+from unittest.mock import Mock, patch, MagicMock
 from pathlib import Path
-import tempfile
-from unittest.mock import patch, MagicMock
 
-from amber.core.language_model import LanguageModel
+from amber.core.language_model_activations import LanguageModelActivations
+from amber.core.language_model_context import LanguageModelContext
 from amber.store.local_store import LocalStore
-from amber.adapters.text_snippet_dataset import TextSnippetDataset
+from amber.adapters.text_dataset import TextDataset
 from datasets import Dataset
 
 
-class MockTokenizer:
-    """Mock tokenizer for testing."""
-    
-    def __init__(self):
-        self.pad_token = None
-        self.pad_token_id = None
-    
-    def __call__(self, texts, **kwargs):
-        if isinstance(texts, str):
-            texts = [texts]
-        
-        max_len = max(len(t) for t in texts) if texts else 1
-        ids = []
-        attn = []
-        for t in texts:
-            row = [ord(c) % 97 + 1 for c in t] if t else [1]
-            pad = max_len - len(row)
-            ids.append(row + [0] * pad)
-            attn.append([1] * len(row) + [0] * pad)
-        return {"input_ids": torch.tensor(ids), "attention_mask": torch.tensor(attn)}
-    
-    def encode(self, text, **kwargs):
-        return [ord(c) % 97 + 1 for c in text] if text else [1]
-    
-    def decode(self, token_ids, **kwargs):
-        return "".join(chr(97 + (tid - 1) % 26) for tid in token_ids if tid > 0)
-    
-    def __len__(self):
-        return 100
+@pytest.fixture
+def mock_context(tmp_path):
+    """Create a mock context for testing."""
+    store = LocalStore(tmp_path / "store")
+    mock_model = Mock()
+    mock_model.model_name = "test_model"
+    mock_model.__class__.__name__ = "TestModel"
+    context = LanguageModelContext(
+        model=mock_model,
+        tokenizer=Mock(),
+        store=store,
+        device=torch.device("cpu"),
+        language_model=Mock()
+    )
+    context.language_model._get_device = Mock(return_value=torch.device("cpu"))
+    context.language_model._inference = Mock()
+    context.language_model.layers = Mock()
+    context.language_model.save_detector_metadata = Mock()
+    return context
 
 
-class MockModel(torch.nn.Module):
-    """Mock model for testing."""
-    
-    def __init__(self, vocab_size: int = 100, d_model: int = 8):
-        super().__init__()
-        self.embedding = torch.nn.Embedding(vocab_size, d_model)
-        self.linear = torch.nn.Linear(d_model, d_model)
-        
-        class SimpleConfig:
-            def __init__(self):
-                self.pad_token_id = None
-                self.name_or_path = "MockModel"
-        
-        self.config = SimpleConfig()
-    
-    def forward(self, input_ids, attention_mask=None, **kwargs):
-        x = self.embedding(input_ids)
-        return self.linear(x)
+@pytest.fixture
+def activations(mock_context):
+    """Create LanguageModelActivations instance."""
+    return LanguageModelActivations(context=mock_context)
 
 
-class TestLanguageModelActivationsSave:
-    """Test save_activations methods."""
+def test_save_activations_dataset_with_dtype_conversion(activations, tmp_path):
+    """Test save_activations_dataset with dtype conversion."""
+    store = LocalStore(tmp_path / "store")
+    activations.context.store = store
     
-    @pytest.fixture
-    def setup_lm(self, tmp_path):
-        """Set up LanguageModel for testing."""
-        model = MockModel()
-        tokenizer = MockTokenizer()
-        store = LocalStore(tmp_path)
-        return LanguageModel(model=model, tokenizer=tokenizer, store=store)
+    # Create a simple dataset
+    ds = Dataset.from_dict({"text": ["Hello", "World"]})
+    text_ds = TextDataset(ds, store)
     
-    @pytest.fixture
-    def setup_dataset(self, tmp_path):
-        """Set up test dataset."""
-        from datasets import Dataset
-        texts = ["hello world", "test text", "another example"]
-        cache_dir = tmp_path / "cache"
-        ds = Dataset.from_dict({"text": texts})
-        dataset = TextSnippetDataset(ds, cache_dir=cache_dir)
-        return dataset
+    # Mock detector with activations
+    mock_detector = Mock()
+    mock_detector.tensor_metadata = {"activations": torch.randn(2, 3, dtype=torch.float32)}
+    activations.context.language_model.layers.get_detectors = Mock(return_value=[mock_detector])
     
-    def test_infer_and_save_basic(self, setup_lm, setup_dataset):
-        """Test basic save_activations_dataset functionality."""
-        lm = setup_lm
-        dataset = setup_dataset
-        
-        # Get a layer name
-        layer_names = lm.layers.get_layer_names()
-        assert len(layer_names) > 0
-        layer_name = layer_names[0]
-        
-        lm.activations.save_activations_dataset(
-            dataset=dataset,
-            layer_signature=layer_name,
-            run_name="test_run",
-            batch_size=2,
-            verbose=False
+    # Mock the setup and cleanup
+    activations._setup_detector = Mock(return_value=(Mock(), "hook_id"))
+    activations._cleanup_detector = Mock()
+    
+    # Run with dtype conversion
+    run_name = activations.save_activations_dataset(
+        text_ds,
+        layer_signature="test_layer",
+        batch_size=1,
+        dtype=torch.float16
+    )
+    
+    # Verify dtype conversion was applied
+    assert mock_detector.tensor_metadata["activations"].dtype == torch.float16
+
+
+def test_save_activations_dataset_with_max_length(activations, tmp_path):
+    """Test save_activations_dataset with max_length parameter."""
+    store = LocalStore(tmp_path / "store")
+    activations.context.store = store
+    
+    ds = Dataset.from_dict({"text": ["Hello", "World"]})
+    text_ds = TextDataset(ds, store)
+    
+    activations._setup_detector = Mock(return_value=(Mock(), "hook_id"))
+    activations._cleanup_detector = Mock()
+    
+    run_name = activations.save_activations_dataset(
+        text_ds,
+        layer_signature="test_layer",
+        batch_size=1,
+        max_length=128
+    )
+    
+    # Verify max_length was passed to _inference
+    calls = activations.context.language_model._inference.call_args_list
+    assert len(calls) > 0
+    # Check that tok_kwargs contains max_length
+    for call in calls:
+        kwargs = call.kwargs
+        if "tok_kwargs" in kwargs:
+            assert kwargs["tok_kwargs"].get("max_length") == 128
+
+
+def test_save_activations_dataset_with_empty_batches(activations, tmp_path):
+    """Test save_activations_dataset handles empty batches."""
+    store = LocalStore(tmp_path / "store")
+    activations.context.store = store
+    
+    ds = Dataset.from_dict({"text": ["Hello"]})
+    text_ds = TextDataset(ds, store)
+    
+    activations._setup_detector = Mock(return_value=(Mock(), "hook_id"))
+    activations._cleanup_detector = Mock()
+    
+    # Mock iter_batches to return empty batch
+    def mock_iter_batches(size):
+        yield []  # Empty batch
+        yield ["Hello"]  # Non-empty batch
+    
+    text_ds.iter_batches = mock_iter_batches
+    
+    run_name = activations.save_activations_dataset(
+        text_ds,
+        layer_signature="test_layer",
+        batch_size=1
+    )
+    
+    # Should skip empty batch and process non-empty one
+    assert activations.context.language_model._inference.call_count == 1
+
+
+def test_save_activations_dataset_with_autocast(activations, tmp_path):
+    """Test save_activations_dataset with autocast."""
+    store = LocalStore(tmp_path / "store")
+    activations.context.store = store
+    
+    ds = Dataset.from_dict({"text": ["Hello"]})
+    text_ds = TextDataset(ds, store)
+    
+    activations._setup_detector = Mock(return_value=(Mock(), "hook_id"))
+    activations._cleanup_detector = Mock()
+    
+    run_name = activations.save_activations_dataset(
+        text_ds,
+        layer_signature="test_layer",
+        batch_size=1,
+        autocast=True,
+        autocast_dtype=torch.float16
+    )
+    
+    # Verify autocast parameters were passed
+    calls = activations.context.language_model._inference.call_args_list
+    assert len(calls) > 0
+    for call in calls:
+        kwargs = call.kwargs
+        assert kwargs.get("autocast") is True
+        assert kwargs.get("autocast_dtype") == torch.float16
+
+
+def test_save_activations_dataset_with_verbose(activations, tmp_path, caplog):
+    """Test save_activations_dataset with verbose logging."""
+    store = LocalStore(tmp_path / "store")
+    activations.context.store = store
+    
+    ds = Dataset.from_dict({"text": ["Hello"]})
+    text_ds = TextDataset(ds, store)
+    
+    activations._setup_detector = Mock(return_value=(Mock(), "hook_id"))
+    activations._cleanup_detector = Mock()
+    
+    run_name = activations.save_activations_dataset(
+        text_ds,
+        layer_signature="test_layer",
+        batch_size=1,
+        verbose=True
+    )
+    
+    # Check that verbose logging occurred
+    assert len(caplog.records) > 0
+
+
+def test_save_activations_dataset_without_store(activations, tmp_path):
+    """Test save_activations_dataset raises error when store is None."""
+    activations.context.store = None
+    
+    store = LocalStore(tmp_path / "temp_store")
+    ds = Dataset.from_dict({"text": ["Hello"]})
+    text_ds = TextDataset(ds, store)
+    
+    with pytest.raises(ValueError, match="Store must be provided"):
+        activations.save_activations_dataset(
+            text_ds,
+            layer_signature="test_layer"
         )
-        
-        # Verify batches were saved
-        batches = lm.store.list_run_batches("test_run")
-        assert len(batches) > 0
-    
-    def test_infer_and_save_with_dtype(self, setup_lm, setup_dataset):
-        """Test save_activations_dataset with dtype conversion."""
-        lm = setup_lm
-        dataset = setup_dataset
-        
-        layer_names = lm.layers.get_layer_names()
-        layer_name = layer_names[0]
-        
-        lm.activations.save_activations_dataset(
-            dataset=dataset,
-            layer_signature=layer_name,
-            run_name="test_run_dtype",
-            batch_size=2,
-            dtype=torch.float32,
-            verbose=False
-        )
-        
-        batches = lm.store.list_run_batches("test_run_dtype")
-        assert len(batches) > 0
-    
-    def test_infer_and_save_with_max_length(self, setup_lm, setup_dataset):
-        """Test save_activations_dataset with max_length parameter."""
-        lm = setup_lm
-        dataset = setup_dataset
-        
-        layer_names = lm.layers.get_layer_names()
-        layer_name = layer_names[0]
-        
-        lm.activations.save_activations_dataset(
-            dataset=dataset,
-            layer_signature=layer_name,
-            run_name="test_run_maxlen",
-            batch_size=2,
-            max_length=10,
-            verbose=False
-        )
-        
-        batches = lm.store.list_run_batches("test_run_maxlen")
-        assert len(batches) > 0
-    
-    def test_infer_and_save_basic(self, setup_lm, setup_dataset):
-        """Test save_activations_dataset basic functionality."""
-        lm = setup_lm
-        dataset = setup_dataset
-        
-        layer_names = lm.layers.get_layer_names()
-        layer_name = layer_names[0]
-        
-        lm.activations.save_activations_dataset(
-            dataset=dataset,
-            layer_signature=layer_name,
-            run_name="test_run_basic",
-            batch_size=2,
-            verbose=False
-        )
-        
-        batches = lm.store.list_run_batches("test_run_basic")
-        assert len(batches) > 0
-    
-    def test_infer_and_save_with_verbose(self, setup_lm, setup_dataset):
-        """Test save_activations_dataset with verbose logging."""
-        lm = setup_lm
-        dataset = setup_dataset
-        
-        layer_names = lm.layers.get_layer_names()
-        layer_name = layer_names[0]
-        
-        lm.activations.save_activations_dataset(
-            dataset=dataset,
-            layer_signature=layer_name,
-            run_name="test_run_verbose",
-            batch_size=2,
-            verbose=True
-        )
-        
-        batches = lm.store.list_run_batches("test_run_verbose")
-        assert len(batches) > 0
-    
-    def test_infer_and_save_all_layers(self, setup_lm, setup_dataset):
-        """Test save_activations_dataset with multiple layers (call separately for each)."""
-        lm = setup_lm
-        dataset = setup_dataset
-        
-        # Get first two layers
-        layer_names = lm.layers.get_layer_names()
-        test_layers = layer_names[:2] if len(layer_names) >= 2 else layer_names
-        
-        # Save activations for each layer separately
-        for layer in test_layers:
-            lm.activations.save_activations_dataset(
-                dataset=dataset,
-                layer_signature=layer,
-                run_name=f"test_run_all_{layer}",
-                batch_size=2,
-                verbose=False
-            )
-        
-        # Verify runs were created
-        for layer in test_layers:
-            batches = lm.store.list_run_batches(f"test_run_all_{layer}")
-            assert len(batches) >= 0  # May be empty but should not crash
-    
-    def test_infer_and_save_all_layers_with_none_signatures(self, setup_lm, setup_dataset):
-        """Test save_activations_dataset for all layers."""
-        lm = setup_lm
-        dataset = setup_dataset
-        
-        # Get all layers
-        layer_names = lm.layers.get_layer_names()
-        
-        # Save activations for each layer
-        for layer in layer_names:
-            lm.activations.save_activations_dataset(
-                dataset=dataset,
-                layer_signature=layer,
-                run_name=f"test_run_all_none_{layer}",
-                batch_size=2,
-                verbose=False
-            )
-        
-        # Should complete without error
-        for layer in layer_names:
-            batches = lm.store.list_run_batches(f"test_run_all_none_{layer}")
-            assert isinstance(batches, list)
 
 
-class TestLanguageModelActivationsEdgeCases:
-    """Test edge cases in LanguageModelActivations."""
+def test_save_activations_dataset_without_model(activations, tmp_path):
+    """Test save_activations_dataset raises error when model is None."""
+    store = LocalStore(tmp_path / "store")
+    activations.context.store = store
+    activations.context.model = None
     
-    @pytest.fixture
-    def setup_lm(self, tmp_path):
-        """Set up LanguageModel for testing."""
-        model = MockModel()
-        tokenizer = MockTokenizer()
-        store = LocalStore(tmp_path)
-        return LanguageModel(model=model, tokenizer=tokenizer, store=store)
+    ds = Dataset.from_dict({"text": ["Hello"]})
+    text_ds = TextDataset(ds, store)
     
-    def test_cleanup_detector_handles_exception(self, setup_lm):
-        """Test that _cleanup_detector handles exceptions gracefully."""
-        lm = setup_lm
-        
-        # Should not raise even if unregister fails
-        lm.activations._cleanup_detector("nonexistent_hook_id")
-        
-        # Should complete without error
+    with pytest.raises(ValueError, match="Model must be initialized"):
+        activations.save_activations_dataset(
+            text_ds,
+            layer_signature="test_layer"
+        )
+
+
+def test_normalize_layer_signatures_single_string(activations):
+    """Test _normalize_layer_signatures with single string."""
+    sig_str, sig_list = activations._normalize_layer_signatures("layer1")
+    assert sig_str == "layer1"
+    assert sig_list == ["layer1"]
+
+
+def test_normalize_layer_signatures_single_int(activations):
+    """Test _normalize_layer_signatures with single int."""
+    sig_str, sig_list = activations._normalize_layer_signatures(0)
+    assert sig_str == "0"
+    assert sig_list == ["0"]
+
+
+def test_normalize_layer_signatures_list(activations):
+    """Test _normalize_layer_signatures with list."""
+    sig_str, sig_list = activations._normalize_layer_signatures(["layer1", "layer2"])
+    assert sig_str is None  # Multiple layers
+    assert sig_list == ["layer1", "layer2"]
+
+
+def test_normalize_layer_signatures_single_item_list(activations):
+    """Test _normalize_layer_signatures with single-item list."""
+    sig_str, sig_list = activations._normalize_layer_signatures(["layer1"])
+    assert sig_str == "layer1"
+    assert sig_list == ["layer1"]
+
+
+def test_normalize_layer_signatures_none(activations):
+    """Test _normalize_layer_signatures with None."""
+    sig_str, sig_list = activations._normalize_layer_signatures(None)
+    assert sig_str is None
+    assert sig_list == []
+
+
+def test_extract_dataset_info_with_valid_dataset(activations):
+    """Test _extract_dataset_info with valid dataset."""
+    mock_dataset = Mock()
+    mock_dataset.cache_dir = "/path/to/cache"
+    mock_dataset.__len__ = Mock(return_value=100)
+    
+    info = activations._extract_dataset_info(mock_dataset)
+    assert info["cache_dir"] == "/path/to/cache"
+    assert info["length"] == 100
+
+
+def test_extract_dataset_info_with_none(activations):
+    """Test _extract_dataset_info with None dataset."""
+    info = activations._extract_dataset_info(None)
+    assert info == {}
+
+
+def test_extract_dataset_info_with_exception(activations):
+    """Test _extract_dataset_info handles exceptions."""
+    mock_dataset = Mock()
+    mock_dataset.__len__ = Mock(side_effect=RuntimeError("Error"))
+    
+    info = activations._extract_dataset_info(mock_dataset)
+    assert info["cache_dir"] == ""
+    assert info["length"] == -1
+
+
+def test_prepare_run_metadata_with_run_name(activations):
+    """Test _prepare_run_metadata with provided run name."""
+    run_name, meta = activations._prepare_run_metadata(
+        "layer1",
+        run_name="custom_run"
+    )
+    assert run_name == "custom_run"
+    assert "layer_signatures" in meta
+
+
+def test_prepare_run_metadata_without_run_name(activations):
+    """Test _prepare_run_metadata generates run name."""
+    run_name, meta = activations._prepare_run_metadata("layer1")
+    assert run_name.startswith("run_")
+    assert "layer_signatures" in meta
+
+
+def test_prepare_run_metadata_with_options(activations):
+    """Test _prepare_run_metadata with options."""
+    options = {"key": "value", "number": 42}
+    run_name, meta = activations._prepare_run_metadata(
+        "layer1",
+        options=options
+    )
+    assert meta["options"] == options
+
+
+def test_prepare_run_metadata_with_dataset(activations):
+    """Test _prepare_run_metadata includes dataset info."""
+    mock_dataset = Mock()
+    mock_dataset.cache_dir = "/cache"
+    mock_dataset.__len__ = Mock(return_value=50)
+    
+    run_name, meta = activations._prepare_run_metadata(
+        "layer1",
+        dataset=mock_dataset
+    )
+    assert "dataset" in meta
+    assert meta["dataset"]["length"] == 50

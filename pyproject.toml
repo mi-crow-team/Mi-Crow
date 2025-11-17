@@ -48,7 +48,7 @@ docs = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--maxfail=1 -q --cov=amber --cov-report=term-missing --cov-report=xml --cov-fail-under=85"
+addopts = "--maxfail=1 -q --cov=amber --cov-report=term-missing --cov-report=xml --cov-fail-under=90"
 testpaths = ["tests"]
 pythonpath = ["src"]
 
@@ -60,7 +60,7 @@ parallel = true
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
-fail_under = 85
+fail_under = 90
 
 [tool.coverage.xml]
 output = "coverage.xml"

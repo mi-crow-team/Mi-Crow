@@ -112,11 +112,10 @@ class ClassificationDataset(BaseDataset):
             if batch:
                 yield batch
         else:
-            for batch in self._ds.iter(batch_size=batch_size):
-                batch_list = [
-                    {"text": row[self._text_field], "category": row[self._category_field]}
-                    for row in batch
-                ]
+            # Use select to get batches with proper format
+            for i in range(0, len(self), batch_size):
+                end = min(i + batch_size, len(self))
+                batch_list = self[i:end]
                 yield batch_list
 
     def get_categories(self) -> List[Any]:

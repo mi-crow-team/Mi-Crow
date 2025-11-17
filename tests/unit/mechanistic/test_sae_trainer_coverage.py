@@ -32,7 +32,7 @@ def test_reusable_store_data_loader_logs_skipped_batches(tmp_path, caplog):
     assert len(batches) == 1
     # Check that debug messages were logged for missing 'activations' key
     log_messages = [record.message for record in caplog.records]
-    assert any("Skipping non-dict or missing 'activations'" in msg for msg in log_messages)
+    assert any("Skipping batch" in msg and "tensor not found" in msg for msg in log_messages)
 
 
 def test_reusable_store_data_loader_handles_1d_tensor(tmp_path):
@@ -79,7 +79,7 @@ def test_sae_trainer_monitoring_override_with_verbose(tmp_path):
     with patch('overcomplete.sae.train.train_sae') as mock_train:
         mock_train.return_value = {"avg_loss": [0.5]}
         
-        trainer.train(store, run_id, config)
+        trainer.train(store, run_id, "test_layer", config)
         
         # Verify monitoring was overridden to 2
         call_kwargs = mock_train.call_args[1]
@@ -114,7 +114,7 @@ def test_sae_trainer_verbose_logging(tmp_path, caplog):
         with patch('overcomplete.sae.train.train_sae') as mock_train:
             mock_train.return_value = {"avg_loss": [0.5]}
             
-            trainer.train(store, run_id, config)
+            trainer.train(store, run_id, "test_layer", config)
     
     # Check that verbose messages were logged
     log_messages = [record.message for record in caplog.records]
@@ -153,7 +153,7 @@ def test_sae_trainer_history_with_z_batch_list(tmp_path):
             "z": [z_batch1, z_batch2]  # List of lists of tensors
         }
         
-        history = trainer.train(store, run_id, config)
+        history = trainer.train(store, run_id, "test_layer", config)
         
         # Verify history has l1 computed from z batches
         assert "l1" in history
@@ -193,7 +193,7 @@ def test_sae_trainer_history_with_empty_z_batch_list(tmp_path):
             "z": [[], []]  # Empty lists
         }
         
-        history = trainer.train(store, run_id, config)
+        history = trainer.train(store, run_id, "test_layer", config)
         
         # Verify history has l1 with zeros for empty batches
         assert "l1" in history
@@ -230,7 +230,7 @@ def test_sae_trainer_history_with_non_list_z_batch(tmp_path):
             "z": [torch.randn(5, 8), "not a list"]  # Second is not a list
         }
         
-        history = trainer.train(store, run_id, config)
+        history = trainer.train(store, run_id, "test_layer", config)
         
         # Verify history handles non-list gracefully
         assert "l1" in history

@@ -2,20 +2,19 @@ import pytest
 import torch
 
 
-def test_load_huggingface_model_tiny_gpt2():
+def test_load_huggingface_model_tiny_gpt2(tmp_path):
     from amber.core.language_model import LanguageModel
+    from amber.store.local_store import LocalStore
 
     model_id = "sshleifer/tiny-gpt2"
+    store = LocalStore(tmp_path / "store")
 
-    try:
-        lm = LanguageModel.from_huggingface(
-            model_id,
-            tokenizer_params={"use_fast": True},
-            model_params={"dtype": torch.float32},
-        )
-    except Exception as e:
-        pytest.skip(f"Skipping HF load test due to environment/network issue: {e}")
-        return
+    lm = LanguageModel.from_huggingface(
+        model_id,
+        store=store,
+        tokenizer_params={"use_fast": True},
+        model_params={"dtype": torch.float32},
+    )
 
     # Basic assertions that loading worked and model has layers indexed
     assert lm is not None

@@ -147,24 +147,20 @@ def test_inference_invokes_text_trackers_and_forwards_returns_output_and_enc():
     store = LocalStore(Path(temp_dir) / 'store')
     lm = LanguageModel(model=model, tokenizer=tok, store=store)
 
-    # Register a tracker that records received texts
+    # Register a tracker using the input tracker mechanism
     class Tracker:
         def __init__(self):
             self.seen = None
+            self.enabled = True
 
         def set_current_texts(self, texts):
             self.seen = list(texts)
 
     tr = Tracker()
-    # Directly add to activation text trackers list
-    lm._activation_text_trackers.append(tr)
+    lm._input_tracker = tr
 
     texts = ["foo", "barbaz"]
     out, enc = lm.forwards(texts)
     assert isinstance(out, torch.Tensor)
     assert set(enc.keys()) >= {"input_ids", "attention_mask"}
     assert tr.seen == texts
-
-    # Remove tracker
-    if tr in lm._activation_text_trackers:
-        lm._activation_text_trackers.remove(tr)

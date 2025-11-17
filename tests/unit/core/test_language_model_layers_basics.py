@@ -102,35 +102,3 @@ class DoubleLayer(nn.Module):
         return x * 2
 
 
-@pytest.mark.skip(reason="register_new_layer method does not exist")
-def test_register_new_layer_replaces_output_for_generic_layer():
-    torch.manual_seed(0)
-    model = TinyNestedModel(4)
-    context = MockContext(language_model=object(), model=model)
-    layers = LanguageModelLayers(context=context)
-
-    # Attach a simple layer after BlockA that doubles activations
-    # Find the signature for the 'a' block
-    sigs = [n for n in layers.get_layer_names() if n.endswith('_a')]
-    assert sigs, 'expected to find a block signature'
-    sig = sigs[0]
-
-    hook = layers.register_new_layer('doubler', DoubleLayer(), after_layer_signature=sig)
-
-    try:
-        x = torch.randn(2, 4)
-        y = model(x)
-        # y should equal: pass x through a, doubled by new layer, then through container
-        # We can verify doubling at the insertion point by running original a once.
-        with torch.no_grad():
-            a_layer = layers._get_layer_by_name(sig)
-            # compute original BlockA output without triggering the hook by calling its inner linear directly
-            a_out = a_layer.lin(x)
-            doubled = a_out * 2
-            # Now run the remaining block using the Sequential container
-            container_name = [n for n in layers.get_layer_names() if n.endswith('_container')][0]
-            rest = layers._get_layer_by_name(container_name)
-            expected = rest(doubled)
-        assert torch.allclose(y, expected, atol=1e-6)
-    finally:
-        hook.remove()

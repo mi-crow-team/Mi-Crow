@@ -42,7 +42,7 @@ class TestSaeTrainerTraining:
         """Test training with default configuration."""
         trainer, store, run_id = setup_trainer_and_store
         
-        history = trainer.train(store, run_id)
+        history = trainer.train(store, run_id, "test_layer")
         
         # Verify history structure
         assert isinstance(history, dict)
@@ -70,7 +70,7 @@ class TestSaeTrainerTraining:
             use_amp=False
         )
         
-        history = trainer.train(store, run_id, config)
+        history = trainer.train(store, run_id, "test_layer", config)
         
         assert len(history["loss"]) == 2  # 2 epochs
         assert all(isinstance(x, float) for x in history["loss"])
@@ -86,7 +86,7 @@ class TestSaeTrainerTraining:
             verbose=False
         )
         
-        history = trainer.train(store, run_id, config)
+        history = trainer.train(store, run_id, "test_layer", config)
         
         # Should complete training even with batch limit
         assert "loss" in history
@@ -103,7 +103,7 @@ class TestSaeTrainerTraining:
             verbose=False
         )
         
-        history = trainer.train(store, run_id, config)
+        history = trainer.train(store, run_id, "test_layer", config)
         
         # L1 should be tracked in history
         assert "l1" in history
@@ -124,7 +124,7 @@ class TestSaeTrainerTraining:
             verbose=False
         )
         
-        history = trainer.train(store, run_id, config)
+        history = trainer.train(store, run_id, "test_layer", config)
         
         assert len(history["loss"]) == 2
     
@@ -139,7 +139,7 @@ class TestSaeTrainerTraining:
             verbose=False
         )
         
-        history = trainer.train(store, run_id, config)
+        history = trainer.train(store, run_id, "test_layer", config)
         
         assert "loss" in history
     
@@ -154,7 +154,7 @@ class TestSaeTrainerTraining:
             monitoring=2  # Detailed monitoring
         )
         
-        history = trainer.train(store, run_id, config)
+        history = trainer.train(store, run_id, "test_layer", config)
         
         assert "loss" in history
     
@@ -172,7 +172,7 @@ class TestSaeTrainerTraining:
             verbose=False
         )
         
-        trainer.train(store, run_id, config)
+        trainer.train(store, run_id, "test_layer", config)
         
         # Verify model is on correct device
         final_device = next(trainer.sae.sae_engine.parameters()).device
@@ -192,7 +192,7 @@ class TestSaeTrainerTraining:
         )
         
         # Should not crash, but may have empty history
-        history = trainer.train(store, run_id, config)
+        history = trainer.train(store, run_id, "test_layer", config)
         assert isinstance(history, dict)
 
 
@@ -231,7 +231,7 @@ class TestSaeTrainerWandbIntegration:
             verbose=False
         )
         
-        history = trainer.train(store, run_id, config)
+        history = trainer.train(store, run_id, "test_layer", config)
         
         # Verify wandb was initialized
         mock_wandb_init.assert_called_once()
@@ -258,7 +258,7 @@ class TestSaeTrainerWandbIntegration:
             verbose=False
         )
         
-        history = trainer.train(store, run_id, config)
+        history = trainer.train(store, run_id, "test_layer", config)
         
         # Verify default project name is used
         call_kwargs = mock_wandb_init.call_args[1]
@@ -282,13 +282,12 @@ class TestSaeTrainerWandbIntegration:
             verbose=False
         )
         
-        history = trainer.train(store, run_id, config)
+        history = trainer.train(store, run_id, "test_layer", config)
         
         call_kwargs = mock_wandb_init.call_args[1]
         assert call_kwargs["tags"] == ["test", "unit"]
         assert call_kwargs["config"]["custom_param"] == 42
     
-    @pytest.mark.skip(reason="Difficult to mock import error - code handles it gracefully in practice")
     def test_train_without_wandb_installed(self, setup_trainer_and_store):
         """Test training gracefully handles missing wandb."""
         # This is tested implicitly - the code has try/except for ImportError
@@ -323,7 +322,7 @@ class TestSaeTrainerHistoryFormat:
             verbose=False
         )
         
-        history = trainer.train(store, run_id, config)
+        history = trainer.train(store, run_id, "test_layer", config)
         
         required_keys = ["loss", "recon_mse", "l1", "r2", "l0", "dead_features_pct"]
         for key in required_keys:
@@ -340,7 +339,7 @@ class TestSaeTrainerHistoryFormat:
             verbose=False
         )
         
-        history = trainer.train(store, run_id, config)
+        history = trainer.train(store, run_id, "test_layer", config)
         
         # All lists should have length equal to number of epochs
         num_epochs = config.epochs
@@ -357,7 +356,7 @@ class TestSaeTrainerHistoryFormat:
             verbose=False
         )
         
-        history = trainer.train(store, run_id, config)
+        history = trainer.train(store, run_id, "test_layer", config)
         
         # Check that metrics are numeric (float or None for slow metrics)
         for key in ["loss", "recon_mse", "l1", "r2"]:

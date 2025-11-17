@@ -22,6 +22,9 @@ class LanguageModelLayers:
         self._flatten_layer_names()
 
     def _flatten_layer_names(self):
+        if self.context.model is None:
+            raise ValueError("Model must be initialized before accessing layers")
+        
         self.name_to_layer.clear()
         self.idx_to_layer.clear()
 
@@ -55,7 +58,7 @@ class LanguageModelLayers:
         return list(self.name_to_layer.keys())
 
     def print_layer_names(self) -> None:
-        # Print layer names with basic info; no return value
+        """Print layer names with basic info."""
         names = self.get_layer_names()
         for name in names:
             layer = self.name_to_layer[name]
@@ -64,26 +67,70 @@ class LanguageModelLayers:
     def register_forward_hook_for_layer(
             self,
             layer_signature: str | int,
-            hook: Callable,  # TODO: perhaps we could make some better signature
+            hook: Callable,
             hook_args: dict = None
     ):
-        if isinstance(layer_signature, int):
-            layer = self._get_layer_by_index(layer_signature)
-        else:
-            layer = self._get_layer_by_name(layer_signature)
+        """Register a forward hook directly on a layer."""
+        layer = self._resolve_layer(layer_signature)
         return layer.register_forward_hook(hook, **(hook_args or {}))
 
     def register_pre_forward_hook_for_layer(
             self,
             layer_signature: str | int,
-            hook: Callable,  # TODO: perhaps we could make some better signature
+            hook: Callable,
             hook_args: dict = None
     ):
-        if isinstance(layer_signature, int):
-            layer = self._get_layer_by_index(layer_signature)
-        else:
-            layer = self._get_layer_by_name(layer_signature)
+        """Register a pre-forward hook directly on a layer."""
+        layer = self._resolve_layer(layer_signature)
         return layer.register_forward_pre_hook(hook, **(hook_args or {}))
+
+    def _resolve_layer(self, layer_signature: str | int) -> nn.Module:
+        """Resolve layer signature to actual layer module."""
+        if isinstance(layer_signature, int):
+            return self._get_layer_by_index(layer_signature)
+        return self._get_layer_by_name(layer_signature)
+
+    def _normalize_hook_type(self, hook_type: HookType | str | None, hook: Hook) -> HookType:
+        """Normalize hook type to HookType enum."""
+        if hook_type is None:
+            hook_type = hook.hook_type
+
+        if isinstance(hook_type, str):
+            if hook_type not in [ht.value for ht in HookType]:
+                raise ValueError(
+                    f"Invalid hook_type string '{hook_type}'. "
+                    f"Must be one of: {[ht.value for ht in HookType]}"
+                )
+            hook_type = HookType(hook_type)
+
+        return hook_type
+
+    def _validate_hook_registration(self, layer_signature: str | int, hook: Hook) -> None:
+        """Validate hook registration constraints."""
+        if hook.id in self.context._hook_id_map:
+            raise ValueError(f"Hook with ID '{hook.id}' is already registered")
+
+        if layer_signature not in self.context._hook_registry:
+            return
+
+        existing_types = set()
+        for existing_hook_type, hooks in self.context._hook_registry[layer_signature].items():
+            if hooks:
+                first_hook = hooks[0][0]
+                if isinstance(first_hook, Detector):
+                    existing_types.add("Detector")
+                elif isinstance(first_hook, Controller):
+                    existing_types.add("Controller")
+
+        new_hook_class = "Detector" if isinstance(hook, Detector) else "Controller"
+
+        if existing_types and new_hook_class not in existing_types:
+            existing_type_str = ", ".join(existing_types)
+            raise ValueError(
+                f"Cannot register {new_hook_class} hook on layer '{layer_signature}': "
+                f"layer already has {existing_type_str} hook(s). "
+                f"Only one hook class type (Detector or Controller) per layer is allowed."
+            )
 
     def register_hook(
             self,
@@ -105,69 +152,23 @@ class LanguageModelLayers:
         Raises:
             ValueError: If hook ID is not unique or if mixing hook types on same layer
         """
-        # Resolve layer
-        if isinstance(layer_signature, int):
-            layer = self._get_layer_by_index(layer_signature)
-        else:
-            layer = self._get_layer_by_name(layer_signature)
+        layer = self._resolve_layer(layer_signature)
+        hook_type = self._normalize_hook_type(hook_type, hook)
+        self._validate_hook_registration(layer_signature, hook)
 
-        # Use hook's hook_type if not specified
-        if hook_type is None:
-            hook_type = hook.hook_type
-
-        if isinstance(hook_type, str):
-            if hook_type not in [ht.value for ht in HookType]:
-                raise ValueError(
-                    f"Invalid hook_type string '{hook_type}'. "
-                    f"Must be one of: {[ht.value for ht in HookType]}"
-                )
-            hook_type = HookType(hook_type)
-
-        # Check for duplicate hook ID
-        if hook.id in self.context._hook_id_map:
-            raise ValueError(f"Hook with ID '{hook.id}' is already registered")
-
-        # Initialize registry for this layer if needed
         if layer_signature not in self.context._hook_registry:
             self.context._hook_registry[layer_signature] = {}
 
-        # Check if we're mixing hook types (Detector vs Controller) on the same layer
-        existing_types = set()
-        for existing_hook_type, hooks in self.context._hook_registry[layer_signature].items():
-            if hooks:  # If there are hooks of this type
-                # Check the first hook to determine the class type
-                first_hook = hooks[0][0]
-                if isinstance(first_hook, Detector):
-                    existing_types.add("Detector")
-                elif isinstance(first_hook, Controller):
-                    existing_types.add("Controller")
-
-        # Determine the type of the new hook
-        new_hook_class = "Detector" if isinstance(hook, Detector) else "Controller"
-
-        # Enforce: only one hook class type per layer
-        if existing_types and new_hook_class not in existing_types:
-            existing_type_str = ", ".join(existing_types)
-            raise ValueError(
-                f"Cannot register {new_hook_class} hook on layer '{layer_signature}': "
-                f"layer already has {existing_type_str} hook(s). "
-                f"Only one hook class type (Detector or Controller) per layer is allowed."
-            )
-
-        # Initialize list for this hook type if needed
         if hook_type not in self.context._hook_registry[layer_signature]:
             self.context._hook_registry[layer_signature][hook_type] = []
 
-        # Get the PyTorch-compatible hook function
         torch_hook_fn = hook.get_torch_hook()
 
-        # Register with PyTorch
         if hook_type == HookType.PRE_FORWARD:
             handle = layer.register_forward_pre_hook(torch_hook_fn)
-        else:  # forward
+        else:
             handle = layer.register_forward_hook(torch_hook_fn)
 
-        # Store in our registry
         self.context._hook_registry[layer_signature][hook_type].append((hook, handle))
         self.context._hook_id_map[hook.id] = (layer_signature, hook_type, hook)
 
@@ -226,25 +227,20 @@ class LanguageModelLayers:
         Returns:
             List of Hook instances
         """
-        # Convert string to enum if needed for backward compatibility
         if isinstance(hook_type, str):
             hook_type = HookType(hook_type)
         hooks = []
 
         if layer_signature is not None:
-            # Get hooks for specific layer
             if layer_signature in self.context._hook_registry:
                 layer_hooks = self.context._hook_registry[layer_signature]
                 if hook_type is not None:
-                    # Specific layer and type
                     if hook_type in layer_hooks:
                         hooks.extend([h for h, _ in layer_hooks[hook_type]])
                 else:
-                    # All hooks on this layer
                     for type_hooks in layer_hooks.values():
                         hooks.extend([h for h, _ in type_hooks])
         else:
-            # All hooks (optionally filtered by type)
             for layer_hooks in self.context._hook_registry.values():
                 if hook_type is not None:
                     if hook_type in layer_hooks:

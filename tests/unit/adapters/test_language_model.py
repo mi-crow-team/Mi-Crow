@@ -153,30 +153,6 @@ def test_register_pre_forward_hook_by_index(tiny_lm: LanguageModel):
     assert calls["pre"] >= 1
 
 
-@pytest.mark.skip(reason="register_new_layer method does not exist")
-def test_register_new_layer_by_index_and_name(tiny_lm: LanguageModel):
-    # Add by index
-    any_idx = next(iter(tiny_lm.layers.idx_to_layer.keys()))
-    new1 = nn.ReLU()
-    tiny_lm.layers.register_new_layer("added_relu_idx", new1, any_idx)
-    # Ensure re-flattened and present
-    names_after_idx = tiny_lm.layers.get_layer_names()
-    assert any("added_relu_idx" in n for n in names_after_idx)
-
-    # Add by name: choose a known module name (take parent of new1 if possible or reuse earlier)
-    # We'll use the module we just added's parent signature by finding a prefix in names
-    target_name = None
-    for n in names_after_idx:
-        if "added_relu_idx" in n:
-            # choose its prefix as the container name; in our structure, the module itself is at that key
-            target_name = n
-            break
-    assert target_name is not None
-
-    new2 = nn.Tanh()
-    tiny_lm.layers.register_new_layer("added_tanh_name", new2, target_name)
-    names_after_name = tiny_lm.layers.get_layer_names()
-    assert any("added_tanh_name" in n for n in names_after_name)
 
 
 def test_pre_forward_hook_with_real_model():

@@ -183,20 +183,23 @@ class TestLanguageModelBatchProcessing:
             assert output.shape[0] == batch_size
 
     def test_empty_batch_handling(self):
-        """Test handling of empty batch."""
+        """Test handling of empty batch raises ValueError."""
         model = MockModel()
         tokenizer = MockTokenizer()
         temp_dir = tempfile.mkdtemp()
         store = LocalStore(Path(temp_dir) / "store")
         lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
         
-        # Test with empty batch
+        # Test with empty batch - should raise ValueError
         texts = []
+        with pytest.raises(ValueError, match="Texts list cannot be empty"):
+            lm.forwards(texts)
+        
+        # Tokenizer can still handle empty batch directly
         tokenized = tokenizer(texts)
         input_ids = tokenized["input_ids"]
         attention_mask = tokenized["attention_mask"]
         
-        # Should handle empty batch gracefully
         assert input_ids.shape[0] == 0
         assert attention_mask.shape[0] == 0
 

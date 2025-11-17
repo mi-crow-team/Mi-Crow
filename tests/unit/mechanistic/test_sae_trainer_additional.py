@@ -59,7 +59,7 @@ def test_sae_trainer_with_use_amp_false(tmp_path):
         verbose=False
     )
     
-    history = trainer.train(store, run_id, config)
+    history = trainer.train(store, run_id, "test_layer", config)
     assert "loss" in history
 
 
@@ -87,6 +87,6 @@ def test_sae_trainer_with_scheduler(tmp_path):
         verbose=False
     )
     
-    history = trainer.train(store, run_id, config)
+    history = trainer.train(store, run_id, "test_layer", config)
     assert "loss" in history
 

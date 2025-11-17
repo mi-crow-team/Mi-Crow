@@ -92,7 +92,7 @@ def test_sae_trainer_with_empty_store(tmp_path):
     # Empty store - training will complete with no data (overcomplete handles this)
     # Just verify it doesn't crash
     try:
-        history = trainer.train(store, run_id, config)
+        history = trainer.train(store, run_id, "test_layer", config)
         # May return empty history or complete without error
         assert isinstance(history, dict)
     except (StopIteration, ValueError, KeyError, RuntimeError) as e:
@@ -126,7 +126,7 @@ def test_sae_trainer_with_dtype_conversion(tmp_path):
     )
     
     # Should handle dtype conversion
-    history = trainer.train(store, run_id, config)
+    history = trainer.train(store, run_id, "test_layer", config)
     assert "loss" in history
     assert isinstance(history["loss"], list)
 

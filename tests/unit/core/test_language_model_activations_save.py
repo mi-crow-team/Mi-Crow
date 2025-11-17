@@ -46,6 +46,10 @@ class _FakeLM:
         self.layers = layers
         self.store = None
 
+    def _get_device(self):
+        """Get device for fake LM."""
+        return torch.device("cpu")
+
     def _inference(self, texts, *, tok_kwargs=None, autocast=True, autocast_dtype=None, with_controllers=True):
         B = len(texts)
         T = 3

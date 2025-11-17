@@ -31,11 +31,9 @@ class LayerActivationDetector(Detector):
         super().__init__(
             hook_type=HookType.FORWARD,
             hook_id=hook_id,
-            store=None
+            store=None,
+            layer_signature=layer_signature
         )
-        # Set layer_signature attribute
-        self.layer_signature = layer_signature
-        self.captured_activations: torch.Tensor | None = None
 
     def process_activations(
             self,
