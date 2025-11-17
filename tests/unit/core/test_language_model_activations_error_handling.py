@@ -245,7 +245,7 @@ def test_store_metadata_error_handling(tmp_path):
     original_put_meta = lm.store.put_run_meta
     
     def error_put_meta(run_name, meta):
-        raise RuntimeError("Metadata storage failed")
+        raise RuntimeError("Metadata store failed")
     
     lm.store.put_run_meta = error_put_meta
     
@@ -253,7 +253,7 @@ def test_store_metadata_error_handling(tmp_path):
     layer_names = lm.layers.get_layer_names()
     valid_layer = layer_names[0] if layer_names else "lin"
     
-    # Should handle metadata storage error gracefully
+    # Should handle metadata store error gracefully
     lm.activations.save_activations_dataset(
         ds,
         layer_signature=valid_layer,

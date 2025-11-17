@@ -140,7 +140,7 @@ def test_sae_trainer_history_with_z_batch_list(tmp_path):
         verbose=False,
         max_batches_per_epoch=2,
         use_amp=False,
-        monitoring=2  # Enable z storage
+        monitoring=2  # Enable z store
     )
     
     # Mock overcomplete's train_sae to return logs with z batch list

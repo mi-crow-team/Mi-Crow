@@ -164,7 +164,7 @@ def test_metadata_extraction_with_model_name_error(tmp_path):
 
 
 def test_metadata_storage_error_handling(tmp_path):
-    """Test error handling when metadata storage fails."""
+    """Test error handling when metadata store fails."""
     base = Dataset.from_dict({"text": ["sample 1", "sample 2", "sample 3"]})
     ds = TextSnippetDataset(base, cache_dir=tmp_path / "cache")
     
@@ -175,7 +175,7 @@ def test_metadata_storage_error_handling(tmp_path):
     
     # Mock put_run_meta to raise an error
     def error_put_meta(run_name, meta):
-        raise RuntimeError("Metadata storage failed")
+        raise RuntimeError("Metadata store failed")
     
     lm.store.put_run_meta = error_put_meta
     
@@ -183,7 +183,7 @@ def test_metadata_storage_error_handling(tmp_path):
     layer_names = lm.layers.get_layer_names()
     valid_layer = layer_names[0] if layer_names else "linear"
     
-    # Should handle metadata storage error gracefully
+    # Should handle metadata store error gracefully
     lm.activations.save_activations_dataset(
         ds,
         layer_signature=valid_layer,
