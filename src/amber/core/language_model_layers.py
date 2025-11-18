@@ -3,7 +3,6 @@ from typing import Dict, List, Callable, TYPE_CHECKING
 from torch import nn
 
 from amber.hooks.hook import Hook, HookType
-from amber.mechanistic.autoencoder.autoencoder import Autoencoder
 from amber.hooks.detector import Detector
 from amber.hooks.controller import Controller
 
@@ -23,6 +22,9 @@ class LanguageModelLayers:
         self._flatten_layer_names()
 
     def _flatten_layer_names(self):
+        if self.context.model is None:
+            raise ValueError("Model must be initialized before accessing layers")
+        
         self.name_to_layer.clear()
         self.idx_to_layer.clear()
 
@@ -56,7 +58,7 @@ class LanguageModelLayers:
         return list(self.name_to_layer.keys())
 
     def print_layer_names(self) -> None:
-        # Print layer names with basic info; no return value
+        """Print layer names with basic info."""
         names = self.get_layer_names()
         for name in names:
             layer = self.name_to_layer[name]
@@ -65,176 +67,70 @@ class LanguageModelLayers:
     def register_forward_hook_for_layer(
             self,
             layer_signature: str | int,
-            hook: Callable,  # TODO: perhaps we could make some better signature
+            hook: Callable,
             hook_args: dict = None
     ):
-        if isinstance(layer_signature, int):
-            layer = self._get_layer_by_index(layer_signature)
-        else:
-            layer = self._get_layer_by_name(layer_signature)
+        """Register a forward hook directly on a layer."""
+        layer = self._resolve_layer(layer_signature)
         return layer.register_forward_hook(hook, **(hook_args or {}))
 
     def register_pre_forward_hook_for_layer(
             self,
             layer_signature: str | int,
-            hook: Callable,  # TODO: perhaps we could make some better signature
+            hook: Callable,
             hook_args: dict = None
     ):
-        if isinstance(layer_signature, int):
-            layer = self._get_layer_by_index(layer_signature)
-        else:
-            layer = self._get_layer_by_name(layer_signature)
+        """Register a pre-forward hook directly on a layer."""
+        layer = self._resolve_layer(layer_signature)
         return layer.register_forward_pre_hook(hook, **(hook_args or {}))
 
-    def register_new_layer(
-            self,
-            layer_name: str,
-            layer: nn.Module,
-            after_layer_signature: str | int,
-    ):
-        # Resolve target layer
-        if isinstance(after_layer_signature, int):
-            after_layer = self._get_layer_by_index(after_layer_signature)
-        else:
-            after_layer = self._get_layer_by_name(after_layer_signature)
+    def _resolve_layer(self, layer_signature: str | int) -> nn.Module:
+        """Resolve layer signature to actual layer module."""
+        if isinstance(layer_signature, int):
+            return self._get_layer_by_index(layer_signature)
+        return self._get_layer_by_name(layer_signature)
 
-        after_layer.add_module(layer_name, layer)
-        self._flatten_layer_names()
+    def _normalize_hook_type(self, hook_type: HookType | str | None, hook: Hook) -> HookType:
+        """Normalize hook type to HookType enum."""
+        if hook_type is None:
+            hook_type = hook.hook_type
 
-        new_layer_signature = f"{after_layer_signature}_{layer_name}"
-
-        if isinstance(layer, Autoencoder):
-            layer.concepts.lm = self.context.model
-            layer.concepts.lm_layer_signature = new_layer_signature
-
-        def _extract_main_tensor(output):
-            import torch
-            if isinstance(output, torch.Tensor):
-                return output
-            if isinstance(output, (tuple, list)):
-                for item in output:
-                    if isinstance(item, torch.Tensor):
-                        return item
-                return None
-            return None
-
-        def _replace_output_hook(_module, _inputs, output):
-            import torch
-            x = _extract_main_tensor(output)
-            if x is None:
-                raise RuntimeError(
-                    f"register_new_layer('{layer_name}'): could not extract a Tensor from parent output "
-                    f"to feed into the new layer."
+        if isinstance(hook_type, str):
+            if hook_type not in [ht.value for ht in HookType]:
+                raise ValueError(
+                    f"Invalid hook_type string '{hook_type}'. "
+                    f"Must be one of: {[ht.value for ht in HookType]}"
                 )
+            hook_type = HookType(hook_type)
 
-            if isinstance(layer, Autoencoder):
-                if x.dim() == 3:
-                    b, t, d = x.shape
-                    x_for_layer = x.reshape(b * t, d)  # [B*T, D]
-                elif x.dim() == 2:
-                    x_for_layer = x  # already [N, D]
-                else:
-                    raise RuntimeError(
-                        f"register_new_layer('{layer_name}'): Autoencoder expected 2D or 3D tensor, got shape {tuple(x.shape)}"
-                    )
-                # Validate feature size if SAE exposes n_inputs
-                n_inputs = getattr(layer, 'n_inputs', None)
-                if n_inputs is not None and x_for_layer.shape[-1] != n_inputs:
-                    raise RuntimeError(
-                        f"register_new_layer('{layer_name}'): feature dim mismatch: SAE expects {n_inputs}, got {x_for_layer.shape[-1]}"
-                    )
-            else:
-                x_for_layer = x
+        return hook_type
 
-            try:
-                try:
-                    out = layer(x_for_layer, detach=True)
-                except TypeError:
-                    out = layer(x_for_layer)
-            except Exception as e:
-                raise RuntimeError(
-                    f"register_new_layer('{layer_name}'): new layer forward failed with: {e}"
-                ) from e
+    def _validate_hook_registration(self, layer_signature: str | int, hook: Hook) -> None:
+        """Validate hook registration constraints."""
+        if hook.id in self.context._hook_id_map:
+            raise ValueError(f"Hook with ID '{hook.id}' is already registered")
 
-            # Ensure we return a Tensor, not a tuple/dict/object
-            if isinstance(layer, Autoencoder):
-                # SAE commonly returns: (recon, latents, recon_full, latents_full)
-                recon = None
-                recon_full = None
-                if isinstance(out, (tuple, list)):
-                    if len(out) > 0 and isinstance(out[0], torch.Tensor):
-                        recon = out[0]
-                    if len(out) > 2 and isinstance(out[2], torch.Tensor):
-                        recon_full = out[2]
-                elif isinstance(out, torch.Tensor):
-                    recon = out
-                elif hasattr(out, "reconstruction") and isinstance(out.reconstruction, torch.Tensor):
-                    recon = out.reconstruction
+        if layer_signature not in self.context._hook_registry:
+            return
 
-                if recon_full is not None:
-                    y = recon_full  # already matches [B, T, D] if parent was 3D
-                elif recon is not None:
-                    # If we flattened [B,T,D] -> [B*T,D], reshape back
-                    try:
-                        if 'b' in locals() and 't' in locals():
-                            y = recon.view(b, t, -1)
-                        else:
-                            y = recon
-                    except Exception:
-                        # Fallback: keep recon as-is
-                        y = recon
-                else:
-                    raise RuntimeError(
-                        f"register_new_layer('{layer_name}'): SAE did not return a reconstruction tensor."
-                    )
-            else:
-                # Generic layers: pick a tensor output deterministically
-                if isinstance(out, torch.Tensor):
-                    y = out
-                elif isinstance(out, (tuple, list)):
-                    y = None
-                    for item in out:
-                        if isinstance(item, torch.Tensor):
-                            y = item
-                            break
-                    if y is None:
-                        raise RuntimeError(
-                            f"register_new_layer('{layer_name}'): non-SAE layer returned no tensor in tuple/list."
-                        )
-                elif hasattr(out, 'last_hidden_state') and isinstance(out.last_hidden_state, torch.Tensor):
-                    y = out.last_hidden_state
-                else:
-                    raise RuntimeError(
-                        f"register_new_layer('{layer_name}'): layer returned unsupported type {type(out)}."
-                    )
+        existing_types = set()
+        for existing_hook_type, hooks in self.context._hook_registry[layer_signature].items():
+            if hooks:
+                first_hook = hooks[0][0]
+                if isinstance(first_hook, Detector):
+                    existing_types.add("Detector")
+                elif isinstance(first_hook, Controller):
+                    existing_types.add("Controller")
 
-            # For SAE, ensure the replacement has exactly the same shape as the parent's main tensor output
-            if isinstance(layer, Autoencoder):
-                orig = x  # original main tensor extracted from parent's output
-                if isinstance(orig, torch.Tensor):
-                    if y.shape != orig.shape:
-                        # Try to safely reshape when numel matches and last dim aligns
-                        reshaped = False
-                        try:
-                            if orig.dim() == 3 and y.dim() == 2 and y.shape[-1] == orig.shape[
-                                -1] and y.numel() == orig.numel():
-                                y = y.view_as(orig)
-                                reshaped = True
-                            elif orig.dim() == 2 and y.dim() == 3 and y.shape[-1] == orig.shape[
-                                -1] and y.numel() == orig.numel():
-                                y = y.reshape_as(orig)
-                                reshaped = True
-                        except Exception:
-                            reshaped = False
-                        if not reshaped and y.shape != orig.shape:
-                            raise RuntimeError(
-                                f"register_new_layer('{layer_name}'): SAE reconstruction shape {tuple(y.shape)} does not match parent output shape {tuple(orig.shape)}."
-                            )
+        new_hook_class = "Detector" if isinstance(hook, Detector) else "Controller"
 
-            return y  # <-- Replace parent's output with a Tensor
-
-        # Returning a value from a forward hook replaces the module's output.
-        return after_layer.register_forward_hook(_replace_output_hook)
+        if existing_types and new_hook_class not in existing_types:
+            existing_type_str = ", ".join(existing_types)
+            raise ValueError(
+                f"Cannot register {new_hook_class} hook on layer '{layer_signature}': "
+                f"layer already has {existing_type_str} hook(s). "
+                f"Only one hook class type (Detector or Controller) per layer is allowed."
+            )
 
     def register_hook(
             self,
@@ -256,65 +152,23 @@ class LanguageModelLayers:
         Raises:
             ValueError: If hook ID is not unique or if mixing hook types on same layer
         """
-        # Resolve layer
-        if isinstance(layer_signature, int):
-            layer = self._get_layer_by_index(layer_signature)
-        else:
-            layer = self._get_layer_by_name(layer_signature)
+        layer = self._resolve_layer(layer_signature)
+        hook_type = self._normalize_hook_type(hook_type, hook)
+        self._validate_hook_registration(layer_signature, hook)
 
-        # Use hook's hook_type if not specified
-        if hook_type is None:
-            hook_type = hook.hook_type
-
-        # Convert string to enum if needed for backward compatibility
-        if isinstance(hook_type, str):
-            hook_type = HookType(hook_type)
-
-        # Check for duplicate hook ID
-        if hook.id in self.context._hook_id_map:
-            raise ValueError(f"Hook with ID '{hook.id}' is already registered")
-
-        # Initialize registry for this layer if needed
         if layer_signature not in self.context._hook_registry:
             self.context._hook_registry[layer_signature] = {}
 
-        # Check if we're mixing hook types (Detector vs Controller) on the same layer
-        existing_types = set()
-        for existing_hook_type, hooks in self.context._hook_registry[layer_signature].items():
-            if hooks:  # If there are hooks of this type
-                # Check the first hook to determine the class type
-                first_hook = hooks[0][0]
-                if isinstance(first_hook, Detector):
-                    existing_types.add("Detector")
-                elif isinstance(first_hook, Controller):
-                    existing_types.add("Controller")
-
-        # Determine the type of the new hook
-        new_hook_class = "Detector" if isinstance(hook, Detector) else "Controller"
-
-        # Enforce: only one hook class type per layer
-        if existing_types and new_hook_class not in existing_types:
-            existing_type_str = ", ".join(existing_types)
-            raise ValueError(
-                f"Cannot register {new_hook_class} hook on layer '{layer_signature}': "
-                f"layer already has {existing_type_str} hook(s). "
-                f"Only one hook class type (Detector or Controller) per layer is allowed."
-            )
-
-        # Initialize list for this hook type if needed
         if hook_type not in self.context._hook_registry[layer_signature]:
             self.context._hook_registry[layer_signature][hook_type] = []
 
-        # Get the PyTorch-compatible hook function
         torch_hook_fn = hook.get_torch_hook()
 
-        # Register with PyTorch
         if hook_type == HookType.PRE_FORWARD:
             handle = layer.register_forward_pre_hook(torch_hook_fn)
-        else:  # forward
+        else:
             handle = layer.register_forward_hook(torch_hook_fn)
 
-        # Store in our registry
         self.context._hook_registry[layer_signature][hook_type].append((hook, handle))
         self.context._hook_id_map[hook.id] = (layer_signature, hook_type, hook)
 
@@ -373,25 +227,20 @@ class LanguageModelLayers:
         Returns:
             List of Hook instances
         """
-        # Convert string to enum if needed for backward compatibility
         if isinstance(hook_type, str):
             hook_type = HookType(hook_type)
         hooks = []
 
         if layer_signature is not None:
-            # Get hooks for specific layer
             if layer_signature in self.context._hook_registry:
                 layer_hooks = self.context._hook_registry[layer_signature]
                 if hook_type is not None:
-                    # Specific layer and type
                     if hook_type in layer_hooks:
                         hooks.extend([h for h, _ in layer_hooks[hook_type]])
                 else:
-                    # All hooks on this layer
                     for type_hooks in layer_hooks.values():
                         hooks.extend([h for h, _ in type_hooks])
         else:
-            # All hooks (optionally filtered by type)
             for layer_hooks in self.context._hook_registry.values():
                 if hook_type is not None:
                     if hook_type in layer_hooks:

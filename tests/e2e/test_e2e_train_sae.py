@@ -13,9 +13,10 @@ from datasets import Dataset
 
 from amber.core.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
-from amber.store import LocalStore
-from amber.mechanistic.autoencoder.autoencoder import Autoencoder
-from amber.mechanistic.autoencoder.train import SAETrainer, SAETrainingConfig
+from amber.store.local_store import LocalStore
+
+from amber.mechanistic.sae.modules.topk_sae import TopKSae
+from amber.mechanistic.sae.sae_trainer import SaeTrainingConfig
 
 
 @pytest.fixture
@@ -58,7 +59,8 @@ def test_e2e_train_sae_workflow(temp_dirs):
     
     # Step 1: Load language model
     print("\n📥 Loading language model...")
-    lm = LanguageModel.from_huggingface(MODEL_ID)
+    store = LocalStore(store_dir)
+    lm = LanguageModel.from_huggingface(MODEL_ID, store=store)
     lm.model.to(DEVICE)
     
     assert lm.model is not None
@@ -87,11 +89,10 @@ def test_e2e_train_sae_workflow(temp_dirs):
     print("\n💾 Saving activations...")
     store = LocalStore(store_dir)
     
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         dataset,
         layer_signature=LAYER_SIGNATURE,
         run_name=RUN_ID,
-        store=store,
         batch_size=4,
         autocast=False,
     )
@@ -112,35 +113,30 @@ def test_e2e_train_sae_workflow(temp_dirs):
     hidden_dim = activations.shape[-1]
     print(f"📏 Hidden dimension: {hidden_dim}")
     
-    sae = Autoencoder(
-        n_latents=hidden_dim * 2,  # 2x expansion
+    sae = TopKSae(
+        n_latents=hidden_dim * 4,  # 4x expansion
         n_inputs=hidden_dim,
-        activation="TopK_4",
-        tied=False,
-        init_method="kaiming",
+        k=4,
         device=DEVICE,
     )
     
-    assert sae.context.n_latents == hidden_dim * 2
+    assert sae.context.n_latents == hidden_dim * 4
     assert sae.context.n_inputs == hidden_dim
-    print(f"🧠 SAE architecture: {hidden_dim} → {sae.context.n_latents} → {hidden_dim}")
+    print(f"🧠 TopKSAE architecture: {hidden_dim} → {sae.context.n_latents} → {hidden_dim} (k={sae.k})")
     
-    # Step 5: Train SAE
-    print("\n🏋️ Training SAE...")
-    config = SAETrainingConfig(
+    # Step 5: Train TopKSAE
+    print("\n🏋️ Training TopKSAE...")
+    config = SaeTrainingConfig(
         epochs=3,
         batch_size=4,
         lr=1e-3,
         l1_lambda=1e-4,
         device=DEVICE,
         max_batches_per_epoch=2,  # Small for testing
-        project_decoder_grads=True,
-        renorm_decoder_every=1,
         verbose=False,  # Reduce noise in tests
     )
     
-    trainer = SAETrainer(sae, store, RUN_ID, config)
-    history = trainer.train()
+    history = sae.train(store, RUN_ID, LAYER_SIGNATURE, config)
     
     # Verify training completed
     assert "loss" in history
@@ -149,46 +145,36 @@ def test_e2e_train_sae_workflow(temp_dirs):
     assert len(history["loss"]) > 0
     print(f"✅ Training completed! Final loss: {history['loss'][-1]:.6f}")
     
-    # Step 6: Save SAE model
-    print("\n💾 Saving SAE model...")
-    sae_path = store_dir / "test_sae_model.pt"
-    metadata = {
-        "hidden_dim": hidden_dim,
-        "n_latents": sae.context.n_latents,
-        "training_history": history,
-    }
+    # Step 6: Save TopKSAE model
+    print("\n💾 Saving TopKSAE model...")
+    sae_path = store_dir / "topk_sae_model.pt"
     
     sae.save(
-        name="test_sae_model",
+        name="topk_sae_model",
         path=store_dir,
-        run_metadata=metadata,
     )
     
-    assert sae_path.exists(), "SAE model was not saved"
-    print(f"✅ SAE saved to: {sae_path}")
+    assert sae_path.exists(), "TopKSAE model was not saved"
+    print(f"✅ TopKSAE saved to: {sae_path}")
     
-    # Step 7: Load SAE and verify it works
-    print("\n📥 Loading SAE model...")
-    loaded_sae, normalize, target_norm, mean = Autoencoder.load_model(sae_path)
-    loaded_sae.to(DEVICE)
+    # Step 7: Load TopKSAE and verify it works
+    print("\n📥 Loading TopKSAE model...")
+    loaded_sae = TopKSae.load(sae_path)
+    loaded_sae.sae_engine.to(DEVICE)  # Move underlying engine to device
     
     assert loaded_sae.context.n_latents == sae.context.n_latents
     assert loaded_sae.context.n_inputs == sae.context.n_inputs
-    print("✅ SAE loaded successfully")
+    assert loaded_sae.k == sae.k
+    print("✅ TopKSAE loaded successfully")
     
     # Step 8: Test reconstruction
     print("\n🔬 Testing reconstruction...")
-    # SAE expects 2D input: (batch_size, n_inputs)
+    # TopKSAE expects 2D input: (batch_size, n_inputs)
     test_input = torch.randn(8, hidden_dim).to(DEVICE)
     
     with torch.inference_mode():
-        result = loaded_sae(test_input)
-    
-    # SAE forward may return either tensor or tuple (reconstruction, latents, ...)
-    if isinstance(result, tuple):
-        reconstructed = result[0]
-    else:
-        reconstructed = result
+        # TopKSAE forward returns reconstructed tensor
+        reconstructed = loaded_sae.forward(test_input)
     
     assert reconstructed.shape == test_input.shape
     assert reconstructed.shape == (8, hidden_dim)

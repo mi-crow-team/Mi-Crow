@@ -32,6 +32,12 @@ jobs:
       - name: Install project with dev extras
         run: uv pip install -e ".[dev]" --system
 
+      - name: Verify package installation
+        run: |
+          python -c "import amber; print('✓ amber package found')"
+          python -c "import amber.store; print('✓ amber.store package found')"
+          python -c "from amber.store.store import Store; print('✓ Store import successful')"
+
       - name: Run tests with coverage threshold
         run: |
           pytest \

@@ -1,8 +1,11 @@
 import pytest
 import torch
 from torch import nn
+from pathlib import Path
+import tempfile
 
 from amber.core.language_model import LanguageModel
+from amber.store.local_store import LocalStore
 
 
 class TinyNet(nn.Module):
@@ -24,8 +27,10 @@ class TinyNet(nn.Module):
 @pytest.fixture()
 def tiny_lm():
     model = TinyNet()
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / "store")
     # tokenizer is unused by LanguageModel core behaviors we test here
-    return LanguageModel(model=model, tokenizer=None)
+    return LanguageModel(model=model, tokenizer=None, store=store)
 
 
 def test_flatten_layer_names_and_indices_consistency(tiny_lm: LanguageModel):
@@ -148,29 +153,6 @@ def test_register_pre_forward_hook_by_index(tiny_lm: LanguageModel):
     assert calls["pre"] >= 1
 
 
-def test_register_new_layer_by_index_and_name(tiny_lm: LanguageModel):
-    # Add by index
-    any_idx = next(iter(tiny_lm.layers.idx_to_layer.keys()))
-    new1 = nn.ReLU()
-    tiny_lm.layers.register_new_layer("added_relu_idx", new1, any_idx)
-    # Ensure re-flattened and present
-    names_after_idx = tiny_lm.layers.get_layer_names()
-    assert any("added_relu_idx" in n for n in names_after_idx)
-
-    # Add by name: choose a known module name (take parent of new1 if possible or reuse earlier)
-    # We'll use the module we just added's parent signature by finding a prefix in names
-    target_name = None
-    for n in names_after_idx:
-        if "added_relu_idx" in n:
-            # choose its prefix as the container name; in our structure, the module itself is at that key
-            target_name = n
-            break
-    assert target_name is not None
-
-    new2 = nn.Tanh()
-    tiny_lm.layers.register_new_layer("added_tanh_name", new2, target_name)
-    names_after_name = tiny_lm.layers.get_layer_names()
-    assert any("added_tanh_name" in n for n in names_after_name)
 
 
 def test_pre_forward_hook_with_real_model():
@@ -203,7 +185,9 @@ def test_pre_forward_hook_with_real_model():
                 }
             raise ValueError
 
-    lm = LanguageModel(model=SmallLM(), tokenizer=Tok())
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / "store")
+    lm = LanguageModel(model=SmallLM(), tokenizer=Tok(), store=store)
 
     # choose the linear layer by index and then by name to exercise both paths
     names = list(lm.layers.name_to_layer.keys())

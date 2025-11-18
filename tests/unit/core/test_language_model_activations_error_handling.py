@@ -2,11 +2,10 @@ import pytest
 import torch
 from torch import nn
 from datasets import Dataset
-from unittest.mock import Mock, patch
 
 from amber.core.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
-from amber.store import LocalStore
+from amber.store.local_store import LocalStore
 
 
 class ErrorProneTokenizer:
@@ -155,26 +154,23 @@ def test_metadata_extraction_error_handling(tmp_path):
     
     model = ErrorProneModel()
     tokenizer = ErrorProneTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
     valid_layer = layer_names[0] if layer_names else "lin"
     
-    store = LocalStore(tmp_path)
-    
     # Should handle dataset length error gracefully
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         error_dataset,
         layer_signature=valid_layer,
         run_name="error_test",
-        store=store,
         batch_size=2,
         verbose=True,
     )
     
     # Should still complete despite errors
-    batches = store.list_run_batches("error_test")
+    batches = lm.store.list_run_batches("error_test")
     assert len(batches) > 0
 
 
@@ -184,26 +180,23 @@ def test_cache_dir_error_handling(tmp_path):
     
     model = ErrorProneModel()
     tokenizer = ErrorProneTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
     valid_layer = layer_names[0] if layer_names else "lin"
     
-    store = LocalStore(tmp_path)
-    
     # Should handle cache_dir error gracefully
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         error_dataset,
         layer_signature=valid_layer,
         run_name="cache_error_test",
-        store=store,
         batch_size=2,
         verbose=True,
     )
     
     # Should still complete despite errors
-    batches = store.list_run_batches("cache_error_test")
+    batches = lm.store.list_run_batches("cache_error_test")
     assert len(batches) > 0
 
 
@@ -215,30 +208,27 @@ def test_model_name_extraction_error_handling(tmp_path):
     # Create model without model_name attribute
     model = ErrorProneModel()
     tokenizer = ErrorProneTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
     # Remove model_name attribute if it exists
     if hasattr(lm, 'model_name'):
         delattr(lm, 'model_name')
-    
-    store = LocalStore(tmp_path)
     
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
     valid_layer = layer_names[0] if layer_names else "lin"
     
     # Should handle missing model_name gracefully
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         ds,
         layer_signature=valid_layer,
         run_name="model_name_error_test",
-        store=store,
         batch_size=2,
         verbose=True,
     )
     
     # Should still complete despite errors
-    batches = store.list_run_batches("model_name_error_test")
+    batches = lm.store.list_run_batches("model_name_error_test")
     assert len(batches) > 0
 
 
@@ -249,33 +239,31 @@ def test_store_metadata_error_handling(tmp_path):
     
     model = ErrorProneModel()
     tokenizer = ErrorProneTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
     # Mock store to raise error on put_run_meta
-    store = LocalStore(tmp_path)
-    original_put_meta = store.put_run_meta
+    original_put_meta = lm.store.put_run_meta
     
     def error_put_meta(run_name, meta):
-        raise RuntimeError("Metadata storage failed")
+        raise RuntimeError("Metadata store failed")
     
-    store.put_run_meta = error_put_meta
+    lm.store.put_run_meta = error_put_meta
     
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
     valid_layer = layer_names[0] if layer_names else "lin"
     
-    # Should handle metadata storage error gracefully
-    lm.activations.infer_and_save(
+    # Should handle metadata store error gracefully
+    lm.activations.save_activations_dataset(
         ds,
         layer_signature=valid_layer,
         run_name="metadata_error_test",
-        store=store,
         batch_size=2,
         verbose=True,
     )
     
     # Should still complete despite errors
-    batches = store.list_run_batches("metadata_error_test")
+    batches = lm.store.list_run_batches("metadata_error_test")
     assert len(batches) > 0
 
 
@@ -286,9 +274,7 @@ def test_activation_capture_edge_cases(tmp_path):
     
     model = ErrorProneModel()
     tokenizer = ErrorProneTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
-    
-    store = LocalStore(tmp_path)
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
     # Test with different layer signatures
     layer_names = lm.layers.get_layer_names()
@@ -297,11 +283,10 @@ def test_activation_capture_edge_cases(tmp_path):
     
     for i, signature in enumerate(layer_signatures):
         try:
-            lm.activations.infer_and_save(
+            lm.activations.save_activations_dataset(
                 ds,
                 layer_signature=signature,
                 run_name=f"edge_case_test_{i}",
-                store=store,
                 batch_size=2,
                 verbose=True,
             )
@@ -313,7 +298,7 @@ def test_activation_capture_edge_cases(tmp_path):
     all_batches = []
     for i in range(len(layer_signatures)):
         try:
-            batches = store.list_run_batches(f"edge_case_test_{i}")
+            batches = lm.store.list_run_batches(f"edge_case_test_{i}")
             all_batches.extend(batches)
         except Exception:
             pass
@@ -329,9 +314,7 @@ def test_device_handling_errors(tmp_path):
     # Test with model that has device issues
     model = ErrorProneModel("device_error")
     tokenizer = ErrorProneTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
-    
-    store = LocalStore(tmp_path)
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
@@ -339,11 +322,10 @@ def test_device_handling_errors(tmp_path):
     
     # Should handle device errors gracefully
     with pytest.raises(Exception):  # This should raise due to device error
-        lm.activations.infer_and_save(
+        lm.activations.save_activations_dataset(
             ds,
             layer_signature=valid_layer,
             run_name="device_error_test",
-            store=store,
             batch_size=2,
             verbose=True,
         )
@@ -356,9 +338,7 @@ def test_tokenization_error_handling(tmp_path):
     
     model = ErrorProneModel()
     tokenizer = ErrorProneTokenizer("tokenization_error")
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
-    
-    store = LocalStore(tmp_path)
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
@@ -366,11 +346,10 @@ def test_tokenization_error_handling(tmp_path):
     
     # Should handle tokenization errors gracefully
     with pytest.raises(Exception):  # This should raise due to tokenization error
-        lm.activations.infer_and_save(
+        lm.activations.save_activations_dataset(
             ds,
             layer_signature=valid_layer,
             run_name="tokenization_error_test",
-            store=store,
             batch_size=2,
             verbose=True,
         )
@@ -383,9 +362,7 @@ def test_return_tensors_error_handling(tmp_path):
     
     model = ErrorProneModel()
     tokenizer = ErrorProneTokenizer("return_tensors_error")
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
-    
-    store = LocalStore(tmp_path)
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
@@ -393,11 +370,10 @@ def test_return_tensors_error_handling(tmp_path):
     
     # Should handle return_tensors errors gracefully
     with pytest.raises(Exception):  # This should raise due to return_tensors error
-        lm.activations.infer_and_save(
+        lm.activations.save_activations_dataset(
             ds,
             layer_signature=valid_layer,
             run_name="return_tensors_error_test",
-            store=store,
             batch_size=2,
             verbose=True,
         )
@@ -412,24 +388,21 @@ def test_verbose_logging_with_errors(tmp_path, caplog):
     
     model = ErrorProneModel()
     tokenizer = ErrorProneTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
-    
-    store = LocalStore(tmp_path)
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
     valid_layer = layer_names[0] if layer_names else "lin"
     
     with caplog.at_level(logging.INFO):
-        lm.activations.infer_and_save(
+        lm.activations.save_activations_dataset(
             ds,
             layer_signature=valid_layer,
             run_name="verbose_error_test",
-            store=store,
             batch_size=2,
             verbose=True,
         )
     
     # Should have logged the start message
     log_messages = [rec.message for rec in caplog.records]
-    assert any("Starting save_model_activations" in msg for msg in log_messages)
+    assert any("Starting save_activations_dataset" in msg for msg in log_messages)

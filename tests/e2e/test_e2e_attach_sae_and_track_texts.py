@@ -5,7 +5,6 @@ Based on examples/02_attach_sae_and_save_texts.ipynb - demonstrates
 attaching an SAE to a language model and collecting top activating texts.
 """
 import pytest
-import torch
 from pathlib import Path
 import tempfile
 import shutil
@@ -13,9 +12,10 @@ from datasets import Dataset
 
 from amber.core.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
-from amber.store import LocalStore
-from amber.mechanistic.autoencoder.autoencoder import Autoencoder
-from amber.mechanistic.autoencoder.train import SAETrainer, SAETrainingConfig
+from amber.store.local_store import LocalStore
+
+from amber.mechanistic.sae.modules.topk_sae import TopKSae
+from amber.mechanistic.sae.sae_trainer import SaeTrainingConfig
 
 
 @pytest.fixture
@@ -32,7 +32,8 @@ def trained_sae_setup():
     DEVICE = "cpu"
     
     # Load model and create dataset
-    lm = LanguageModel.from_huggingface(MODEL_ID)
+    store = LocalStore(store_dir)
+    lm = LanguageModel.from_huggingface(MODEL_ID, store=store)
     lm.model.to(DEVICE)
     
     texts = [
@@ -45,34 +46,31 @@ def trained_sae_setup():
     dataset = TextSnippetDataset(hf_dataset, store_dir / "dataset_cache")
     
     # Save activations
-    store = LocalStore(store_dir)
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         dataset,
         layer_signature=LAYER_SIGNATURE,
         run_name=RUN_ID,
-        store=store,
         batch_size=2,
         autocast=False,
     )
     
-    # Get dimensions and create SAE
-    first_batch = store.get_run_batch(RUN_ID, 0)
+    # Get dimensions and create TopKSAE
+    first_batch = lm.store.get_run_batch(RUN_ID, 0)
     if isinstance(first_batch, dict):
         activations = first_batch["activations"]
     else:
         activations = first_batch[0]
     hidden_dim = activations.shape[-1]
     
-    sae = Autoencoder(
-        n_latents=hidden_dim * 2,
+    sae = TopKSae(
+        n_latents=hidden_dim * 4,
         n_inputs=hidden_dim,
-        activation="TopK_4",
-        tied=False,
+        k=4,
         device=DEVICE,
     )
     
-    # Quick training
-    config = SAETrainingConfig(
+    # Quick training using SaeTrainer
+    config = SaeTrainingConfig(
         epochs=2,
         batch_size=2,
         lr=1e-3,
@@ -81,12 +79,11 @@ def trained_sae_setup():
         max_batches_per_epoch=2,
         verbose=False,
     )
-    trainer = SAETrainer(sae, store, RUN_ID, config)
-    trainer.train()
+    sae.train(store, RUN_ID, LAYER_SIGNATURE, config)
     
     # Save SAE
-    sae_path = store_dir / "test_sae.pt"
-    sae.save(name="test_sae", path=store_dir)
+    sae_path = store_dir / "topk_sae_model.pt"
+    sae.save(name="topk_sae_model", path=store_dir)
     
     yield {
         "temp_dir": temp_dir,
@@ -120,35 +117,47 @@ def test_e2e_sae_attachment_and_text_tracking(trained_sae_setup):
     
     # Step 1: Load language model
     print("\n📥 Loading language model...")
-    model = LanguageModel.from_huggingface(MODEL_ID)
+    import tempfile
+    from pathlib import Path
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / "store")
+    model = LanguageModel.from_huggingface(MODEL_ID, store=store)
     model.model.to(DEVICE)
     
     assert model.model is not None
     print(f"✅ Model loaded: {model.model_id}")
     
-    # Step 2: Load trained SAE
-    print("\n📥 Loading trained SAE...")
+    # Step 2: Load trained TopKSAE
+    print("\n📥 Loading trained TopKSAE...")
     assert SAE_PATH.exists(), "SAE model not found"
     
-    sae, normalize, target_norm, mean = Autoencoder.load_model(SAE_PATH)
-    sae.to(DEVICE)
+    # Load TopKSAE directly
+    sae_hook = TopKSae.load(SAE_PATH)
+    sae_hook.sae_engine.to(DEVICE)  # Move underlying engine to device
     
-    assert sae.context.n_latents == setup["n_latents"]
-    print(f"✅ SAE loaded: {setup['hidden_dim']} → {setup['n_latents']} → {setup['hidden_dim']}")
+    print(f"✅ TopKSAE loaded: {setup['hidden_dim']} → {sae_hook.context.n_latents} → {setup['hidden_dim']} (k={sae_hook.k})")
     
-    # Step 3: Enable text tracking
+    # Step 3: Register SAE hook on language model layer
+    print("\n🔗 Registering SAE hook on language model...")
+    model.layers.register_hook(LAYER_SIGNATURE, sae_hook)
+    sae_hook.context.lm = model
+    sae_hook.context.lm_layer_signature = LAYER_SIGNATURE
+    print(f"✅ SAE hook registered on layer: {LAYER_SIGNATURE}")
+    
+    # Step 4: Enable text tracking
     print("\n🔗 Enabling text tracking...")
-    sae.context.lm = model
-    sae.context.lm_layer_signature = LAYER_SIGNATURE
-    
     TOP_K = 5
-    sae.enable_text_tracking(k=TOP_K, negative=False)
+    sae_hook.context.text_tracking_enabled = True
+    sae_hook.context.text_tracking_k = TOP_K
+    sae_hook.context.text_tracking_negative = False
+    sae_hook.concepts.enable_text_tracking()
     
-    assert sae.context.text_tracking_enabled
-    assert sae.context.text_tracking_k == TOP_K
+    assert sae_hook.context.text_tracking_enabled
+    assert sae_hook.context.text_tracking_k == TOP_K
+    assert sae_hook._text_tracking_enabled, "Text tracking should be enabled on SAE hook"
     print(f"✅ Text tracking enabled: top-{TOP_K} texts per neuron")
     
-    # Step 4: Run inference to collect top texts
+    # Step 5: Run inference to collect top texts
     print("\n🔍 Running inference to collect top texts...")
     test_texts = [
         "The happy family played together in the park.",
@@ -169,13 +178,13 @@ def test_e2e_sae_attachment_and_text_tracking(trained_sae_setup):
     
     print(f"✅ Processed {len(test_texts)} texts")
     
-    # Step 5: Verify texts were collected
+    # Step 6: Verify texts were collected
     print("\n📊 Verifying collected texts...")
     neurons_with_texts = 0
     total_texts_collected = 0
     
     for neuron_idx in range(setup["n_latents"]):
-        top_texts = sae.concepts.get_top_texts_for_neuron(neuron_idx)
+        top_texts = sae_hook.concepts.get_top_texts_for_neuron(neuron_idx)
         if top_texts:
             neurons_with_texts += 1
             total_texts_collected += len(top_texts)
@@ -192,10 +201,10 @@ def test_e2e_sae_attachment_and_text_tracking(trained_sae_setup):
     print(f"✅ Collected texts for {neurons_with_texts}/{setup['n_latents']} neurons")
     print(f"📊 Total texts collected: {total_texts_collected}")
     
-    # Step 6: Export and verify
+    # Step 7: Export and verify
     print("\n💾 Exporting top texts...")
     output_path = Path(setup["temp_dir"]) / "top_texts.json"
-    sae.concepts.export_top_texts_to_json(str(output_path))
+    sae_hook.concepts.export_top_texts_to_json(str(output_path))
     
     assert output_path.exists(), "Top texts JSON was not created"
     
@@ -208,10 +217,10 @@ def test_e2e_sae_attachment_and_text_tracking(trained_sae_setup):
     assert len(exported_data) > 0
     print(f"✅ Exported top texts to: {output_path}")
     
-    # Step 7: Verify specific neuron's top texts
+    # Step 8: Verify specific neuron's top texts
     print("\n🔍 Examining collected texts...")
     for neuron_idx in range(min(3, setup["n_latents"])):
-        top_texts = sae.concepts.get_top_texts_for_neuron(neuron_idx)
+        top_texts = sae_hook.concepts.get_top_texts_for_neuron(neuron_idx)
         if top_texts:
             print(f"\n🧠 Neuron {neuron_idx}: {len(top_texts)} texts")
             for j, nt in enumerate(top_texts[:2]):

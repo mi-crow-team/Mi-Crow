@@ -1,8 +1,11 @@
 import pytest
+from pathlib import Path
+import tempfile
 
 from torch import nn
 
 from amber.core.language_model import LanguageModel
+from amber.store.local_store import LocalStore
 
 
 class DummyModel(nn.Module):
@@ -30,7 +33,9 @@ def test_tokenize_adds_pad_token_via_eos_when_missing_pad(monkeypatch):
             return {"input_ids": [], "attention_mask": []}
 
     tok = Tok()
-    lm = LanguageModel(model=DummyModel(), tokenizer=tok)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / "store")
+    lm = LanguageModel(model=DummyModel(), tokenizer=tok, store=store)
 
     out = lm.tokenize(["a", "b"], padding=True, return_tensors="pt")
     assert hasattr(tok, "pad_token") and tok.pad_token == tok.eos_token
@@ -56,7 +61,9 @@ def test_tokenize_adds_new_pad_and_resizes_embeddings_when_no_eos(monkeypatch):
 
     tok = Tok()
     model = DummyModel()
-    lm = LanguageModel(model=model, tokenizer=tok)
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / "store")
+    lm = LanguageModel(model=model, tokenizer=tok, store=store)
 
     # Force padding True to trigger pad-token logic
     _ = lm.tokenize(["x", "y"], padding=True, return_tensors="pt")
@@ -74,7 +81,9 @@ def test_tokenize_batch_encode_plus_and_encode_plus_fallbacks():
         def batch_encode_plus(self, texts, **kwargs):
             return {"input_ids": [[1], [2]], "attention_mask": [[1], [1]]}
 
-    lm1 = LanguageModel(model=DummyModel(), tokenizer=NonCallableTok())
+    temp_dir = tempfile.mkdtemp()
+    store1 = LocalStore(Path(temp_dir) / "store1")
+    lm1 = LanguageModel(model=DummyModel(), tokenizer=NonCallableTok(), store=store1)
     out1 = lm1.tokenize(["a", "b"], padding=True)
     assert "input_ids" in out1
 
@@ -89,7 +98,9 @@ def test_tokenize_batch_encode_plus_and_encode_plus_fallbacks():
             assert return_tensors == "pt"
             return {"input_ids": [[1], [1]], "attention_mask": [[1], [1]]}
 
-    lm2 = LanguageModel(model=DummyModel(), tokenizer=EncodePlusTok())
+    temp_dir2 = tempfile.mkdtemp()
+    store2 = LocalStore(Path(temp_dir2) / "store2")
+    lm2 = LanguageModel(model=DummyModel(), tokenizer=EncodePlusTok(), store=store2)
     out2 = lm2.tokenize(["a", "b"], padding=True, return_tensors="pt")
     assert "input_ids" in out2
 
@@ -97,6 +108,8 @@ def test_tokenize_batch_encode_plus_and_encode_plus_fallbacks():
 def test_tokenize_raises_when_not_usable():
     class BadTok:
         pad_token = "<pad>"
-    lm = LanguageModel(model=DummyModel(), tokenizer=BadTok())
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / "store")
+    lm = LanguageModel(model=DummyModel(), tokenizer=BadTok(), store=store)
     with pytest.raises(TypeError):
         lm.tokenize(["a"]) 

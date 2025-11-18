@@ -15,6 +15,7 @@ dependencies = [
     "accelerate>=1.10.1",
     "datasets>=4.0.0",
     "notebook>=7.4.7",
+    "overcomplete",
     "pre-commit>=4.3.0",
     "setuptools-scm>=8",
     "torch>=2.8.0",
@@ -22,6 +23,7 @@ dependencies = [
     "transformers>=4.56.1",
     "safetensors>=0.4.5",
     "wandb>=0.22.1",
+    "pytest>=8.4.2",
 ]
 dynamic = ["version"]
 
@@ -46,7 +48,7 @@ docs = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--maxfail=1 -q --cov=amber --cov-report=term-missing --cov-report=xml --cov-fail-under=85"
+addopts = "--maxfail=1 -q --cov=amber --cov-report=term-missing --cov-report=xml --cov-fail-under=90"
 testpaths = ["tests"]
 pythonpath = ["src"]
 
@@ -58,7 +60,7 @@ parallel = true
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
-fail_under = 85
+fail_under = 90
 
 [tool.coverage.xml]
 output = "coverage.xml"
@@ -122,3 +124,8 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 docstring-code-format = false
 docstring-code-line-length = "dynamic"
+
+[dependency-groups]
+dev = [
+    "pytest-cov>=7.0.0",
+]

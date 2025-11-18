@@ -1,5 +1,6 @@
 from typing import Dict, Tuple, Any
 
+import pytest
 import torch
 
 from amber.core.language_model_activations import LanguageModelActivations
@@ -14,7 +15,7 @@ class _FakeLayers:
         self.layer_names = layer_names or ["L0", "L1"]
         self.raise_on_unregister = raise_on_unregister
 
-    def register_hook(self, layer_signature: str | int, detector: Any) -> str:
+    def register_hook(self, layer_signature: str | int, detector: Any, hook_type: Any = None) -> str:
         self._next_id += 1
         hook_id = f"h{self._next_id}"
         self.id_to_detector[hook_id] = detector
@@ -35,12 +36,21 @@ class _FakeLanguageModel:
     def __init__(self, layers: _FakeLayers):
         self.layers = layers
 
-    def _inference(self, texts, *, autocast=True, autocast_dtype=None, discard_output=True, save_inputs=False, tok_kwargs=None):
+    def _inference(self, texts, *, tok_kwargs=None, autocast=True, autocast_dtype=None, with_controllers=True):
         # Simulate that each registered detector captured some tensor
         for detector in list(self.layers.id_to_detector.values()):
-            # ActivationSaverDetector exposes captured_activations via method, but we can set attribute directly
-            setattr(detector, "captured_activations", torch.ones(2, 3))
-        return None
+            # LayerActivationDetector stores activations in _tensor_metadata['activations'] (one tensor per batch)
+            if not hasattr(detector, '_tensor_metadata'):
+                detector.tensor_metadata = {}
+            if not hasattr(detector, '_tensor_batches'):
+                detector.tensor_batches = {}
+            tensor = torch.ones(2, 3)
+            detector.tensor_metadata['activations'] = tensor
+            if 'activations' not in detector.tensor_batches:
+                detector.tensor_batches['activations'] = []
+            detector.tensor_batches['activations'].append(tensor)
+        # Return (output, enc) tuple
+        return torch.ones(2, 3), {"input_ids": torch.ones(2, 3), "attention_mask": torch.ones(2, 3)}
 
 
 class _FakeContext:
@@ -48,35 +58,6 @@ class _FakeContext:
         self.language_model = language_model
         self.model = None
         self.store = None
-
-
-def test_capture_activations_returns_tensor_and_cleans_up():
-    layers = _FakeLayers()
-    lm = _FakeLanguageModel(layers)
-    ctx = _FakeContext(lm)
-    acts = LanguageModelActivations(ctx)
-
-    out = acts.capture_activations(["hello"], layer_signature="L0", autocast=False)
-    assert isinstance(out, torch.Tensor)
-    assert out.shape == (2, 3)
-    # Hook must be unregistered
-    assert len(layers.unregister_calls) == 1
-
-
-def test_capture_activations_all_layers_collects_for_each_layer_and_cleans_up():
-    layers = _FakeLayers(layer_names=["A", "B", 2])
-    lm = _FakeLanguageModel(layers)
-    ctx = _FakeContext(lm)
-    acts = LanguageModelActivations(ctx)
-
-    out = acts.capture_activations_all_layers(["x"], layer_signatures=None, autocast=False)
-    # Should have entries for each layer name
-    assert set(out.keys()) == {"A", "B", 2}
-    for v in out.values():
-        assert isinstance(v, torch.Tensor)
-        assert v.shape == (2, 3)
-    # All hooks must be unregistered
-    assert len(layers.unregister_calls) == 3
 
 
 def test_cleanup_detector_swallows_errors():

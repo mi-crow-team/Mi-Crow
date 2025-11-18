@@ -1,13 +1,19 @@
 import logging
 from typing import Sequence, Any
+import tempfile
+from pathlib import Path
 
 import torch
 from torch import nn
 from datasets import Dataset
+import tempfile
+from pathlib import Path
 
 from amber.core.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
-from amber.store import LocalStore
+from amber.store.local_store import LocalStore
+import tempfile
+from pathlib import Path
 
 
 class FakeTokenizer:
@@ -48,7 +54,8 @@ def test_verbose_logging_output(tmp_path, caplog):
     """Test that verbose logging produces expected log messages."""
     tok = FakeTokenizer()
     net = SimpleLM()
-    lm = LanguageModel(model=net, tokenizer=tok)
+    store = LocalStore(tmp_path/"store")
+    lm = LanguageModel(model=net, tokenizer=tok, store=store)
 
     # pick the linear layer by name
     target_name = None
@@ -62,11 +69,10 @@ def test_verbose_logging_output(tmp_path, caplog):
     store = LocalStore(tmp_path/"store")
 
     with caplog.at_level(logging.INFO):
-        lm.activations.infer_and_save(
+        lm.activations.save_activations_dataset(
             ds,
             layer_signature=target_name,
             run_name="vrun",
-            store=store,
             batch_size=2,
             autocast=False,
             verbose=True,
@@ -74,12 +80,12 @@ def test_verbose_logging_output(tmp_path, caplog):
         )
     
     # Ensure some verbose logs present
-    assert any("Starting save_model_activations" in rec.message for rec in caplog.records)
+    assert any("Starting save_activations_dataset" in rec.message for rec in caplog.records)
     assert any("Saved batch" in rec.message for rec in caplog.records)
-    assert any("Completed save_model_activations" in rec.message for rec in caplog.records)
+    assert any("Completed save_activations_dataset" in rec.message for rec in caplog.records)
 
     # Validate payload exists
     batches = store.list_run_batches("vrun")
     assert batches == [0, 1]
     b0 = store.get_run_batch("vrun", 0)
-    assert set(b0.keys()) >= {"activations", "input_ids", "attention_mask"}
+    assert "activations" in b0

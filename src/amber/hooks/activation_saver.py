@@ -2,24 +2,24 @@ from typing import Any, TYPE_CHECKING
 import torch
 
 from amber.hooks.detector import Detector
-from amber.hooks.hook import HookType
+from amber.hooks.hook import HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
 
 if TYPE_CHECKING:
     from torch import nn
 
 
-class ActivationSaverDetector(Detector):
+class LayerActivationDetector(Detector):
     """
     Detector hook that captures and saves activations during inference.
     
     This detector extracts activations from layer outputs and stores them
     for later use (e.g., saving to disk, further analysis).
     """
-    
+
     def __init__(
-        self,
-        layer_signature: str | int,
-        hook_id: str | None = None
+            self,
+            layer_signature: str | int,
+            hook_id: str | None = None
     ):
         """
         Initialize the activation saver detector.
@@ -29,14 +29,18 @@ class ActivationSaverDetector(Detector):
             hook_id: Unique identifier for this hook
         """
         super().__init__(
-            layer_signature=layer_signature,
             hook_type=HookType.FORWARD,
             hook_id=hook_id,
-            store=None
+            store=None,
+            layer_signature=layer_signature
         )
-        self.captured_activations: torch.Tensor | None = None
-    
-    def process_activations(self, module: "nn.Module", inputs: tuple, output: Any) -> None:
+
+    def process_activations(
+            self,
+            module: torch.nn.Module,
+            input: HOOK_FUNCTION_INPUT,
+            output: HOOK_FUNCTION_OUTPUT
+    ) -> None:
         """
         Extract and store activations from output.
         
@@ -59,20 +63,21 @@ class ActivationSaverDetector(Detector):
                 maybe = getattr(output, "last_hidden_state")
                 if isinstance(maybe, torch.Tensor):
                     tensor = maybe
-        
+
         if tensor is not None:
-            self.captured_activations = tensor.detach().to("cpu")
-    
+            tensor_cpu = tensor.detach().to("cpu")
+            # Store current batch's tensor (overwrites previous)
+            self.tensor_metadata['activations'] = tensor_cpu
+
     def get_captured(self) -> torch.Tensor | None:
         """
-        Get the captured activations.
+        Get the captured activations from the current batch.
         
         Returns:
-            The captured activation tensor or None if no activations captured yet
+            The captured activation tensor from the current batch or None if no activations captured yet
         """
-        return self.captured_activations
-    
-    def clear_captured(self) -> None:
-        """Clear captured activations to free memory."""
-        self.captured_activations = None
+        return self.tensor_metadata.get('activations')
 
+    def clear_captured(self) -> None:
+        """Clear captured activations for current batch."""
+        self.tensor_metadata.pop('activations', None)

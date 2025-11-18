@@ -1,13 +1,15 @@
+from pathlib import Path
+import tempfile
 """Test advanced functionality in LanguageModelActivations."""
 
-import pytest
 import torch
 from torch import nn
 from datasets import Dataset
 from amber.core.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
-from amber.store import LocalStore
-from unittest.mock import Mock, patch
+from amber.store.local_store import LocalStore
+import tempfile
+from pathlib import Path
 
 
 class MockTokenizer:
@@ -100,9 +102,8 @@ def test_metadata_extraction_with_cache_dir_error(tmp_path):
     
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
-    
-    store = LocalStore(tmp_path)
+    store = LocalStore(tmp_path / 'store')
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
@@ -114,21 +115,19 @@ def test_metadata_extraction_with_cache_dir_error(tmp_path):
         raise AttributeError("cache_dir not accessible")
     
     # Patch the cache_dir property
-    import types
     ds.cache_dir = property(error_cache_dir)
     
     # Should handle cache_dir error gracefully
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         ds,
         layer_signature=valid_layer,
         run_name="cache_error_test",
-        store=store,
         batch_size=2,
         verbose=True,
     )
     
     # Should still complete despite errors
-    batches = store.list_run_batches("cache_error_test")
+    batches = lm.store.list_run_batches("cache_error_test")
     assert len(batches) > 0
 
 
@@ -139,66 +138,62 @@ def test_metadata_extraction_with_model_name_error(tmp_path):
     
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
+    store = LocalStore(tmp_path / 'store')
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     # Remove model_name attribute to simulate error
     if hasattr(lm, 'model_name'):
         delattr(lm, 'model_name')
-    
-    store = LocalStore(tmp_path)
     
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
     valid_layer = layer_names[0] if layer_names else "linear"
     
     # Should handle missing model_name gracefully
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         ds,
         layer_signature=valid_layer,
         run_name="model_name_error_test",
-        store=store,
         batch_size=2,
         verbose=True,
     )
     
     # Should still complete despite errors
-    batches = store.list_run_batches("model_name_error_test")
+    batches = lm.store.list_run_batches("model_name_error_test")
     assert len(batches) > 0
 
 
 def test_metadata_storage_error_handling(tmp_path):
-    """Test error handling when metadata storage fails."""
+    """Test error handling when metadata store fails."""
     base = Dataset.from_dict({"text": ["sample 1", "sample 2", "sample 3"]})
     ds = TextSnippetDataset(base, cache_dir=tmp_path / "cache")
     
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
-    
-    store = LocalStore(tmp_path)
+    store = LocalStore(tmp_path / 'store')
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     # Mock put_run_meta to raise an error
     def error_put_meta(run_name, meta):
-        raise RuntimeError("Metadata storage failed")
+        raise RuntimeError("Metadata store failed")
     
-    store.put_run_meta = error_put_meta
+    lm.store.put_run_meta = error_put_meta
     
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
     valid_layer = layer_names[0] if layer_names else "linear"
     
-    # Should handle metadata storage error gracefully
-    lm.activations.infer_and_save(
+    # Should handle metadata store error gracefully
+    lm.activations.save_activations_dataset(
         ds,
         layer_signature=valid_layer,
         run_name="metadata_error_test",
-        store=store,
         batch_size=2,
         verbose=True,
     )
     
     # Should still complete despite errors
-    batches = store.list_run_batches("metadata_error_test")
+    batches = lm.store.list_run_batches("metadata_error_test")
     assert len(batches) > 0
 
 
@@ -209,26 +204,24 @@ def test_activation_capture_edge_cases(tmp_path):
     
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
-    
-    store = LocalStore(tmp_path)
+    store = LocalStore(tmp_path / 'store')
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
     valid_layer = layer_names[0] if layer_names else "linear"
     
     # Test with different batch sizes and edge cases
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         ds,
         layer_signature=valid_layer,
         run_name="edge_case_test",
-        store=store,
         batch_size=1,  # Small batch size
         verbose=True,
     )
     
     # Should complete successfully
-    batches = store.list_run_batches("edge_case_test")
+    batches = lm.store.list_run_batches("edge_case_test")
     assert len(batches) > 0
 
 
@@ -241,27 +234,25 @@ def test_verbose_logging_with_errors(tmp_path, caplog):
     
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
-    
-    store = LocalStore(tmp_path)
+    store = LocalStore(tmp_path / 'store')
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
     valid_layer = layer_names[0] if layer_names else "linear"
     
     with caplog.at_level(logging.INFO):
-        lm.activations.infer_and_save(
+        lm.activations.save_activations_dataset(
             ds,
             layer_signature=valid_layer,
             run_name="verbose_error_test",
-            store=store,
             batch_size=2,
             verbose=True,
         )
     
     log_messages = [rec.message for rec in caplog.records]
-    assert any("Starting save_model_activations" in msg for msg in log_messages)
-    assert any("Completed save_model_activations" in msg for msg in log_messages)
+    assert any("Starting save_activations_dataset" in msg for msg in log_messages)
+    assert any("Completed save_activations_dataset" in msg for msg in log_messages)
 
 
 def test_layer_signature_edge_cases(tmp_path):
@@ -271,9 +262,8 @@ def test_layer_signature_edge_cases(tmp_path):
     
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
-    
-    store = LocalStore(tmp_path)
+    store = LocalStore(tmp_path / 'store')
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     # Test with different layer signatures
     layer_names = lm.layers.get_layer_names()
@@ -282,11 +272,10 @@ def test_layer_signature_edge_cases(tmp_path):
     
     for i, signature in enumerate(layer_signatures):
         try:
-            lm.activations.infer_and_save(
+            lm.activations.save_activations_dataset(
                 ds,
                 layer_signature=signature,
                 run_name=f"edge_case_test_{i}",
-                store=store,
                 batch_size=2,
                 verbose=True,
             )
@@ -298,7 +287,7 @@ def test_layer_signature_edge_cases(tmp_path):
     all_batches = []
     for i in range(len(layer_signatures)):
         try:
-            batches = store.list_run_batches(f"edge_case_test_{i}")
+            batches = lm.store.list_run_batches(f"edge_case_test_{i}")
             all_batches.extend(batches)
         except Exception:
             pass
@@ -312,9 +301,8 @@ def test_activation_capture_with_different_shapes(tmp_path):
     
     model = MockModel()
     tokenizer = MockTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tokenizer)
-    
-    store = LocalStore(tmp_path)
+    store = LocalStore(tmp_path / 'store')
+    lm = LanguageModel(model=model, tokenizer=tokenizer, store=store)
     
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
@@ -322,15 +310,14 @@ def test_activation_capture_with_different_shapes(tmp_path):
     
     # Test with different batch sizes
     for batch_size in [1, 2, 4]:
-        lm.activations.infer_and_save(
+        lm.activations.save_activations_dataset(
             ds,
             layer_signature=valid_layer,
             run_name=f"shape_test_{batch_size}",
-            store=store,
             batch_size=batch_size,
             verbose=False,
         )
         
         # Should complete successfully
-        batches = store.list_run_batches(f"shape_test_{batch_size}")
+        batches = lm.store.list_run_batches(f"shape_test_{batch_size}")
         assert len(batches) > 0

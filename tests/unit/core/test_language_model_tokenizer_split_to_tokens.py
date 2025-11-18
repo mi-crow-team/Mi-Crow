@@ -1,12 +1,21 @@
+from amber.store.local_store import LocalStore
+from pathlib import Path
+import tempfile
 """Test split_to_tokens method in LanguageModelTokenizer."""
 
 import pytest
 import torch
 from torch import nn
+import tempfile
+from pathlib import Path
+from amber.store.local_store import LocalStore
 
 from amber.core.language_model import LanguageModel
 from amber.core.language_model_tokenizer import LanguageModelTokenizer
 from amber.core.language_model_context import LanguageModelContext
+import tempfile
+from pathlib import Path
+from amber.store.local_store import LocalStore
 
 
 class TinyConfig:
@@ -129,7 +138,9 @@ def test_split_to_tokens_single_string_with_tokenize_method():
     """Test split_to_tokens with single string using tokenize() method."""
     model = TinyLM()
     tok = TokenizeMethodTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tok)  # type: ignore[arg-type]
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tok, store=store)  # type: ignore[arg-type]
     
     result = lm.lm_tokenizer.split_to_tokens("hello world")
     assert result == ["hello", "world"]
@@ -141,7 +152,9 @@ def test_split_to_tokens_single_string_with_special_tokens():
     """Test split_to_tokens with special tokens enabled."""
     model = TinyLM()
     tok = TokenizeMethodTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tok)  # type: ignore[arg-type]
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tok, store=store)  # type: ignore[arg-type]
     
     result = lm.lm_tokenizer.split_to_tokens("hello world", add_special_tokens=True)
     assert result == ["<bos>", "hello", "world", "<eos>"]
@@ -151,7 +164,9 @@ def test_split_to_tokens_sequence_strings():
     """Test split_to_tokens with sequence of strings."""
     model = TinyLM()
     tok = TokenizeMethodTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tok)  # type: ignore[arg-type]
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tok, store=store)  # type: ignore[arg-type]
     
     result = lm.lm_tokenizer.split_to_tokens(["hello world", "how are you"])
     assert len(result) == 2
@@ -165,7 +180,9 @@ def test_split_to_tokens_sequence_with_special_tokens():
     """Test split_to_tokens with sequence and special tokens."""
     model = TinyLM()
     tok = TokenizeMethodTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tok)  # type: ignore[arg-type]
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tok, store=store)  # type: ignore[arg-type]
     
     result = lm.lm_tokenizer.split_to_tokens(["hello", "world"], add_special_tokens=True)
     assert len(result) == 2
@@ -177,7 +194,9 @@ def test_split_to_tokens_with_encode_convert_fallback():
     """Test split_to_tokens using encode() + convert_ids_to_tokens() fallback."""
     model = TinyLM()
     tok = EncodeConvertTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tok)  # type: ignore[arg-type]
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tok, store=store)  # type: ignore[arg-type]
     
     result = lm.lm_tokenizer.split_to_tokens("hello world")
     assert result == ["hello", "world"]
@@ -187,7 +206,9 @@ def test_split_to_tokens_with_encode_plus_convert_fallback():
     """Test split_to_tokens using encode_plus() + convert_ids_to_tokens() fallback."""
     model = TinyLM()
     tok = EncodePlusConvertTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tok)  # type: ignore[arg-type]
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tok, store=store)  # type: ignore[arg-type]
     
     result = lm.lm_tokenizer.split_to_tokens("hello world")
     assert result == ["hello", "world"]
@@ -197,7 +218,9 @@ def test_split_to_tokens_with_whitespace_fallback():
     """Test split_to_tokens falling back to whitespace split."""
     model = TinyLM()
     tok = WhitespaceFallbackTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tok)  # type: ignore[arg-type]
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tok, store=store)  # type: ignore[arg-type]
     
     result = lm.lm_tokenizer.split_to_tokens("hello world")
     assert result == ["hello", "world"]
@@ -207,7 +230,9 @@ def test_split_to_tokens_with_failing_tokenizer():
     """Test split_to_tokens when all tokenizer methods fail - should fall back to whitespace."""
     model = TinyLM()
     tok = FailingTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tok)  # type: ignore[arg-type]
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tok, store=store)  # type: ignore[arg-type]
     
     result = lm.lm_tokenizer.split_to_tokens("hello world")
     assert result == ["hello", "world"]
@@ -217,7 +242,9 @@ def test_split_to_tokens_empty_string():
     """Test split_to_tokens with empty string."""
     model = TinyLM()
     tok = TokenizeMethodTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tok)  # type: ignore[arg-type]
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tok, store=store)  # type: ignore[arg-type]
     
     result = lm.lm_tokenizer.split_to_tokens("")
     assert result == []
@@ -227,7 +254,9 @@ def test_split_to_tokens_empty_strings_sequence():
     """Test split_to_tokens with sequence containing empty strings."""
     model = TinyLM()
     tok = TokenizeMethodTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tok)  # type: ignore[arg-type]
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tok, store=store)  # type: ignore[arg-type]
     
     result = lm.lm_tokenizer.split_to_tokens(["", "hello"])
     assert len(result) == 2
@@ -239,7 +268,9 @@ def test_split_to_tokens_single_word():
     """Test split_to_tokens with single word."""
     model = TinyLM()
     tok = TokenizeMethodTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tok)  # type: ignore[arg-type]
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tok, store=store)  # type: ignore[arg-type]
     
     result = lm.lm_tokenizer.split_to_tokens("hello")
     assert result == ["hello"]
@@ -249,7 +280,9 @@ def test_split_to_tokens_whitespace_only():
     """Test split_to_tokens with whitespace-only string."""
     model = TinyLM()
     tok = WhitespaceFallbackTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tok)  # type: ignore[arg-type]
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tok, store=store)  # type: ignore[arg-type]
     
     result = lm.lm_tokenizer.split_to_tokens("   ")
     # Should return empty list after split and filter
@@ -260,7 +293,9 @@ def test_split_to_tokens_encode_convert_with_special_tokens():
     """Test encode+convert fallback with special tokens."""
     model = TinyLM()
     tok = EncodeConvertTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tok)  # type: ignore[arg-type]
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tok, store=store)  # type: ignore[arg-type]
     
     result = lm.lm_tokenizer.split_to_tokens("hello world", add_special_tokens=True)
     assert result == ["<bos>", "hello", "world", "<eos>"]
@@ -270,7 +305,9 @@ def test_split_to_tokens_encode_plus_convert_with_special_tokens():
     """Test encode_plus+convert fallback with special tokens."""
     model = TinyLM()
     tok = EncodePlusConvertTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tok)  # type: ignore[arg-type]
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tok, store=store)  # type: ignore[arg-type]
     
     result = lm.lm_tokenizer.split_to_tokens("hello world", add_special_tokens=True)
     assert result == ["<bos>", "hello", "world", "<eos>"]
@@ -280,7 +317,9 @@ def test_split_to_tokens_sequence_mixed_lengths():
     """Test split_to_tokens with sequence of strings of different lengths."""
     model = TinyLM()
     tok = TokenizeMethodTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tok)  # type: ignore[arg-type]
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=tok, store=store)  # type: ignore[arg-type]
     
     result = lm.lm_tokenizer.split_to_tokens(["hello", "hello world", "how are you"])
     assert len(result) == 3
@@ -292,7 +331,9 @@ def test_split_to_tokens_sequence_mixed_lengths():
 def test_split_to_tokens_with_none_tokenizer():
     """Test split_to_tokens when tokenizer from LanguageModelContext is None."""
     model = TinyLM()
-    lm = LanguageModel(model=model, tokenizer=None)  # type: ignore[arg-type]
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / 'store')
+    lm = LanguageModel(model=model, tokenizer=None, store=store)  # type: ignore[arg-type]
     
     # Should fall back to whitespace split
     result = lm.lm_tokenizer.split_to_tokens("hello world")

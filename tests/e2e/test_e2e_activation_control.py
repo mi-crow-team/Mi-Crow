@@ -1,7 +1,7 @@
 """
 End-to-end test for activation control with custom controllers.
 
-Based on examples/03_load_and_manipulate_concepts.ipynb - demonstrates
+Based on examples/03_load_concepts.ipynb - demonstrates
 creating custom controllers to manipulate model activations during inference.
 """
 import pytest
@@ -10,6 +10,7 @@ from typing import Any
 
 from amber.core.language_model import LanguageModel
 from amber.hooks import Controller, HookType
+from amber.store.local_store import LocalStore
 
 
 class SimpleActivationController(Controller):
@@ -19,7 +20,7 @@ class SimpleActivationController(Controller):
     """
     
     def __init__(self, layer_signature, scale_factor=1.0, hook_id=None):
-        super().__init__(layer_signature, HookType.FORWARD, hook_id)
+        super().__init__(hook_type=HookType.FORWARD, hook_id=hook_id, layer_signature=layer_signature)
         self.scale_factor = scale_factor
     
     def modify_activations(self, module, inputs, output):
@@ -41,7 +42,7 @@ class ActivationCapturingController(Controller):
     """
     
     def __init__(self, layer_signature, hook_id=None):
-        super().__init__(layer_signature, HookType.FORWARD, hook_id)
+        super().__init__(hook_type=HookType.FORWARD, hook_id=hook_id, layer_signature=layer_signature)
         self.captured_inputs = []
         self.captured_outputs = []
         self.captured_modified = []
@@ -83,7 +84,11 @@ def test_e2e_activation_control_amplification():
     
     # Step 1: Load language model
     print("\n📥 Loading language model...")
-    model = LanguageModel.from_huggingface(MODEL_ID)
+    import tempfile
+    from pathlib import Path
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / "store")
+    model = LanguageModel.from_huggingface(MODEL_ID, store=store)
     model.model.to(DEVICE)
     
     assert model.model is not None
@@ -165,7 +170,11 @@ def test_e2e_activation_control_with_controllers_parameter():
     DEVICE = "cpu"
     
     print("\n📥 Loading language model...")
-    model = LanguageModel.from_huggingface(MODEL_ID)
+    import tempfile
+    from pathlib import Path
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / "store")
+    model = LanguageModel.from_huggingface(MODEL_ID, store=store)
     model.model.to(DEVICE)
     
     print("\n🎛️ Creating and registering capturing controller...")
@@ -230,7 +239,11 @@ def test_e2e_multiple_controllers():
     DEVICE = "cpu"
     
     print("\n📥 Loading language model...")
-    model = LanguageModel.from_huggingface(MODEL_ID)
+    import tempfile
+    from pathlib import Path
+    temp_dir = tempfile.mkdtemp()
+    store = LocalStore(Path(temp_dir) / "store")
+    model = LanguageModel.from_huggingface(MODEL_ID, store=store)
     model.model.to(DEVICE)
     
     print("\n🎛️ Creating multiple controllers...")

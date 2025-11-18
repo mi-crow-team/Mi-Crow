@@ -1,12 +1,18 @@
 from typing import Sequence, Any
+import tempfile
+from pathlib import Path
 
 import torch
 from torch import nn
 from datasets import Dataset
+import tempfile
+from pathlib import Path
 
 from amber.core.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
-from amber.store import LocalStore
+from amber.store.local_store import LocalStore
+import tempfile
+from pathlib import Path
 
 
 class FakeTokenizer:
@@ -49,7 +55,8 @@ def test_tuple_output_handling(tmp_path):
     """Test that tuple outputs from model layers are handled correctly."""
     tok = FakeTokenizer()
     net = TupleOutLM()
-    lm = LanguageModel(model=net, tokenizer=tok)
+    store = LocalStore(tmp_path/"store")
+    lm = LanguageModel(model=net, tokenizer=tok, store=store)
 
     # pick the linear layer by name
     target_name = None
@@ -62,11 +69,10 @@ def test_tuple_output_handling(tmp_path):
     ds = make_ds(["ab", "cde", "f"], tmp_path/"cache")
     store = LocalStore(tmp_path/"store")
 
-    lm.activations.infer_and_save(
+    lm.activations.save_activations_dataset(
         ds,
         layer_signature=target_name,
         run_name="tuple_run",
-        store=store,
         batch_size=2,
         autocast=False,
     )
@@ -75,4 +81,4 @@ def test_tuple_output_handling(tmp_path):
     batches = store.list_run_batches("tuple_run")
     assert batches == [0, 1]
     b0 = store.get_run_batch("tuple_run", 0)
-    assert set(b0.keys()) >= {"activations", "input_ids", "attention_mask"}
+    assert "activations" in b0

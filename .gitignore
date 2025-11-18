@@ -81,6 +81,10 @@ htmlcov/
 .junie
 activations_store
 cache
-store
 wandb
 outputs
+/store/
+/examples/store/
+/playground/store/
+/tests/unit/store
+/tests/store
