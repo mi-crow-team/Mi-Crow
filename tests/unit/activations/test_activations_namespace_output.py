@@ -1,15 +1,12 @@
 from types import SimpleNamespace
-import tempfile
 
 import torch
 from torch import nn
 from datasets import Dataset
-import tempfile
 
-from amber.core.language_model import LanguageModel
+from amber.language_model.language_model import LanguageModel
 from amber.store.local_store import LocalStore
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
-import tempfile
 
 
 class FakeTokenizer:
@@ -89,7 +86,6 @@ def test_save_activations_dataset_captures_last_hidden_state_and_defaults(tmp_pa
                         return "20250101_000000"
                 return _N()
 <<<<<<< Updated upstream
-    import amber.core.language_model_activations as _act_mod
 =======
     import amber.language_model.activations as _act_mod
 >>>>>>> Stashed changes

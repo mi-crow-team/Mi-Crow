@@ -1,9 +1,8 @@
-import pytest
 import torch
 
 
 def test_load_huggingface_model_tiny_gpt2(tmp_path):
-    from amber.core.language_model import LanguageModel
+    from amber.language_model.language_model import LanguageModel
     from amber.store.local_store import LocalStore
 
     model_id = "sshleifer/tiny-gpt2"

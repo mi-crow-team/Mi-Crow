@@ -4,7 +4,7 @@ from torch import nn
 from pathlib import Path
 import tempfile
 
-from amber.core.language_model import LanguageModel
+from amber.language_model.language_model import LanguageModel
 from amber.store.local_store import LocalStore
 
 
@@ -157,7 +157,7 @@ def test_register_pre_forward_hook_by_index(tiny_lm: LanguageModel):
 
 def test_pre_forward_hook_with_real_model():
     """Test pre-forward hooks with a more realistic model setup."""
-    from amber.core.language_model import LanguageModel
+    from amber.language_model.language_model import LanguageModel
     
     class SmallLM(nn.Module):
         def __init__(self):

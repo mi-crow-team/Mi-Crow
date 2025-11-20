@@ -1,14 +1,10 @@
 import torch
 from torch import nn
 from datasets import Dataset
-import tempfile
-from pathlib import Path
 
-from amber.core.language_model import LanguageModel
+from amber.language_model.language_model import LanguageModel
 from amber.store.local_store import LocalStore
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
-import tempfile
-from pathlib import Path
 
 
 class FakeTokenizer:

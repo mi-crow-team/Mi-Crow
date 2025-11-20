@@ -1,15 +1,8 @@
-from amber.store.local_store import LocalStore
-from pathlib import Path
-import tempfile
 """Additional tests to improve coverage for language_model.py."""
-import pytest
 import torch
 from torch import nn
-import tempfile
-from pathlib import Path
-from amber.store.local_store import LocalStore
 
-from amber.core.language_model import LanguageModel
+from amber.language_model.language_model import LanguageModel
 import tempfile
 from pathlib import Path
 from amber.store.local_store import LocalStore

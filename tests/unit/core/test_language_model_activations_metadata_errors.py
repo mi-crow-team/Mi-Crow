@@ -1,15 +1,11 @@
-from pathlib import Path
-import tempfile
 """Test advanced functionality in LanguageModelActivations."""
 
 import torch
 from torch import nn
 from datasets import Dataset
-from amber.core.language_model import LanguageModel
+from amber.language_model.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
 from amber.store.local_store import LocalStore
-import tempfile
-from pathlib import Path
 
 
 class MockTokenizer:

@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Sequence
 from amber.utils import get_logger
 
 if TYPE_CHECKING:
-    from amber.core.language_model import LanguageModel
+    pass
 
 logger = get_logger(__name__)
 

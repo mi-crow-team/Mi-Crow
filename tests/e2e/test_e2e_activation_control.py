@@ -6,9 +6,8 @@ creating custom controllers to manipulate model activations during inference.
 """
 import pytest
 import torch
-from typing import Any
 
-from amber.core.language_model import LanguageModel
+from amber.language_model.language_model import LanguageModel
 from amber.hooks import Controller, HookType
 from amber.store.local_store import LocalStore
 
