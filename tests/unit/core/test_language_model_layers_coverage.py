@@ -1,4 +1,4 @@
-"""Additional tests to improve coverage for language_model_layers.py."""
+"""Additional tests to improve coverage for layers.py."""
 import pytest
 import torch
 from torch import nn

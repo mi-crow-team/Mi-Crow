@@ -10,9 +10,15 @@ import tempfile
 from pathlib import Path
 from amber.store.local_store import LocalStore
 
+<<<<<<< Updated upstream
 from amber.core.language_model import LanguageModel
 from amber.core.language_model_tokenizer import LanguageModelTokenizer
 from amber.core.language_model_context import LanguageModelContext
+=======
+from amber.language_model.language_model import LanguageModel
+from amber.language_model.tokenizer import LanguageModelTokenizer
+from amber.language_model.context import LanguageModelContext
+>>>>>>> Stashed changes
 import tempfile
 from pathlib import Path
 from amber.store.local_store import LocalStore

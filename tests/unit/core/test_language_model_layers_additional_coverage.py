@@ -2,15 +2,12 @@
 import pytest
 import torch
 from torch import nn
-from pathlib import Path
-import tempfile
 
 from amber.core.language_model import LanguageModel
 from amber.store.local_store import LocalStore
-from amber.hooks.detector import Detector
 from amber.hooks.controller import Controller
 from amber.hooks.hook import HookType
-from amber.hooks.activation_saver import LayerActivationDetector
+from amber.hooks.implementations.activation_saver import LayerActivationDetector
 from amber.mechanistic.sae.modules.topk_sae import TopKSae
 
 

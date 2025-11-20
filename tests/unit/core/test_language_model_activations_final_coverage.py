@@ -1,7 +1,11 @@
-"""Final tests to push coverage over 85% for language_model_activations.py."""
+"""Final tests to push coverage over 85% for activations.py."""
 import pytest
 
+<<<<<<< Updated upstream
 from amber.core.language_model_activations import LanguageModelActivations
+=======
+from amber.language_model.activations import LanguageModelActivations
+>>>>>>> Stashed changes
 
 
 class _FakeContext:

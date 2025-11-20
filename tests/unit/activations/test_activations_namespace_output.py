@@ -88,7 +88,11 @@ def test_save_activations_dataset_captures_last_hidden_state_and_defaults(tmp_pa
                     def strftime(self, fmt):
                         return "20250101_000000"
                 return _N()
+<<<<<<< Updated upstream
     import amber.core.language_model_activations as _act_mod
+=======
+    import amber.language_model.activations as _act_mod
+>>>>>>> Stashed changes
     monkeypatch.setattr(_act_mod, "datetime", _FixedDT, raising=False)
 
     tok = FakeTokenizer()

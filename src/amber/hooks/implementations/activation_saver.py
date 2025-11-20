@@ -1,8 +1,11 @@
-from typing import Any, TYPE_CHECKING
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 import torch
 
 from amber.hooks.detector import Detector
 from amber.hooks.hook import HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
+from amber.hooks.utils import extract_tensor_from_output
 
 if TYPE_CHECKING:
     from torch import nn
@@ -27,7 +30,13 @@ class LayerActivationDetector(Detector):
         Args:
             layer_signature: Layer to capture activations from
             hook_id: Unique identifier for this hook
+            
+        Raises:
+            ValueError: If layer_signature is None
         """
+        if layer_signature is None:
+            raise ValueError("layer_signature cannot be None for LayerActivationDetector")
+        
         super().__init__(
             hook_type=HookType.FORWARD,
             hook_id=hook_id,
@@ -48,26 +57,26 @@ class LayerActivationDetector(Detector):
         - Plain tensors
         - Tuples/lists of tensors (takes first tensor)
         - Objects with last_hidden_state attribute (e.g., HuggingFace outputs)
+        
+        Args:
+            module: The PyTorch module being hooked
+            input: Tuple of input tensors to the module
+            output: Output tensor(s) from the module
+            
+        Raises:
+            RuntimeError: If tensor extraction or storage fails
         """
-        tensor = None
-        if isinstance(output, torch.Tensor):
-            tensor = output
-        elif isinstance(output, (tuple, list)):
-            for item in output:
-                if isinstance(item, torch.Tensor):
-                    tensor = item
-                    break
-        else:
-            # Try common HF output objects
-            if hasattr(output, "last_hidden_state"):
-                maybe = getattr(output, "last_hidden_state")
-                if isinstance(maybe, torch.Tensor):
-                    tensor = maybe
-
-        if tensor is not None:
-            tensor_cpu = tensor.detach().to("cpu")
-            # Store current batch's tensor (overwrites previous)
-            self.tensor_metadata['activations'] = tensor_cpu
+        try:
+            tensor = extract_tensor_from_output(output)
+            
+            if tensor is not None:
+                tensor_cpu = tensor.detach().to("cpu")
+                # Store current batch's tensor (overwrites previous)
+                self.tensor_metadata['activations'] = tensor_cpu
+        except Exception as e:
+            raise RuntimeError(
+                f"Error extracting activations in LayerActivationDetector {self.id}: {e}"
+            ) from e
 
     def get_captured(self) -> torch.Tensor | None:
         """

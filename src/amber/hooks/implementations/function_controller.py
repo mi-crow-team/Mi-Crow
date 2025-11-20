@@ -1,4 +1,6 @@
-from typing import Any, Callable, TYPE_CHECKING
+from __future__ import annotations
+
+from typing import Callable, TYPE_CHECKING
 import torch
 
 from amber.hooks.controller import Controller
@@ -40,7 +42,16 @@ class FunctionController(Controller):
             function: Function to apply to tensors. Must take a torch.Tensor and return a torch.Tensor
             hook_type: Type of hook (HookType.FORWARD or HookType.PRE_FORWARD)
             hook_id: Unique identifier
+            
+        Raises:
+            ValueError: If function is None or not callable
         """
+        if function is None:
+            raise ValueError("function cannot be None")
+        
+        if not callable(function):
+            raise ValueError(f"function must be callable, got: {type(function)}")
+        
         super().__init__(hook_type=hook_type, hook_id=hook_id, layer_signature=layer_signature)
         self.function = function
     
@@ -59,12 +70,24 @@ class FunctionController(Controller):
             output: Output tensor (None for pre_forward hooks)
             
         Returns:
-            Modified tensor with function applied
+            Modified tensor with function applied, or None if target tensor is None
+            
+        Raises:
+            RuntimeError: If function raises an exception when applied to tensor
         """
         target = output if self.hook_type == HookType.FORWARD else inputs
         
-        if target is not None and isinstance(target, torch.Tensor):
-            return self.function(target)
+        if target is None or not isinstance(target, torch.Tensor):
+            return target
         
-        return target
-
+        try:
+            result = self.function(target)
+            if not isinstance(result, torch.Tensor):
+                raise TypeError(
+                    f"Function must return a torch.Tensor, got: {type(result)}"
+                )
+            return result
+        except Exception as e:
+            raise RuntimeError(
+                f"Error applying function in FunctionController {self.id}: {e}"
+            ) from e

@@ -9,14 +9,20 @@ import torch
 from torch import nn, Tensor
 from torch.types import _TensorOrTensors
 
+from amber.utils import get_logger
+
+logger = get_logger(__name__)
+
 
 class HookType(str, Enum):
+    """Type of hook to register on a layer."""
     FORWARD = "forward"
     PRE_FORWARD = "pre_forward"
 
 
 HOOK_FUNCTION_INPUT: TypeAlias = Sequence[Tensor]
 HOOK_FUNCTION_OUTPUT: TypeAlias = _TensorOrTensors | None
+
 
 class Hook(abc.ABC):
     """
@@ -40,16 +46,86 @@ class Hook(abc.ABC):
             layer_signature: Layer name or index to attach hook to
             hook_type: Type of hook - HookType.FORWARD or HookType.PRE_FORWARD
             hook_id: Unique identifier (auto-generated if not provided)
+            
+        Raises:
+            ValueError: If hook_type string is invalid
         """
         self.layer_signature = layer_signature
-        if type(hook_type) == str:
-            self.hook_type = HookType(hook_type)
-        else:
-            self.hook_type = hook_type
-
+        self.hook_type = self._normalize_hook_type(hook_type)
         self.id = hook_id if hook_id is not None else str(uuid.uuid4())
         self._enabled = True
         self._torch_hook_handle = None
+
+    def _normalize_hook_type(self, hook_type: HookType | str) -> HookType:
+        """Normalize hook_type to HookType enum.
+        
+        Args:
+            hook_type: HookType enum or string value
+            
+        Returns:
+            HookType enum value
+            
+        Raises:
+            ValueError: If hook_type string is not a valid HookType value
+        """
+        if isinstance(hook_type, HookType):
+            return hook_type
+        
+        if isinstance(hook_type, str):
+            try:
+                return HookType(hook_type)
+            except ValueError:
+                valid_values = [ht.value for ht in HookType]
+                raise ValueError(
+                    f"Invalid hook_type string '{hook_type}'. "
+                    f"Must be one of: {valid_values}"
+                ) from None
+        
+        raise ValueError(
+            f"hook_type must be HookType enum or string, got: {type(hook_type)}"
+        )
+
+    def _create_pre_forward_wrapper(self) -> Callable:
+        """Create a pre-forward hook wrapper function.
+        
+        Returns:
+            Wrapper function for pre-forward hooks
+        """
+        def pre_forward_wrapper(module: nn.Module, input: HOOK_FUNCTION_INPUT) -> None | HOOK_FUNCTION_INPUT:
+            if not self._enabled:
+                return None
+            try:
+                result = self._hook_fn(module, input, None)
+                return result if result is not None else None
+            except Exception as e:
+                logger.warning(
+                    f"Hook {self.id} (type={self.hook_type.value}) raised exception in pre-forward: {e}",
+                    exc_info=True
+                )
+                return None
+
+        return pre_forward_wrapper
+
+    def _create_forward_wrapper(self) -> Callable:
+        """Create a forward hook wrapper function.
+        
+        Returns:
+            Wrapper function for forward hooks
+        """
+        def forward_wrapper(module: nn.Module, input: HOOK_FUNCTION_INPUT, output: HOOK_FUNCTION_OUTPUT) -> None:
+            if not self._enabled:
+                return None
+            try:
+                self._hook_fn(module, input, output)
+                return None
+            except Exception as e:
+                logger.warning(
+                    f"Hook {self.id} (type={self.hook_type.value}) raised exception in forward: {e}",
+                    exc_info=True
+                )
+                return None
+
+        return forward_wrapper
 
     @property
     def enabled(self) -> bool:
@@ -76,21 +152,9 @@ class Hook(abc.ABC):
             register_forward_pre_hook APIs.
         """
         if self.hook_type == HookType.PRE_FORWARD:
-            def pre_forward_wrapper(module: nn.Module, input: HOOK_FUNCTION_INPUT) -> None | HOOK_FUNCTION_INPUT:
-                if not self._enabled:
-                    return None
-                result = self._hook_fn(module, input, None)
-                return result if result is not None else None
-
-            return pre_forward_wrapper
+            return self._create_pre_forward_wrapper()
         else:
-            def forward_wrapper(module: nn.Module, input: HOOK_FUNCTION_INPUT, output: HOOK_FUNCTION_OUTPUT) -> None:
-                if not self._enabled:
-                    return None
-                self._hook_fn(module, input, output)
-                return None
-
-            return forward_wrapper
+            return self._create_forward_wrapper()
 
     @abc.abstractmethod
     def _hook_fn(
@@ -110,5 +174,8 @@ class Hook(abc.ABC):
         Returns:
             For pre_forward hooks: modified inputs (tuple) or None to keep original
             For forward hooks: None (forward hooks cannot modify output in PyTorch)
+            
+        Raises:
+            Exception: Subclasses may raise exceptions which will be caught by the wrapper
         """
         raise NotImplementedError("_hook_fn must be implemented by subclasses")

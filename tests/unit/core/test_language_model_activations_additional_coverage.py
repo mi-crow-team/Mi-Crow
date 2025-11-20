@@ -3,8 +3,13 @@ import torch
 from unittest.mock import Mock, patch, MagicMock
 from pathlib import Path
 
+<<<<<<< Updated upstream
 from amber.core.language_model_activations import LanguageModelActivations
 from amber.core.language_model_context import LanguageModelContext
+=======
+from amber.language_model.activations import LanguageModelActivations
+from amber.language_model.context import LanguageModelContext
+>>>>>>> Stashed changes
 from amber.store.local_store import LocalStore
 from amber.adapters.text_dataset import TextDataset
 from datasets import Dataset
