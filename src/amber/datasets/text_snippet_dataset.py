@@ -16,18 +16,18 @@ class TextSnippetDataset:
     Each item is a string (text snippet).
     """
 
-    def __init__(self, ds: Dataset, cache_dir: Union[str, Path, object]):
+    def __init__(self, ds: Dataset, dataset_dir: Union[str, Path, object]):
         if "text" not in ds.column_names:
             raise ValueError(f"Dataset must have a 'text' column; got {ds.column_names}")
         self.ds: Dataset = ds.remove_columns([c for c in ds.column_names if c != "text"])
         # Allow passing a LocalStore-like object with a base_path attribute
-        base = cache_dir
-        if not isinstance(cache_dir, (str, Path)) and hasattr(cache_dir, "base_path"):
-            base = getattr(cache_dir, "base_path")
-        self.cache_dir = Path(base)
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
-        self.ds.save_to_disk(str(self.cache_dir))
-        self.ds = load_from_disk(str(self.cache_dir))
+        base = dataset_dir
+        if not isinstance(dataset_dir, (str, Path)) and hasattr(dataset_dir, "base_path"):
+            base = getattr(dataset_dir, "base_path")
+        self.dataset_dir = Path(base)
+        self.dataset_dir.mkdir(parents=True, exist_ok=True)
+        self.ds.save_to_disk(str(self.dataset_dir))
+        self.ds = load_from_disk(str(self.dataset_dir))
         self.ds.set_format("python", columns=["text"])
 
     # --- Constructors ---
@@ -38,7 +38,7 @@ class TextSnippetDataset:
             repo_id: str,
             *,
             split: str = "train",
-            cache_dir: Union[str, Path] = "./snippet_cache/hf",
+            dataset_dir: Union[str, Path] = "./snippet_cache/hf",
             revision: Optional[str] = None,
             text_field: str = "text",
             filters: Optional[dict] = None,
@@ -73,14 +73,14 @@ class TextSnippetDataset:
         if limit is not None:
             ds = ds.select(range(min(limit, len(ds))))
 
-        return cls(ds, cache_dir)
+        return cls(ds, dataset_dir)
 
     @classmethod
     def from_local(
             cls,
             source: Union[str, Path],
             *,
-            cache_dir: Union[str, Path] = "./snippet_cache/local",
+            dataset_dir: Union[str, Path] = "./snippet_cache/local",
             text_field: str = "text",
             recursive: bool = True,
     ) -> "TextSnippetDataset":
@@ -123,9 +123,9 @@ class TextSnippetDataset:
                     raise ValueError(f"text_field '{text_field}' not in columns: {ds.column_names}")
                 ds = ds.rename_column(text_field, "text")
 
-        return cls(ds, cache_dir)
+        return cls(ds, dataset_dir)
 
-    # --- Pythonic core API ---
+    # --- Pythonic language_model API ---
 
     def __len__(self) -> int:
         return self.ds.num_rows

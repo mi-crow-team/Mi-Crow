@@ -7,7 +7,7 @@ import tempfile
 from amber.mechanistic.sae.modules.topk_sae import TopKSae
 from amber.mechanistic.sae.concepts.autoencoder_concepts import AutoencoderConcepts
 from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary
-from amber.core.language_model import LanguageModel
+from amber.language_model.language_model import LanguageModel
 from amber.store.local_store import LocalStore
 
 

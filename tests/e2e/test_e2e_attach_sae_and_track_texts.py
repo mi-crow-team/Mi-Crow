@@ -10,7 +10,7 @@ import tempfile
 import shutil
 from datasets import Dataset
 
-from amber.core.language_model import LanguageModel
+from amber.language_model.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
 from amber.store.local_store import LocalStore
 

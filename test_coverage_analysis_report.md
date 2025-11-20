@@ -615,6 +615,7 @@ def test_from_json_old_format_list():
 5. ❌ `put_tensor` / `get_tensor` roundtrip
 
 **Recommended Test Additions:**
+
 ```python
 def test_put_get_run_batch_list_conversion():
     """Verify list is converted to item_N keys and reconstructed"""
@@ -626,6 +627,7 @@ def test_put_get_run_batch_list_conversion():
     assert len(loaded) == 2
     assert torch.allclose(loaded[0], tensors[0])
 
+
 def test_put_get_run_batch_dict_preservation():
     """Verify dict is preserved as-is"""
     store = LocalStore(tmp_path)
@@ -635,6 +637,7 @@ def test_put_get_run_batch_dict_preservation():
     assert isinstance(loaded, dict)
     assert set(loaded.keys()) == {"activations", "labels"}
 
+
 def test_iter_run_batch_range():
     """Verify iter_run_batch_range behavior"""
     store = LocalStore(tmp_path)
@@ -643,14 +646,16 @@ def test_iter_run_batch_range():
     # Verify batches 0, 2 are returned
     # Test with missing batch (skip FileNotFoundError)
 
+
 def test_put_get_run_meta_json_validity():
     """Verify put_run_meta creates valid JSON"""
     store = LocalStore(tmp_path)
     meta = {"run_name": "test", "epochs": 10}
-    store.put_run_meta("run1", meta)
-    loaded = store.get_run_meta("run1")
+    store.put_run_metadata("run1", meta)
+    loaded = store.get_run_metadata("run1")
     assert loaded == meta
     # Verify JSON file is valid and parseable
+
 
 def test_delete_run_removes_files():
     """Verify delete_run removes all batch files"""
@@ -659,6 +664,7 @@ def test_delete_run_removes_files():
     # Delete run
     # Verify files are removed
     assert len(store.list_run_batches("run1")) == 0
+
 
 def test_put_get_tensor_roundtrip():
     """Verify put_tensor/get_tensor roundtrip"""

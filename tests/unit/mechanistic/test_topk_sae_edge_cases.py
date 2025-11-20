@@ -121,7 +121,7 @@ def test_topk_sae_modify_activations_with_concept_manipulation():
 
 def test_topk_sae_modify_activations_with_text_tracking():
     """Test modify_activations with text tracking enabled."""
-    from amber.core.language_model import LanguageModel
+    from amber.language_model.language_model import LanguageModel
     
     topk_sae = TopKSae(n_latents=8, n_inputs=16, k=4, device='cpu')
     topk_sae.sae_engine.eval()

@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 import torch
 
-from amber.core.language_model_activations import LanguageModelActivations
+from amber.language_model.language_model_activations import LanguageModelActivations
 
 
 class _DummyLayers:

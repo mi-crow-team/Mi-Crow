@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import random
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Iterator, List, Union, Optional, Any
@@ -28,33 +29,53 @@ class BaseDataset(ABC):
         Args:
             ds: HuggingFace Dataset or IterableDataset
             store: Store instance for caching/persistence
-            loading_strategy: How to load data (STREAM or MEMORY)
+            loading_strategy: How to load data (MEMORY, DYNAMIC_LOAD, or ITERABLE_ONLY)
         """
         self._store = store
         self._loading_strategy = loading_strategy
         self._cache_dir: Path = Path(store.base_path) / store.dataset_prefix
 
         is_iterable_input = isinstance(ds, IterableDataset)
-        if loading_strategy == LoadingStrategy.MEMORY and is_iterable_input:
-            ds = Dataset.from_generator(lambda: iter(ds))
+        
+        if loading_strategy == LoadingStrategy.MEMORY:
+            # MEMORY: Convert to Dataset if needed, save to disk, load fully into memory
+            if is_iterable_input:
+                ds = Dataset.from_generator(lambda: iter(ds))
             self._is_iterable = False
-        elif loading_strategy == LoadingStrategy.STREAM and not is_iterable_input:
-            ds = ds.to_iterable_dataset()
+            if self._cache_dir:
+                self._cache_dir.mkdir(parents=True, exist_ok=True)
+                self._ds = ds
+                self._ds.save_to_disk(str(self._cache_dir))
+                self._ds = load_from_disk(str(self._cache_dir))
+            else:
+                self._ds = ds
+        elif loading_strategy == LoadingStrategy.DYNAMIC_LOAD:
+            # DYNAMIC_LOAD: Save to disk, use memory-mapped Arrow files (supports len/getitem)
+            if is_iterable_input:
+                ds = Dataset.from_generator(lambda: iter(ds))
+            self._is_iterable = False
+            if self._cache_dir:
+                self._cache_dir.mkdir(parents=True, exist_ok=True)
+                self._ds = ds
+                self._ds.save_to_disk(str(self._cache_dir))
+                # Load from disk with memory-mapping (default behavior of load_from_disk)
+                self._ds = load_from_disk(str(self._cache_dir))
+            else:
+                self._ds = ds
+        elif loading_strategy == LoadingStrategy.ITERABLE_ONLY:
+            # ITERABLE_ONLY: Convert to IterableDataset, don't save to disk (no len/getitem)
+            if not is_iterable_input:
+                ds = ds.to_iterable_dataset()
             self._is_iterable = True
+            self._ds = ds
+            # Don't save to disk for iterable-only mode
         else:
-            self._is_iterable = is_iterable_input
-
-        self._ds = ds
-
-        if self._cache_dir and not self._is_iterable:
-            self._cache_dir.mkdir(parents=True, exist_ok=True)
-            self._ds.save_to_disk(str(self._cache_dir))
-            self._ds = load_from_disk(str(self._cache_dir))
+            raise ValueError(f"Unknown loading strategy: {loading_strategy}")
 
     @property
     def is_streaming(self) -> bool:
-        """Whether this dataset is streaming (IterableDataset)."""
-        return self._is_iterable
+        """Whether this dataset is streaming (DYNAMIC_LOAD or ITERABLE_ONLY)."""
+        return self._loading_strategy in (LoadingStrategy.DYNAMIC_LOAD, LoadingStrategy.ITERABLE_ONLY)
 
     @abstractmethod
     def __len__(self) -> int:
@@ -97,13 +118,14 @@ class BaseDataset(ABC):
             repo_id: HuggingFace dataset repository ID
             store: Store instance
             split: Dataset split (e.g., "train", "validation")
-            loading_strategy: Loading strategy (STREAM or MEMORY)
+            loading_strategy: Loading strategy (MEMORY, DYNAMIC_LOAD, or ITERABLE_ONLY)
             revision: Optional git revision/branch/tag
             streaming: Optional override for streaming (if None, uses loading_strategy)
             **kwargs: Additional arguments passed to load_dataset
         """
-        # Determine if we should use streaming
-        use_streaming = streaming if streaming is not None else (loading_strategy == LoadingStrategy.STREAM)
+        # Determine if we should use streaming for HuggingFace load_dataset
+        # Only ITERABLE_ONLY needs streaming=True for load_dataset
+        use_streaming = streaming if streaming is not None else (loading_strategy == LoadingStrategy.ITERABLE_ONLY)
 
         ds = load_dataset(
             path=repo_id,
@@ -141,7 +163,7 @@ class BaseDataset(ABC):
         if not p.exists():
             raise FileNotFoundError(f"CSV file not found: {source}")
 
-        if loading_strategy == LoadingStrategy.STREAM:
+        if loading_strategy == LoadingStrategy.ITERABLE_ONLY:
             ds = load_dataset(
                 "csv",
                 data_files=str(p),
@@ -185,7 +207,7 @@ class BaseDataset(ABC):
         if not p.exists():
             raise FileNotFoundError(f"JSON file not found: {source}")
 
-        if loading_strategy == LoadingStrategy.STREAM:
+        if loading_strategy == LoadingStrategy.ITERABLE_ONLY:
             ds = load_dataset(
                 "json",
                 data_files=str(p),
@@ -214,8 +236,8 @@ class BaseDataset(ABC):
         Returns:
             List of items
         """
-        if self._is_iterable:
-            raise NotImplementedError("get_batch not supported for streaming datasets. Use iter_batches instead.")
+        if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
+            raise NotImplementedError("get_batch not supported for ITERABLE_ONLY datasets. Use iter_batches instead.")
         if batch_size <= 0:
             return []
         end = min(start + batch_size, len(self))
@@ -224,8 +246,12 @@ class BaseDataset(ABC):
         return self[start:end]
 
     def head(self, n: int = 5) -> List[Any]:
-        """Get first n items."""
-        if self._is_iterable:
+        """
+        Get first n items.
+        
+        Works for all loading strategies.
+        """
+        if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
             items = []
             for i, item in enumerate(self.iter_items()):
                 if i >= n:
@@ -233,3 +259,32 @@ class BaseDataset(ABC):
                 items.append(item)
             return items
         return self[:n]
+    
+    def sample(self, n: int = 5) -> List[Any]:
+        """
+        Get n random items from the dataset.
+        
+        Works for MEMORY and DYNAMIC_LOAD strategies only.
+        
+        Args:
+            n: Number of items to sample
+            
+        Returns:
+            List of n randomly sampled items
+        """
+        if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
+            raise NotImplementedError("sample() not supported for ITERABLE_ONLY datasets. Use iter_items() and sample manually.")
+        
+        dataset_len = len(self)
+        if n <= 0:
+            return []
+        if n >= dataset_len:
+            # Return all items in random order
+            indices = list(range(dataset_len))
+            random.shuffle(indices)
+            return [self[i] for i in indices]
+        
+        # Sample n random indices
+        indices = random.sample(range(dataset_len), n)
+        # Use __getitem__ with list of indices
+        return self[indices]

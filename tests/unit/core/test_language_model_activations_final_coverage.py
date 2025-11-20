@@ -1,7 +1,7 @@
 """Final tests to push coverage over 85% for language_model_activations.py."""
 import pytest
 
-from amber.core.language_model_activations import LanguageModelActivations
+from amber.language_model.language_model_activations import LanguageModelActivations
 
 
 class _FakeContext:

@@ -50,14 +50,14 @@ class TextDataset(BaseDataset):
 
     def __len__(self) -> int:
         """Return the number of items in the dataset."""
-        if self._is_iterable:
-            raise NotImplementedError("len() not supported for streaming datasets")
+        if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
+            raise NotImplementedError("len() not supported for ITERABLE_ONLY datasets")
         return self._ds.num_rows
 
     def __getitem__(self, idx: IndexLike) -> Union[str, List[str]]:
         """Get text item(s) by index."""
-        if self._is_iterable:
-            raise NotImplementedError("Indexing not supported for streaming datasets. Use iter_items or iter_batches.")
+        if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
+            raise NotImplementedError("Indexing not supported for ITERABLE_ONLY datasets. Use iter_items or iter_batches.")
 
         if isinstance(idx, int):
             return self._ds[idx]["text"]
@@ -72,7 +72,6 @@ class TextDataset(BaseDataset):
         if isinstance(idx, Sequence):
             out = self._ds.select(list(idx))["text"]
             return list(out)
-        raise TypeError(f"Invalid index type: {type(idx)}")
 
     def iter_items(self) -> Iterator[str]:
         """Iterate over text items one by one."""
@@ -133,7 +132,7 @@ class TextDataset(BaseDataset):
             streaming: Optional override for streaming
             **kwargs: Additional arguments for load_dataset
         """
-        use_streaming = streaming if streaming is not None else (loading_strategy == LoadingStrategy.STREAM)
+        use_streaming = streaming if streaming is not None else (loading_strategy == LoadingStrategy.ITERABLE_ONLY)
 
         ds = load_dataset(
             path=repo_id,

@@ -6,8 +6,8 @@ from typing import Iterator, List, Sequence, Union, Optional, Dict, Any
 from datasets import Dataset, load_dataset, IterableDataset
 
 from amber.store.store import Store
-from amber.adapters.base_dataset import BaseDataset
-from amber.adapters.loading_strategy import LoadingStrategy, IndexLike
+from amber.datasets.base_dataset import BaseDataset
+from amber.datasets.loading_strategy import LoadingStrategy, IndexLike
 
 
 class ClassificationDataset(BaseDataset):
@@ -195,7 +195,7 @@ class ClassificationDataset(BaseDataset):
 
     def get_texts(self) -> List[str]:
         """Get all texts as a list."""
-        if self._is_iterable:
+        if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
             return [item["text"] for item in self.iter_items()]
         return list(self._ds[self._text_field])
 

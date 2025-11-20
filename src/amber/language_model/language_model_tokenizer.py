@@ -4,7 +4,7 @@ from torch import nn
 from transformers import AutoTokenizer
 
 if TYPE_CHECKING:
-    from amber.core.language_model_context import LanguageModelContext
+    from amber.language_model.language_model_context import LanguageModelContext
 
 
 class LanguageModelTokenizer:

@@ -25,64 +25,17 @@ class Store(abc.ABC):
         self.model_prefix = model_prefix
         self.base_path = Path(base_path)
 
-    # --- Run-oriented batch APIs ---
-    def _run_batch_key(self, run_id: str, batch_index: int) -> str:
-        return f"{self.runs_prefix}/{run_id}/batch_{batch_index:06d}.safetensors"
+    def _run_key(self, run_id: str) -> Path:
+        return self.base_path / self.runs_prefix / run_id
+
+    def _run_batch_key(self, run_id: str, batch_index: int) -> Path:
+        return self._run_key(run_id) / f"batch_{batch_index}"
+
+    def _run_metadata_key(self, run_id: str) -> Path:
+        return self._run_key(run_id) / "meta.json"
 
     @abc.abstractmethod
-    def put_run_batch(self, run_id: str, batch_index: int,
-                      tensors: List[torch.Tensor] | Dict[str, torch.Tensor]) -> str:
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def get_run_batch(self, run_id: str, batch_index: int) -> List[torch.Tensor] | Dict[
-        str, torch.Tensor]:
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def list_run_batches(self, run_id: str) -> List[int]:
-        raise NotImplementedError
-
-    def iter_run_batches(self, run_id: str) -> Iterator[List[torch.Tensor] | Dict[str, torch.Tensor]]:
-        for idx in self.list_run_batches(run_id):
-            yield self.get_run_batch(run_id, idx)
-
-    def iter_run_batch_range(
-            self,
-            run_id: str,
-            *,
-            start: int = 0,
-            stop: int | None = None,
-            step: int = 1,
-    ) -> Iterator[List[torch.Tensor] | Dict[str, torch.Tensor]]:
-        """Iterate run batches for indices in range(start, stop, step).
-
-        If stop is None, it will be set to max(list_run_batches(run_id)) + 1 (or 0 if none).
-        Raises ValueError if step == 0 or start < 0.
-        """
-        if step == 0:
-            raise ValueError("step must not be 0")
-        if start < 0:
-            raise ValueError("start must be >= 0")
-        indices = self.list_run_batches(run_id)
-        if not indices:
-            return
-        max_idx = max(indices)
-        if stop is None:
-            stop = max_idx + 1
-        for idx in range(start, stop, step):
-            try:
-                yield self.get_run_batch(run_id, idx)
-            except FileNotFoundError:
-                continue
-
-    @abc.abstractmethod
-    def delete_run(self, run_id: str) -> None:
-        raise NotImplementedError
-
-    # --- Run metadata (optional helpers) ---
-    @abc.abstractmethod
-    def put_run_meta(self, run_id: str, meta: Dict[str, Any]) -> str:
+    def put_run_metadata(self, run_id: str, meta: Dict[str, Any]) -> str:
         """Persist metadata for a run (e.g., dataset/model identifiers).
 
         Implementations should store JSON at a stable location, e.g., runs/{run_id}/meta.json.
@@ -91,7 +44,7 @@ class Store(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_run_meta(self, run_id: str) -> Dict[str, Any]:
+    def get_run_metadata(self, run_id: str) -> Dict[str, Any]:
         """Load metadata for a run. Should return an empty dict if missing."""
         raise NotImplementedError
 
@@ -114,6 +67,11 @@ class Store(abc.ABC):
         Returns:
             Full path key used for store (e.g., "runs/run_123/batch_0")
         """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_detector_metadata(self, run_id: str, batch_index: int) -> tuple[
+        Dict[str, Any], Dict[str, Dict[str, torch.Tensor]]]:
         raise NotImplementedError
 
     @abc.abstractmethod

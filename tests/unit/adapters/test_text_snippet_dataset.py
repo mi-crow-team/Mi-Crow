@@ -18,7 +18,7 @@ def _make_base_ds(n=5):
 
 def test_core_length_and_indexing_and_iteration(tmp_path):
     ds = _make_base_ds(10)
-    snd = TextSnippetDataset(ds, cache_dir=tmp_path)
+    snd = TextSnippetDataset(ds, dataset_dir=tmp_path)
 
     # __len__
     assert len(snd) == 10
@@ -66,7 +66,7 @@ def test_core_length_and_indexing_and_iteration(tmp_path):
 def test_init_requires_text_column(tmp_path):
     bad = Dataset.from_dict({"content": ["a", "b"]})
     with pytest.raises(ValueError):
-        TextSnippetDataset(bad, cache_dir=tmp_path)
+        TextSnippetDataset(bad, dataset_dir=tmp_path)
 
 
 # ---------- from_local tests ----------
@@ -80,7 +80,7 @@ def test_from_local_directory_txt_recursive(tmp_path):
     (sub / "y.txt").write_text("world", encoding="utf-8")
     (sub / "ignore.md").write_text("nope", encoding="utf-8")
 
-    snd = TextSnippetDataset.from_local(root, cache_dir=tmp_path / "cache")
+    snd = TextSnippetDataset.from_local(root, dataset_dir=tmp_path / "cache")
     texts = list(snd.iter_items())
     # Order is sorted by path according to implementation
     assert set(texts) == {"hello", "world"}
@@ -94,7 +94,7 @@ def test_from_local_directory_txt_non_recursive(tmp_path):
     (root / "a.txt").write_text("A", encoding="utf-8")
     (sub / "b.txt").write_text("B", encoding="utf-8")
 
-    snd = TextSnippetDataset.from_local(root, cache_dir=tmp_path / "cache2", recursive=False)
+    snd = TextSnippetDataset.from_local(root, dataset_dir=tmp_path / "cache2", recursive=False)
     assert list(snd.iter_items()) == ["A"]
 
 
@@ -113,16 +113,16 @@ def test_from_local_structured_files(tmp_path, ext, writer, kwargs, expected):
             for rec in kwargs["records"]:
                 f.write(json.dumps(rec) + "\n")
         # content column -> rename via text_field
-        snd = TextSnippetDataset.from_local(p, cache_dir=tmp_path / "cjsonl", text_field="content")
+        snd = TextSnippetDataset.from_local(p, dataset_dir=tmp_path / "cjsonl", text_field="content")
     elif writer == "csv":
         # minimal CSV
         lines = [kwargs["header"], *[row[0] for row in kwargs["rows"]]]
         p.write_text("\n".join(lines), encoding="utf-8")
-        snd = TextSnippetDataset.from_local(p, cache_dir=tmp_path / "ccsv")
+        snd = TextSnippetDataset.from_local(p, dataset_dir=tmp_path / "ccsv")
     else:  # tsv
         lines = [kwargs["header"], *[row[0] for row in kwargs["rows"]]]
         p.write_text("\n".join(lines), encoding="utf-8")
-        snd = TextSnippetDataset.from_local(p, cache_dir=tmp_path / "ctsv")
+        snd = TextSnippetDataset.from_local(p, dataset_dir=tmp_path / "ctsv")
 
     assert list(snd.iter_items()) == expected
 
@@ -130,13 +130,13 @@ def test_from_local_structured_files(tmp_path, ext, writer, kwargs, expected):
 def test_from_local_errors(tmp_path):
     # nonexistent path
     with pytest.raises(FileNotFoundError):
-        TextSnippetDataset.from_local(tmp_path / "nope", cache_dir=tmp_path / "x")
+        TextSnippetDataset.from_local(tmp_path / "nope", dataset_dir=tmp_path / "x")
 
     # unsupported suffix
     p = tmp_path / "file.bad"
     p.write_text("data", encoding="utf-8")
     with pytest.raises(ValueError):
-        TextSnippetDataset.from_local(p, cache_dir=tmp_path / "y")
+        TextSnippetDataset.from_local(p, dataset_dir=tmp_path / "y")
 
 
 # ---------- from_hf tests (monkeypatch load_dataset to avoid network) ----------
@@ -152,17 +152,17 @@ def test_from_hf_basic_and_filters_and_limit(monkeypatch, tmp_path):
         assert split == "train"
         return base
 
-    monkeypatch.setattr("amber.adapters.text_snippet_dataset.load_dataset", fake_load_dataset)
+    monkeypatch.setattr("amber.datasets.text_snippet_dataset.load_dataset", fake_load_dataset)
 
     # No filters, limit 2
-    ds1 = TextSnippetDataset.from_huggingface("some/repo", split="train", cache_dir=tmp_path / "h1", limit=2)
+    ds1 = TextSnippetDataset.from_huggingface("some/repo", split="train", dataset_dir=tmp_path / "h1", limit=2)
     assert list(ds1.iter_items()) == ["a", "b"]
 
     # Filters keep only lang == 'pl'
     ds2 = TextSnippetDataset.from_huggingface(
         "some/repo",
         split="train",
-        cache_dir=tmp_path / "h2",
+        dataset_dir=tmp_path / "h2",
         filters={"lang": "pl"},
     )
     assert list(ds2.iter_items()) == ["b", "d"]
@@ -174,10 +174,10 @@ def test_from_hf_rename_and_missing_field_error(monkeypatch, tmp_path):
     def fake_load_dataset(path, split, revision=None):
         return base
 
-    monkeypatch.setattr("amber.adapters.text_snippet_dataset.load_dataset", fake_load_dataset)
+    monkeypatch.setattr("amber.datasets.text_snippet_dataset.load_dataset", fake_load_dataset)
 
     # Rename content -> text
-    ds = TextSnippetDataset.from_huggingface("repo", cache_dir=tmp_path / "h3", text_field="content")
+    ds = TextSnippetDataset.from_huggingface("repo", dataset_dir=tmp_path / "h3", text_field="content")
     assert list(ds.iter_items()) == ["x", "y"]
 
     # Missing field should raise
@@ -186,9 +186,9 @@ def test_from_hf_rename_and_missing_field_error(monkeypatch, tmp_path):
     def fake2(path, split, revision=None):
         return base2
 
-    monkeypatch.setattr("amber.adapters.text_snippet_dataset.load_dataset", fake2)
+    monkeypatch.setattr("amber.datasets.text_snippet_dataset.load_dataset", fake2)
     with pytest.raises(ValueError):
-        TextSnippetDataset.from_huggingface("repo", cache_dir=tmp_path / "h4", text_field="content")
+        TextSnippetDataset.from_huggingface("repo", dataset_dir=tmp_path / "h4", text_field="content")
 
 
 def test_duck_typed_cache_dir_accepts_base_path(tmp_path: Path):
@@ -200,7 +200,7 @@ def test_duck_typed_cache_dir_accepts_base_path(tmp_path: Path):
             self.base_path = base_path
 
     duck = Duck(tmp_path / "cache_duck")
-    dset = TextSnippetDataset(base, cache_dir=duck)
+    dset = TextSnippetDataset(base, dataset_dir=duck)
     assert len(dset) == 3
     # head to ensure it was reloaded correctly from disk
     assert dset.head(2) == ["x", "y"]
@@ -215,4 +215,4 @@ def test_from_local_raises_when_missing_text_field(tmp_path: Path):
 
     with pytest.raises(ValueError):
         # text_field defaults to "text", which does not exist in the file
-        TextSnippetDataset.from_local(data_path, cache_dir=tmp_path / "cache", text_field="text")
+        TextSnippetDataset.from_local(data_path, dataset_dir=tmp_path / "cache", text_field="text")

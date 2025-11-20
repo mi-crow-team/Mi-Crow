@@ -1,4 +1,5 @@
 from collections import defaultdict
+from dataclasses import asdict
 from pathlib import Path
 from typing import Sequence, Any, Dict, List, TYPE_CHECKING
 
@@ -6,11 +7,11 @@ import torch
 from torch import nn, Tensor
 from transformers import AutoTokenizer, AutoModelForCausalLM, PreTrainedTokenizerBase
 
-from amber.core.language_model_layers import LanguageModelLayers
-from amber.core.language_model_tokenizer import LanguageModelTokenizer
-from amber.core.language_model_activations import LanguageModelActivations
-from amber.core.language_model_context import LanguageModelContext
-from amber.store.local_store import LocalStore
+from amber.language_model.language_model_layers import LanguageModelLayers
+from amber.language_model.language_model_tokenizer import LanguageModelTokenizer
+from amber.language_model.language_model_activations import LanguageModelActivations
+from amber.language_model.language_model_context import LanguageModelContext
+from amber.language_model.language_model_contracts import ModelMetadata
 from amber.store.store import Store
 from amber.utils import get_logger
 
@@ -111,10 +112,10 @@ class LanguageModel:
     ):
         if not texts:
             raise ValueError("Texts list cannot be empty")
-        
+
         if self.tokenizer is None:
             raise ValueError("Tokenizer must be initialized before running inference")
-        
+
         tok_kwargs = self._prepare_tokenizer_kwargs(tok_kwargs)
         enc = self.tokenize(texts, **tok_kwargs)
 
@@ -234,10 +235,10 @@ class LanguageModel:
         """
         if not texts:
             raise ValueError("Texts list cannot be empty")
-        
+
         if self.tokenizer is None:
             raise ValueError("Tokenizer is required for decoding but is None")
-        
+
         output, enc = self._inference(
             texts,
             tok_kwargs=tok_kwargs,
@@ -314,6 +315,67 @@ class LanguageModel:
 
         return self._input_tracker
 
+    def save_model(self, path: Path | str | None = None) -> Path:
+        """
+        Save the model and its metadata to the store.
+        
+        Args:
+            path: Optional path to save the model. If None, defaults to {model_id}/model.pt
+                  relative to the store base path.
+                  
+        Returns:
+            Path where the model was saved
+            
+        Raises:
+            ValueError: If store is not set
+        """
+        if self.store is None:
+            raise ValueError("Store must be provided or set on the language model")
+        
+        if path is None:
+            save_path = Path(self.store.base_path) / self.model_id / "model.pt"
+        else:
+            save_path = Path(path)
+            if not save_path.is_absolute():
+                save_path = Path(self.store.base_path) / save_path
+        
+        # Ensure parent directory exists
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Collect hooks information
+        hooks_info: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+        
+        for layer_signature, hook_types in self.context._hook_registry.items():
+            layer_key = str(layer_signature)
+            for hook_type, hooks_list in hook_types.items():
+                for hook, _ in hooks_list:
+                    hook_info = {
+                        "hook_id": hook.id,
+                        "hook_type": hook.hook_type.value if hasattr(hook.hook_type, 'value') else str(hook.hook_type),
+                        "layer_signature": str(hook.layer_signature) if hook.layer_signature is not None else None,
+                        "hook_class": hook.__class__.__name__,
+                        "enabled": hook.enabled,
+                    }
+                    hooks_info[layer_key].append(hook_info)
+        
+        model_state_dict = self.model.state_dict()
+        
+        metadata = ModelMetadata(
+            model_id=self.model_id,
+            hooks=dict(hooks_info),
+            model_path=str(save_path)
+        )
+        
+        payload = {
+            "model_state_dict": model_state_dict,
+            "metadata": asdict(metadata),
+        }
+        
+        torch.save(payload, save_path)
+        logger.info(f"Saved model to {save_path}")
+        
+        return save_path
+
     @classmethod
     def from_huggingface(
             cls,
@@ -334,9 +396,9 @@ class LanguageModel:
         return lm
 
     @classmethod
-    def from_local(cls, model_path: str, tokenizer_path: str, store: Store) -> "LanguageModel":
+    def from_local_torch(cls, model_path: str, tokenizer_path: str, store: Store) -> "LanguageModel":
         """
-        Load a language model from local paths.
+        Load a language model from local HuggingFace paths.
         
         Args:
             model_path: Path to the model directory or file
@@ -347,8 +409,77 @@ class LanguageModel:
             LanguageModel instance
         """
         from transformers import AutoTokenizer, AutoModelForCausalLM
-        
+
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
         model = AutoModelForCausalLM.from_pretrained(model_path)
-        
+
         return cls(model, tokenizer, store)
+
+    @classmethod
+    def from_local(cls, saved_path: Path | str, store: Store, model_id: str | None = None) -> "LanguageModel":
+        """
+        Load a language model from a saved file (created by save_model).
+        
+        Args:
+            saved_path: Path to the saved model file (.pt file)
+            store: Store instance for persistence
+            model_id: Optional model identifier. If not provided, will use the model_id from saved metadata.
+                     If provided, will be used to load the model architecture from HuggingFace.
+                     
+        Returns:
+            LanguageModel instance
+            
+        Raises:
+            FileNotFoundError: If the saved file doesn't exist
+            ValueError: If the saved file format is invalid or model_id is required but not provided
+        """
+        saved_path = Path(saved_path)
+        if not saved_path.exists():
+            raise FileNotFoundError(f"Saved model file not found: {saved_path}")
+        
+        # Load the saved payload
+        payload = torch.load(saved_path, map_location='cpu')
+        
+        # Validate payload structure
+        if "model_state_dict" not in payload:
+            raise ValueError(f"Invalid saved model format: missing 'model_state_dict' key in {saved_path}")
+        if "metadata" not in payload:
+            raise ValueError(f"Invalid saved model format: missing 'metadata' key in {saved_path}")
+        
+        model_state_dict = payload["model_state_dict"]
+        metadata_dict = payload["metadata"]
+        
+        # Get model_id from metadata or use provided one
+        saved_model_id = metadata_dict.get("model_id")
+        if model_id is None:
+            if saved_model_id is None:
+                raise ValueError(
+                    f"model_id not found in saved metadata and not provided. "
+                    f"Please provide model_id parameter."
+                )
+            model_id = saved_model_id
+        
+        # Load model and tokenizer from HuggingFace using model_id
+        # This assumes model_id is a valid HuggingFace model name
+        try:
+            tokenizer = AutoTokenizer.from_pretrained(model_id)
+            model = AutoModelForCausalLM.from_pretrained(model_id)
+        except Exception as e:
+            raise ValueError(
+                f"Failed to load model '{model_id}' from HuggingFace. "
+                f"Error: {e}. "
+                f"Please ensure model_id is a valid HuggingFace model name."
+            ) from e
+        
+        # Load the saved state dict into the model
+        model.load_state_dict(model_state_dict)
+        
+        # Create LanguageModel instance
+        lm = cls(model, tokenizer, store, model_id=model_id)
+        
+        # Note: Hooks are not automatically restored as they require hook instances
+        # The hook metadata is available in metadata_dict["hooks"] if needed
+        
+        logger.info(f"Loaded model from {saved_path} (model_id: {model_id})")
+        
+        return lm

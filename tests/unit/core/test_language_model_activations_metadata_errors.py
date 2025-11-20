@@ -5,7 +5,7 @@ import tempfile
 import torch
 from torch import nn
 from datasets import Dataset
-from amber.core.language_model import LanguageModel
+from amber.language_model.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
 from amber.store.local_store import LocalStore
 import tempfile
@@ -95,10 +95,10 @@ class MockModel(nn.Module):
         pass
 
 
-def test_metadata_extraction_with_cache_dir_error(tmp_path):
-    """Test metadata extraction when cache_dir access fails."""
+def test_metadata_extraction_with_dataset_dir_error(tmp_path):
+    """Test metadata extraction when dataset_dir access fails."""
     base = Dataset.from_dict({"text": ["sample 1", "sample 2", "sample 3"]})
-    ds = TextSnippetDataset(base, cache_dir=tmp_path / "cache")
+    ds = TextSnippetDataset(base, dataset_dir=tmp_path / "cache")
     
     model = MockModel()
     tokenizer = MockTokenizer()
@@ -110,14 +110,14 @@ def test_metadata_extraction_with_cache_dir_error(tmp_path):
     valid_layer = layer_names[0] if layer_names else "linear"
     
     # Mock the cache_dir property to raise an error
-    original_cache_dir = ds.cache_dir
-    def error_cache_dir():
-        raise AttributeError("cache_dir not accessible")
+    original_dataset_dir = ds.dataset_dir
+    def error_dataset_dir():
+        raise AttributeError("dataset_dir not accessible")
+
+    # Patch the dataset_dir property
+    ds.dataset_dir = property(error_dataset_dir)
     
-    # Patch the cache_dir property
-    ds.cache_dir = property(error_cache_dir)
-    
-    # Should handle cache_dir error gracefully
+    # Should handle dataset_dir error gracefully
     lm.activations.save_activations_dataset(
         ds,
         layer_signature=valid_layer,
@@ -134,7 +134,7 @@ def test_metadata_extraction_with_cache_dir_error(tmp_path):
 def test_metadata_extraction_with_model_name_error(tmp_path):
     """Test metadata extraction when model name extraction fails."""
     base = Dataset.from_dict({"text": ["sample 1", "sample 2", "sample 3"]})
-    ds = TextSnippetDataset(base, cache_dir=tmp_path / "cache")
+    ds = TextSnippetDataset(base, dataset_dir=tmp_path / "cache")
     
     model = MockModel()
     tokenizer = MockTokenizer()
@@ -166,7 +166,7 @@ def test_metadata_extraction_with_model_name_error(tmp_path):
 def test_metadata_storage_error_handling(tmp_path):
     """Test error handling when metadata store fails."""
     base = Dataset.from_dict({"text": ["sample 1", "sample 2", "sample 3"]})
-    ds = TextSnippetDataset(base, cache_dir=tmp_path / "cache")
+    ds = TextSnippetDataset(base, dataset_dir=tmp_path / "cache")
     
     model = MockModel()
     tokenizer = MockTokenizer()
@@ -177,7 +177,7 @@ def test_metadata_storage_error_handling(tmp_path):
     def error_put_meta(run_name, meta):
         raise RuntimeError("Metadata store failed")
     
-    lm.store.put_run_meta = error_put_meta
+    lm.store.put_run_metadata = error_put_meta
     
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
@@ -200,7 +200,7 @@ def test_metadata_storage_error_handling(tmp_path):
 def test_activation_capture_edge_cases(tmp_path):
     """Test edge cases in activation capture."""
     base = Dataset.from_dict({"text": ["sample 1", "sample 2", "sample 3"]})
-    ds = TextSnippetDataset(base, cache_dir=tmp_path / "cache")
+    ds = TextSnippetDataset(base, dataset_dir=tmp_path / "cache")
     
     model = MockModel()
     tokenizer = MockTokenizer()
@@ -230,7 +230,7 @@ def test_verbose_logging_with_errors(tmp_path, caplog):
     import logging
     
     base = Dataset.from_dict({"text": ["sample 1", "sample 2", "sample 3"]})
-    ds = TextSnippetDataset(base, cache_dir=tmp_path / "cache")
+    ds = TextSnippetDataset(base, dataset_dir=tmp_path / "cache")
     
     model = MockModel()
     tokenizer = MockTokenizer()
@@ -258,7 +258,7 @@ def test_verbose_logging_with_errors(tmp_path, caplog):
 def test_layer_signature_edge_cases(tmp_path):
     """Test various layer signature inputs, including invalid ones."""
     base = Dataset.from_dict({"text": ["sample 1", "sample 2", "sample 3"]})
-    ds = TextSnippetDataset(base, cache_dir=tmp_path / "cache")
+    ds = TextSnippetDataset(base, dataset_dir=tmp_path / "cache")
     
     model = MockModel()
     tokenizer = MockTokenizer()
@@ -297,7 +297,7 @@ def test_layer_signature_edge_cases(tmp_path):
 def test_activation_capture_with_different_shapes(tmp_path):
     """Test activation capture with different input shapes."""
     base = Dataset.from_dict({"text": ["a", "bb", "ccc", "dddd"]})
-    ds = TextSnippetDataset(base, cache_dir=tmp_path / "cache")
+    ds = TextSnippetDataset(base, dataset_dir=tmp_path / "cache")
     
     model = MockModel()
     tokenizer = MockTokenizer()

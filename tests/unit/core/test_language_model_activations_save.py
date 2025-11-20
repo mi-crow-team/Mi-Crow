@@ -113,7 +113,7 @@ class _FakeStore:
 class _FakeDataset:
     def __init__(self, batches: List[List[str]], cache_dir: str = "cache"):
         self._batches = batches
-        self.cache_dir = cache_dir
+        self.dataset_dir = cache_dir
 
     def iter_batches(self, batch_size: int):
         for b in self._batches:
@@ -172,8 +172,8 @@ import torch
 from torch import nn
 from datasets import Dataset
 
-from amber.core.language_model import LanguageModel
-from amber.core.language_model_activations import LanguageModelActivations
+from amber.language_model.language_model import LanguageModel
+from amber.language_model.language_model_activations import LanguageModelActivations
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
 from amber.store.local_store import LocalStore
 
@@ -227,7 +227,7 @@ def _layer_sig(lm: nn.Module) -> str:
 def test_save_activations_dataset_writes_batches_and_meta(tmp_path):
     # Build tiny dataset
     base = Dataset.from_dict({"text": ["a", "bb", "ccc", "dddd", "ee"]})
-    ds = TextSnippetDataset(base, cache_dir=tmp_path)
+    ds = TextSnippetDataset(base, dataset_dir=tmp_path)
 
     model = TinyLM()
     tok = FakeTokenizer()
@@ -260,5 +260,5 @@ def test_save_activations_dataset_writes_batches_and_meta(tmp_path):
     assert acts.dim() >= 2
 
     # Metadata exists and contains run_name
-    meta = lm.store.get_run_meta(run)
+    meta = lm.store.get_run_metadata(run)
     assert meta.get("run_name") == run

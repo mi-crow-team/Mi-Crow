@@ -5,7 +5,7 @@ from torch import nn
 from pathlib import Path
 import tempfile
 
-from amber.core.language_model import LanguageModel
+from amber.language_model.language_model import LanguageModel
 from amber.hooks.controller import Controller
 from amber.hooks.detector import Detector
 from amber.hooks.hook import HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT

@@ -1,18 +1,17 @@
-from typing import TYPE_CHECKING, Sequence, Dict, Any, List
+from typing import TYPE_CHECKING, Dict, Any
 import datetime
-
-from amber.adapters import BaseDataset
-from amber.adapters.text_snippet_dataset import TextSnippetDataset
-from amber.hooks import HookType
-from amber.utils import get_logger
-from amber.hooks.activation_saver import LayerActivationDetector
-from amber.store.store import Store
 
 import torch
 from torch import nn
 
+from amber.adapters import BaseDataset
+from amber.hooks import HookType
+from amber.hooks.activation_saver import LayerActivationDetector
+from amber.store.store import Store
+from amber.utils import get_logger
+
 if TYPE_CHECKING:
-    from amber.core.language_model_context import LanguageModelContext
+    pass
 
 
 class LanguageModelActivations:
@@ -72,15 +71,15 @@ class LanguageModelActivations:
             return {}
         
         try:
-            ds_id = str(getattr(dataset, "cache_dir", ""))
+            ds_id = str(getattr(dataset, "dataset_dir", ""))
             ds_len = int(len(dataset))
             return {
-                "cache_dir": ds_id,
+                "dataset_dir": ds_id,
                 "length": ds_len,
             }
         except (AttributeError, TypeError, ValueError, RuntimeError):
             return {
-                "cache_dir": "",
+                "dataset_dir": "",
                 "length": -1,
             }
 
@@ -109,7 +108,14 @@ class LanguageModelActivations:
         if options is None:
             options = {}
 
-        layer_sig_str, layer_sig_list = self._normalize_layer_signatures(layer_signatures)
+        # Convert layer_signatures to list of strings
+        if isinstance(layer_signatures, (str, int)):
+            layer_sig_list = [str(layer_signatures)]
+        elif isinstance(layer_signatures, list):
+            layer_sig_list = [str(sig) for sig in layer_signatures]
+        else:
+            layer_sig_list = []
+
         dataset_info = self._extract_dataset_info(dataset)
 
         meta: Dict[str, Any] = {
@@ -118,8 +124,6 @@ class LanguageModelActivations:
             "options": options.copy(),
         }
 
-        if layer_sig_str is not None:
-            meta["layer_signature"] = layer_sig_str
         if layer_sig_list:
             meta["layer_signatures"] = layer_sig_list
             meta["num_layers"] = len(layer_sig_list)
@@ -146,7 +150,7 @@ class LanguageModelActivations:
         """
         logger = get_logger(__name__)
         try:
-            store.put_run_meta(run_name, meta)
+            store.put_run_metadata(run_name, meta)
         except (OSError, IOError, ValueError, RuntimeError) as e:
             if verbose:
                 logger.warning(f"Failed to save run metadata for {run_name}: {e}")

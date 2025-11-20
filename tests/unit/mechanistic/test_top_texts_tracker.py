@@ -4,7 +4,7 @@ import pytest
 import torch
 from torch import nn
 
-from amber.core.language_model import LanguageModel
+from amber.language_model.language_model import LanguageModel
 from amber.store.local_store import LocalStore
 from pathlib import Path
 import tempfile

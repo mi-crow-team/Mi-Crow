@@ -4,7 +4,7 @@ from torch import nn
 from dataclasses import dataclass, field
 from typing import Dict, List, Any
 
-from amber.core.language_model_layers import LanguageModelLayers
+from amber.language_model.language_model_layers import LanguageModelLayers
 
 
 @dataclass
