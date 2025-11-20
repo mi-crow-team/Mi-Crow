@@ -68,11 +68,11 @@ class LayerActivationDetector(Detector):
         """
         try:
             tensor = extract_tensor_from_output(output)
-
-        if tensor is not None:
-            tensor_cpu = tensor.detach().to("cpu")
-            # Store current batch's tensor (overwrites previous)
-            self.tensor_metadata['activations'] = tensor_cpu
+            
+            if tensor is not None:
+                tensor_cpu = tensor.detach().to("cpu")
+                # Store current batch's tensor (overwrites previous)
+                self.tensor_metadata['activations'] = tensor_cpu
         except Exception as e:
             raise RuntimeError(
                 f"Error extracting activations in LayerActivationDetector {self.id}: {e}"

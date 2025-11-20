@@ -4,7 +4,7 @@ import datetime
 import torch
 from torch import nn
 
-from amber.adapters import BaseDataset
+from amber.datasets import BaseDataset
 from amber.hooks import HookType
 from amber.hooks.implementations.activation_saver import LayerActivationDetector
 from amber.store.store import Store

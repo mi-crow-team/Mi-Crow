@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import abc
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, List, Iterator
 
 import torch
 
@@ -45,11 +45,6 @@ class Store(abc.ABC):
         self.model_prefix = model_prefix
         self.base_path = Path(base_path)
 
-<<<<<<< Updated upstream
-    # --- Run-oriented batch APIs ---
-    def _run_batch_key(self, run_id: str, batch_index: int) -> str:
-        return f"{self.runs_prefix}/{run_id}/batch_{batch_index:06d}.safetensors"
-=======
     def _run_key(self, run_id: str) -> Path:
         """Get path for a run directory.
         
@@ -83,7 +78,6 @@ class Store(abc.ABC):
             Path to metadata JSON file
         """
         return self._run_key(run_id) / "meta.json"
->>>>>>> Stashed changes
 
     @abc.abstractmethod
     def put_run_batch(self, run_id: str, batch_index: int,
@@ -138,7 +132,7 @@ class Store(abc.ABC):
 
     # --- Run metadata (optional helpers) ---
     @abc.abstractmethod
-    def put_run_meta(self, run_id: str, meta: Dict[str, Any]) -> str:
+    def put_run_metadata(self, run_id: str, meta: Dict[str, Any]) -> str:
         """Persist metadata for a run (e.g., dataset/model identifiers).
 
         Args:
@@ -158,10 +152,6 @@ class Store(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-<<<<<<< Updated upstream
-    def get_run_meta(self, run_id: str) -> Dict[str, Any]:
-        """Load metadata for a run. Should return an empty dict if missing."""
-=======
     def get_run_metadata(self, run_id: str) -> Dict[str, Any]:
         """Load metadata for a run.
         
@@ -175,7 +165,6 @@ class Store(abc.ABC):
             ValueError: If run_id is invalid
             json.JSONDecodeError: If metadata file exists but contains invalid JSON
         """
->>>>>>> Stashed changes
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -205,8 +194,6 @@ class Store(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-<<<<<<< Updated upstream
-=======
     def get_detector_metadata(
             self,
             run_id: str,
@@ -229,7 +216,6 @@ class Store(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
->>>>>>> Stashed changes
     def get_detector_metadata_by_layer_by_key(
             self,
             run_id: str,

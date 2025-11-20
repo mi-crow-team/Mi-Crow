@@ -11,7 +11,8 @@ import shutil
 from datasets import Dataset
 
 from amber.language_model.language_model import LanguageModel
-from amber.adapters.text_snippet_dataset import TextSnippetDataset
+from amber.datasets import TextDataset
+from amber.store.local_store import LocalStore
 from amber.store.local_store import LocalStore
 
 from amber.mechanistic.sae.modules.topk_sae import TopKSae
@@ -43,7 +44,8 @@ def trained_sae_setup():
         "Birds sing in the morning.",
     ]
     hf_dataset = Dataset.from_dict({"text": texts})
-    dataset = TextSnippetDataset(hf_dataset, store_dir / "dataset_cache")
+    dataset_store = LocalStore(base_path=store_dir / "dataset_cache")
+    dataset = TextDataset(hf_dataset, store=dataset_store)
     
     # Save activations
     lm.activations.save_activations_dataset(

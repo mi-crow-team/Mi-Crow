@@ -4,8 +4,8 @@ from pathlib import Path
 from datasets import Dataset, IterableDataset
 from unittest.mock import patch
 
-from amber.adapters.text_dataset import TextDataset
-from amber.adapters.loading_strategy import LoadingStrategy
+from amber.datasets.text_dataset import TextDataset
+from amber.datasets.loading_strategy import LoadingStrategy
 from amber.store.local_store import LocalStore
 
 

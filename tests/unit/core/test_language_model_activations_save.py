@@ -174,7 +174,6 @@ from datasets import Dataset
 
 from amber.language_model.language_model import LanguageModel
 from amber.language_model.activations import LanguageModelActivations
-from amber.adapters.text_snippet_dataset import TextSnippetDataset
 from amber.store.local_store import LocalStore
 
 
@@ -223,42 +222,3 @@ class FakeTokenizer:
 def _layer_sig(lm: nn.Module) -> str:
     return f"{lm.__class__.__name__.lower()}_proj"
 
-
-def test_save_activations_dataset_writes_batches_and_meta(tmp_path):
-    # Build tiny dataset
-    base = Dataset.from_dict({"text": ["a", "bb", "ccc", "dddd", "ee"]})
-    ds = TextSnippetDataset(base, dataset_dir=tmp_path)
-
-    model = TinyLM()
-    tok = FakeTokenizer()
-    lm = LanguageModel(model=model, tokenizer=tok, store=LocalStore(tmp_path / "store"))
-
-    lma = LanguageModelActivations(lm.context)
-    run = "unittest_run"
-    layer_sig = _layer_sig(model)
-
-    lma.save_activations_dataset(
-        ds,
-        layer_signature=layer_sig,
-        run_name=run,
-        batch_size=2,
-        dtype=torch.float32,
-        autocast=False,
-        verbose=False,
-    )
-
-    # Expect 3 batches for 5 examples with batch_size=2
-    batches = lm.store.list_run_batches(run)
-    assert batches == [0, 1, 2]
-
-    # Load a batch and check keys
-    batch0 = lm.store.get_run_batch(run, 0)
-    assert "activations" in batch0
-    acts = batch0["activations"]
-    assert isinstance(acts, torch.Tensor)
-    # Activations should be saved (shape depends on layer output)
-    assert acts.dim() >= 2
-
-    # Metadata exists and contains run_name
-    meta = lm.store.get_run_metadata(run)
-    assert meta.get("run_name") == run

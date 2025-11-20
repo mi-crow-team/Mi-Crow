@@ -12,7 +12,8 @@ import shutil
 from datasets import Dataset
 
 from amber.language_model.language_model import LanguageModel
-from amber.adapters.text_snippet_dataset import TextSnippetDataset
+from amber.datasets import TextDataset
+from amber.store.local_store import LocalStore
 from amber.store.local_store import LocalStore
 
 from amber.mechanistic.sae.modules.topk_sae import TopKSae
@@ -80,7 +81,8 @@ def test_e2e_train_sae_workflow(temp_dirs):
         "Fish swim in the ocean.",
     ]
     hf_dataset = Dataset.from_dict({"text": texts})
-    dataset = TextSnippetDataset(hf_dataset, dataset_dir)
+    dataset_store = LocalStore(base_path=dataset_dir)
+    dataset = TextDataset(hf_dataset, store=dataset_store)
     
     assert len(dataset) == len(texts)
     print(f"✅ Created dataset with {len(dataset)} samples")

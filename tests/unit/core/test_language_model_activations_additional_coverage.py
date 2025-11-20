@@ -6,7 +6,7 @@ from pathlib import Path
 from amber.language_model.activations import LanguageModelActivations
 from amber.language_model.context import LanguageModelContext
 from amber.store.local_store import LocalStore
-from amber.adapters.text_dataset import TextDataset
+from amber.datasets.text_dataset import TextDataset
 from datasets import Dataset
 
 
