@@ -1,5 +1,6 @@
 """Test that InputTracker correctly saves texts and integrates with SAE hooks."""
 
+import pytest
 import torch
 from torch import nn
 

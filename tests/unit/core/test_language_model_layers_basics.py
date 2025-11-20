@@ -4,11 +4,7 @@ from torch import nn
 from dataclasses import dataclass, field
 from typing import Dict, List, Any
 
-<<<<<<< Updated upstream
-from amber.core.language_model_layers import LanguageModelLayers
-=======
 from amber.language_model.layers import LanguageModelLayers
->>>>>>> Stashed changes
 
 
 class BlockA(nn.Module):

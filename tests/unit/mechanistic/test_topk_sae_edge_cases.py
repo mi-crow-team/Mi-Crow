@@ -1,6 +1,8 @@
 """Additional tests for TopKSae edge cases and error handling."""
 import pytest
 import torch
+from pathlib import Path
+import tempfile
 
 from amber.mechanistic.sae.modules.topk_sae import TopKSae
 from amber.hooks.hook import HookType

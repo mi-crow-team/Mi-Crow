@@ -129,9 +129,9 @@ class ErrorProneDataset:
         return {"text": f"sample {idx}"}
     
     @property
-    def cache_dir(self):
-        if self.error_type == "cache_dir_error":
-            raise AttributeError("cache_dir not accessible")
+    def dataset_dir(self):
+        if self.error_type == "dataset_dir_error":
+            raise AttributeError("dataset_dir not accessible")
         return "/tmp/test_cache"
     
     def iter_batches(self, batch_size):
@@ -174,9 +174,9 @@ def test_metadata_extraction_error_handling(tmp_path):
     assert len(batches) > 0
 
 
-def test_cache_dir_error_handling(tmp_path):
-    """Test error handling when cache_dir is not accessible."""
-    error_dataset = ErrorProneDataset("cache_dir_error")
+def test_dataset_dir_error_handling(tmp_path):
+    """Test error handling when dataset_dir is not accessible."""
+    error_dataset = ErrorProneDataset("dataset_dir_error")
     
     model = ErrorProneModel()
     tokenizer = ErrorProneTokenizer()
@@ -186,7 +186,7 @@ def test_cache_dir_error_handling(tmp_path):
     layer_names = lm.layers.get_layer_names()
     valid_layer = layer_names[0] if layer_names else "lin"
     
-    # Should handle cache_dir error gracefully
+    # Should handle dataset_dir error gracefully
     lm.activations.save_activations_dataset(
         error_dataset,
         layer_signature=valid_layer,
@@ -203,7 +203,7 @@ def test_cache_dir_error_handling(tmp_path):
 def test_model_name_extraction_error_handling(tmp_path):
     """Test error handling when model name extraction fails."""
     base = Dataset.from_dict({"text": ["sample 1", "sample 2", "sample 3"]})
-    ds = TextSnippetDataset(base, cache_dir=tmp_path)
+    ds = TextSnippetDataset(base, dataset_dir=tmp_path)
     
     # Create model without model_name attribute
     model = ErrorProneModel()
@@ -235,19 +235,19 @@ def test_model_name_extraction_error_handling(tmp_path):
 def test_store_metadata_error_handling(tmp_path):
     """Test error handling when store metadata operations fail."""
     base = Dataset.from_dict({"text": ["sample 1", "sample 2", "sample 3"]})
-    ds = TextSnippetDataset(base, cache_dir=tmp_path)
+    ds = TextSnippetDataset(base, dataset_dir=tmp_path)
     
     model = ErrorProneModel()
     tokenizer = ErrorProneTokenizer()
     lm = LanguageModel(model=model, tokenizer=tokenizer, store=LocalStore(tmp_path / "store"))
     
     # Mock store to raise error on put_run_meta
-    original_put_meta = lm.store.put_run_meta
+    original_put_meta = lm.store.put_run_metadata
     
     def error_put_meta(run_name, meta):
         raise RuntimeError("Metadata store failed")
     
-    lm.store.put_run_meta = error_put_meta
+    lm.store.put_run_metadata = error_put_meta
     
     # Find a valid layer name
     layer_names = lm.layers.get_layer_names()
@@ -270,7 +270,7 @@ def test_store_metadata_error_handling(tmp_path):
 def test_activation_capture_edge_cases(tmp_path):
     """Test edge cases in activation capture."""
     base = Dataset.from_dict({"text": ["sample 1", "sample 2", "sample 3"]})
-    ds = TextSnippetDataset(base, cache_dir=tmp_path)
+    ds = TextSnippetDataset(base, dataset_dir=tmp_path)
     
     model = ErrorProneModel()
     tokenizer = ErrorProneTokenizer()
@@ -309,7 +309,7 @@ def test_activation_capture_edge_cases(tmp_path):
 def test_device_handling_errors(tmp_path):
     """Test error handling in device operations."""
     base = Dataset.from_dict({"text": ["sample 1", "sample 2", "sample 3"]})
-    ds = TextSnippetDataset(base, cache_dir=tmp_path)
+    ds = TextSnippetDataset(base, dataset_dir=tmp_path)
     
     # Test with model that has device issues
     model = ErrorProneModel("device_error")
@@ -334,7 +334,7 @@ def test_device_handling_errors(tmp_path):
 def test_tokenization_error_handling(tmp_path):
     """Test error handling in tokenization."""
     base = Dataset.from_dict({"text": ["sample 1", "sample 2", "sample 3"]})
-    ds = TextSnippetDataset(base, cache_dir=tmp_path)
+    ds = TextSnippetDataset(base, dataset_dir=tmp_path)
     
     model = ErrorProneModel()
     tokenizer = ErrorProneTokenizer("tokenization_error")
@@ -358,7 +358,7 @@ def test_tokenization_error_handling(tmp_path):
 def test_return_tensors_error_handling(tmp_path):
     """Test error handling with unsupported return_tensors."""
     base = Dataset.from_dict({"text": ["sample 1", "sample 2", "sample 3"]})
-    ds = TextSnippetDataset(base, cache_dir=tmp_path)
+    ds = TextSnippetDataset(base, dataset_dir=tmp_path)
     
     model = ErrorProneModel()
     tokenizer = ErrorProneTokenizer("return_tensors_error")
@@ -384,7 +384,7 @@ def test_verbose_logging_with_errors(tmp_path, caplog):
     import logging
     
     base = Dataset.from_dict({"text": ["sample 1", "sample 2", "sample 3"]})
-    ds = TextSnippetDataset(base, cache_dir=tmp_path)
+    ds = TextSnippetDataset(base, dataset_dir=tmp_path)
     
     model = ErrorProneModel()
     tokenizer = ErrorProneTokenizer()

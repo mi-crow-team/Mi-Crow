@@ -29,7 +29,7 @@ def tiny_lm():
     model = TinyNet()
     temp_dir = tempfile.mkdtemp()
     store = LocalStore(Path(temp_dir) / "store")
-    # tokenizer is unused by LanguageModel core behaviors we test here
+    # tokenizer is unused by LanguageModel language_model behaviors we test here
     return LanguageModel(model=model, tokenizer=None, store=store)
 
 

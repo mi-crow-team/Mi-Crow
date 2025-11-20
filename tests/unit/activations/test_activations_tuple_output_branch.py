@@ -1,10 +1,14 @@
 import torch
 from torch import nn
 from datasets import Dataset
+import tempfile
+from pathlib import Path
 
 from amber.language_model.language_model import LanguageModel
 from amber.store.local_store import LocalStore
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
+import tempfile
+from pathlib import Path
 
 
 class FakeTokenizer:
@@ -69,7 +73,7 @@ class ToyLMBranchy(nn.Module):
 
 def _make_ds(texts: list[str], cache_dir) -> TextSnippetDataset:
     base = Dataset.from_dict({"text": texts})
-    return TextSnippetDataset(base, cache_dir=cache_dir)
+    return TextSnippetDataset(base, dataset_dir=cache_dir)
 
 
 def test_save_activations_dataset_tuple_output_branch(tmp_path):

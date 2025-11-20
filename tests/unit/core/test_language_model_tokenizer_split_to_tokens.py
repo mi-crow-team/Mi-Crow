@@ -1,12 +1,18 @@
+from amber.store.local_store import LocalStore
+from pathlib import Path
+import tempfile
 """Test split_to_tokens method in LanguageModelTokenizer."""
 
+import pytest
 import torch
 from torch import nn
+import tempfile
+from pathlib import Path
+from amber.store.local_store import LocalStore
 
-<<<<<<< Updated upstream
-=======
 from amber.language_model.language_model import LanguageModel
->>>>>>> Stashed changes
+from amber.language_model.tokenizer import LanguageModelTokenizer
+from amber.language_model.context import LanguageModelContext
 import tempfile
 from pathlib import Path
 from amber.store.local_store import LocalStore

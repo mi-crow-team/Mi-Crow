@@ -107,7 +107,7 @@ def test_text_dataset_iter_batches_invalid_size(sample_dataset, temp_store):
 def test_text_dataset_streaming_not_implemented(temp_store):
     """Test that streaming datasets raise NotImplementedError for len and indexing."""
     iter_ds = IterableDataset.from_generator(lambda: iter([{"text": "a"}]))
-    ds = TextDataset(iter_ds, temp_store, loading_strategy=LoadingStrategy.STREAM)
+    ds = TextDataset(iter_ds, temp_store, loading_strategy=LoadingStrategy.ITERABLE_ONLY)
     
     with pytest.raises(NotImplementedError):
         _ = len(ds)
@@ -121,7 +121,7 @@ def test_text_dataset_streaming_iter_items(temp_store):
     iter_ds = IterableDataset.from_generator(
         lambda: iter([{"text": "a"}, {"text": "b"}])
     )
-    ds = TextDataset(iter_ds, temp_store, loading_strategy=LoadingStrategy.STREAM)
+    ds = TextDataset(iter_ds, temp_store, loading_strategy=LoadingStrategy.ITERABLE_ONLY)
     items = list(ds.iter_items())
     assert len(items) == 2
     assert items == ["a", "b"]
@@ -132,7 +132,7 @@ def test_text_dataset_streaming_iter_batches(temp_store):
     iter_ds = IterableDataset.from_generator(
         lambda: iter([{"text": "a"}, {"text": "b"}])
     )
-    ds = TextDataset(iter_ds, temp_store, loading_strategy=LoadingStrategy.STREAM)
+    ds = TextDataset(iter_ds, temp_store, loading_strategy=LoadingStrategy.ITERABLE_ONLY)
     batches = list(ds.iter_batches(batch_size=1))
     assert len(batches) == 2
     assert len(batches[0]) == 1
@@ -200,7 +200,7 @@ def test_text_dataset_from_csv(tmp_path):
             csv_path,
             store,
             text_field="text",
-            loading_strategy=LoadingStrategy.STREAM  # Use streaming to avoid cache conflict
+            loading_strategy=LoadingStrategy.ITERABLE_ONLY  # Use streaming to avoid cache conflict
         )
         items = list(ds.iter_items())
         assert len(items) == 2
@@ -227,7 +227,7 @@ def test_text_dataset_from_json(tmp_path):
             json_path,
             store,
             text_field="text",
-            loading_strategy=LoadingStrategy.STREAM  # Use streaming to avoid cache conflict
+            loading_strategy=LoadingStrategy.ITERABLE_ONLY  # Use streaming to avoid cache conflict
         )
         items = list(ds.iter_items())
         assert len(items) == 2
@@ -248,7 +248,7 @@ def test_text_dataset_from_local_directory(tmp_path):
     ds = TextDataset.from_local(
         str(test_dir),
         store,
-        loading_strategy=LoadingStrategy.STREAM  # Use streaming to avoid cache conflict
+        loading_strategy=LoadingStrategy.ITERABLE_ONLY  # Use streaming to avoid cache conflict
     )
     items = list(ds.iter_items())
     assert len(items) == 2
@@ -310,7 +310,7 @@ def test_text_dataset_from_local_json_file(tmp_path):
         ds = TextDataset.from_local(
             json_path,
             store,
-            loading_strategy=LoadingStrategy.STREAM
+            loading_strategy=LoadingStrategy.ITERABLE_ONLY
         )
         items = list(ds.iter_items())
         assert len(items) == 1
@@ -330,7 +330,7 @@ def test_text_dataset_from_local_csv_file(tmp_path):
         ds = TextDataset.from_local(
             csv_path,
             store,
-            loading_strategy=LoadingStrategy.STREAM
+            loading_strategy=LoadingStrategy.ITERABLE_ONLY
         )
         items = list(ds.iter_items())
         assert len(items) == 1
@@ -350,7 +350,7 @@ def test_text_dataset_from_local_tsv_file(tmp_path):
         ds = TextDataset.from_local(
             tsv_path,
             store,
-            loading_strategy=LoadingStrategy.STREAM
+            loading_strategy=LoadingStrategy.ITERABLE_ONLY
         )
         items = list(ds.iter_items())
         assert len(items) == 1

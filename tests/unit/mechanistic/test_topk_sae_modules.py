@@ -2,9 +2,11 @@
 
 import torch
 import pytest
+from pathlib import Path
 
 from amber.mechanistic.sae.modules.topk_sae import TopKSae
 from amber.language_model.language_model import LanguageModel
+from amber.mechanistic.sae.concepts.concept_models import NeuronText
 
 
 class MockTokenizer:

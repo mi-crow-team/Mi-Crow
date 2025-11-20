@@ -1,4 +1,5 @@
 """Tests that verify actual behavior of TopKSae, not just compilation."""
+import pytest
 import torch
 from pathlib import Path
 import tempfile

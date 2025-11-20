@@ -1,6 +1,13 @@
+from amber.store.local_store import LocalStore
+from pathlib import Path
+import tempfile
 """Additional tests to improve coverage for language_model.py."""
+import pytest
 import torch
 from torch import nn
+import tempfile
+from pathlib import Path
+from amber.store.local_store import LocalStore
 
 from amber.language_model.language_model import LanguageModel
 import tempfile
@@ -168,8 +175,8 @@ def test_inference_controller_restoration_after_exception(tmp_path):
     assert True  # Placeholder - actual test would require hook registration
 
 
-def test_from_local_requires_store(tmp_path):
-    """Test from_local requires store parameter."""
+def test_from_local_torch_requires_store(tmp_path):
+    """Test from_local_torch requires store parameter."""
     from unittest.mock import patch, MagicMock
     
     store = LocalStore(tmp_path)
@@ -182,7 +189,7 @@ def test_from_local_requires_store(tmp_path):
         mock_tok_class.from_pretrained.return_value = mock_tokenizer
         mock_model_class.from_pretrained.return_value = mock_model
         
-        result = LanguageModel.from_local("model_path", "tokenizer_path", store)
+        result = LanguageModel.from_local_torch("model_path", "tokenizer_path", store)
         assert isinstance(result, LanguageModel)
         mock_tok_class.from_pretrained.assert_called_once_with("tokenizer_path")
         mock_model_class.from_pretrained.assert_called_once_with("model_path")

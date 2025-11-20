@@ -3,13 +3,8 @@ import torch
 from unittest.mock import Mock, patch, MagicMock
 from pathlib import Path
 
-<<<<<<< Updated upstream
-from amber.core.language_model_activations import LanguageModelActivations
-from amber.core.language_model_context import LanguageModelContext
-=======
 from amber.language_model.activations import LanguageModelActivations
 from amber.language_model.context import LanguageModelContext
->>>>>>> Stashed changes
 from amber.store.local_store import LocalStore
 from amber.adapters.text_dataset import TextDataset
 from datasets import Dataset
@@ -247,11 +242,11 @@ def test_normalize_layer_signatures_none(activations):
 def test_extract_dataset_info_with_valid_dataset(activations):
     """Test _extract_dataset_info with valid dataset."""
     mock_dataset = Mock()
-    mock_dataset.cache_dir = "/path/to/cache"
+    mock_dataset.dataset_dir = "/path/to/cache"
     mock_dataset.__len__ = Mock(return_value=100)
     
     info = activations._extract_dataset_info(mock_dataset)
-    assert info["cache_dir"] == "/path/to/cache"
+    assert info["dataset_dir"] == "/path/to/cache"
     assert info["length"] == 100
 
 
@@ -267,7 +262,7 @@ def test_extract_dataset_info_with_exception(activations):
     mock_dataset.__len__ = Mock(side_effect=RuntimeError("Error"))
     
     info = activations._extract_dataset_info(mock_dataset)
-    assert info["cache_dir"] == ""
+    assert info["dataset_dir"] == ""
     assert info["length"] == -1
 
 
@@ -301,7 +296,7 @@ def test_prepare_run_metadata_with_options(activations):
 def test_prepare_run_metadata_with_dataset(activations):
     """Test _prepare_run_metadata includes dataset info."""
     mock_dataset = Mock()
-    mock_dataset.cache_dir = "/cache"
+    mock_dataset.dataset_dir = "/cache"
     mock_dataset.__len__ = Mock(return_value=50)
     
     run_name, meta = activations._prepare_run_metadata(

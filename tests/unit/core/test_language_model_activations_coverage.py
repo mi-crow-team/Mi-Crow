@@ -3,11 +3,7 @@ import pytest
 import torch
 from unittest.mock import Mock, MagicMock
 
-<<<<<<< Updated upstream
-from amber.core.language_model_activations import LanguageModelActivations
-=======
 from amber.language_model.activations import LanguageModelActivations
->>>>>>> Stashed changes
 
 
 class _FakeLayers:

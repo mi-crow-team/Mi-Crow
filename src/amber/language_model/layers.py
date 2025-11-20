@@ -7,11 +7,7 @@ from amber.hooks.detector import Detector
 from amber.hooks.controller import Controller
 
 if TYPE_CHECKING:
-<<<<<<<< Updated upstream:src/amber/core/language_model_layers.py
-    from amber.core.language_model_context import LanguageModelContext
-========
     from amber.language_model.context import LanguageModelContext
->>>>>>>> Stashed changes:src/amber/core/layers.py
 
 
 class LanguageModelLayers:

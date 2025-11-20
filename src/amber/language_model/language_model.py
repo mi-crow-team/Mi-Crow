@@ -155,7 +155,7 @@ class LanguageModel:
         """
         if not texts:
             raise ValueError("Texts list cannot be empty")
-        
+
         if self.tokenizer is None:
             raise ValueError("Tokenizer is required for decoding but is None")
 
@@ -280,9 +280,9 @@ class LanguageModel:
         return create_from_huggingface(cls, model_name, store, tokenizer_params, model_params)
 
     @classmethod
-    def from_local(cls, model_path: str, tokenizer_path: str, store: Store) -> "LanguageModel":
+    def from_local_torch(cls, model_path: str, tokenizer_path: str, store: Store) -> "LanguageModel":
         """
-        Load a language model from local paths.
+        Load a language model from local HuggingFace paths.
         
         Args:
             model_path: Path to the model directory or file

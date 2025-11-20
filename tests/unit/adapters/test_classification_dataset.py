@@ -160,7 +160,7 @@ def test_classification_dataset_get_categories_for_texts(sample_dataset, temp_st
 def test_classification_dataset_streaming_not_implemented(temp_store):
     """Test that streaming datasets raise NotImplementedError for len and indexing."""
     iter_ds = IterableDataset.from_generator(lambda: iter([{"text": "a", "category": "X"}]))
-    ds = ClassificationDataset(iter_ds, temp_store, loading_strategy=LoadingStrategy.STREAM)
+    ds = ClassificationDataset(iter_ds, temp_store, loading_strategy=LoadingStrategy.ITERABLE_ONLY)
     
     with pytest.raises(NotImplementedError):
         _ = len(ds)
@@ -177,7 +177,7 @@ def test_classification_dataset_streaming_iter_items(temp_store):
     iter_ds = IterableDataset.from_generator(
         lambda: iter([{"text": "a", "category": "X"}, {"text": "b", "category": "Y"}])
     )
-    ds = ClassificationDataset(iter_ds, temp_store, loading_strategy=LoadingStrategy.STREAM)
+    ds = ClassificationDataset(iter_ds, temp_store, loading_strategy=LoadingStrategy.ITERABLE_ONLY)
     items = list(ds.iter_items())
     assert len(items) == 2
 
@@ -187,7 +187,7 @@ def test_classification_dataset_streaming_iter_batches(temp_store):
     iter_ds = IterableDataset.from_generator(
         lambda: iter([{"text": "a", "category": "X"}, {"text": "b", "category": "Y"}])
     )
-    ds = ClassificationDataset(iter_ds, temp_store, loading_strategy=LoadingStrategy.STREAM)
+    ds = ClassificationDataset(iter_ds, temp_store, loading_strategy=LoadingStrategy.ITERABLE_ONLY)
     batches = list(ds.iter_batches(batch_size=1))
     assert len(batches) == 2
     assert len(batches[0]) == 1
@@ -261,7 +261,7 @@ def test_classification_dataset_from_csv(tmp_path):
             store,
             text_field="text",
             category_field="category",
-            loading_strategy=LoadingStrategy.STREAM  # Use streaming to avoid cache conflict
+            loading_strategy=LoadingStrategy.ITERABLE_ONLY  # Use streaming to avoid cache conflict
         )
         items = list(ds.iter_items())
         assert len(items) == 2
@@ -289,7 +289,7 @@ def test_classification_dataset_from_json(tmp_path):
             store,
             text_field="text",
             category_field="category",
-            loading_strategy=LoadingStrategy.STREAM  # Use streaming to avoid cache conflict
+            loading_strategy=LoadingStrategy.ITERABLE_ONLY  # Use streaming to avoid cache conflict
         )
         items = list(ds.iter_items())
         assert len(items) == 2
@@ -318,7 +318,7 @@ def test_classification_dataset_streaming_get_categories(temp_store):
             {"text": "c", "category": "X"}
         ])
     )
-    ds = ClassificationDataset(iter_ds, temp_store, loading_strategy=LoadingStrategy.STREAM)
+    ds = ClassificationDataset(iter_ds, temp_store, loading_strategy=LoadingStrategy.ITERABLE_ONLY)
     categories = ds.get_categories()
     assert set(categories) == {"X", "Y"}
 
@@ -331,7 +331,7 @@ def test_classification_dataset_streaming_get_texts(temp_store):
             {"text": "b", "category": "Y"}
         ])
     )
-    ds = ClassificationDataset(iter_ds, temp_store, loading_strategy=LoadingStrategy.STREAM)
+    ds = ClassificationDataset(iter_ds, temp_store, loading_strategy=LoadingStrategy.ITERABLE_ONLY)
     texts = ds.get_texts()
     assert texts == ["a", "b"]
 

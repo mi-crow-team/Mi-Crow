@@ -1,12 +1,18 @@
 from typing import Sequence, Any
+import tempfile
+from pathlib import Path
 
 import torch
 from torch import nn
+import tempfile
+from pathlib import Path
 
 from amber.language_model.language_model import LanguageModel
 from amber.adapters.text_snippet_dataset import TextSnippetDataset
 from amber.store.local_store import LocalStore
 from datasets import Dataset
+import tempfile
+from pathlib import Path
 
 
 class FakeTokenizer:
@@ -64,7 +70,7 @@ class ToyLM(nn.Module):
 
 def make_snippet_ds(texts: list[str], tmp_path) -> TextSnippetDataset:
     base = Dataset.from_dict({"text": texts})
-    return TextSnippetDataset(base, cache_dir=tmp_path)
+    return TextSnippetDataset(base, dataset_dir=tmp_path)
 
 
 def test_save_model_activations_persists_batches_and_shapes(tmp_path):

@@ -13,12 +13,6 @@ from overcomplete import (
 from amber.hooks.hook import HookType
 from amber.mechanistic.sae.sae import Sae
 from amber.mechanistic.sae.sae_trainer import SaeTrainingConfig
-from amber.mechanistic.sae.utils import (
-    extract_activation_tensor,
-    reshape_for_sae,
-    reshape_from_sae,
-    reconstruct_hook_output
-)
 from amber.store.store import Store
 from amber.utils import get_logger
 
@@ -139,132 +133,112 @@ class TopKSae(Sae):
         Returns:
             Modified activations with same shape as input
         """
-        # Extract activation tensor from hook inputs/output
-        tensor, original_value = extract_activation_tensor(self.hook_type, inputs, output)
-        
+        if self.hook_type == HookType.FORWARD:
+            tensor = output
+        else:
+            tensor = inputs[0] if len(inputs) > 0 else None
+
         if tensor is None:
-            return original_value
+            return output if self.hook_type == HookType.FORWARD else inputs
 
-        # Process activations through SAE
-        reconstructed = self._process_activations(tensor)
-
-        # Reconstruct output in original format
-        return reconstruct_hook_output(self.hook_type, reconstructed, original_value)
-
-    def _process_activations(self, tensor: torch.Tensor) -> torch.Tensor:
-        """
-        Process activations through SAE: encode, apply concepts, decode.
-        
-        Args:
-            tensor: Input activation tensor
-            
-        Returns:
-            Reconstructed tensor with same shape as input
-            
-        Raises:
-            ValueError: If tensor shape is invalid
-            RuntimeError: If SAE processing fails
-        """
+        # Check if tensor is actually a torch.Tensor before processing
         if not isinstance(tensor, torch.Tensor):
-            raise TypeError(f"Expected torch.Tensor, got {type(tensor)}")
-        
-        if tensor.numel() == 0:
-            raise ValueError("Cannot process empty tensor")
-        
-        if len(tensor.shape) < 2:
-            raise ValueError(f"Expected tensor with at least 2 dimensions, got shape {tensor.shape}")
+            # For non-tensor outputs in FORWARD hooks, try to extract tensor from tuple/list/object
+            if self.hook_type == HookType.FORWARD:
+                if isinstance(output, (tuple, list)):
+                    # Try to find first tensor in tuple/list
+                    for item in output:
+                        if isinstance(item, torch.Tensor):
+                            tensor = item
+                            break
+                    else:
+                        # No tensor found in tuple/list, return unchanged
+                        return output
+                elif hasattr(output, "last_hidden_state"):
+                    # Try to get tensor from last_hidden_state attribute
+                    if isinstance(output.last_hidden_state, torch.Tensor):
+                        tensor = output.last_hidden_state
+                    else:
+                        # last_hidden_state is not a tensor, return unchanged
+                        return output
+                else:
+                    # No tensor found, return unchanged
+                    return output
+            else:
+                # PRE_FORWARD: no tensor in inputs, return unchanged
+                return inputs
 
-        try:
-            # Reshape for SAE processing (flatten if 3D)
-            tensor_2d, original_shape, needs_reshape = reshape_for_sae(tensor)
+        original_shape = tensor.shape
 
-            # Validate reshaped tensor matches expected input size
-            if tensor_2d.shape[-1] != self.context.n_inputs:
-                raise ValueError(
-                    f"Tensor feature dimension {tensor_2d.shape[-1]} does not match "
-                    f"SAE input size {self.context.n_inputs}"
-                )
+        # Flatten to 2D if needed: (batch, seq_len, hidden) -> (batch * seq_len, hidden)
+        needs_reshape = len(original_shape) > 2
+        if needs_reshape:
+            batch_size, seq_len = original_shape[:2]
+            tensor = tensor.reshape(-1, original_shape[-1])
 
-            # Encode to get latents
-            latents = self.encode(tensor_2d)
+        # Encode to get latents
+        latents = self.encode(tensor)
 
-            # Update text tracking if enabled
-            self._update_text_tracking(tensor_2d, latents, original_shape)
+        # Update top texts if text tracking is enabled
+        if self._text_tracking_enabled and self.context.lm is not None:
+            input_tracker = self.context.lm.get_input_tracker()
+            if input_tracker is not None:
+                texts = input_tracker.get_current_texts()
+                if texts:
+                    # For text tracking, use full (non-sparse) activations, not sparse TopK
+                    # Overcomplete TopKSAE encode returns (pre_codes, codes) where codes are sparse
+                    # We need pre_codes (full activations) for accurate text tracking
+                    # pre_codes are the raw activations before TopK sparsity
+                    pre_codes, _ = self.sae_engine.encode(tensor)
+                    # Use pre_codes directly (signed values) - the _text_tracking_negative flag
+                    # in concepts will handle whether to track negative activations
+                    full_latents = pre_codes
 
-            # Apply concept manipulation if needed
-            latents = self._apply_concept_manipulation(latents)
+                    # Update top texts using full latents and texts
+                    # Latents are already flattened, so pass original_shape for token index calculation
+                    self.concepts.update_top_texts_from_latents(
+                        full_latents.detach().cpu(),
+                        texts,
+                        original_shape
+                    )
 
-            # Decode to get reconstruction
-            reconstructed = self.decode(latents)
-
-            # Reshape back to original shape
-            return reshape_from_sae(reconstructed, original_shape, needs_reshape)
-        except Exception as e:
-            raise RuntimeError(f"Failed to process activations through SAE: {e}") from e
-
-    def _update_text_tracking(
-            self,
-            tensor_2d: torch.Tensor,
-            latents: torch.Tensor,
-            original_shape: tuple[int, ...]
-    ) -> None:
-        """
-        Update text tracking if enabled.
-        
-        Args:
-            tensor_2d: Flattened input tensor [batch * seq_len, hidden]
-            latents: Encoded latents (sparse TopK)
-            original_shape: Original tensor shape before flattening
-        """
-        if not (self._text_tracking_enabled and self.context.lm is not None):
-            return
-
-        input_tracker = self.context.lm.get_input_tracker()
-        if input_tracker is None:
-            return
-
-        texts = input_tracker.get_current_texts()
-        if not texts:
-            return
-
-        # For text tracking, use full (non-sparse) activations, not sparse TopK
-        # Overcomplete TopKSAE encode returns (pre_codes, codes) where codes are sparse
-        # We need pre_codes (full activations) for accurate text tracking
-        pre_codes, _ = self.sae_engine.encode(tensor_2d)
-        full_latents = pre_codes
-
-        # Update top texts using full latents and texts
-        self.concepts.update_top_texts_from_latents(
-            full_latents.detach().cpu(),
-            texts,
-            original_shape
-        )
-
-    def _apply_concept_manipulation(self, latents: torch.Tensor) -> torch.Tensor:
-        """
-        Apply concept manipulation (multiplication and bias) if parameters differ from defaults.
-        
-        Args:
-            latents: Encoded latents tensor
-            
-        Returns:
-            Manipulated latents tensor
-        """
+        # Apply concept manipulation if parameters are set
         # Check if multiplication or bias differ from defaults (ones)
-        multiplication_default = torch.allclose(
-            self.concepts.multiplication,
-            torch.ones_like(self.concepts.multiplication)
-        )
-        bias_default = torch.allclose(
-            self.concepts.bias,
-            torch.ones_like(self.concepts.bias)
-        )
+        if not torch.allclose(self.concepts.multiplication, torch.ones_like(self.concepts.multiplication)) or \
+                not torch.allclose(self.concepts.bias, torch.ones_like(self.concepts.bias)):
+            # Apply manipulation: latents = latents * multiplication + bias
+            latents = latents * self.concepts.multiplication + self.concepts.bias
 
-        if multiplication_default and bias_default:
-            return latents
+        # Decode to get reconstruction
+        reconstructed = self.decode(latents)
 
-        # Apply manipulation: latents = latents * multiplication + bias
-        return latents * self.concepts.multiplication + self.concepts.bias
+        # Reshape back to original shape if needed
+        if needs_reshape:
+            reconstructed = reconstructed.reshape(original_shape)
+
+        # Return in appropriate format
+        if self.hook_type == HookType.FORWARD:
+            if isinstance(output, torch.Tensor):
+                return reconstructed
+            elif isinstance(output, (tuple, list)):
+                # Replace first tensor in tuple/list
+                result = list(output)
+                for i, item in enumerate(result):
+                    if isinstance(item, torch.Tensor):
+                        result[i] = reconstructed
+                        break
+                return tuple(result) if isinstance(output, tuple) else result
+            else:
+                # For objects with attributes, try to set last_hidden_state
+                if hasattr(output, "last_hidden_state"):
+                    output.last_hidden_state = reconstructed
+                return output
+        else:  # PRE_FORWARD
+            # Return modified inputs tuple
+            result = list(inputs)
+            if len(result) > 0:
+                result[0] = reconstructed
+            return tuple(result)
 
     def save(self, name: str, path: str | Path | None = None) -> None:
         """
