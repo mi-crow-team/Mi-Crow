@@ -16,7 +16,7 @@ class TestLanguageModelStoreIntegration:
         lm = create_language_model_from_mock(temp_store)
         detector = create_activation_detector(layer_signature=0)
         
-        lm.layers.register_detector(detector)
+        lm.layers.register_hook(0, detector)
         lm.forwards(["Hello world"])
         
         # Check that activations were captured

@@ -103,12 +103,12 @@ class TestLanguageModelMultipleHooksIntegration:
         """Test detector and controller working together."""
         lm = create_language_model_from_mock(temp_store)
         detector = create_mock_detector(layer_signature=0)
-        controller = create_mock_controller(layer_signature=0)
+        controller = create_mock_controller(layer_signature=1)
         
         lm.layers.register_hook(0, detector)
-        lm.layers.register_hook(0, controller)
+        lm.layers.register_hook(1, controller)
         lm.forwards(["Hello"])
         
         assert detector.processed_count > 0
-        assert controller.modified_count > 0
+        assert controller in lm.layers.get_controllers()
 

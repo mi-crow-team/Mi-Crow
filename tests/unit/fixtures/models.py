@@ -20,7 +20,7 @@ class SimpleLM(nn.Module):
         ])
         self.lm_head = nn.Linear(hidden_size, vocab_size)
 
-    def forward(self, input_ids: torch.Tensor) -> torch.Tensor:
+    def forward(self, input_ids: torch.Tensor, attention_mask: Optional[torch.Tensor] = None, **kwargs) -> torch.Tensor:
         """Forward pass."""
         x = self.embedding(input_ids)
         for layer in self.layers:

@@ -28,8 +28,6 @@ class TestSAELanguageModelIntegration:
         lm.layers.register_hook(0, sae)
         
         # Run inference
-        from unittest.mock import patch, MagicMock
-        import torch
         mock_output = MagicMock()
         mock_encodings = {"input_ids": torch.tensor([[1, 2, 3]])}
         with patch.object(lm._inference_engine, 'execute_inference') as mock_execute:
@@ -40,9 +38,6 @@ class TestSAELanguageModelIntegration:
 
     def test_sae_modifies_activations_during_inference(self, temp_store):
         """Test that SAE modifies activations during inference."""
-        from unittest.mock import patch, MagicMock
-        import torch
-        
         lm = create_language_model_from_mock(temp_store)
         sae = ConcreteSae(n_latents=100, n_inputs=10)
         
