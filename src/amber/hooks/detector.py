@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import abc
-from dataclasses import dataclass
-from typing import Any, TYPE_CHECKING, List, Dict
+from typing import Any, TYPE_CHECKING, Dict
+
 import torch
 
 from amber.hooks.hook import Hook, HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
@@ -15,6 +17,7 @@ class Detector(Hook):
     Abstract base class for detector hooks that collect metadata during inference.
     
     Detectors can accumulate data across batches and optionally save it to a Store.
+    They are designed to observe and record information without modifying activations.
     """
 
     def __init__(
@@ -47,11 +50,26 @@ class Detector(Hook):
         """
         Internal hook function that collects metadata.
         
-        This calls process_activations and collect_metadata.
+        This calls process_activations to allow subclasses to implement
+        their specific detection logic.
+        
+        Args:
+            module: The PyTorch module being hooked
+            input: Tuple of input tensors to the module
+            output: Output tensor(s) from the module
+            
+        Raises:
+            Exception: If process_activations raises an exception
         """
         if not self._enabled:
             return None
-        self.process_activations(module, input, output)
+        try:
+            self.process_activations(module, input, output)
+        except Exception as e:
+            # Re-raise to be caught by wrapper in get_torch_hook
+            raise RuntimeError(
+                f"Error in detector {self.id} process_activations: {e}"
+            ) from e
         return None
 
     @abc.abstractmethod
@@ -71,5 +89,8 @@ class Detector(Hook):
             module: The PyTorch module being hooked
             input: Tuple of input tensors to the module
             output: Output tensor(s) from the module
+            
+        Raises:
+            Exception: Subclasses may raise exceptions for invalid inputs or processing errors
         """
-        pass
+        raise NotImplementedError("process_activations must be implemented by subclasses")

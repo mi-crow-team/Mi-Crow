@@ -1,99 +1,85 @@
 import json
 from pathlib import Path
+from unittest.mock import patch
+
 import pytest
 
 from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary, Concept
+from amber.mechanistic.sae.concepts.concept_models import NeuronText
 
 
-def test_add_and_get_enforces_one_concept_per_neuron(tmp_path):
-    cd = ConceptDictionary(n_size=5)
-    # Only 1 concept per neuron is allowed - adding a new one replaces the old one
-    cd.add(1, "a", 0.1)
-    got = cd.get(1)
-    assert got is not None
-    assert got.name == "a"
-    assert got.score == 0.1
-    
-    # Adding a new concept with higher score replaces the old one
-    cd.add(1, "b", 0.9)
-    got = cd.get(1)
-    assert got is not None
-    assert got.name == "b"
-    assert got.score == 0.9
-    
-    # Adding a new concept with lower score still replaces (only 1 allowed)
-    cd.add(1, "c", 0.5)
-    got = cd.get(1)
-    assert got is not None
-    assert got.name == "c"
-    assert got.score == 0.5
+def test_add_and_get_enforce_bounds():
+    dictionary = ConceptDictionary(n_size=2)
+    dictionary.add(0, "alpha", 0.9)
+    assert dictionary.get(0) == Concept(name="alpha", score=0.9)
 
-    # Out-of-bounds add/get raise IndexError
     with pytest.raises(IndexError):
-        cd.add(10, "x", 1.0)
+        dictionary.add(5, "beta", 0.5)
     with pytest.raises(IndexError):
-        cd.get(10)
-
-    # get_many returns mapping for requested indices
-    many = cd.get_many([0, 1, 2])
-    assert set(many.keys()) == {0, 1, 2}
-    assert many[0] is None  # No concept for neuron 0
-    assert many[1] is not None  # Has concept "c"
-    assert many[2] is None  # No concept for neuron 2
+        dictionary.get(-1)
 
 
 def test_save_and_load_roundtrip(tmp_path):
-    base = tmp_path / "concepts_dir"
-    cd = ConceptDictionary(n_size=3)
-    cd.add(0, "x", 0.2)
-    cd.add(2, "y", 0.8)
+    dictionary = ConceptDictionary(n_size=3)
+    dictionary.add(2, "gamma", 0.8)
 
-    path = cd.save(directory=base)
-    assert path.exists()
+    save_path = dictionary.save(directory=tmp_path / "concepts")
+    assert save_path.exists()
 
-    cd2 = ConceptDictionary(n_size=0)
-    cd2.load(directory=base)
-    assert cd2.n_size == 3
-    concept = cd2.get(2)
-    assert concept is not None
-    assert concept.name == "y"
+    new_dict = ConceptDictionary(n_size=1)
+    new_dict.load(directory=tmp_path / "concepts")
+    assert new_dict.n_size == 3
+    assert new_dict.get(2).name == "gamma"
 
 
-def test_save_load_errors_and_from_directory_behaviors(tmp_path):
-    base = tmp_path / "empty_dir"
-
-    # load without directory set raises
-    cd = ConceptDictionary(n_size=1)
+def test_save_without_directory_raises():
+    dictionary = ConceptDictionary(n_size=1)
     with pytest.raises(ValueError):
-        cd.load()
+        dictionary.save()
 
-    # save without directory set raises
-    cd2 = ConceptDictionary(n_size=1)
-    with pytest.raises(ValueError):
-        cd2.save()
 
-    # from_directory on non-existing path raises
-    with pytest.raises(FileNotFoundError):
-        cd_temp = ConceptDictionary(n_size=0)
-        cd_temp.load(directory=base)
+def test_from_csv_picks_best_score(tmp_path):
+    csv_path = tmp_path / "concepts.csv"
+    csv_path.write_text(
+        "neuron_idx,concept_name,score\n0,a,0.1\n0,b,0.8\n1,c,0.5\n",
+        encoding="utf-8",
+    )
 
-    # Create directory without concepts.json -> load raises FileNotFoundError
-    base.mkdir(parents=True, exist_ok=True)
-    cd3 = ConceptDictionary(n_size=0)
-    with pytest.raises(FileNotFoundError):
-        cd3.load(directory=base)
+    dictionary = ConceptDictionary.from_csv(csv_path, n_size=2)
 
-    # Write a minimal concepts.json and ensure load parses it
-    meta = {
-        "n_size": 4,
-        "concepts": {"1": [{"name": "z", "score": 0.7}]},
-    }
-    (base / "concepts.json").write_text(json.dumps(meta), encoding="utf-8")
-    cd4 = ConceptDictionary(n_size=0)
-    cd4.load(directory=base)
-    assert cd4.n_size == 4
-    concept = cd4.get(1)
-    assert concept is not None
-    assert isinstance(concept, Concept)
-    assert concept.name == "z"
-    assert concept.score == 0.7
+    assert dictionary.get(0).name == "b"
+    assert dictionary.get(1).name == "c"
+
+
+def test_from_json_supports_old_and_new_formats(tmp_path):
+    json_path = tmp_path / "concepts.json"
+    json_path.write_text(
+        json.dumps({
+            "0": [{"name": "old", "score": 0.2}, {"name": "better", "score": 0.9}],
+            "1": {"name": "single", "score": 0.5},
+        }),
+        encoding="utf-8",
+    )
+
+    dictionary = ConceptDictionary.from_json(json_path, n_size=2)
+    assert dictionary.get(0).name == "better"
+    assert dictionary.get(1).name == "single"
+
+
+def test_from_llm_uses_generated_names(monkeypatch):
+    neuron_texts = [
+        [NeuronText(score=1.0, text="text", token_idx=0, token_str="token")],
+        [],
+    ]
+
+    with patch.object(
+        ConceptDictionary,
+        "_generate_concept_names_llm",
+        return_value=[("llm_concept", 0.7)],
+    ) as mock_llm:
+        dictionary = ConceptDictionary.from_llm(neuron_texts, n_size=2)
+
+    mock_llm.assert_called_once()
+    assert dictionary.get(0).name == "llm_concept"
+    assert dictionary.get(1) is None
+

@@ -2,8 +2,14 @@ from __future__ import annotations
 
 import abc
 from pathlib import Path
-from typing import Iterator, List, Dict, Any
+from typing import Dict, Any, List, Iterator
+
 import torch
+
+
+# Type aliases for better readability
+TensorMetadata = Dict[str, Dict[str, torch.Tensor]]
+"""Type alias for tensor metadata structure: layer_signature -> tensor_key -> tensor"""
 
 
 class Store(abc.ABC):
@@ -11,6 +17,12 @@ class Store(abc.ABC):
 
     This interface intentionally excludes generic bytes/JSON APIs.
     Implementations should focus on efficient safetensors-backed IO.
+    
+    The store organizes data hierarchically:
+    - Runs: Top-level grouping by run_id
+    - Batches: Within each run, data is organized by batch_index
+    - Layers: Within each batch, tensors are organized by layer_signature
+    - Keys: Within each layer, tensors are identified by key (e.g., "activations")
     """
 
     def __init__(
@@ -20,14 +32,52 @@ class Store(abc.ABC):
             dataset_prefix: str = "datasets",
             model_prefix: str = "models",
     ):
+        """Initialize Store.
+        
+        Args:
+            base_path: Base directory path for the store
+            runs_prefix: Prefix for runs directory (default: "runs")
+            dataset_prefix: Prefix for datasets directory (default: "datasets")
+            model_prefix: Prefix for models directory (default: "models")
+        """
         self.runs_prefix = runs_prefix
         self.dataset_prefix = dataset_prefix
         self.model_prefix = model_prefix
         self.base_path = Path(base_path)
 
-    # --- Run-oriented batch APIs ---
-    def _run_batch_key(self, run_id: str, batch_index: int) -> str:
-        return f"{self.runs_prefix}/{run_id}/batch_{batch_index:06d}.safetensors"
+    def _run_key(self, run_id: str) -> Path:
+        """Get path for a run directory.
+        
+        Args:
+            run_id: Run identifier
+            
+        Returns:
+            Path to run directory
+        """
+        return self.base_path / self.runs_prefix / run_id
+
+    def _run_batch_key(self, run_id: str, batch_index: int) -> Path:
+        """Get path for a batch directory within a run.
+        
+        Args:
+            run_id: Run identifier
+            batch_index: Batch index
+            
+        Returns:
+            Path to batch directory
+        """
+        return self._run_key(run_id) / f"batch_{batch_index}"
+
+    def _run_metadata_key(self, run_id: str) -> Path:
+        """Get path for run metadata file.
+        
+        Args:
+            run_id: Run identifier
+            
+        Returns:
+            Path to metadata JSON file
+        """
+        return self._run_key(run_id) / "meta.json"
 
     @abc.abstractmethod
     def put_run_batch(self, run_id: str, batch_index: int,
@@ -82,17 +132,39 @@ class Store(abc.ABC):
 
     # --- Run metadata (optional helpers) ---
     @abc.abstractmethod
-    def put_run_meta(self, run_id: str, meta: Dict[str, Any]) -> str:
+    def put_run_metadata(self, run_id: str, meta: Dict[str, Any]) -> str:
         """Persist metadata for a run (e.g., dataset/model identifiers).
 
-        Implementations should store JSON at a stable location, e.g., runs/{run_id}/meta.json.
-        Returns the key/path used for store.
+        Args:
+            run_id: Run identifier
+            meta: Metadata dictionary to save (must be JSON-serializable)
+            
+        Returns:
+            String path/key where metadata was stored (e.g., "runs/{run_id}/meta.json")
+            
+        Raises:
+            ValueError: If run_id is invalid or meta is not JSON-serializable
+            OSError: If file system operations fail
+            
+        Note:
+            Implementations should store JSON at a stable location, e.g., runs/{run_id}/meta.json.
         """
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_run_meta(self, run_id: str) -> Dict[str, Any]:
-        """Load metadata for a run. Should return an empty dict if missing."""
+    def get_run_metadata(self, run_id: str) -> Dict[str, Any]:
+        """Load metadata for a run.
+        
+        Args:
+            run_id: Run identifier
+            
+        Returns:
+            Metadata dictionary, or empty dict if not found
+            
+        Raises:
+            ValueError: If run_id is invalid
+            json.JSONDecodeError: If metadata file exists but contains invalid JSON
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -101,18 +173,45 @@ class Store(abc.ABC):
             run_id: str,
             batch_index: int,
             metadata: Dict[str, Any],
-            tensor_metadata: Dict[str, Dict[str, torch.Tensor]]
+            tensor_metadata: TensorMetadata
     ) -> str:
         """Save detector metadata with separate JSON and tensor store.
         
         Args:
-            run_id: Run ID
-            batch_index: Batch index
+            run_id: Run identifier
+            batch_index: Batch index (must be non-negative)
             metadata: JSON-serializable metadata dictionary (aggregated from all detectors)
-            tensor_metadata: Dictionary mapping layer_signature to dict of tensor_key -> tensor (from all detectors)
+            tensor_metadata: Dictionary mapping layer_signature to dict of tensor_key -> tensor
+                           (from all detectors)
             
         Returns:
-            Full path key used for store (e.g., "runs/run_123/batch_0")
+            Full path key used for store (e.g., "runs/{run_id}/batch_{batch_index}")
+            
+        Raises:
+            ValueError: If parameters are invalid or metadata is not JSON-serializable
+            OSError: If file system operations fail
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_detector_metadata(
+            self,
+            run_id: str,
+            batch_index: int
+    ) -> tuple[Dict[str, Any], TensorMetadata]:
+        """Load detector metadata with separate JSON and tensor store.
+        
+        Args:
+            run_id: Run identifier
+            batch_index: Batch index
+            
+        Returns:
+            Tuple of (metadata dict, tensor_metadata dict). Returns empty dicts if not found.
+            
+        Raises:
+            ValueError: If parameters are invalid or metadata format is invalid
+            json.JSONDecodeError: If metadata file exists but contains invalid JSON
+            OSError: If tensor files exist but cannot be loaded
         """
         raise NotImplementedError
 
@@ -127,7 +226,7 @@ class Store(abc.ABC):
         """Get a specific tensor from detector metadata by layer and key.
         
         Args:
-            run_id: Run ID
+            run_id: Run identifier
             batch_index: Batch index
             layer: Layer signature
             key: Tensor key (e.g., "activations")
@@ -136,6 +235,8 @@ class Store(abc.ABC):
             The requested tensor
             
         Raises:
+            ValueError: If parameters are invalid
             FileNotFoundError: If the tensor doesn't exist
+            OSError: If tensor file exists but cannot be loaded
         """
         raise NotImplementedError

@@ -11,8 +11,9 @@ import tempfile
 import shutil
 from datasets import Dataset
 
-from amber.core.language_model import LanguageModel
-from amber.adapters.text_snippet_dataset import TextSnippetDataset
+from amber.language_model.language_model import LanguageModel
+from amber.datasets import TextDataset
+from amber.store.local_store import LocalStore
 from amber.store.local_store import LocalStore
 
 from amber.mechanistic.sae.modules.topk_sae import TopKSae
@@ -24,14 +25,14 @@ def temp_dirs():
     """Create temporary directories for test artifacts."""
     temp_dir = tempfile.mkdtemp()
     store_dir = Path(temp_dir) / "store"
-    cache_dir = Path(temp_dir) / "cache"
+    dataset_dir = Path(temp_dir) / "cache"
     store_dir.mkdir(parents=True)
-    cache_dir.mkdir(parents=True)
+    dataset_dir.mkdir(parents=True)
     
     yield {
         "temp_dir": temp_dir,
         "store_dir": store_dir,
-        "cache_dir": cache_dir,
+        "dataset_dir": dataset_dir,
     }
     
     # Cleanup
@@ -49,7 +50,7 @@ def test_e2e_train_sae_workflow(temp_dirs):
     6. Verify reconstruction works
     """
     store_dir = temp_dirs["store_dir"]
-    cache_dir = temp_dirs["cache_dir"]
+    dataset_dir = temp_dirs["dataset_dir"]
     
     # Configuration
     MODEL_ID = "sshleifer/tiny-gpt2"
@@ -80,7 +81,8 @@ def test_e2e_train_sae_workflow(temp_dirs):
         "Fish swim in the ocean.",
     ]
     hf_dataset = Dataset.from_dict({"text": texts})
-    dataset = TextSnippetDataset(hf_dataset, cache_dir)
+    dataset_store = LocalStore(base_path=dataset_dir)
+    dataset = TextDataset(hf_dataset, store=dataset_store)
     
     assert len(dataset) == len(texts)
     print(f"✅ Created dataset with {len(dataset)} samples")

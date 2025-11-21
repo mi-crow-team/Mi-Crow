@@ -24,6 +24,7 @@ dependencies = [
     "safetensors>=0.4.5",
     "wandb>=0.22.1",
     "pytest>=8.4.2",
+    "pytest-xdist>=3.8.0",
 ]
 dynamic = ["version"]
 
