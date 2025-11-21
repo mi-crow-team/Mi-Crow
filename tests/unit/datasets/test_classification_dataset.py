@@ -525,3 +525,40 @@ class TestClassificationDatasetFactoryMethods:
         finally:
             Path(json_path).unlink()
 
+
+def test_classification_dataset_slice_with_step(temp_store):
+    ds = Dataset.from_dict({"text": ["t1", "t2", "t3", "t4"], "category": ["a", "b", "c", "d"]})
+    dataset = ClassificationDataset(ds, temp_store)
+    items = dataset[0:4:2]
+    assert len(items) == 2
+
+
+def test_classification_dataset_sequence_invalid(temp_store):
+    ds = Dataset.from_dict({"text": ["t1"], "category": ["a"]})
+    dataset = ClassificationDataset(ds, temp_store)
+    with pytest.raises(IndexError):
+        dataset[[0, 5]]
+
+
+def test_classification_dataset_iter_batches_iterable_only(temp_store):
+    iter_ds = IterableDataset.from_generator(
+        lambda: iter([{"text": "t1", "category": "a"}, {"text": "t2", "category": "b"}])
+    )
+    dataset = ClassificationDataset(iter_ds, temp_store, LoadingStrategy.ITERABLE_ONLY)
+    batches = list(dataset.iter_batches(1))
+    assert len(batches) == 2
+
+
+def test_classification_dataset_get_categories_multiple_labels_iterable(temp_store):
+    iter_ds = IterableDataset.from_generator(
+        lambda: iter([
+            {"text": "t1", "label1": "x", "label2": "y"},
+            {"text": "t2", "label1": "z", "label2": "y"},
+        ])
+    )
+    dataset = ClassificationDataset(
+        iter_ds, temp_store, LoadingStrategy.ITERABLE_ONLY, category_field=["label1", "label2"]
+    )
+    categories = dataset.get_categories()
+    assert categories["label1"] == ["x", "z"]
+

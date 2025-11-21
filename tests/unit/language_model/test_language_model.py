@@ -1,11 +1,13 @@
 """Tests for LanguageModel core class."""
 
 import pytest
+import torch
 
 from amber.language_model.language_model import LanguageModel
 from tests.unit.fixtures.language_models import create_language_model_from_mock
 from tests.unit.fixtures.stores import create_temp_store
 from tests.unit.fixtures.hooks import create_mock_detector, create_mock_controller
+from unittest.mock import MagicMock
 
 
 class TestLanguageModelInitialization:
@@ -134,6 +136,14 @@ class TestLanguageModelGenerate:
         with pytest.raises(ValueError, match="Texts list cannot be empty"):
             lm.generate([])
 
+    def test_generate_without_tokenizer_raises_error(self, temp_store):
+        """Test that missing tokenizer raises ValueError."""
+        lm = create_language_model_from_mock(temp_store)
+        lm.context.tokenizer = None
+
+        with pytest.raises(ValueError, match="Tokenizer is required"):
+            lm.generate(["hello"])
+
 
 class TestLanguageModelHooks:
     """Tests for hook management."""
@@ -155,4 +165,28 @@ class TestLanguageModelHooks:
         lm.layers.register_hook(0, controller)
         controllers = lm.layers.get_controllers()
         assert len(controllers) > 0
+
+
+class TestLanguageModelMetadata:
+    """Tests for metadata helpers."""
+
+    def test_save_detector_metadata_requires_store(self, temp_store):
+        lm = create_language_model_from_mock(temp_store)
+        lm.context.store = None
+
+        with pytest.raises(ValueError, match="Store must be provided"):
+            lm.save_detector_metadata("run", 0)
+
+    def test_save_detector_metadata_success(self, temp_store):
+        lm = create_language_model_from_mock(temp_store)
+        store = MagicMock()
+        lm.context.store = store
+
+        detector = create_mock_detector(layer_signature=1)
+        detector.metadata = {"key": "value"}
+        detector.tensor_metadata = {"activations": torch.ones(1)}
+        lm.layers.register_hook(1, detector)
+
+        lm.save_detector_metadata("run", 0)
+        store.put_detector_metadata.assert_called_once()
 

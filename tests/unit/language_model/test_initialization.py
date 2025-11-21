@@ -135,3 +135,28 @@ class TestCreateFromLocalTorch:
             mock_model_class.from_pretrained.assert_called_once()
             assert mock_model_class.from_pretrained.call_args[0][0] == str(model_path)
 
+    def test_create_from_local_torch_none_store_raises(self, tmp_path):
+        model_path = tmp_path / "model"
+        tokenizer_path = tmp_path / "tokenizer"
+        model_path.mkdir()
+        tokenizer_path.mkdir()
+        with pytest.raises(ValueError):
+            create_from_local_torch(LanguageModel, str(model_path), str(tokenizer_path), None)
+
+    def test_create_from_local_torch_missing_paths_raise(self, temp_store, tmp_path):
+        model_path = tmp_path / "model"
+        tokenizer_path = tmp_path / "tokenizer"
+        model_path.mkdir()
+        with pytest.raises(FileNotFoundError):
+            create_from_local_torch(LanguageModel, str(model_path), str(tokenizer_path), temp_store)
+
+    def test_create_from_local_torch_load_failure(self, temp_store, tmp_path):
+        model_path = tmp_path / "model"
+        tokenizer_path = tmp_path / "tokenizer"
+        model_path.mkdir()
+        tokenizer_path.mkdir()
+        with patch("amber.language_model.initialization.AutoTokenizer") as mock_tokenizer_class:
+            mock_tokenizer_class.from_pretrained.side_effect = Exception("boom")
+            with pytest.raises(RuntimeError):
+                create_from_local_torch(LanguageModel, str(model_path), str(tokenizer_path), temp_store)
+

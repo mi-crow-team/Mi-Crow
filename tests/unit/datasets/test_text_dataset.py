@@ -1,0 +1,189 @@
+import os
+from pathlib import Path
+from typing import List
+
+import pytest
+from datasets import Dataset, IterableDatasetDict
+from unittest.mock import patch, MagicMock
+
+from amber.datasets.text_dataset import TextDataset
+from amber.datasets.loading_strategy import LoadingStrategy
+from tests.unit.fixtures.stores import create_temp_store
+from unittest.mock import patch
+
+
+def _build_dataset(texts: List[str], extra_field: str | None = None) -> Dataset:
+    data = {"text" if extra_field is None else extra_field: texts}
+    if extra_field is not None:
+        data["other"] = [f"meta-{i}" for i in range(len(texts))]
+    return Dataset.from_dict(data)
+
+
+def test_init_standard_dataset_keeps_only_text(temp_store):
+    ds = _build_dataset(["hello", "world"], extra_field="content")
+
+    text_ds = TextDataset(ds, store=temp_store, text_field="content")
+
+    assert len(text_ds) == 2
+    assert text_ds[0] == "hello"
+    assert text_ds[1] == "world"
+
+
+def test_init_missing_column_raises(temp_store):
+    ds = Dataset.from_dict({"text": ["a"]})
+
+    with pytest.raises(ValueError, match="must have a 'missing' column"):
+        TextDataset(ds, store=temp_store, text_field="missing")
+
+
+def test_validate_text_field_rejects_blank(temp_store):
+    ds = Dataset.from_dict({"text": ["a"]})
+    with pytest.raises(ValueError, match="non-empty string"):
+        TextDataset(ds, store=temp_store, text_field=" ")
+
+
+def test_len_iterable_strategy_not_supported(temp_store):
+    iterable = IterableDatasetDict({"train": Dataset.from_dict({"text": ["a"]})})["train"]
+    text_ds = TextDataset(
+        iterable,
+        store=temp_store,
+        loading_strategy=LoadingStrategy.ITERABLE_ONLY,
+    )
+
+    with pytest.raises(NotImplementedError):
+        len(text_ds)
+
+
+def test_getitem_sequence_and_slice(temp_store):
+    ds = Dataset.from_dict({"text": ["a", "b", "c", "d"]})
+    text_ds = TextDataset(ds, store=temp_store)
+
+    assert text_ds[1] == "b"
+    assert text_ds[-1] == "d"
+    assert text_ds[1:3] == ["b", "c"]
+    assert text_ds[[0, 2, 3]] == ["a", "c", "d"]
+
+
+def test_getitem_invalid_index_errors(temp_store):
+    ds = Dataset.from_dict({"text": ["a"]})
+    text_ds = TextDataset(ds, store=temp_store)
+
+    with pytest.raises(IndexError):
+        text_ds[5]
+    with pytest.raises(TypeError):
+        text_ds[1.5]
+
+
+def test_iter_items_missing_text_field_raises(temp_store):
+    ds = Dataset.from_dict({"content": ["a"]})
+    text_ds = TextDataset(ds, store=temp_store, text_field="content")
+    text_ds._text_field = "missing"
+    text_ds._ds = Dataset.from_dict({"other": ["a"]})
+
+    with pytest.raises(ValueError, match="not found in dataset row"):
+        list(text_ds.iter_items())
+
+
+def test_iter_batches_memory_dataset(temp_store):
+    ds = Dataset.from_dict({"text": [f"row-{i}" for i in range(5)]})
+    text_ds = TextDataset(ds, store=temp_store)
+
+    batches = list(text_ds.iter_batches(batch_size=2))
+
+    assert batches == [["row-0", "row-1"], ["row-2", "row-3"], ["row-4"]]
+
+
+def test_iter_batches_iterable_dataset(temp_store):
+    iterable = IterableDatasetDict({"train": Dataset.from_dict({"text": ["a", "b", "c"]})})["train"]
+    text_ds = TextDataset(
+        iterable,
+        store=temp_store,
+        loading_strategy=LoadingStrategy.ITERABLE_ONLY,
+    )
+
+    batches = list(text_ds.iter_batches(batch_size=2))
+
+    assert batches == [["a", "b"], ["c"]]
+
+
+@patch("amber.datasets.text_dataset.load_dataset")
+def test_from_huggingface_filters_and_limit(mock_load_dataset, temp_store):
+    ds = Dataset.from_dict({"text": ["keep", "drop", "keep"]})
+    mock_load_dataset.return_value = ds
+
+    dataset = TextDataset.from_huggingface(
+        "repo",
+        temp_store,
+        filters={"text": "keep"},
+        limit=1,
+        loading_strategy=LoadingStrategy.MEMORY,
+    )
+
+    mock_load_dataset.assert_called_once()
+    assert len(dataset) == 1
+    assert dataset[0] == "keep"
+
+
+@patch("amber.datasets.text_dataset.load_dataset", side_effect=RuntimeError("boom"))
+def test_from_huggingface_wraps_errors(mock_load_dataset, temp_store):
+    with pytest.raises(RuntimeError, match="Failed to load text dataset"):
+        TextDataset.from_huggingface("repo", temp_store)
+
+
+def test_from_csv_and_json(tmp_path):
+    csv_path = tmp_path / "sample.csv"
+    csv_path.write_text("text\nhello\nworld\n", encoding="utf-8")
+
+    json_path = tmp_path / "sample.jsonl"
+    json_path.write_text('{"text":"hi"}\n{"text":"there"}\n', encoding="utf-8")
+
+    csv_store = create_temp_store(tmp_path, base_path=tmp_path / "csv_store")
+    json_store = create_temp_store(tmp_path, base_path=tmp_path / "json_store")
+
+    with patch("amber.datasets.base_dataset.BaseDataset._save_and_load_dataset", side_effect=lambda ds, use_memory_mapping=True: ds):
+        csv_ds = TextDataset.from_csv(csv_path, csv_store)
+        json_ds = TextDataset.from_json(json_path, json_store)
+
+    assert csv_ds[0] == "hello"
+    assert json_ds[1] == "there"
+
+
+def test_from_local_directory_reads_txt(tmp_path, temp_store):
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    (data_dir / "a.txt").write_text("alpha", encoding="utf-8")
+    (data_dir / "b.txt").write_text("beta", encoding="utf-8")
+
+    dataset = TextDataset.from_local(data_dir, temp_store)
+
+    assert sorted(list(dataset.iter_items())) == ["alpha", "beta"]
+
+
+def test_from_local_invalid_path(tmp_path, temp_store):
+    with pytest.raises(FileNotFoundError):
+        TextDataset.from_local(tmp_path / "missing", temp_store)
+
+
+def test_from_local_directory_without_txt(tmp_path, temp_store):
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    (data_dir / "ignored.md").write_text("nope", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="No .txt files found"):
+        TextDataset.from_local(data_dir, temp_store)
+
+
+def test_iter_batches_invalid_batch_size(temp_store):
+    ds = Dataset.from_dict({"text": ["a"]})
+    text_ds = TextDataset(ds, store=temp_store)
+    with pytest.raises(ValueError):
+        list(text_ds.iter_batches(0))
+
+
+def test_from_local_invalid_file_type(tmp_path, temp_store):
+    bad_file = tmp_path / "file.md"
+    bad_file.write_text("content", encoding="utf-8")
+    with pytest.raises(ValueError, match="Unsupported file type"):
+        TextDataset.from_local(bad_file, temp_store)
+
+
