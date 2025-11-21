@@ -1,90 +1,135 @@
-import types
-from typing import Any, Dict, List
+"""Tests for Detector base class."""
 
 import pytest
 import torch
+from unittest.mock import Mock, MagicMock
+from torch import nn
 
-from amber.hooks import Detector, HookType
-
-
-class _LiteDetector(Detector):
-    """
-    Minimal Detector implementation for testing.
-    Allows injecting behavior to track calls and returned metadata.
-    """
-
-    def __init__(
-        self,
-        layer_signature: str | int = "layer0",
-        hook_type: HookType | str = HookType.FORWARD,
-        hook_id: str | None = "test-detector",
-        store: Any | None = None,
-        *,
-        collect_returns: Dict[str, Any] | None = None,
-        raise_in_process: bool = False,
-        raise_in_collect: bool = False,
-    ):
-        super().__init__(hook_type=hook_type, hook_id=hook_id, store=store, layer_signature=layer_signature)
-        self.calls: List[str] = []
-        self.last_args: Dict[str, Any] | None = None
-        self._collect_returns = collect_returns
-        self._raise_in_process = raise_in_process
-        self._raise_in_collect = raise_in_collect
-
-    def process_activations(self, module: Any, inputs: tuple, output: Any) -> None:
-        self.calls.append("process")
-        self.last_args = {"module": module, "inputs": inputs, "output": output}
-        if self._raise_in_process:
-            raise RuntimeError("process crash")
-
-    def collect_metadata(self, module: Any, inputs: tuple, output: Any) -> Dict[str, Any] | None:
-        self.calls.append("collect")
-        if self._raise_in_collect:
-            raise RuntimeError("collect crash")
-        return self._collect_returns
+from amber.hooks.detector import Detector
+from amber.hooks.hook import HookType
+from tests.unit.fixtures.hooks import MockDetector
+from tests.unit.fixtures.stores import create_mock_store
 
 
-class _DummyModule:
-    pass
+class ConcreteDetector(Detector):
+    """Concrete implementation of Detector for testing."""
+
+    def process_activations(self, module, input, output):
+        """Implementation of abstract method."""
+        self.metadata["test"] = "value"
 
 
-def _call_hook(det: Detector, *, inputs=(torch.tensor([1.0]),), output=torch.tensor([2.0])):
-    """Utility: call the torch hook wrapper respecting hook type."""
-    torch_hook = det.get_torch_hook()
-    module = _DummyModule()
-    if det.hook_type == HookType.PRE_FORWARD:
-        return torch_hook(module, inputs)
-    return torch_hook(module, inputs, output)
+class TestDetectorInitialization:
+    """Tests for Detector initialization."""
+
+    def test_init_with_defaults(self):
+        """Test initialization with default parameters."""
+        detector = ConcreteDetector()
+        assert detector.hook_type == HookType.FORWARD
+        assert detector.store is None
+        assert detector.metadata == {}
+        assert detector.tensor_metadata == {}
+
+    def test_init_with_store(self):
+        """Test initialization with store."""
+        store = create_mock_store()
+        detector = ConcreteDetector(store=store)
+        assert detector.store is store
+
+    def test_init_with_hook_type(self):
+        """Test initialization with hook type."""
+        detector = ConcreteDetector(hook_type=HookType.PRE_FORWARD)
+        assert detector.hook_type == HookType.PRE_FORWARD
+
+    def test_init_with_layer_signature(self):
+        """Test initialization with layer signature."""
+        detector = ConcreteDetector(layer_signature="layer_0")
+        assert detector.layer_signature == "layer_0"
 
 
-def test_forward_hook_calls_process_activations():
-    """Test that forward hook calls process_activations."""
-    det = _LiteDetector(hook_type=HookType.FORWARD)
+class TestDetectorProcessActivations:
+    """Tests for process_activations method."""
 
-    _call_hook(det)
+    def test_process_activations_called(self):
+        """Test that process_activations is called."""
+        detector = ConcreteDetector()
+        module = nn.Linear(10, 5)
+        input_tensor = torch.randn(2, 10)
+        output_tensor = torch.randn(2, 5)
+        
+        detector._hook_fn(module, (input_tensor,), output_tensor)
+        assert detector.metadata["test"] == "value"
 
-    # process_activations should be called
-    assert det.calls == ["process"]
-    assert det.last_args is not None
-    assert "output" in det.last_args
+    def test_process_activations_when_disabled(self):
+        """Test that process_activations is not called when disabled."""
+        detector = ConcreteDetector()
+        detector.disable()
+        module = nn.Linear(10, 5)
+        input_tensor = torch.randn(2, 10)
+        output_tensor = torch.randn(2, 5)
+        
+        detector._hook_fn(module, (input_tensor,), output_tensor)
+        # Metadata should not be set if process_activations wasn't called
+        assert "test" not in detector.metadata
+
+    def test_process_activations_exception_handling(self):
+        """Test that exceptions in process_activations are handled."""
+        class FailingDetector(Detector):
+            def process_activations(self, module, input, output):
+                raise ValueError("Test error")
+        
+        detector = FailingDetector()
+        module = nn.Linear(10, 5)
+        input_tensor = torch.randn(2, 10)
+        output_tensor = torch.randn(2, 5)
+        
+        with pytest.raises(RuntimeError, match="Error in detector"):
+            detector._hook_fn(module, (input_tensor,), output_tensor)
 
 
-def test_pre_forward_hook_calls_with_none_output():
-    """Test that pre_forward hook calls process_activations with None output."""
-    det = _LiteDetector(hook_type=HookType.PRE_FORWARD)
+class TestDetectorMetadata:
+    """Tests for detector metadata handling."""
 
-    _call_hook(det)
+    def test_metadata_storage(self):
+        """Test that metadata can be stored."""
+        detector = ConcreteDetector()
+        detector.metadata["key"] = "value"
+        assert detector.metadata["key"] == "value"
 
-    # Output passed to detector is None for pre hooks
-    assert det.last_args is not None and det.last_args["output"] is None
-    assert det.calls == ["process"]
+    def test_tensor_metadata_storage(self):
+        """Test that tensor metadata can be stored."""
+        detector = ConcreteDetector()
+        tensor = torch.randn(2, 10)
+        detector.tensor_metadata["activations"] = tensor
+        assert "activations" in detector.tensor_metadata
+        assert torch.equal(detector.tensor_metadata["activations"], tensor)
 
 
-def test_disable_prevents_execution():
-    """Test that disable prevents hook execution."""
-    det = _LiteDetector()
-    det.disable()
-    _call_hook(det)
-    assert det.calls == []
+class TestMockDetector:
+    """Tests for MockDetector utility."""
 
+    def test_mock_detector_processes_activations(self):
+        """Test that MockDetector processes activations."""
+        detector = MockDetector()
+        module = nn.Linear(10, 5)
+        input_tensor = torch.randn(2, 10)
+        output_tensor = torch.randn(2, 5)
+        
+        detector._hook_fn(module, (input_tensor,), output_tensor)
+        assert detector.processed_count == 1
+        assert detector.metadata["count"] == 1
+
+    def test_mock_detector_multiple_calls(self):
+        """Test that MockDetector tracks multiple calls."""
+        detector = MockDetector()
+        module = nn.Linear(10, 5)
+        input_tensor = torch.randn(2, 10)
+        output_tensor = torch.randn(2, 5)
+        
+        detector._hook_fn(module, (input_tensor,), output_tensor)
+        detector._hook_fn(module, (input_tensor,), output_tensor)
+        detector._hook_fn(module, (input_tensor,), output_tensor)
+        
+        assert detector.processed_count == 3
+        assert detector.metadata["count"] == 3
 
