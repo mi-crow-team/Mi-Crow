@@ -9,6 +9,20 @@ from transformers import PreTrainedTokenizerBase
 class MockTokenizer(PreTrainedTokenizerBase):
     """Mock tokenizer for testing."""
 
+    _SPECIAL_TOKEN_NAMES = {"pad_token", "eos_token", "bos_token", "unk_token"}
+    _SPECIAL_ID_NAMES = {"pad_token_id", "eos_token_id", "bos_token_id", "unk_token_id"}
+
+    def __setattr__(self, key, value):
+        if key in self._SPECIAL_TOKEN_NAMES:
+            object.__setattr__(self, f"_{key}", value)
+            if hasattr(self, "_special_tokens_map"):
+                self._special_tokens_map[key] = value
+            return
+        if key in self._SPECIAL_ID_NAMES:
+            object.__setattr__(self, key, value)
+            return
+        super().__setattr__(key, value)
+
     def __init__(
         self,
         vocab_size: int = 1000,
@@ -40,6 +54,11 @@ class MockTokenizer(PreTrainedTokenizerBase):
         object.__setattr__(self, 'eos_token', eos_token)
         object.__setattr__(self, 'bos_token', bos_token)
         object.__setattr__(self, 'unk_token', unk_token)
+        # Also set private versions some HF utilities expect
+        object.__setattr__(self, '_pad_token', pad_token)
+        object.__setattr__(self, '_eos_token', eos_token)
+        object.__setattr__(self, '_bos_token', bos_token)
+        object.__setattr__(self, '_unk_token', unk_token)
         
         # Add special token IDs
         object.__setattr__(self, 'pad_token_id', 0)
@@ -58,7 +77,27 @@ class MockTokenizer(PreTrainedTokenizerBase):
         # Add other required attributes for transformers compatibility
         object.__setattr__(self, 'split_special_tokens', False)
         object.__setattr__(self, 'verbose', False)
+        object.__setattr__(self, '_in_target_context_manager', False)
         
+        # Define special token property helpers so assignments behave predictably
+        def _make_token_property(attr_name):
+            private_name = f"_{attr_name}"
+
+            def getter(self):
+                return getattr(self, private_name, None)
+
+            def setter(self, value):
+                object.__setattr__(self, private_name, value)
+                if hasattr(self, "_special_tokens_map") and attr_name in self._special_tokens_map:
+                    self._special_tokens_map[attr_name] = value
+
+            return property(getter, setter)
+
+        type(self).pad_token = _make_token_property("pad_token")
+        type(self).eos_token = _make_token_property("eos_token")
+        type(self).bos_token = _make_token_property("bos_token")
+        type(self).unk_token = _make_token_property("unk_token")
+
         # Add __call__ method for direct tokenizer calls
         def __call__(self, text, **kwargs):
             return self.encode(text, **kwargs)
@@ -95,11 +134,15 @@ class MockTokenizer(PreTrainedTokenizerBase):
     
     def convert_ids_to_tokens(self, ids, skip_special_tokens: bool = False):
         """Convert token IDs to tokens (for compatibility with transformers)."""
+        single_input = False
         if isinstance(ids, int):
             ids = [ids]
+            single_input = True
         tokens = [self._convert_id_to_token(id) for id in ids]
         if skip_special_tokens:
             tokens = [t for t in tokens if t not in [self._pad_token, self._eos_token, self._bos_token, self._unk_token]]
+        if single_input:
+            return tokens[0] if tokens else None
         return tokens
     
     def convert_tokens_to_ids(self, tokens):
