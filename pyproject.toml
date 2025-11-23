@@ -137,6 +137,7 @@ dev = [
     "wheel>=0.45.1",
     "pytest>=8.0.0",
     "pytest-cov>=7.0.0",
+    "python-dotenv>=1.2.1",
 ]
 server = [
     "fastapi>=0.124.4",

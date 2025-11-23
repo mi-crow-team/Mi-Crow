@@ -148,6 +148,7 @@ wheels = [
 ]
 
 [[package]]
+>>>>>>> 0afd808 (Initialize experiments notebooks, set up .env for HF token)
 name = "annotated-doc"
 version = "0.0.4"
 source = { registry = "https://pypi.org/simple" }
