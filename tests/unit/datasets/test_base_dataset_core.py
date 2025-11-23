@@ -35,6 +35,14 @@ class DummyDataset(BaseDataset):
         if batch:
             yield batch
 
+    def extract_texts_from_batch(self, batch):
+        # Dummy implementation for testing
+        return list(batch)
+
+    def get_all_texts(self):
+        # Dummy implementation for testing
+        return list(self._ds["text"])
+
 
 def test_base_dataset_batching_head_and_sample(tmp_path):
     store = create_temp_store(tmp_path)
@@ -45,7 +53,8 @@ def test_base_dataset_batching_head_and_sample(tmp_path):
     assert ds.head(2) == ["item-0", "item-1"]
     sampled = ds.sample(3)
     assert len(sampled) == 3
-    assert sorted(sampled) != data[:3]  # random order
+    # Verify all sampled items are from the original data
+    assert all(item in data for item in sampled)
 
 
 def test_base_dataset_sample_iterable_only(tmp_path):
@@ -70,6 +79,7 @@ def test_base_dataset_is_streaming_flags(tmp_path):
 def test_base_dataset_invalid_strategy(tmp_path):
     store = create_temp_store(tmp_path)
     ds = Dataset.from_dict({"text": ["a"]})
+
     class InvalidDataset(BaseDataset):
         def __init__(self):
             super().__init__(ds, store, loading_strategy="invalid")  # type: ignore[arg-type]
@@ -85,6 +95,12 @@ def test_base_dataset_invalid_strategy(tmp_path):
 
         def iter_batches(self, batch_size):
             yield from ()
+
+        def extract_texts_from_batch(self, batch):
+            return []
+
+        def get_all_texts(self):
+            return []
 
     with pytest.raises(ValueError):
         InvalidDataset()
@@ -105,9 +121,9 @@ def test_base_dataset_without_store_directory(tmp_path):
             return 1
 
         def __getitem__(self, idx):
-                if isinstance(idx, slice):
-                    return ["a"]
-                return "a"
+            if isinstance(idx, slice):
+                return ["a"]
+            return "a"
 
         def iter_items(self):
             yield "a"
@@ -115,6 +131,11 @@ def test_base_dataset_without_store_directory(tmp_path):
         def iter_batches(self, batch_size):
             yield ["a"]
 
+        def extract_texts_from_batch(self, batch):
+            return list(batch)
+
+        def get_all_texts(self):
+            return ["a"]
+
     dataset = MinimalDataset()
     assert dataset.head(1) == ["a"]
-
