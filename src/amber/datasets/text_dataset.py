@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterator, List, Sequence, Union, Optional, Dict, Any
+from typing import Any, Dict, Iterator, List, Optional, Sequence, Union
 
-from datasets import Dataset, load_dataset, IterableDataset
+from datasets import Dataset, IterableDataset, load_dataset
 
-from amber.store.store import Store
 from amber.datasets.base_dataset import BaseDataset
-from amber.datasets.loading_strategy import LoadingStrategy, IndexLike
+from amber.datasets.loading_strategy import IndexLike, LoadingStrategy
+from amber.store.store import Store
 
 
 class TextDataset(BaseDataset):
@@ -17,11 +17,11 @@ class TextDataset(BaseDataset):
     """
 
     def __init__(
-            self,
-            ds: Dataset | IterableDataset,
-            store: Store,
-            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-            text_field: str = "text",
+        self,
+        ds: Dataset | IterableDataset,
+        store: Store,
+        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+        text_field: str = "text",
     ):
         """
         Initialize text dataset.
@@ -31,20 +31,17 @@ class TextDataset(BaseDataset):
             store: Store instance
             loading_strategy: Loading strategy
             text_field: Name of the column containing text
-            
+
         Raises:
             ValueError: If text_field is empty or not found in dataset
         """
         self._validate_text_field(text_field)
-        
+
         # Validate and prepare dataset
         is_iterable = isinstance(ds, IterableDataset)
         if not is_iterable:
             if text_field not in ds.column_names:
-                raise ValueError(
-                    f"Dataset must have a '{text_field}' column; "
-                    f"got columns: {ds.column_names}"
-                )
+                raise ValueError(f"Dataset must have a '{text_field}' column; got columns: {ds.column_names}")
             # Keep only text column for memory efficiency
             columns_to_remove = [c for c in ds.column_names if c != text_field]
             if columns_to_remove:
@@ -58,10 +55,10 @@ class TextDataset(BaseDataset):
 
     def _validate_text_field(self, text_field: str) -> None:
         """Validate text_field parameter.
-        
+
         Args:
             text_field: Text field name to validate
-            
+
         Raises:
             ValueError: If text_field is empty or not a string
         """
@@ -70,13 +67,13 @@ class TextDataset(BaseDataset):
 
     def _extract_text_from_row(self, row: Dict[str, Any]) -> str:
         """Extract text from a dataset row.
-        
+
         Args:
             row: Dataset row dictionary
-            
+
         Returns:
             Text string from the row
-            
+
         Raises:
             ValueError: If text field is not found in row
         """
@@ -91,7 +88,7 @@ class TextDataset(BaseDataset):
     def __len__(self) -> int:
         """
         Return the number of items in the dataset.
-        
+
         Raises:
             NotImplementedError: If loading_strategy is ITERABLE_ONLY
         """
@@ -102,13 +99,13 @@ class TextDataset(BaseDataset):
     def __getitem__(self, idx: IndexLike) -> Union[str, List[str]]:
         """
         Get text item(s) by index.
-        
+
         Args:
             idx: Index (int), slice, or sequence of indices
-            
+
         Returns:
             Single text string or list of text strings
-            
+
         Raises:
             NotImplementedError: If loading_strategy is ITERABLE_ONLY
             IndexError: If index is out of bounds
@@ -127,11 +124,9 @@ class TextDataset(BaseDataset):
             if idx < 0:
                 idx = dataset_len + idx
             if idx < 0 or idx >= dataset_len:
-                raise IndexError(
-                    f"Index {idx} out of bounds for dataset of length {dataset_len}"
-                )
+                raise IndexError(f"Index {idx} out of bounds for dataset of length {dataset_len}")
             return self._ds[idx]["text"]
-        
+
         if isinstance(idx, slice):
             start, stop, step = idx.indices(dataset_len)
             if step != 1:
@@ -140,27 +135,24 @@ class TextDataset(BaseDataset):
             else:
                 out = self._ds.select(range(start, stop))["text"]
             return list(out)
-        
+
         if isinstance(idx, Sequence):
             # Validate all indices are in bounds
             invalid_indices = [i for i in idx if not (0 <= i < dataset_len)]
             if invalid_indices:
-                raise IndexError(
-                    f"Indices out of bounds: {invalid_indices} "
-                    f"(dataset length: {dataset_len})"
-                )
+                raise IndexError(f"Indices out of bounds: {invalid_indices} (dataset length: {dataset_len})")
             out = self._ds.select(list(idx))["text"]
             return list(out)
-        
+
         raise TypeError(f"Invalid index type: {type(idx)}")
 
     def iter_items(self) -> Iterator[str]:
         """
         Iterate over text items one by one.
-        
+
         Yields:
             Text strings from the dataset
-            
+
         Raises:
             ValueError: If text field is not found in any row
         """
@@ -170,13 +162,13 @@ class TextDataset(BaseDataset):
     def iter_batches(self, batch_size: int) -> Iterator[List[str]]:
         """
         Iterate over text items in batches.
-        
+
         Args:
             batch_size: Number of items per batch
-            
+
         Yields:
             Lists of text strings (batches)
-            
+
         Raises:
             ValueError: If batch_size <= 0 or text field is not found in any row
         """
@@ -196,20 +188,46 @@ class TextDataset(BaseDataset):
             for batch in self._ds.iter(batch_size=batch_size):
                 yield list(batch["text"])
 
+    def extract_texts_from_batch(self, batch: List[str]) -> List[str]:
+        """Extract text strings from a batch.
+
+        For TextDataset, batch items are already strings, so return as-is.
+
+        Args:
+            batch: List of text strings
+
+        Returns:
+            List of text strings (same as input)
+        """
+        return batch
+
+    def get_all_texts(self) -> List[str]:
+        """Get all texts from the dataset.
+
+        Returns:
+            List of all text strings
+
+        Raises:
+            NotImplementedError: If loading_strategy is ITERABLE_ONLY
+        """
+        if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
+            return list(self.iter_items())
+        return list(self._ds["text"])
+
     @classmethod
     def from_huggingface(
-            cls,
-            repo_id: str,
-            store: Store,
-            *,
-            split: str = "train",
-            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-            revision: Optional[str] = None,
-            text_field: str = "text",
-            filters: Optional[Dict[str, Any]] = None,
-            limit: Optional[int] = None,
-            streaming: Optional[bool] = None,
-            **kwargs,
+        cls,
+        repo_id: str,
+        store: Store,
+        *,
+        split: str = "train",
+        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+        revision: Optional[str] = None,
+        text_field: str = "text",
+        filters: Optional[Dict[str, Any]] = None,
+        limit: Optional[int] = None,
+        streaming: Optional[bool] = None,
+        **kwargs,
     ) -> "TextDataset":
         """
         Load text dataset from HuggingFace Hub.
@@ -225,10 +243,10 @@ class TextDataset(BaseDataset):
             limit: Optional limit on number of rows
             streaming: Optional override for streaming
             **kwargs: Additional arguments for load_dataset
-            
+
         Returns:
             TextDataset instance
-            
+
         Raises:
             ValueError: If parameters are invalid
             RuntimeError: If dataset loading fails
@@ -246,6 +264,7 @@ class TextDataset(BaseDataset):
 
             if not use_streaming:
                 if filters:
+
                     def _pred(example):
                         return all(example.get(k) == v for k, v in filters.items())
 
@@ -266,18 +285,18 @@ class TextDataset(BaseDataset):
 
     @classmethod
     def from_csv(
-            cls,
-            source: Union[str, Path],
-            store: Store,
-            *,
-            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-            text_field: str = "text",
-            delimiter: str = ",",
-            **kwargs,
+        cls,
+        source: Union[str, Path],
+        store: Store,
+        *,
+        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+        text_field: str = "text",
+        delimiter: str = ",",
+        **kwargs,
     ) -> "TextDataset":
         """
         Load text dataset from CSV file.
-        
+
         Args:
             source: Path to CSV file
             store: Store instance
@@ -285,10 +304,10 @@ class TextDataset(BaseDataset):
             text_field: Name of the column containing text
             delimiter: CSV delimiter (default: comma)
             **kwargs: Additional arguments for load_dataset
-            
+
         Returns:
             TextDataset instance
-            
+
         Raises:
             FileNotFoundError: If CSV file doesn't exist
             RuntimeError: If dataset loading fails
@@ -310,27 +329,27 @@ class TextDataset(BaseDataset):
 
     @classmethod
     def from_json(
-            cls,
-            source: Union[str, Path],
-            store: Store,
-            *,
-            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-            text_field: str = "text",
-            **kwargs,
+        cls,
+        source: Union[str, Path],
+        store: Store,
+        *,
+        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+        text_field: str = "text",
+        **kwargs,
     ) -> "TextDataset":
         """
         Load text dataset from JSON/JSONL file.
-        
+
         Args:
             source: Path to JSON or JSONL file
             store: Store instance
             loading_strategy: Loading strategy
             text_field: Name of the field containing text
             **kwargs: Additional arguments for load_dataset
-            
+
         Returns:
             TextDataset instance
-            
+
         Raises:
             FileNotFoundError: If JSON file doesn't exist
             RuntimeError: If dataset loading fails
@@ -352,13 +371,13 @@ class TextDataset(BaseDataset):
 
     @classmethod
     def from_local(
-            cls,
-            source: Union[str, Path],
-            store: Store,
-            *,
-            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-            text_field: str = "text",
-            recursive: bool = True,
+        cls,
+        source: Union[str, Path],
+        store: Store,
+        *,
+        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+        text_field: str = "text",
+        recursive: bool = True,
     ) -> "TextDataset":
         """
         Load from a local directory or file(s).
@@ -373,10 +392,10 @@ class TextDataset(BaseDataset):
             loading_strategy: Loading strategy
             text_field: Name of the column/field containing text
             recursive: Whether to recursively search directories for .txt files
-            
+
         Returns:
             TextDataset instance
-            
+
         Raises:
             FileNotFoundError: If source path doesn't exist
             ValueError: If source is invalid or unsupported file type
@@ -393,16 +412,11 @@ class TextDataset(BaseDataset):
                 for fp in sorted(p.glob(pattern)):
                     txts.append(fp.read_text(encoding="utf-8", errors="ignore"))
             except OSError as e:
-                raise RuntimeError(
-                    f"Failed to read text files from directory {source}. Error: {e}"
-                ) from e
-            
+                raise RuntimeError(f"Failed to read text files from directory {source}. Error: {e}") from e
+
             if not txts:
-                raise ValueError(
-                    f"No .txt files found in directory: {source} "
-                    f"(recursive={recursive})"
-                )
-            
+                raise ValueError(f"No .txt files found in directory: {source} (recursive={recursive})")
+
             ds = Dataset.from_dict({"text": txts})
         else:
             suffix = p.suffix.lower()

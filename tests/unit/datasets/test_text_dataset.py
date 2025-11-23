@@ -1,15 +1,12 @@
-import os
-from pathlib import Path
 from typing import List
+from unittest.mock import patch
 
 import pytest
 from datasets import Dataset, IterableDatasetDict
-from unittest.mock import patch, MagicMock
 
-from amber.datasets.text_dataset import TextDataset
 from amber.datasets.loading_strategy import LoadingStrategy
+from amber.datasets.text_dataset import TextDataset
 from tests.unit.fixtures.stores import create_temp_store
-from unittest.mock import patch
 
 
 def _build_dataset(texts: List[str], extra_field: str | None = None) -> Dataset:
@@ -140,7 +137,10 @@ def test_from_csv_and_json(tmp_path):
     csv_store = create_temp_store(tmp_path, base_path=tmp_path / "csv_store")
     json_store = create_temp_store(tmp_path, base_path=tmp_path / "json_store")
 
-    with patch("amber.datasets.base_dataset.BaseDataset._save_and_load_dataset", side_effect=lambda ds, use_memory_mapping=True: ds):
+    with patch(
+        "amber.datasets.base_dataset.BaseDataset._save_and_load_dataset",
+        side_effect=lambda ds, use_memory_mapping=True: ds,
+    ):
         csv_ds = TextDataset.from_csv(csv_path, csv_store)
         json_ds = TextDataset.from_json(json_path, json_store)
 
@@ -156,7 +156,7 @@ def test_from_local_directory_reads_txt(tmp_path, temp_store):
 
     dataset = TextDataset.from_local(data_dir, temp_store)
 
-    assert sorted(list(dataset.iter_items())) == ["alpha", "beta"]
+    assert sorted(list(dataset.iter_items())) == ["alpha", "beta"]  # noqa: C414
 
 
 def test_from_local_invalid_path(tmp_path, temp_store):
@@ -187,3 +187,59 @@ def test_from_local_invalid_file_type(tmp_path, temp_store):
         TextDataset.from_local(bad_file, temp_store)
 
 
+class TestTextDatasetExtractTexts:
+    """Tests for text extraction methods."""
+
+    def test_extract_texts_from_batch_returns_as_is(self, temp_store):
+        """Test extract_texts_from_batch returns batch as-is for TextDataset."""
+        ds = Dataset.from_dict({"text": ["a", "b", "c"]})
+        text_ds = TextDataset(ds, store=temp_store)
+
+        batch = ["text1", "text2", "text3"]
+        result = text_ds.extract_texts_from_batch(batch)
+
+        assert result == batch
+        assert result is batch  # Should be the same object
+
+    def test_extract_texts_from_batch_empty_batch(self, temp_store):
+        """Test extract_texts_from_batch with empty batch."""
+        ds = Dataset.from_dict({"text": ["a"]})
+        text_ds = TextDataset(ds, store=temp_store)
+
+        batch = []
+        result = text_ds.extract_texts_from_batch(batch)
+
+        assert result == []
+
+    def test_get_all_texts_memory_strategy(self, temp_store):
+        """Test get_all_texts with MEMORY strategy."""
+        ds = Dataset.from_dict({"text": ["text1", "text2", "text3"]})
+        text_ds = TextDataset(ds, store=temp_store)
+
+        texts = text_ds.get_all_texts()
+
+        assert texts == ["text1", "text2", "text3"]
+        assert isinstance(texts, list)
+
+    def test_get_all_texts_iterable_only(self, temp_store):
+        """Test get_all_texts with ITERABLE_ONLY strategy."""
+        iterable = IterableDatasetDict({"train": Dataset.from_dict({"text": ["a", "b"]})})["train"]
+        text_ds = TextDataset(
+            iterable,
+            store=temp_store,
+            loading_strategy=LoadingStrategy.ITERABLE_ONLY,
+        )
+
+        texts = text_ds.get_all_texts()
+
+        assert texts == ["a", "b"]
+
+    def test_extract_texts_from_batch_integration_with_iter_batches(self, temp_store):
+        """Test extract_texts_from_batch works with iter_batches output."""
+        ds = Dataset.from_dict({"text": ["t1", "t2", "t3", "t4"]})
+        text_ds = TextDataset(ds, store=temp_store)
+
+        for batch in text_ds.iter_batches(batch_size=2):
+            extracted = text_ds.extract_texts_from_batch(batch)
+            assert extracted == batch
+            assert all(isinstance(text, str) for text in extracted)

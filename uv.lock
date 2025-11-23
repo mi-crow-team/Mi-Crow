@@ -188,7 +188,12 @@ docs = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "pre-commit" },
+    { name = "pytest" },
     { name = "pytest-cov" },
+    { name = "ruff" },
+    { name = "setuptools-scm" },
+    { name = "wheel" },
 ]
 
 [package.metadata]
@@ -224,7 +229,14 @@ requires-dist = [
 provides-extras = ["dev", "docs"]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pytest-cov", specifier = ">=7.0.0" }]
+dev = [
+    { name = "pre-commit", specifier = ">=4.3.0" },
+    { name = "pytest", specifier = ">=8.0.0" },
+    { name = "pytest-cov", specifier = ">=7.0.0" },
+    { name = "ruff", specifier = ">=0.13.2" },
+    { name = "setuptools-scm", specifier = ">=8" },
+    { name = "wheel", specifier = ">=0.45.1" },
+]
 
 [[package]]
 name = "annotated-types"

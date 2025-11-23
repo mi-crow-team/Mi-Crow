@@ -3,19 +3,19 @@ from __future__ import annotations
 import random
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Iterator, List, Union, Optional, Any
+from typing import Any, Iterator, List, Optional, Union
 
-from datasets import Dataset, load_dataset, load_from_disk, IterableDataset
+from datasets import Dataset, IterableDataset, load_dataset, load_from_disk
 
+from amber.datasets.loading_strategy import IndexLike, LoadingStrategy
 from amber.store.store import Store
-from amber.datasets.loading_strategy import LoadingStrategy, IndexLike
 
 
 class BaseDataset(ABC):
     """
     Abstract base class for datasets with support for multiple sources,
     loading strategies, and Store integration.
-    
+
     Loading Strategies:
     - MEMORY: Load entire dataset into memory (fastest random access, highest memory usage)
     - DYNAMIC_LOAD: Save to disk, read dynamically via memory-mapped Arrow files
@@ -25,10 +25,10 @@ class BaseDataset(ABC):
     """
 
     def __init__(
-            self,
-            ds: Dataset | IterableDataset,
-            store: Store,
-            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+        self,
+        ds: Dataset | IterableDataset,
+        store: Store,
+        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
     ):
         """
         Initialize dataset.
@@ -37,13 +37,13 @@ class BaseDataset(ABC):
             ds: HuggingFace Dataset or IterableDataset
             store: Store instance for caching/persistence
             loading_strategy: How to load data (MEMORY, DYNAMIC_LOAD, or ITERABLE_ONLY)
-            
+
         Raises:
             ValueError: If store is None, loading_strategy is invalid, or dataset operations fail
             OSError: If file system operations fail
         """
         self._validate_initialization_params(store, loading_strategy)
-        
+
         self._store = store
         self._loading_strategy = loading_strategy
         self._dataset_dir: Path = Path(store.base_path) / store.dataset_prefix
@@ -71,55 +71,43 @@ class BaseDataset(ABC):
             # Don't save to disk for iterable-only mode
         else:
             raise ValueError(
-                f"Unknown loading strategy: {loading_strategy}. "
-                f"Must be one of: {[s.value for s in LoadingStrategy]}"
+                f"Unknown loading strategy: {loading_strategy}. Must be one of: {[s.value for s in LoadingStrategy]}"
             )
 
-    def _validate_initialization_params(
-            self,
-            store: Store,
-            loading_strategy: LoadingStrategy
-    ) -> None:
+    def _validate_initialization_params(self, store: Store, loading_strategy: LoadingStrategy) -> None:
         """Validate initialization parameters.
-        
+
         Args:
             store: Store instance to validate
             loading_strategy: Loading strategy to validate
-            
+
         Raises:
             ValueError: If store is None or loading_strategy is invalid
         """
         if store is None:
             raise ValueError("store cannot be None")
-        
+
         if not isinstance(loading_strategy, LoadingStrategy):
-            raise ValueError(
-                f"loading_strategy must be a LoadingStrategy enum value, "
-                f"got: {type(loading_strategy)}"
-            )
+            raise ValueError(f"loading_strategy must be a LoadingStrategy enum value, got: {type(loading_strategy)}")
 
     def _has_valid_dataset_dir(self) -> bool:
         """Check if dataset directory path is valid (non-empty base_path).
-        
+
         Returns:
             True if base_path is not empty, False otherwise
         """
         return bool(self._store.base_path and str(self._store.base_path).strip())
 
-    def _save_and_load_dataset(
-            self,
-            ds: Dataset,
-            use_memory_mapping: bool = True
-    ) -> Dataset:
+    def _save_and_load_dataset(self, ds: Dataset, use_memory_mapping: bool = True) -> Dataset:
         """Save dataset to disk and load it back (with optional memory mapping).
-        
+
         Args:
             ds: Dataset to save and load
             use_memory_mapping: Whether to use memory mapping (True for DYNAMIC_LOAD)
-            
+
         Returns:
             Loaded dataset
-            
+
         Raises:
             OSError: If file system operations fail
             RuntimeError: If dataset operations fail
@@ -130,15 +118,9 @@ class BaseDataset(ABC):
                 ds.save_to_disk(str(self._dataset_dir))
                 return load_from_disk(str(self._dataset_dir))
             except OSError as e:
-                raise OSError(
-                    f"Failed to save/load dataset at {self._dataset_dir}. "
-                    f"Error: {e}"
-                ) from e
+                raise OSError(f"Failed to save/load dataset at {self._dataset_dir}. Error: {e}") from e
             except Exception as e:
-                raise RuntimeError(
-                    f"Failed to process dataset at {self._dataset_dir}. "
-                    f"Error: {e}"
-                ) from e
+                raise RuntimeError(f"Failed to process dataset at {self._dataset_dir}. Error: {e}") from e
         else:
             return ds
 
@@ -152,14 +134,12 @@ class BaseDataset(ABC):
 
         Returns:
             List of items
-            
+
         Raises:
             NotImplementedError: If loading_strategy is ITERABLE_ONLY
         """
         if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
-            raise NotImplementedError(
-                "get_batch not supported for ITERABLE_ONLY datasets. Use iter_batches instead."
-            )
+            raise NotImplementedError("get_batch not supported for ITERABLE_ONLY datasets. Use iter_batches instead.")
         if batch_size <= 0:
             return []
         end = min(start + batch_size, len(self))
@@ -172,10 +152,10 @@ class BaseDataset(ABC):
         Get first n items.
 
         Works for all loading strategies.
-        
+
         Args:
             n: Number of items to retrieve (default: 5)
-            
+
         Returns:
             List of first n items
         """
@@ -199,7 +179,7 @@ class BaseDataset(ABC):
 
         Returns:
             List of n randomly sampled items
-            
+
         Raises:
             NotImplementedError: If loading_strategy is ITERABLE_ONLY
         """
@@ -247,19 +227,43 @@ class BaseDataset(ABC):
         """Iterate over items in batches."""
         pass
 
+    @abstractmethod
+    def extract_texts_from_batch(self, batch: List[Any]) -> List[str]:
+        """Extract text strings from a batch.
+
+        Args:
+            batch: A batch as returned by iter_batches()
+
+        Returns:
+            List of text strings ready for model inference
+        """
+        pass
+
+    @abstractmethod
+    def get_all_texts(self) -> List[str]:
+        """Get all texts from the dataset.
+
+        Returns:
+            List of all text strings in the dataset
+
+        Raises:
+            NotImplementedError: If not supported for streaming datasets
+        """
+        pass
+
     # --- Factory methods ---
 
     @classmethod
     def from_huggingface(
-            cls,
-            repo_id: str,
-            store: Store,
-            *,
-            split: str = "train",
-            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-            revision: Optional[str] = None,
-            streaming: Optional[bool] = None,
-            **kwargs,
+        cls,
+        repo_id: str,
+        store: Store,
+        *,
+        split: str = "train",
+        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+        revision: Optional[str] = None,
+        streaming: Optional[bool] = None,
+        **kwargs,
     ) -> "BaseDataset":
         """
         Load dataset from HuggingFace Hub.
@@ -272,20 +276,20 @@ class BaseDataset(ABC):
             revision: Optional git revision/branch/tag
             streaming: Optional override for streaming (if None, uses loading_strategy)
             **kwargs: Additional arguments passed to load_dataset
-            
+
         Returns:
             BaseDataset instance
-            
+
         Raises:
             ValueError: If repo_id is empty or store is None
             RuntimeError: If dataset loading fails
         """
         if not repo_id or not isinstance(repo_id, str) or not repo_id.strip():
             raise ValueError(f"repo_id must be a non-empty string, got: {repo_id!r}")
-        
+
         if store is None:
             raise ValueError("store cannot be None")
-        
+
         # Determine if we should use streaming for HuggingFace load_dataset
         # Only ITERABLE_ONLY needs streaming=True for load_dataset
         use_streaming = streaming if streaming is not None else (loading_strategy == LoadingStrategy.ITERABLE_ONLY)
@@ -308,14 +312,14 @@ class BaseDataset(ABC):
 
     @classmethod
     def from_csv(
-            cls,
-            source: Union[str, Path],
-            store: Store,
-            *,
-            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-            text_field: str = "text",
-            delimiter: str = ",",
-            **kwargs,
+        cls,
+        source: Union[str, Path],
+        store: Store,
+        *,
+        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+        text_field: str = "text",
+        delimiter: str = ",",
+        **kwargs,
     ) -> "BaseDataset":
         """
         Load dataset from CSV file.
@@ -327,10 +331,10 @@ class BaseDataset(ABC):
             text_field: Name of the column containing text
             delimiter: CSV delimiter (default: comma)
             **kwargs: Additional arguments passed to load_dataset
-            
+
         Returns:
             BaseDataset instance
-            
+
         Raises:
             FileNotFoundError: If CSV file doesn't exist
             ValueError: If store is None or source is invalid
@@ -338,11 +342,11 @@ class BaseDataset(ABC):
         """
         if store is None:
             raise ValueError("store cannot be None")
-        
+
         p = Path(source)
         if not p.exists():
             raise FileNotFoundError(f"CSV file not found: {source}")
-        
+
         if not p.is_file():
             raise ValueError(f"Source must be a file, got: {source}")
 
@@ -365,21 +369,19 @@ class BaseDataset(ABC):
                     **kwargs,
                 )
         except Exception as e:
-            raise RuntimeError(
-                f"Failed to load CSV dataset from {source}. Error: {e}"
-            ) from e
+            raise RuntimeError(f"Failed to load CSV dataset from {source}. Error: {e}") from e
 
         return cls(ds, store=store, loading_strategy=loading_strategy)
 
     @classmethod
     def from_json(
-            cls,
-            source: Union[str, Path],
-            store: Store,
-            *,
-            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-            text_field: str = "text",
-            **kwargs,
+        cls,
+        source: Union[str, Path],
+        store: Store,
+        *,
+        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+        text_field: str = "text",
+        **kwargs,
     ) -> "BaseDataset":
         """
         Load dataset from JSON or JSONL file.
@@ -390,10 +392,10 @@ class BaseDataset(ABC):
             loading_strategy: Loading strategy
             text_field: Name of the field containing text (for JSON objects)
             **kwargs: Additional arguments passed to load_dataset
-            
+
         Returns:
             BaseDataset instance
-            
+
         Raises:
             FileNotFoundError: If JSON file doesn't exist
             ValueError: If store is None or source is invalid
@@ -401,11 +403,11 @@ class BaseDataset(ABC):
         """
         if store is None:
             raise ValueError("store cannot be None")
-        
+
         p = Path(source)
         if not p.exists():
             raise FileNotFoundError(f"JSON file not found: {source}")
-        
+
         if not p.is_file():
             raise ValueError(f"Source must be a file, got: {source}")
 
@@ -426,8 +428,6 @@ class BaseDataset(ABC):
                     **kwargs,
                 )
         except Exception as e:
-            raise RuntimeError(
-                f"Failed to load JSON dataset from {source}. Error: {e}"
-            ) from e
+            raise RuntimeError(f"Failed to load JSON dataset from {source}. Error: {e}") from e
 
         return cls(ds, store=store, loading_strategy=loading_strategy)
