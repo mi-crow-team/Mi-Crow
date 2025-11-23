@@ -92,11 +92,12 @@ wandb
 outputs
 /store/
 /examples/store/
+/experiments/store/
 /playground/store/
 /tests/unit/store
 /tests/store
 
-# experiments
+# Experiments
 .llm_context/
 .local_results/
 results/
