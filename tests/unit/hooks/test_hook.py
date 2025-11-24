@@ -200,3 +200,67 @@ class TestHookAbstractMethods:
         result = hook._hook_fn(Mock(), (), None)
         assert result is None
 
+
+class TestHookIsBothControllerAndDetector:
+    """Tests for _is_both_controller_and_detector method."""
+
+    def test_is_both_controller_and_detector_false_for_hook_only(self):
+        """Test that plain Hook returns False."""
+        hook = ConcreteHook()
+        assert hook._is_both_controller_and_detector() is False
+
+    def test_is_both_controller_and_detector_false_for_controller_only(self):
+        """Test that Controller-only hook returns False."""
+        from tests.unit.fixtures.hooks import MockController
+        controller = MockController()
+        assert controller._is_both_controller_and_detector() is False
+
+    def test_is_both_controller_and_detector_false_for_detector_only(self):
+        """Test that Detector-only hook returns False."""
+        from tests.unit.fixtures.hooks import MockDetector
+        detector = MockDetector()
+        assert detector._is_both_controller_and_detector() is False
+
+    def test_is_both_controller_and_detector_true_for_dual_inheritance(self):
+        """Test that hook inheriting from both Controller and Detector returns True."""
+        from amber.hooks.controller import Controller
+        from amber.hooks.detector import Detector
+        
+        class DualHook(Controller, Detector):
+            def __init__(self):
+                Controller.__init__(self)
+                Detector.__init__(self)
+            
+            def modify_activations(self, module, inputs, output):
+                return output
+            
+            def process_activations(self, module, input, output):
+                pass
+        
+        dual_hook = DualHook()
+        assert dual_hook._is_both_controller_and_detector() is True
+
+    def test_is_both_controller_and_detector_checks_mro(self):
+        """Test that method correctly checks MRO for both classes."""
+        from amber.hooks.controller import Controller
+        from amber.hooks.detector import Detector
+        
+        class DualHook(Controller, Detector):
+            def __init__(self):
+                Controller.__init__(self)
+                Detector.__init__(self)
+            
+            def modify_activations(self, module, inputs, output):
+                return output
+            
+            def process_activations(self, module, input, output):
+                pass
+        
+        dual_hook = DualHook()
+        mro_names = [cls.__name__ for cls in type(dual_hook).__mro__]
+        
+        # Verify both are in MRO
+        assert 'Controller' in mro_names
+        assert 'Detector' in mro_names
+        assert dual_hook._is_both_controller_and_detector() is True
+

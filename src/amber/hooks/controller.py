@@ -8,9 +8,12 @@ import torch.nn as nn
 
 from amber.hooks.hook import Hook, HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
 from amber.hooks.utils import extract_tensor_from_input, extract_tensor_from_output
+from amber.utils import get_logger
 
 if TYPE_CHECKING:
     pass
+
+logger = get_logger(__name__)
 
 
 class Controller(Hook):
@@ -99,7 +102,8 @@ class Controller(Hook):
         """
         Internal hook function that modifies activations.
         
-        Extracts tensors from input/output and calls modify_activations with tensors.
+        If the instance also inherits from Detector, first processes activations
+        as a Detector (saves metadata), then modifies activations as a Controller.
         
         Args:
             module: The PyTorch module being hooked
@@ -116,6 +120,18 @@ class Controller(Hook):
         if not self._enabled:
             return None
 
+        # Check if this instance also inherits from Detector
+        if self._is_both_controller_and_detector():
+            # First, process activations as a Detector (save metadata)
+            try:
+                self.process_activations(module, input, output)
+            except Exception as e:
+                logger.warning(
+                    f"Error in {self.__class__.__name__} detector process_activations: {e}",
+                    exc_info=True
+                )
+        
+        # Then, modify activations as a Controller
         try:
             if self.hook_type == HookType.PRE_FORWARD:
                 return self._handle_pre_forward(module, input)

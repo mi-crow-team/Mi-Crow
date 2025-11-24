@@ -6,11 +6,13 @@ import torch
 from torch import nn
 
 from amber.hooks.controller import Controller
-from amber.hooks.hook import HookType
+from amber.hooks.detector import Detector
+from amber.hooks.hook import HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
 from amber.mechanistic.sae.autoencoder_context import AutoencoderContext
 from amber.mechanistic.sae.concepts.autoencoder_concepts import AutoencoderConcepts
 from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary
 from amber.mechanistic.sae.sae_trainer import SaeTrainer
+from amber.store.store import Store
 from amber.utils import get_logger
 
 from overcomplete.sae import SAE as OvercompleteSAE
@@ -23,17 +25,21 @@ ActivationFn = Literal["relu", "linear"] | None
 logger = get_logger(__name__)
 
 
-class Sae(Controller, abc.ABC):
+class Sae(Controller, Detector, abc.ABC):
     def __init__(
             self,
             n_latents: int,
             n_inputs: int,
             hook_id: str | None = None,
             device: str = 'cpu',
+            store: Store | None = None,
             *args: Any,
             **kwargs: Any
     ) -> None:
-        super().__init__(HookType.FORWARD, hook_id)
+        # Initialize both Controller and Detector
+        Controller.__init__(self, hook_type=HookType.FORWARD, hook_id=hook_id)
+        Detector.__init__(self, hook_type=HookType.FORWARD, hook_id=hook_id, store=store)
+
         self.context = AutoencoderContext(
             autoencoder=self,
             n_latents=n_latents,
@@ -57,9 +63,9 @@ class Sae(Controller, abc.ABC):
     def modify_activations(
             self,
             module: nn.Module,
-            inputs: torch.Tensor,
-            output: torch.Tensor
-    ) -> torch.Tensor:
+            inputs: torch.Tensor | None,
+            output: torch.Tensor | None
+    ) -> torch.Tensor | None:
         raise NotImplementedError("Modify activations method not implemented.")
 
     @abc.abstractmethod
@@ -85,6 +91,83 @@ class Sae(Controller, abc.ABC):
 
     def attach_dictionary(self, concept_dictionary: ConceptDictionary):
         self.concepts.dictionary = concept_dictionary
+
+    def process_activations(
+            self,
+            module: torch.nn.Module,
+            input: HOOK_FUNCTION_INPUT,
+            output: HOOK_FUNCTION_OUTPUT
+    ) -> None:
+        """
+        Process activations to save neuron activations in metadata.
+        
+        This implements the Detector interface. It extracts activations, encodes them
+        to get neuron activations (latents), and saves metadata for each item in the batch
+        individually, including nonzero latent indices and activations.
+        
+        Args:
+            module: The PyTorch module being hooked
+            input: Tuple of input tensors to the module
+            output: Output tensor(s) from the module
+        """
+        # Extract tensor from input/output based on hook type
+        if self.hook_type == HookType.FORWARD:
+            tensor = output
+        else:
+            tensor = input[0] if len(input) > 0 else None
+
+        if tensor is None or not isinstance(tensor, torch.Tensor):
+            return
+
+        original_shape = tensor.shape
+
+        # Flatten to 2D if needed: (batch, seq_len, hidden) -> (batch * seq_len, hidden)
+        needs_reshape = len(original_shape) > 2
+        if needs_reshape:
+            tensor_flat = tensor.reshape(-1, original_shape[-1])
+        else:
+            tensor_flat = tensor
+
+        # Encode to get latents (neuron activations)
+        latents = self.encode(tensor_flat)
+        latents_cpu = latents.detach().cpu()
+
+        # Save full neuron activations tensor to tensor_metadata for backward compatibility
+        if needs_reshape:
+            batch_size, seq_len = original_shape[:2]
+            latents_reshaped = latents_cpu.reshape(batch_size, seq_len, -1)
+            self.tensor_metadata['neurons'] = latents_reshaped
+        else:
+            self.tensor_metadata['neurons'] = latents_cpu
+
+        # Process each item in the batch individually
+        # latents_cpu shape: [batch*seq, n_latents] or [batch, n_latents]
+        batch_items = []
+        n_items = latents_cpu.shape[0]
+
+        for item_idx in range(n_items):
+            item_latents = latents_cpu[item_idx]  # [n_latents]
+            
+            # Find nonzero indices for this item
+            nonzero_mask = item_latents != 0
+            nonzero_indices = torch.nonzero(nonzero_mask, as_tuple=False).flatten().tolist()
+            
+            # Create map of nonzero indices to activations
+            activations_map = {
+                int(idx): float(item_latents[idx].item())
+                for idx in nonzero_indices
+            }
+            
+            # Create item metadata
+            item_metadata = {
+                "nonzero_indices": nonzero_indices,
+                "activations": activations_map
+            }
+            
+            batch_items.append(item_metadata)
+
+        # Save batch items metadata
+        self.metadata['batch_items'] = batch_items
 
     @staticmethod
     def _apply_activation_fn(

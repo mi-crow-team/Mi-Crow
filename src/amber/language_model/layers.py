@@ -199,15 +199,30 @@ class LanguageModelLayers:
             return
 
         existing_types = self._get_existing_hook_types(layer_signature)
-        new_hook_class = "Detector" if isinstance(hook, Detector) else "Controller"
-
-        if existing_types and new_hook_class not in existing_types:
-            existing_type_str = ", ".join(existing_types)
-            raise ValueError(
-                f"Cannot register {new_hook_class} hook on layer '{layer_signature}': "
-                f"layer already has {existing_type_str} hook(s). "
-                f"Only one hook class type (Detector or Controller) per layer is allowed."
-            )
+        
+        # Check if new hook is both Controller and Detector
+        is_both = hook._is_both_controller_and_detector()
+        if is_both:
+            # Dual-inheritance hooks are compatible with either type
+            # They can be registered if there are no existing hooks, or if existing hooks are compatible
+            if existing_types:
+                # Check if existing hooks are also dual-inheritance or compatible type
+                # If existing is Controller, dual hook is compatible (it's also Controller)
+                # If existing is Detector, dual hook is compatible (it's also Detector)
+                # If existing is both, they're compatible
+                # So we allow registration in all cases
+                pass
+        else:
+            # Single-type hook: check compatibility
+            new_hook_class = "Detector" if isinstance(hook, Detector) else "Controller"
+            if existing_types and new_hook_class not in existing_types:
+                existing_type_str = ", ".join(existing_types)
+                raise ValueError(
+                    f"Cannot register {new_hook_class} hook on layer '{layer_signature}': "
+                    f"layer already has {existing_type_str} hook(s). "
+                    f"Only one hook class type (Detector or Controller) per layer is allowed, "
+                    f"or use a hook that inherits from both."
+                )
 
     def _get_existing_hook_types(self, layer_signature: str | int) -> set[str]:
         """Get set of existing hook class types for a layer.
@@ -222,7 +237,11 @@ class LanguageModelLayers:
         for existing_hook_type, hooks in self.context._hook_registry[layer_signature].items():
             if hooks:
                 first_hook = hooks[0][0]
-                if isinstance(first_hook, Detector):
+                # Check if hook is both Controller and Detector
+                if first_hook._is_both_controller_and_detector():
+                    existing_types.add("Detector")
+                    existing_types.add("Controller")
+                elif isinstance(first_hook, Detector):
                     existing_types.add("Detector")
                 elif isinstance(first_hook, Controller):
                     existing_types.add("Controller")

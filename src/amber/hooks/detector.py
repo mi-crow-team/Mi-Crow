@@ -66,7 +66,6 @@ class Detector(Hook):
         try:
             self.process_activations(module, input, output)
         except Exception as e:
-            # Re-raise to be caught by wrapper in get_torch_hook
             raise RuntimeError(
                 f"Error in detector {self.id} process_activations: {e}"
             ) from e

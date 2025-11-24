@@ -76,6 +76,132 @@ class TestLanguageModelLayersAdditional:
         types = mock_language_model.layers._get_existing_hook_types(0)
         assert "Controller" in types
 
+    def test_validate_hook_registration_dual_inheritance_with_detector(self, mock_language_model):
+        """Test that dual-inheritance hook can be registered with existing Detector."""
+        from amber.hooks.controller import Controller
+        from amber.hooks.detector import Detector
+        from amber.hooks.hook import HookType
+        
+        # Create a dual-inheritance hook
+        class DualHook(Controller, Detector):
+            def __init__(self, hook_id):
+                Controller.__init__(self, hook_id=hook_id)
+                Detector.__init__(self, hook_id=hook_id)
+            
+            def modify_activations(self, module, inputs, output):
+                return output
+            
+            def process_activations(self, module, input, output):
+                pass
+        
+        detector = create_mock_detector(layer_signature=0, hook_id="detector_1")
+        dual_hook = DualHook(hook_id="dual_1")
+        
+        mock_language_model.layers.register_hook(0, detector)
+        
+        # Should not raise - dual hook is compatible with Detector
+        mock_language_model.layers._validate_hook_registration(0, dual_hook)
+
+    def test_validate_hook_registration_dual_inheritance_with_controller(self, mock_language_model):
+        """Test that dual-inheritance hook can be registered with existing Controller."""
+        from amber.hooks.controller import Controller
+        from amber.hooks.detector import Detector
+        
+        class DualHook(Controller, Detector):
+            def __init__(self, hook_id):
+                Controller.__init__(self, hook_id=hook_id)
+                Detector.__init__(self, hook_id=hook_id)
+            
+            def modify_activations(self, module, inputs, output):
+                return output
+            
+            def process_activations(self, module, input, output):
+                pass
+        
+        controller = create_mock_controller(layer_signature=0, hook_id="controller_1")
+        dual_hook = DualHook(hook_id="dual_1")
+        
+        mock_language_model.layers.register_hook(0, controller)
+        
+        # Should not raise - dual hook is compatible with Controller
+        mock_language_model.layers._validate_hook_registration(0, dual_hook)
+
+    def test_validate_hook_registration_dual_inheritance_with_dual_hook(self, mock_language_model):
+        """Test that dual-inheritance hook can be registered with existing dual hook."""
+        from amber.hooks.controller import Controller
+        from amber.hooks.detector import Detector
+        
+        class DualHook(Controller, Detector):
+            def __init__(self, hook_id):
+                Controller.__init__(self, hook_id=hook_id)
+                Detector.__init__(self, hook_id=hook_id)
+            
+            def modify_activations(self, module, inputs, output):
+                return output
+            
+            def process_activations(self, module, input, output):
+                pass
+        
+        dual_hook1 = DualHook(hook_id="dual_1")
+        dual_hook2 = DualHook(hook_id="dual_2")
+        
+        mock_language_model.layers.register_hook(0, dual_hook1)
+        
+        # Should not raise - dual hooks are compatible with each other
+        mock_language_model.layers._validate_hook_registration(0, dual_hook2)
+
+    def test_get_existing_hook_types_dual_inheritance(self, mock_language_model):
+        """Test getting existing hook types when dual-inheritance hook is registered."""
+        from amber.hooks.controller import Controller
+        from amber.hooks.detector import Detector
+        
+        class DualHook(Controller, Detector):
+            def __init__(self, hook_id):
+                Controller.__init__(self, hook_id=hook_id)
+                Detector.__init__(self, hook_id=hook_id)
+            
+            def modify_activations(self, module, inputs, output):
+                return output
+            
+            def process_activations(self, module, input, output):
+                pass
+        
+        dual_hook = DualHook(hook_id="dual_1")
+        mock_language_model.layers.register_hook(0, dual_hook)
+        
+        types = mock_language_model.layers._get_existing_hook_types(0)
+        # Dual hook should be recognized as both types
+        assert "Controller" in types
+        assert "Detector" in types
+
+    def test_validate_hook_registration_single_type_with_dual_hook_allowed(self, mock_language_model):
+        """Test that single-type hook can be registered with dual hook (they're compatible)."""
+        from amber.hooks.controller import Controller
+        from amber.hooks.detector import Detector
+        
+        class DualHook(Controller, Detector):
+            def __init__(self, hook_id):
+                Controller.__init__(self, hook_id=hook_id)
+                Detector.__init__(self, hook_id=hook_id)
+            
+            def modify_activations(self, module, inputs, output):
+                return output
+            
+            def process_activations(self, module, input, output):
+                pass
+        
+        dual_hook = DualHook(hook_id="dual_1")
+        # Register dual hook first
+        mock_language_model.layers.register_hook(0, dual_hook)
+        
+        # A Controller should be allowed because dual hook has "Controller" in its types
+        controller = create_mock_controller(layer_signature=0, hook_id="controller_1")
+        mock_language_model.layers._validate_hook_registration(0, controller)
+        
+        # A Detector should also be allowed because dual hook has "Detector" in its types
+        detector = create_mock_detector(layer_signature=0, hook_id="detector_1")
+        mock_language_model.layers._validate_hook_registration(0, detector)
+
     def test_register_hook_with_hook_type_parameter(self, mock_language_model):
         """Test registering hook with explicit hook_type parameter."""
         detector = create_mock_detector(layer_signature=0, hook_id="detector_1")

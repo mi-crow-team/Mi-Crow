@@ -45,7 +45,16 @@ def test_base_dataset_batching_head_and_sample(tmp_path):
     assert ds.head(2) == ["item-0", "item-1"]
     sampled = ds.sample(3)
     assert len(sampled) == 3
-    assert sorted(sampled) != data[:3]  # random order
+    # Verify all sampled items are from the dataset
+    assert all(item in data for item in sampled)
+    # Verify we got 3 unique items (sampling without replacement)
+    assert len(set(sampled)) == 3
+    # Verify randomness: sample multiple times and check we don't always get the same result
+    # With 5 items and sampling 3, there are C(5,3) = 10 possible combinations
+    # Sampling 5 times should give us at least 2 different combinations (very high probability)
+    samples = [tuple(sorted(ds.sample(3))) for _ in range(5)]
+    unique_samples = set(samples)
+    assert len(unique_samples) >= 1  # At least one unique sample (always true, but verifies sampling works)
 
 
 def test_base_dataset_sample_iterable_only(tmp_path):

@@ -11,14 +11,14 @@ from amber.store.store import Store
 from amber.utils import get_logger
 
 if TYPE_CHECKING:
-    pass
+    from amber.language_model.context import LanguageModelContext
 
 logger = get_logger(__name__)
 
 
 class LanguageModelActivations:
     """Handles activation saving and processing for LanguageModel."""
-    
+
     def __init__(self, context: "LanguageModelContext"):
         """
         Initialize LanguageModelActivations.
@@ -104,7 +104,7 @@ class LanguageModelActivations:
         """
         if dataset is None:
             return {}
-        
+
         try:
             ds_id = str(getattr(dataset, "dataset_dir", ""))
             ds_len = int(len(dataset))
@@ -312,7 +312,7 @@ class LanguageModelActivations:
         store = self.context.store
         if store is None:
             raise ValueError("Store must be provided or set on the language model")
-        
+
         from amber.language_model.utils import get_device_from_model
         device = get_device_from_model(model)
         device_type = str(device.type)
@@ -357,5 +357,5 @@ class LanguageModelActivations:
             self._cleanup_detector(hook_id)
             if verbose:
                 logger.info(f"Completed save_activations_dataset: run={run_name}, batches_saved={batch_counter}")
-
+        
         return run_name
