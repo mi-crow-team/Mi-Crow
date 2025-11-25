@@ -1,15 +1,14 @@
 """Tests for BaseDataset abstract class."""
 
-import pytest
 import tempfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+
+import pytest
 from datasets import Dataset, IterableDataset
 
 from amber.datasets.base_dataset import BaseDataset
 from amber.datasets.loading_strategy import LoadingStrategy
-from amber.store.store import Store
-from tests.unit.fixtures.stores import create_temp_store
 
 
 class ConcreteBaseDataset(BaseDataset):
@@ -49,6 +48,14 @@ class ConcreteBaseDataset(BaseDataset):
         for i in range(0, len(self), batch_size):
             end = min(i + batch_size, len(self))
             yield list(self[i:end])
+
+    def extract_texts_from_batch(self, batch):
+        # Dummy implementation for testing
+        return [item["text"] for item in batch if "text" in item]
+
+    def get_all_texts(self):
+        # Dummy implementation for testing
+        return [item["text"] for item in self._ds]
 
 
 class TestBaseDatasetInitialization:
@@ -190,9 +197,7 @@ class TestBaseDatasetHead:
 
     def test_head_iterable_only_strategy(self, temp_store):
         """Test head with ITERABLE_ONLY strategy."""
-        iter_ds = IterableDataset.from_generator(
-            lambda: iter([{"text": f"text_{i}"} for i in range(10)])
-        )
+        iter_ds = IterableDataset.from_generator(lambda: iter([{"text": f"text_{i}"} for i in range(10)]))
         dataset = ConcreteBaseDataset(iter_ds, temp_store, LoadingStrategy.ITERABLE_ONLY)
         items = dataset.head(3)
         assert len(items) == 3
@@ -269,12 +274,8 @@ class TestBaseDatasetFactoryMethods:
         with patch("amber.datasets.base_dataset.load_dataset") as mock_load:
             mock_ds = Dataset.from_dict({"text": ["a", "b"]})
             mock_load.return_value = mock_ds
-            
-            dataset = ConcreteBaseDataset.from_huggingface(
-                "test/dataset",
-                temp_store,
-                split="train"
-            )
+
+            dataset = ConcreteBaseDataset.from_huggingface("test/dataset", temp_store, split="train")
             assert len(dataset) == 2
             mock_load.assert_called_once()
 
@@ -283,12 +284,9 @@ class TestBaseDatasetFactoryMethods:
         with patch("amber.datasets.base_dataset.load_dataset") as mock_load:
             mock_ds = IterableDataset.from_generator(lambda: iter([{"text": "a"}]))
             mock_load.return_value = mock_ds
-            
+
             dataset = ConcreteBaseDataset.from_huggingface(
-                "test/dataset",
-                temp_store,
-                split="train",
-                loading_strategy=LoadingStrategy.ITERABLE_ONLY
+                "test/dataset", temp_store, split="train", loading_strategy=LoadingStrategy.ITERABLE_ONLY
             )
             assert dataset._is_iterable
             mock_load.assert_called_once_with(
@@ -317,12 +315,12 @@ class TestBaseDatasetFactoryMethods:
 
     def test_from_csv_success(self, temp_store):
         """Test from_csv factory method."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write("text\n")
             f.write("Hello\n")
             f.write("World\n")
             csv_path = f.name
-        
+
         try:
             dataset = ConcreteBaseDataset.from_csv(csv_path, temp_store)
             items = list(dataset.iter_items())
@@ -344,10 +342,11 @@ class TestBaseDatasetFactoryMethods:
     def test_from_json_success(self, temp_store):
         """Test from_json factory method."""
         import json
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump([{"text": "Hello"}, {"text": "World"}], f)
             json_path = f.name
-        
+
         try:
             dataset = ConcreteBaseDataset.from_json(json_path, temp_store)
             items = list(dataset.iter_items())
@@ -365,4 +364,3 @@ class TestBaseDatasetFactoryMethods:
         with tempfile.TemporaryDirectory() as tmpdir:
             with pytest.raises(ValueError, match="Source must be a file"):
                 ConcreteBaseDataset.from_json(tmpdir, temp_store)
-

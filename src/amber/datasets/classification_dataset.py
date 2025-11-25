@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterator, List, Sequence, Union, Optional, Dict, Any
+from typing import Any, Dict, Iterator, List, Optional, Sequence, Union
 
-from datasets import Dataset, load_dataset, IterableDataset
+from datasets import Dataset, IterableDataset, load_dataset
 
-from amber.store.store import Store
 from amber.datasets.base_dataset import BaseDataset
-from amber.datasets.loading_strategy import LoadingStrategy, IndexLike
+from amber.datasets.loading_strategy import IndexLike, LoadingStrategy
+from amber.store.store import Store
 
 
 class ClassificationDataset(BaseDataset):
@@ -18,12 +18,12 @@ class ClassificationDataset(BaseDataset):
     """
 
     def __init__(
-            self,
-            ds: Dataset | IterableDataset,
-            store: Store,
-            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-            text_field: str = "text",
-            category_field: Union[str, List[str]] = "category",
+        self,
+        ds: Dataset | IterableDataset,
+        store: Store,
+        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+        text_field: str = "text",
+        category_field: Union[str, List[str]] = "category",
     ):
         """
         Initialize classification dataset.
@@ -35,34 +35,28 @@ class ClassificationDataset(BaseDataset):
             text_field: Name of the column containing text
             category_field: Name(s) of the column(s) containing category/label.
                           Can be a single string or a list of strings for multiple labels.
-                          
+
         Raises:
             ValueError: If text_field or category_field is empty, or fields not found in dataset
         """
         self._validate_text_field(text_field)
-        
+
         # Normalize category_field to list
         if isinstance(category_field, str):
             self._category_fields = [category_field]
         else:
             self._category_fields = list(category_field)
-        
+
         self._validate_category_fields(self._category_fields)
-        
+
         # Validate dataset
         is_iterable = isinstance(ds, IterableDataset)
         if not is_iterable:
             if text_field not in ds.column_names:
-                raise ValueError(
-                    f"Dataset must have a '{text_field}' column; "
-                    f"got columns: {ds.column_names}"
-                )
+                raise ValueError(f"Dataset must have a '{text_field}' column; got columns: {ds.column_names}")
             for cat_field in self._category_fields:
                 if cat_field not in ds.column_names:
-                    raise ValueError(
-                        f"Dataset must have a '{cat_field}' column; "
-                        f"got columns: {ds.column_names}"
-                    )
+                    raise ValueError(f"Dataset must have a '{cat_field}' column; got columns: {ds.column_names}")
             # Set format with all required columns
             format_columns = [text_field] + self._category_fields
             ds.set_format("python", columns=format_columns)
@@ -73,10 +67,10 @@ class ClassificationDataset(BaseDataset):
 
     def _validate_text_field(self, text_field: str) -> None:
         """Validate text_field parameter.
-        
+
         Args:
             text_field: Text field name to validate
-            
+
         Raises:
             ValueError: If text_field is empty or not a string
         """
@@ -85,32 +79,29 @@ class ClassificationDataset(BaseDataset):
 
     def _validate_category_fields(self, category_fields: List[str]) -> None:
         """Validate category_fields parameter.
-        
+
         Args:
             category_fields: List of category field names to validate
-            
+
         Raises:
             ValueError: If category_fields is empty or contains invalid values
         """
         if not category_fields:
             raise ValueError("category_field cannot be empty")
-        
+
         for cat_field in category_fields:
             if not cat_field or not isinstance(cat_field, str) or not cat_field.strip():
-                raise ValueError(
-                    f"All category fields must be non-empty strings, "
-                    f"got invalid field: {cat_field!r}"
-                )
+                raise ValueError(f"All category fields must be non-empty strings, got invalid field: {cat_field!r}")
 
     def _extract_item_from_row(self, row: Dict[str, Any]) -> Dict[str, Any]:
         """Extract item (text + categories) from a dataset row.
-        
+
         Args:
             row: Dataset row dictionary
-            
+
         Returns:
             Dictionary with 'text' and category fields as keys
-            
+
         Raises:
             ValueError: If required fields are not found in row
         """
@@ -120,23 +111,22 @@ class ClassificationDataset(BaseDataset):
                 f"Text field '{self._text_field}' or 'text' not found in dataset row. "
                 f"Available fields: {list(row.keys())}"
             )
-        
+
         item = {"text": text}
         for cat_field in self._category_fields:
             category = row.get(cat_field)
             if category is None:
                 raise ValueError(
-                    f"Category field '{cat_field}' not found in dataset row. "
-                    f"Available fields: {list(row.keys())}"
+                    f"Category field '{cat_field}' not found in dataset row. Available fields: {list(row.keys())}"
                 )
             item[cat_field] = category
-        
+
         return item
 
     def __len__(self) -> int:
         """
         Return the number of items in the dataset.
-        
+
         Raises:
             NotImplementedError: If loading_strategy is ITERABLE_ONLY
         """
@@ -147,16 +137,16 @@ class ClassificationDataset(BaseDataset):
     def __getitem__(self, idx: IndexLike) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
         """
         Get item(s) by index. Returns dict with 'text' and label column(s) as keys.
-        
+
         For single label: {"text": "...", "category": "..."}
         For multiple labels: {"text": "...", "label1": "...", "label2": "..."}
-        
+
         Args:
             idx: Index (int), slice, or sequence of indices
-            
+
         Returns:
             Single item dict or list of item dicts
-            
+
         Raises:
             NotImplementedError: If loading_strategy is ITERABLE_ONLY
             IndexError: If index is out of bounds
@@ -175,12 +165,10 @@ class ClassificationDataset(BaseDataset):
             if idx < 0:
                 idx = dataset_len + idx
             if idx < 0 or idx >= dataset_len:
-                raise IndexError(
-                    f"Index {idx} out of bounds for dataset of length {dataset_len}"
-                )
+                raise IndexError(f"Index {idx} out of bounds for dataset of length {dataset_len}")
             row = self._ds[idx]
             return self._extract_item_from_row(row)
-        
+
         if isinstance(idx, slice):
             start, stop, step = idx.indices(dataset_len)
             if step != 1:
@@ -189,30 +177,27 @@ class ClassificationDataset(BaseDataset):
             else:
                 selected = self._ds.select(range(start, stop))
             return [self._extract_item_from_row(row) for row in selected]
-        
+
         if isinstance(idx, Sequence):
             # Validate all indices are in bounds
             invalid_indices = [i for i in idx if not (0 <= i < dataset_len)]
             if invalid_indices:
-                raise IndexError(
-                    f"Indices out of bounds: {invalid_indices} "
-                    f"(dataset length: {dataset_len})"
-                )
+                raise IndexError(f"Indices out of bounds: {invalid_indices} (dataset length: {dataset_len})")
             selected = self._ds.select(list(idx))
             return [self._extract_item_from_row(row) for row in selected]
-        
+
         raise TypeError(f"Invalid index type: {type(idx)}")
 
     def iter_items(self) -> Iterator[Dict[str, Any]]:
         """
         Iterate over items one by one. Yields dict with 'text' and label column(s) as keys.
-        
+
         For single label: {"text": "...", "category": "..."}
         For multiple labels: {"text": "...", "label1": "...", "label2": "..."}
-        
+
         Yields:
             Item dictionaries with text and category fields
-            
+
         Raises:
             ValueError: If required fields are not found in any row
         """
@@ -222,16 +207,16 @@ class ClassificationDataset(BaseDataset):
     def iter_batches(self, batch_size: int) -> Iterator[List[Dict[str, Any]]]:
         """
         Iterate over items in batches. Each batch is a list of dicts with 'text' and label column(s) as keys.
-        
+
         For single label: [{"text": "...", "category": "..."}, ...]
         For multiple labels: [{"text": "...", "label1": "...", "label2": "..."}, ...]
-        
+
         Args:
             batch_size: Number of items per batch
-            
+
         Yields:
             Lists of item dictionaries (batches)
-            
+
         Raises:
             ValueError: If batch_size <= 0 or required fields are not found in any row
         """
@@ -254,14 +239,14 @@ class ClassificationDataset(BaseDataset):
                 batch_list = self[i:end]
                 yield batch_list
 
-    def get_categories(self) -> Union[List[Any], Dict[str, List[Any]]]:
+    def get_categories(self) -> Union[List[Any], Dict[str, List[Any]]]:  # noqa: C901
         """
         Get unique categories in the dataset, excluding None values.
-        
+
         Returns:
             - For single label column: List of unique category values
             - For multiple label columns: Dict mapping column name to list of unique categories
-            
+
         Raises:
             NotImplementedError: If loading_strategy is ITERABLE_ONLY and dataset is large
         """
@@ -274,7 +259,7 @@ class ClassificationDataset(BaseDataset):
                     cat = item[cat_field]
                     if cat is not None:
                         categories.add(cat)
-                return sorted(list(categories))
+                return sorted(list(categories))  # noqa: C414
             categories = [cat for cat in set(self._ds[cat_field]) if cat is not None]
             return sorted(categories)
         else:
@@ -289,7 +274,7 @@ class ClassificationDataset(BaseDataset):
                         if cat is not None:
                             category_sets[field].add(cat)
                 for field in self._category_fields:
-                    result[field] = sorted(list(category_sets[field]))
+                    result[field] = sorted(list(category_sets[field]))  # noqa: C414
             else:
                 # Use direct column access
                 for field in self._category_fields:
@@ -297,13 +282,31 @@ class ClassificationDataset(BaseDataset):
                     result[field] = sorted(categories)
             return result
 
-    def get_texts(self) -> List[str]:
-        """
-        Get all texts as a list.
-        
+    def extract_texts_from_batch(self, batch: List[Dict[str, Any]]) -> List[str]:
+        """Extract text strings from a batch of classification items.
+
+        Args:
+            batch: List of dicts with 'text' and category fields
+
         Returns:
-            List of text strings
-            
+            List of text strings from the batch
+
+        Raises:
+            ValueError: If 'text' key is not found in any batch item
+        """
+        texts = []
+        for item in batch:
+            if "text" not in item:
+                raise ValueError(f"'text' key not found in batch item. Available keys: {list(item.keys())}")
+            texts.append(item["text"])
+        return texts
+
+    def get_all_texts(self) -> List[str]:
+        """Get all texts from the dataset.
+
+        Returns:
+            List of all text strings
+
         Raises:
             NotImplementedError: If loading_strategy is ITERABLE_ONLY and dataset is very large
         """
@@ -314,61 +317,55 @@ class ClassificationDataset(BaseDataset):
     def get_categories_for_texts(self, texts: List[str]) -> Union[List[Any], List[Dict[str, Any]]]:
         """
         Get categories for given texts (if texts match dataset texts).
-        
+
         Args:
             texts: List of text strings to look up
-            
+
         Returns:
             - For single label column: List of category values (one per text)
             - For multiple label columns: List of dicts with label columns as keys
-            
+
         Raises:
             NotImplementedError: If loading_strategy is ITERABLE_ONLY
             ValueError: If texts list is empty
         """
         if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
-            raise NotImplementedError(
-                "get_categories_for_texts not supported for ITERABLE_ONLY datasets"
-            )
-        
+            raise NotImplementedError("get_categories_for_texts not supported for ITERABLE_ONLY datasets")
+
         if not texts:
             raise ValueError("texts list cannot be empty")
-        
+
         if len(self._category_fields) == 1:
             # Single label: return list for backward compatibility
             cat_field = self._category_fields[0]
-            text_to_category = {
-                row[self._text_field]: row[cat_field]
-                for row in self._ds
-            }
+            text_to_category = {row[self._text_field]: row[cat_field] for row in self._ds}
             return [text_to_category.get(text) for text in texts]
         else:
             # Multiple labels: return list of dicts
             text_to_categories = {
-                row[self._text_field]: {field: row[field] for field in self._category_fields}
-                for row in self._ds
+                row[self._text_field]: {field: row[field] for field in self._category_fields} for row in self._ds
             }
             return [text_to_categories.get(text) for text in texts]
 
     @classmethod
     def from_huggingface(
-            cls,
-            repo_id: str,
-            store: Store,
-            *,
-            split: str = "train",
-            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-            revision: Optional[str] = None,
-            text_field: str = "text",
-            category_field: Union[str, List[str]] = "category",
-            filters: Optional[Dict[str, Any]] = None,
-            limit: Optional[int] = None,
-            streaming: Optional[bool] = None,
-            **kwargs,
+        cls,
+        repo_id: str,
+        store: Store,
+        *,
+        split: str = "train",
+        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+        revision: Optional[str] = None,
+        text_field: str = "text",
+        category_field: Union[str, List[str]] = "category",
+        filters: Optional[Dict[str, Any]] = None,
+        limit: Optional[int] = None,
+        streaming: Optional[bool] = None,
+        **kwargs,
     ) -> "ClassificationDataset":
         """
         Load classification dataset from HuggingFace Hub.
-        
+
         Args:
             repo_id: HuggingFace dataset repository ID
             store: Store instance
@@ -381,10 +378,10 @@ class ClassificationDataset(BaseDataset):
             limit: Optional limit on number of rows
             streaming: Optional override for streaming
             **kwargs: Additional arguments for load_dataset
-            
+
         Returns:
             ClassificationDataset instance
-            
+
         Raises:
             ValueError: If parameters are invalid
             RuntimeError: If dataset loading fails
@@ -402,6 +399,7 @@ class ClassificationDataset(BaseDataset):
 
             if not use_streaming:
                 if filters:
+
                     def _pred(example):
                         return all(example.get(k) == v for k, v in filters.items())
 
@@ -428,19 +426,19 @@ class ClassificationDataset(BaseDataset):
 
     @classmethod
     def from_csv(
-            cls,
-            source: Union[str, Path],
-            store: Store,
-            *,
-            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-            text_field: str = "text",
-            category_field: Union[str, List[str]] = "category",
-            delimiter: str = ",",
-            **kwargs,
+        cls,
+        source: Union[str, Path],
+        store: Store,
+        *,
+        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+        text_field: str = "text",
+        category_field: Union[str, List[str]] = "category",
+        delimiter: str = ",",
+        **kwargs,
     ) -> "ClassificationDataset":
         """
         Load classification dataset from CSV file.
-        
+
         Args:
             source: Path to CSV file
             store: Store instance
@@ -449,10 +447,10 @@ class ClassificationDataset(BaseDataset):
             category_field: Name(s) of the column(s) containing category/label
             delimiter: CSV delimiter (default: comma)
             **kwargs: Additional arguments for load_dataset
-            
+
         Returns:
             ClassificationDataset instance
-            
+
         Raises:
             FileNotFoundError: If CSV file doesn't exist
             RuntimeError: If dataset loading fails
@@ -475,18 +473,18 @@ class ClassificationDataset(BaseDataset):
 
     @classmethod
     def from_json(
-            cls,
-            source: Union[str, Path],
-            store: Store,
-            *,
-            loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-            text_field: str = "text",
-            category_field: Union[str, List[str]] = "category",
-            **kwargs,
+        cls,
+        source: Union[str, Path],
+        store: Store,
+        *,
+        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+        text_field: str = "text",
+        category_field: Union[str, List[str]] = "category",
+        **kwargs,
     ) -> "ClassificationDataset":
         """
         Load classification dataset from JSON/JSONL file.
-        
+
         Args:
             source: Path to JSON or JSONL file
             store: Store instance
@@ -494,10 +492,10 @@ class ClassificationDataset(BaseDataset):
             text_field: Name of the field containing text
             category_field: Name(s) of the field(s) containing category/label
             **kwargs: Additional arguments for load_dataset
-            
+
         Returns:
             ClassificationDataset instance
-            
+
         Raises:
             FileNotFoundError: If JSON file doesn't exist
             RuntimeError: If dataset loading fails

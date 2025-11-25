@@ -1,5 +1,5 @@
-from typing import TYPE_CHECKING, Dict, Any
 import datetime
+from typing import TYPE_CHECKING, Any, Dict
 
 import torch
 from torch import nn
@@ -19,47 +19,36 @@ logger = get_logger(__name__)
 class LanguageModelActivations:
     """Handles activation saving and processing for LanguageModel."""
 
-    def __init__(self, context: "LanguageModelContext"):
+    def __init__(self, context: "LanguageModelContext"):  # noqa: F821
         """
         Initialize LanguageModelActivations.
-        
+
         Args:
             context: LanguageModelContext instance
         """
         self.context = context
 
-    def _setup_detector(
-            self,
-            layer_signature: str | int,
-            hook_id_suffix: str
-    ) -> tuple[LayerActivationDetector, str]:
+    def _setup_detector(self, layer_signature: str | int, hook_id_suffix: str) -> tuple[LayerActivationDetector, str]:
         """
         Create and register an activation detector.
-        
+
         Args:
             layer_signature: Layer to attach detector to
             hook_id_suffix: Suffix for hook ID
-            
+
         Returns:
             Tuple of (detector, hook_id)
         """
-        detector = LayerActivationDetector(
-            layer_signature=layer_signature,
-            hook_id=f"detector_{hook_id_suffix}"
-        )
+        detector = LayerActivationDetector(layer_signature=layer_signature, hook_id=f"detector_{hook_id_suffix}")
 
-        hook_id = self.context.language_model.layers.register_hook(
-            layer_signature,
-            detector,
-            HookType.FORWARD
-        )
+        hook_id = self.context.language_model.layers.register_hook(layer_signature, detector, HookType.FORWARD)
 
         return detector, hook_id
 
     def _cleanup_detector(self, hook_id: str) -> None:
         """
         Unregister a detector hook.
-        
+
         Args:
             hook_id: Hook ID to unregister
         """
@@ -69,15 +58,14 @@ class LanguageModelActivations:
             pass
 
     def _normalize_layer_signatures(
-            self,
-            layer_signatures: str | int | list[str | int] | None
+        self, layer_signatures: str | int | list[str | int] | None
     ) -> tuple[str | None, list[str]]:
         """
         Normalize layer signatures to string format.
-        
+
         Args:
             layer_signatures: Single layer signature or list of layer signatures
-            
+
         Returns:
             Tuple of (single layer string or None, list of layer strings)
         """
@@ -95,10 +83,10 @@ class LanguageModelActivations:
     def _extract_dataset_info(self, dataset: BaseDataset | None) -> Dict[str, Any]:
         """
         Extract dataset information for metadata.
-        
+
         Args:
             dataset: Optional dataset instance
-            
+
         Returns:
             Dictionary with dataset information
         """
@@ -119,21 +107,21 @@ class LanguageModelActivations:
             }
 
     def _prepare_run_metadata(
-            self,
-            layer_signatures: str | int | list[str | int] | None,
-            dataset: BaseDataset | None = None,
-            run_name: str | None = None,
-            options: Dict[str, Any] | None = None,
+        self,
+        layer_signatures: str | int | list[str | int] | None,
+        dataset: BaseDataset | None = None,
+        run_name: str | None = None,
+        options: Dict[str, Any] | None = None,
     ) -> tuple[str, Dict[str, Any]]:
         """
         Prepare run metadata dictionary.
-        
+
         Args:
             layer_signatures: Single layer signature or list of layer signatures
             dataset: Optional dataset (for dataset info)
             run_name: Optional run name (generates if None)
             options: Optional dict of options to include
-            
+
         Returns:
             Tuple of (run_name, metadata_dict)
         """
@@ -169,14 +157,14 @@ class LanguageModelActivations:
 
     @staticmethod
     def _save_run_metadata(
-            store: Store,
-            run_name: str,
-            meta: Dict[str, Any],
-            verbose: bool = False,
+        store: Store,
+        run_name: str,
+        meta: Dict[str, Any],
+        verbose: bool = False,
     ) -> None:
         """
         Save run metadata to store.
-        
+
         Args:
             store: Store to save to
             run_name: Run name
@@ -191,21 +179,22 @@ class LanguageModelActivations:
                 logger.warning(f"Failed to save run metadata for {run_name}: {e}")
 
     def _process_batch(
-            self,
-            texts: list[str],
-            run_name: str,
-            batch_index: int,
-            max_length: int | None,
-            autocast: bool,
-            autocast_dtype: torch.dtype | None,
-            dtype: torch.dtype | None,
-            verbose: bool
+        self,
+        batch: list,
+        dataset: BaseDataset,
+        run_name: str,
+        batch_index: int,
+        max_length: int | None,
+        autocast: bool,
+        autocast_dtype: torch.dtype | None,
+        dtype: torch.dtype | None,
+        verbose: bool,
     ) -> None:
-        """
-        Process a single batch of texts.
-        
+        """Process a single batch from the dataset.
+
         Args:
-            texts: List of text strings
+            batch: Batch from dataset.iter_batches()
+            dataset: Dataset instance to extract texts from
             run_name: Run name
             batch_index: Batch index
             max_length: Optional max length for tokenization
@@ -214,8 +203,11 @@ class LanguageModelActivations:
             dtype: Optional dtype to convert activations to
             verbose: Whether to log progress
         """
-        if not texts:
+        if not batch:
             return
+
+        # Extract texts from batch using dataset's method
+        texts = dataset.extract_texts_from_batch(batch)
 
         tok_kwargs = {}
         if max_length is not None:
@@ -239,7 +231,7 @@ class LanguageModelActivations:
     def _convert_activations_to_dtype(self, dtype: torch.dtype) -> None:
         """
         Convert captured activations to specified dtype.
-        
+
         Args:
             dtype: Target dtype
         """
@@ -249,15 +241,11 @@ class LanguageModelActivations:
                 detector.tensor_metadata["activations"] = detector.tensor_metadata["activations"].to(dtype)
 
     def _manage_cuda_cache(
-            self,
-            batch_counter: int,
-            free_cuda_cache_every: int | None,
-            device_type: str,
-            verbose: bool
+        self, batch_counter: int, free_cuda_cache_every: int | None, device_type: str, verbose: bool
     ) -> None:
         """
         Manage CUDA cache clearing.
-        
+
         Args:
             batch_counter: Current batch counter
             free_cuda_cache_every: Clear cache every N batches (0 or None to disable)
@@ -271,22 +259,22 @@ class LanguageModelActivations:
                     logger.info("Emptied CUDA cache")
 
     def save_activations_dataset(
-            self,
-            dataset: BaseDataset,
-            layer_signature: str | int,
-            run_name: str | None = None,
-            batch_size: int = 32,
-            *,
-            dtype: torch.dtype | None = None,
-            max_length: int | None = None,
-            autocast: bool = True,
-            autocast_dtype: torch.dtype | None = None,
-            free_cuda_cache_every: int | None = 0,
-            verbose: bool = False,
+        self,
+        dataset: BaseDataset,
+        layer_signature: str | int,
+        run_name: str | None = None,
+        batch_size: int = 32,
+        *,
+        dtype: torch.dtype | None = None,
+        max_length: int | None = None,
+        autocast: bool = True,
+        autocast_dtype: torch.dtype | None = None,
+        free_cuda_cache_every: int | None = 0,
+        verbose: bool = False,
     ) -> str:
         """
         Save activations from a dataset.
-        
+
         Args:
             dataset: Dataset to process
             layer_signature: Layer signature to capture activations from
@@ -298,10 +286,10 @@ class LanguageModelActivations:
             autocast_dtype: Optional dtype for autocast
             free_cuda_cache_every: Clear CUDA cache every N batches (0 or None to disable)
             verbose: Whether to log progress
-            
+
         Returns:
             Run name used for saving
-            
+
         Raises:
             ValueError: If model or store is not initialized
         """
@@ -314,6 +302,7 @@ class LanguageModelActivations:
             raise ValueError("Store must be provided or set on the language model")
 
         from amber.language_model.utils import get_device_from_model
+
         device = get_device_from_model(model)
         device_type = str(device.type)
 
@@ -340,16 +329,9 @@ class LanguageModelActivations:
 
         try:
             with torch.inference_mode():
-                for batch_index, texts in enumerate(dataset.iter_batches(batch_size)):
+                for batch_index, batch in enumerate(dataset.iter_batches(batch_size)):
                     self._process_batch(
-                        texts,
-                        run_name,
-                        batch_index,
-                        max_length,
-                        autocast,
-                        autocast_dtype,
-                        dtype,
-                        verbose
+                        batch, dataset, run_name, batch_index, max_length, autocast, autocast_dtype, dtype, verbose
                     )
                     batch_counter += 1
                     self._manage_cuda_cache(batch_counter, free_cuda_cache_every, device_type, verbose)
