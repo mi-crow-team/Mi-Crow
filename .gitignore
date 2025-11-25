@@ -76,3 +76,15 @@ htmlcov/
 .env.development.local
 .env.test.local
 .env.production.local
+
+
+.junie
+activations_store
+cache
+wandb
+outputs
+/store/
+/examples/store/
+/playground/store/
+/tests/unit/store
+/tests/store

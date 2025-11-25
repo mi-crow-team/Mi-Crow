@@ -51,14 +51,14 @@ except Exception:
 tok = AutoTokenizer.from_pretrained(MODEL_ID, use_fast=True)
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_ID,
-    torch_dtype=DTYPE,
+    dtype=DTYPE,
     low_cpu_mem_usage=True,
     attn_implementation="sdpa",
 ).to(device).eval()
 for p in model.parameters(): p.requires_grad_(False)
 
 def get_num_layers(m):
-    try: return len(m.model.layers)
+    try: return len(m.lm.layers)
     except Exception: return getattr(m.config, "num_hidden_layers", 24)
 
 N_LAYERS = get_num_layers(model)

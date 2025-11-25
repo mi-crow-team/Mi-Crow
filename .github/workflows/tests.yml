@@ -2,9 +2,9 @@ name: tests
 
 on:
   push:
-    branches: [main, stage]
+    branches: [ main, stage ]
   pull_request:
-    branches: [main, stage]
+    branches: [ main, stage ]
 
 jobs:
   test:
@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12"]
+        python-version: [ "3.10", "3.11", "3.12" ]
 
     steps:
       - name: Checkout
@@ -32,8 +32,21 @@ jobs:
       - name: Install project with dev extras
         run: uv pip install -e ".[dev]" --system
 
-      - name: Run tests with coverage
-        run: pytest
+      - name: Verify package installation
+        run: |
+          python -c "import amber; print('✓ amber package found')"
+          python -c "import amber.store; print('✓ amber.store package found')"
+          python -c "from amber.store.store import Store; print('✓ Store import successful')"
+
+      - name: Run tests with coverage threshold
+        run: |
+          pytest \
+            --maxfail=1 -q \
+            --cov=. \
+            --cov-report=term \
+            --cov-report=xml:coverage.xml \
+            --cov-report=html \
+            --cov-fail-under=85
 
       - name: Upload coverage.xml
         if: always()
