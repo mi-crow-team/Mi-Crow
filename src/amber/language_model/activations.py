@@ -11,7 +11,7 @@ from amber.store.store import Store
 from amber.utils import get_logger
 
 if TYPE_CHECKING:
-    pass
+    from amber.language_model.context import LanguageModelContext
 
 logger = get_logger(__name__)
 
@@ -339,5 +339,5 @@ class LanguageModelActivations:
             self._cleanup_detector(hook_id)
             if verbose:
                 logger.info(f"Completed save_activations_dataset: run={run_name}, batches_saved={batch_counter}")
-
+        
         return run_name

@@ -170,3 +170,183 @@ class TestMockController:
         
         assert controller.modified_count == 2
 
+
+class TestControllerDualInheritance:
+    """Tests for Controller with dual inheritance (Controller and Detector)."""
+
+    def test_hook_fn_calls_process_activations_when_dual_inheritance(self):
+        """Test that _hook_fn calls process_activations when hook inherits from both."""
+        from amber.hooks.detector import Detector
+        from amber.hooks.hook import HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
+        
+        class DualHook(Controller, Detector):
+            def __init__(self):
+                Controller.__init__(self)
+                Detector.__init__(self)
+                self.process_called = False
+                self.modify_called = False
+            
+            def modify_activations(self, module, inputs, output):
+                self.modify_called = True
+                return output * 2.0 if output is not None else None
+            
+            def process_activations(self, module, input, output):
+                self.process_called = True
+        
+        hook = DualHook()
+        module = nn.Linear(10, 5)
+        input_tensor = torch.randn(2, 10)
+        output_tensor = torch.randn(2, 5)
+        
+        hook._hook_fn(module, (input_tensor,), output_tensor)
+        
+        # Both methods should be called
+        assert hook.process_called is True, "process_activations should be called"
+        assert hook.modify_called is True, "modify_activations should be called"
+
+    def test_hook_fn_calls_process_activations_first(self):
+        """Test that process_activations is called before modify_activations."""
+        from amber.hooks.detector import Detector
+        
+        call_order = []
+        
+        class DualHook(Controller, Detector):
+            def __init__(self):
+                Controller.__init__(self)
+                Detector.__init__(self)
+            
+            def modify_activations(self, module, inputs, output):
+                call_order.append("modify")
+                return output * 2.0 if output is not None else None
+            
+            def process_activations(self, module, input, output):
+                call_order.append("process")
+        
+        hook = DualHook()
+        module = nn.Linear(10, 5)
+        input_tensor = torch.randn(2, 10)
+        output_tensor = torch.randn(2, 5)
+        
+        hook._hook_fn(module, (input_tensor,), output_tensor)
+        
+        # Process should be called first
+        assert call_order == ["process", "modify"]
+
+    def test_hook_fn_handles_process_activations_error_gracefully(self):
+        """Test that process_activations errors are logged as warnings but don't stop execution."""
+        from amber.hooks.detector import Detector
+        import warnings
+        
+        class DualHook(Controller, Detector):
+            def __init__(self):
+                Controller.__init__(self)
+                Detector.__init__(self)
+                self.modify_called = False
+            
+            def modify_activations(self, module, inputs, output):
+                self.modify_called = True
+                return output * 2.0 if output is not None else None
+            
+            def process_activations(self, module, input, output):
+                raise ValueError("Process error")
+        
+        hook = DualHook()
+        module = nn.Linear(10, 5)
+        input_tensor = torch.randn(2, 10)
+        output_tensor = torch.randn(2, 5)
+        
+        # Should not raise, but log warning
+        # Capture warnings to verify they're logged
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            hook._hook_fn(module, (input_tensor,), output_tensor)
+            
+            # Warning should be logged (but we don't assert on it since it's logged, not raised)
+            # The key is that execution continues
+        
+        # Modify should still be called despite process_activations error
+        assert hook.modify_called is True
+
+    def test_hook_fn_raises_on_modify_activations_error(self):
+        """Test that modify_activations errors raise RuntimeError."""
+        from amber.hooks.detector import Detector
+        
+        class DualHook(Controller, Detector):
+            def __init__(self):
+                Controller.__init__(self)
+                Detector.__init__(self)
+            
+            def modify_activations(self, module, inputs, output):
+                raise ValueError("Modify error")
+            
+            def process_activations(self, module, input, output):
+                pass
+        
+        hook = DualHook()
+        module = nn.Linear(10, 5)
+        input_tensor = torch.randn(2, 10)
+        output_tensor = torch.randn(2, 5)
+        
+        with pytest.raises(RuntimeError, match="Error in controller"):
+            hook._hook_fn(module, (input_tensor,), output_tensor)
+
+    def test_hook_fn_dual_inheritance_pre_forward(self):
+        """Test dual inheritance hook with PRE_FORWARD hook type."""
+        from amber.hooks.detector import Detector
+        
+        class DualHook(Controller, Detector):
+            def __init__(self):
+                Controller.__init__(self, hook_type=HookType.PRE_FORWARD)
+                Detector.__init__(self, hook_type=HookType.PRE_FORWARD)
+                self.process_called = False
+                self.modify_called = False
+            
+            def modify_activations(self, module, inputs, output):
+                self.modify_called = True
+                return inputs * 2.0 if inputs is not None else None
+            
+            def process_activations(self, module, input, output):
+                self.process_called = True
+        
+        hook = DualHook()
+        module = nn.Linear(10, 5)
+        input_tensor = torch.randn(2, 10)
+        
+        result = hook._hook_fn(module, (input_tensor,), None)
+        
+        assert hook.process_called is True
+        assert hook.modify_called is True
+        assert result is not None
+        assert isinstance(result, tuple)
+
+    def test_hook_fn_dual_inheritance_when_disabled(self):
+        """Test that dual inheritance hook doesn't call methods when disabled."""
+        from amber.hooks.detector import Detector
+        
+        class DualHook(Controller, Detector):
+            def __init__(self):
+                Controller.__init__(self)
+                Detector.__init__(self)
+                self.process_called = False
+                self.modify_called = False
+            
+            def modify_activations(self, module, inputs, output):
+                self.modify_called = True
+                return output
+            
+            def process_activations(self, module, input, output):
+                self.process_called = True
+        
+        hook = DualHook()
+        hook.disable()
+        module = nn.Linear(10, 5)
+        input_tensor = torch.randn(2, 10)
+        output_tensor = torch.randn(2, 5)
+        
+        result = hook._hook_fn(module, (input_tensor,), output_tensor)
+        
+        # Neither method should be called when disabled
+        assert hook.process_called is False
+        assert hook.modify_called is False
+        assert result is None
+

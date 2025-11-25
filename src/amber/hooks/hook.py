@@ -140,6 +140,19 @@ class Hook(abc.ABC):
         """Disable this hook."""
         self._enabled = False
 
+    def _is_both_controller_and_detector(self) -> bool:
+        """
+        Check if this hook instance inherits from both Controller and Detector.
+        
+        Uses MRO (Method Resolution Order) to check for both class names
+        without requiring imports, avoiding circular dependencies.
+        
+        Returns:
+            True if the instance inherits from both Controller and Detector, False otherwise
+        """
+        mro_class_names = [cls.__name__ for cls in type(self).__mro__]
+        return 'Controller' in mro_class_names and 'Detector' in mro_class_names
+
     def get_torch_hook(self) -> Callable:
         """
         Return a PyTorch-compatible hook function.
