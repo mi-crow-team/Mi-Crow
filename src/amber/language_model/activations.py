@@ -6,7 +6,7 @@ from torch import nn
 
 from amber.datasets import BaseDataset
 from amber.hooks import HookType
-from amber.hooks.implementations.activation_saver import LayerActivationDetector
+from amber.hooks.implementations.layer_activation_detector import LayerActivationDetector
 from amber.store.store import Store
 from amber.utils import get_logger
 
