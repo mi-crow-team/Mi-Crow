@@ -95,17 +95,6 @@ class AutoencoderConcepts:
             llm_provider=llm_provider
         )
 
-    def manipulate_concept(
-            self,
-            neuron_idx: int,
-            multiplier: float | None = None,
-            bias: float | None = None
-    ):
-        if self.dictionary is None:
-            logger.warning("No dictionary was created yet")
-        self.multiplication.data[neuron_idx] = multiplier
-        self.bias.data[neuron_idx] = bias
-
     def _ensure_heaps(self, n_neurons: int) -> None:
         """Ensure heaps are initialized for the given number of neurons."""
         if self._top_texts_heaps is None:
@@ -122,7 +111,7 @@ class AutoencoderConcepts:
 
             # Use the raw tokenizer (not the wrapper) to encode and decode
             tokenizer = self.context.lm.tokenizer
-            
+
             # Tokenize the text to get token IDs
             tokens = tokenizer.encode(text, add_special_tokens=False)
             if 0 <= token_idx < len(tokens):
@@ -183,14 +172,14 @@ class AutoencoderConcepts:
         # This ensures we only track the best activation for each text, not every token position
         for j in range(n_neurons):
             heap = self._top_texts_heaps[j]
-            
+
             # For each text in the batch, find the max activation and its token position
             for batch_idx in range(original_B):
                 if batch_idx >= len(texts):
                     continue
-                
+
                 text = texts[batch_idx]
-                
+
                 # Get activations for this text (all token positions)
                 if original_shape is not None and len(original_shape) == 3:
                     # 3D case: [B, T, D] -> get slice for this batch
@@ -200,9 +189,9 @@ class AutoencoderConcepts:
                     text_token_indices = token_indices[start_idx:end_idx]  # [T]
                 else:
                     # 2D case: [B, D] -> single token
-                    text_activations = latents[batch_idx:batch_idx+1, j]  # [1]
-                    text_token_indices = token_indices[batch_idx:batch_idx+1]  # [1]
-                
+                    text_activations = latents[batch_idx:batch_idx + 1, j]  # [1]
+                    text_token_indices = token_indices[batch_idx:batch_idx + 1]  # [1]
+
                 # Find the maximum activation (or minimum if tracking negative)
                 if self._text_tracking_negative:
                     # For negative tracking, find the most negative (minimum) value
@@ -214,13 +203,13 @@ class AutoencoderConcepts:
                     max_idx = torch.argmax(text_activations)
                     max_score = float(text_activations[max_idx].item())
                     adj = max_score
-                
+
                 # Skip if score is zero (no activation)
                 if max_score == 0.0:
                     continue
-                
+
                 token_idx = int(text_token_indices[max_idx].item())
-                
+
                 # Check if we already have this text in the heap
                 # If so, only update if this activation is better
                 existing_entry = None
@@ -228,7 +217,7 @@ class AutoencoderConcepts:
                     if heap_text == text:
                         existing_entry = (heap_idx, heap_adj, heap_score, heap_token_idx)
                         break
-                
+
                 if existing_entry is not None:
                     # Update existing entry if this activation is better
                     heap_idx, heap_adj, heap_score, heap_token_idx = existing_entry

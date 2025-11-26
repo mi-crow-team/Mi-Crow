@@ -110,7 +110,7 @@ def test_update_top_texts_negative_tracking():
     concepts = AutoencoderConcepts(context)
     concepts._ensure_heaps(1)
     concepts._text_tracking_negative = True
-    latents = torch.tensor([[ -0.5], [-0.1]])
+    latents = torch.tensor([[-0.5], [-0.1]])
     texts = ["neg1", "neg2"]
 
     concepts.update_top_texts_from_latents(latents, texts)
@@ -164,18 +164,6 @@ def test_ensure_dictionary_creates_instance():
     assert dictionary.n_size == context.n_latents
 
 
-def test_manipulate_concept_warns(caplog):
-    context = build_context(tmp_lm=None, tracking=False)
-    concepts = AutoencoderConcepts(context)
-
-    with caplog.at_level("WARNING"):
-        concepts.manipulate_concept(0, multiplier=2.0, bias=1.5)
-
-    assert "No dictionary" in caplog.text
-    assert concepts.multiplication.data[0] == 2.0
-    assert concepts.bias.data[0] == 1.5
-
-
 def test_load_concepts_from_files(tmp_path):
     csv_path = tmp_path / "concepts.csv"
     csv_path.write_text("neuron_idx,concept_name,score\n0,a,0.5\n", encoding="utf-8")
@@ -212,4 +200,3 @@ def test_generate_concepts_with_stub(monkeypatch):
 
     concepts.generate_concepts_with_llm(llm_provider="mock")
     assert concepts.dictionary is stub_dict
-
