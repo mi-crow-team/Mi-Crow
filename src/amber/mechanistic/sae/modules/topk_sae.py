@@ -6,8 +6,6 @@ from overcomplete import (
     TopKSAE as OvercompleteTopkSAE,
     SAE as OvercompleteSAE
 )
-from tqdm.auto import tqdm  # type: ignore
-
 from amber.hooks.hook import HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
 from amber.mechanistic.sae.sae import Sae
 from amber.mechanistic.sae.sae_trainer import SaeTrainingConfig

@@ -91,6 +91,8 @@ class Controller(Hook):
 
         # Note: forward hooks can't modify output in PyTorch, but we call modify_activations
         # for consistency. The actual modification happens via the hook mechanism.
+        # We still call it so controllers can capture/process activations.
+        self.modify_activations(module, input_tensor, output_tensor)
 
     def _hook_fn(
             self,

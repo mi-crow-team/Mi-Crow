@@ -5,7 +5,8 @@ import torch
 from unittest.mock import Mock, MagicMock
 
 from amber.mechanistic.sae.sae import Sae
-from amber.hooks.hook import HookType
+from amber.hooks.hook import HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
+from amber.hooks.utils import extract_tensor_from_input, extract_tensor_from_output
 
 
 class ConcreteSae(Sae):
@@ -17,6 +18,71 @@ class ConcreteSae(Sae):
 
     def modify_activations(self, module, inputs, output):
         return output * 0.5
+
+    def process_activations(
+            self,
+            module: torch.nn.Module,
+            input: HOOK_FUNCTION_INPUT,
+            output: HOOK_FUNCTION_OUTPUT
+    ) -> None:
+        """Process activations for testing."""
+        # Extract tensor based on hook type
+        if self.hook_type == HookType.FORWARD:
+            tensor = extract_tensor_from_output(output)
+        else:
+            tensor = extract_tensor_from_input(input)
+        
+        if tensor is None or not isinstance(tensor, torch.Tensor):
+            return
+        
+        # Flatten to 2D if needed: (batch, seq, hidden) -> (batch * seq, hidden)
+        original_shape = tensor.shape
+        if len(original_shape) > 2:
+            batch_size, seq_len = original_shape[:2]
+            tensor_flat = tensor.reshape(-1, original_shape[-1])
+        else:
+            batch_size = original_shape[0]
+            seq_len = 1
+            tensor_flat = tensor
+        
+        # Encode to get latents
+        latents = self.encode(tensor_flat)  # [batch * seq, n_latents]
+        latents_cpu = latents.detach().cpu()
+        
+        # Reshape to original dimensions if needed
+        if len(original_shape) > 2:
+            latents_reshaped = latents_cpu.reshape(batch_size, seq_len, -1)
+        else:
+            latents_reshaped = latents_cpu
+        
+        # Save full neurons tensor
+        self.tensor_metadata['neurons'] = latents_reshaped
+        
+        # Process each item in the batch individually for metadata
+        batch_items = []
+        n_items = latents_cpu.shape[0]
+        for item_idx in range(n_items):
+            item_latents = latents_cpu[item_idx]  # [n_latents]
+            
+            # Find nonzero indices for this item
+            nonzero_mask = item_latents != 0
+            nonzero_indices = torch.nonzero(nonzero_mask, as_tuple=False).flatten().tolist()
+            
+            # Create map of nonzero indices to activations (as Python floats)
+            activations_map = {
+                int(idx): float(item_latents[idx].item())
+                for idx in nonzero_indices
+            }
+            
+            # Create item metadata
+            item_metadata = {
+                "nonzero_indices": nonzero_indices,
+                "activations": activations_map
+            }
+            batch_items.append(item_metadata)
+        
+        # Save batch items metadata
+        self.metadata['batch_items'] = batch_items
 
     def encode(self, x):
         return x
