@@ -36,7 +36,7 @@ class LayerActivationDetector(Detector):
         """
         if layer_signature is None:
             raise ValueError("layer_signature cannot be None for LayerActivationDetector")
-        
+
         super().__init__(
             hook_type=HookType.FORWARD,
             hook_id=hook_id,
@@ -68,11 +68,13 @@ class LayerActivationDetector(Detector):
         """
         try:
             tensor = extract_tensor_from_output(output)
-            
+
             if tensor is not None:
                 tensor_cpu = tensor.detach().to("cpu")
                 # Store current batch's tensor (overwrites previous)
                 self.tensor_metadata['activations'] = tensor_cpu
+                # Store activations shape to metadata
+                self.metadata['activations_shape'] = tuple(tensor_cpu.shape)
         except Exception as e:
             raise RuntimeError(
                 f"Error extracting activations in LayerActivationDetector {self.id}: {e}"
@@ -90,3 +92,5 @@ class LayerActivationDetector(Detector):
     def clear_captured(self) -> None:
         """Clear captured activations for current batch."""
         self.tensor_metadata.pop('activations', None)
+        self.metadata.pop('activations_shape', None)
+

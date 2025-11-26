@@ -55,10 +55,10 @@ class Controller(Hook):
             Modified input tuple or None to keep original
         """
         input_tensor = extract_tensor_from_input(input)
-        
+
         if input_tensor is None:
             return None
-        
+
         modified_tensor = self.modify_activations(module, input_tensor, input_tensor)
 
         if modified_tensor is not None and isinstance(modified_tensor, torch.Tensor):
@@ -75,29 +75,30 @@ class Controller(Hook):
             output: HOOK_FUNCTION_OUTPUT
     ) -> None:
         """Handle forward hook execution.
-        
+
         Args:
             module: The PyTorch module being hooked
             input: Tuple of input tensors to the module
             output: Output tensor(s) from the module
         """
         output_tensor = extract_tensor_from_output(output)
-        
+
         if output_tensor is None:
             return
-        
+
         # Extract input tensor if available for modify_activations
         input_tensor = extract_tensor_from_input(input)
-        
+
         # Note: forward hooks can't modify output in PyTorch, but we call modify_activations
         # for consistency. The actual modification happens via the hook mechanism.
+        # We still call it so controllers can capture/process activations.
         self.modify_activations(module, input_tensor, output_tensor)
 
     def _hook_fn(
-        self, 
-        module: torch.nn.Module, 
-        input: HOOK_FUNCTION_INPUT, 
-        output: HOOK_FUNCTION_OUTPUT
+            self,
+            module: torch.nn.Module,
+            input: HOOK_FUNCTION_INPUT,
+            output: HOOK_FUNCTION_OUTPUT
     ) -> None | HOOK_FUNCTION_INPUT:
         """
         Internal hook function that modifies activations.
@@ -130,8 +131,7 @@ class Controller(Hook):
                     f"Error in {self.__class__.__name__} detector process_activations: {e}",
                     exc_info=True
                 )
-        
-        # Then, modify activations as a Controller
+
         try:
             if self.hook_type == HookType.PRE_FORWARD:
                 return self._handle_pre_forward(module, input)
@@ -139,7 +139,6 @@ class Controller(Hook):
                 self._handle_forward(module, input, output)
                 return None
         except Exception as e:
-            # Re-raise to be caught by wrapper in get_torch_hook
             raise RuntimeError(
                 f"Error in controller {self.id} modify_activations: {e}"
             ) from e

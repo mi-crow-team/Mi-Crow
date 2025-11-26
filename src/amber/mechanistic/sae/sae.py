@@ -60,15 +60,6 @@ class Sae(Controller, Detector, abc.ABC):
         raise NotImplementedError("Initialize SAE engine not implemented.")
 
     @abc.abstractmethod
-    def modify_activations(
-            self,
-            module: nn.Module,
-            inputs: torch.Tensor | None,
-            output: torch.Tensor | None
-    ) -> torch.Tensor | None:
-        raise NotImplementedError("Modify activations method not implemented.")
-
-    @abc.abstractmethod
     def encode(self, x: torch.Tensor) -> torch.Tensor:
         raise NotImplementedError("Encode method not implemented.")
 
@@ -92,6 +83,7 @@ class Sae(Controller, Detector, abc.ABC):
     def attach_dictionary(self, concept_dictionary: ConceptDictionary):
         self.concepts.dictionary = concept_dictionary
 
+    @abc.abstractmethod
     def process_activations(
             self,
             module: torch.nn.Module,
@@ -110,64 +102,16 @@ class Sae(Controller, Detector, abc.ABC):
             input: Tuple of input tensors to the module
             output: Output tensor(s) from the module
         """
-        # Extract tensor from input/output based on hook type
-        if self.hook_type == HookType.FORWARD:
-            tensor = output
-        else:
-            tensor = input[0] if len(input) > 0 else None
+        raise NotImplementedError("process_activations method not implemented.")
 
-        if tensor is None or not isinstance(tensor, torch.Tensor):
-            return
-
-        original_shape = tensor.shape
-
-        # Flatten to 2D if needed: (batch, seq_len, hidden) -> (batch * seq_len, hidden)
-        needs_reshape = len(original_shape) > 2
-        if needs_reshape:
-            tensor_flat = tensor.reshape(-1, original_shape[-1])
-        else:
-            tensor_flat = tensor
-
-        # Encode to get latents (neuron activations)
-        latents = self.encode(tensor_flat)
-        latents_cpu = latents.detach().cpu()
-
-        # Save full neuron activations tensor to tensor_metadata for backward compatibility
-        if needs_reshape:
-            batch_size, seq_len = original_shape[:2]
-            latents_reshaped = latents_cpu.reshape(batch_size, seq_len, -1)
-            self.tensor_metadata['neurons'] = latents_reshaped
-        else:
-            self.tensor_metadata['neurons'] = latents_cpu
-
-        # Process each item in the batch individually
-        # latents_cpu shape: [batch*seq, n_latents] or [batch, n_latents]
-        batch_items = []
-        n_items = latents_cpu.shape[0]
-
-        for item_idx in range(n_items):
-            item_latents = latents_cpu[item_idx]  # [n_latents]
-            
-            # Find nonzero indices for this item
-            nonzero_mask = item_latents != 0
-            nonzero_indices = torch.nonzero(nonzero_mask, as_tuple=False).flatten().tolist()
-            
-            # Create map of nonzero indices to activations
-            activations_map = {
-                int(idx): float(item_latents[idx].item())
-                for idx in nonzero_indices
-            }
-            
-            # Create item metadata
-            item_metadata = {
-                "nonzero_indices": nonzero_indices,
-                "activations": activations_map
-            }
-            
-            batch_items.append(item_metadata)
-
-        # Save batch items metadata
-        self.metadata['batch_items'] = batch_items
+    @abc.abstractmethod
+    def modify_activations(
+            self,
+            module: nn.Module,
+            inputs: torch.Tensor | None,
+            output: torch.Tensor | None
+    ) -> torch.Tensor | None:
+        raise NotImplementedError("modify_activations method not implemented.")
 
     @staticmethod
     def _apply_activation_fn(

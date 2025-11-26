@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 import pytest
 import torch
 
-from amber.hooks.implementations.activation_saver import LayerActivationDetector
+from amber.hooks.implementations.layer_activation_detector import LayerActivationDetector
 from amber.language_model.activations import LanguageModelActivations
 from tests.unit.fixtures import (
     create_sample_dataset,
