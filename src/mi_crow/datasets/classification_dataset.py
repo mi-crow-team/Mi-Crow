@@ -117,8 +117,7 @@ class ClassificationDataset(BaseDataset):
 
         item = {"text": text}
         for cat_field in self._category_fields:
-            category = row.get(cat_field)
-            if category is None:
+            if cat_field not in row:
                 raise ValueError(
                     f"Category field '{cat_field}' not found in dataset row. Available fields: {list(row.keys())}"
                 )
