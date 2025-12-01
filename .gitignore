@@ -88,3 +88,8 @@ outputs
 /playground/store/
 /tests/unit/store
 /tests/store
+
+# experiments
+.llm_context/
+results/
+store/
