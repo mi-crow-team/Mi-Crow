@@ -105,8 +105,11 @@ class ClassificationDataset(BaseDataset):
         Raises:
             ValueError: If required fields are not found in row
         """
-        text = row.get(self._text_field) or row.get("text")
-        if text is None:
+        if self._text_field in row:
+            text = row[self._text_field]
+        elif "text" in row:
+            text = row["text"]
+        else:
             raise ValueError(
                 f"Text field '{self._text_field}' or 'text' not found in dataset row. "
                 f"Available fields: {list(row.keys())}"
@@ -119,6 +122,7 @@ class ClassificationDataset(BaseDataset):
                 raise ValueError(
                     f"Category field '{cat_field}' not found in dataset row. Available fields: {list(row.keys())}"
                 )
+            category = row.get(cat_field)  # Potentially None
             item[cat_field] = category
 
         return item
@@ -192,8 +196,8 @@ class ClassificationDataset(BaseDataset):
         """
         Iterate over items one by one. Yields dict with 'text' and label column(s) as keys.
 
-        For single label: {"text": "...", "category": "..."}
-        For multiple labels: {"text": "...", "label1": "...", "label2": "..."}
+        For single label: {"text": "...", "category_column_1": "..."}
+        For multiple labels: {"text": "...", "category_column_1": "...", "category_column_2": "..."}
 
         Yields:
             Item dictionaries with text and category fields
@@ -208,8 +212,8 @@ class ClassificationDataset(BaseDataset):
         """
         Iterate over items in batches. Each batch is a list of dicts with 'text' and label column(s) as keys.
 
-        For single label: [{"text": "...", "category": "..."}, ...]
-        For multiple labels: [{"text": "...", "label1": "...", "label2": "..."}, ...]
+        For single label: [{"text": "...", "category_column_1": "..."}, ...]
+        For multiple labels: [{"text": "...", "category_column_1": "...", "category_column_2": "..."}, ...]
 
         Args:
             batch_size: Number of items per batch
@@ -282,7 +286,7 @@ class ClassificationDataset(BaseDataset):
                     result[field] = sorted(categories)
             return result
 
-    def extract_texts_from_batch(self, batch: List[Dict[str, Any]]) -> List[str]:
+    def extract_texts_from_batch(self, batch: List[Dict[str, Any]]) -> List[Optional[str]]:
         """Extract text strings from a batch of classification items.
 
         Args:
@@ -301,7 +305,7 @@ class ClassificationDataset(BaseDataset):
             texts.append(item["text"])
         return texts
 
-    def get_all_texts(self) -> List[str]:
+    def get_all_texts(self) -> List[Optional[str]]:
         """Get all texts from the dataset.
 
         Returns:
@@ -314,7 +318,7 @@ class ClassificationDataset(BaseDataset):
             return [item["text"] for item in self.iter_items()]
         return list(self._ds[self._text_field])
 
-    def get_categories_for_texts(self, texts: List[str]) -> Union[List[Any], List[Dict[str, Any]]]:
+    def get_categories_for_texts(self, texts: List[Optional[str]]) -> Union[List[Any], List[Dict[str, Any]]]:
         """
         Get categories for given texts (if texts match dataset texts).
 
@@ -360,7 +364,10 @@ class ClassificationDataset(BaseDataset):
         category_field: Union[str, List[str]] = "category",
         filters: Optional[Dict[str, Any]] = None,
         limit: Optional[int] = None,
+        stratify_by: Optional[str] = None,
+        stratify_seed: Optional[int] = None,
         streaming: Optional[bool] = None,
+        drop_na: bool = False,
         **kwargs,
     ) -> "ClassificationDataset":
         """
@@ -376,7 +383,10 @@ class ClassificationDataset(BaseDataset):
             category_field: Name(s) of the column(s) containing category/label
             filters: Optional filters to apply (dict of column: value)
             limit: Optional limit on number of rows
+            stratify_by: Optional column used for stratified sampling (non-streaming only)
+            stratify_seed: Optional RNG seed for stratified sampling
             streaming: Optional override for streaming
+            drop_na: Whether to drop rows with None/empty text or categories
             **kwargs: Additional arguments for load_dataset
 
         Returns:
@@ -388,6 +398,11 @@ class ClassificationDataset(BaseDataset):
         """
         use_streaming = streaming if streaming is not None else (loading_strategy == LoadingStrategy.ITERABLE_ONLY)
 
+        if (stratify_by or drop_na) and use_streaming:
+            raise NotImplementedError(
+                "Stratification and drop_na are not supported for streaming datasets. Use MEMORY or DYNAMIC_LOAD."
+            )
+
         try:
             ds = load_dataset(
                 path=repo_id,
@@ -397,18 +412,25 @@ class ClassificationDataset(BaseDataset):
                 **kwargs,
             )
 
-            if not use_streaming:
-                if filters:
+            if use_streaming:
+                if filters or limit:
+                    raise NotImplementedError(
+                        "filters and limit are not supported when streaming datasets. Choose MEMORY or DYNAMIC_LOAD."
+                    )
+            else:
+                drop_na_columns = None
+                if drop_na:
+                    cat_fields = [category_field] if isinstance(category_field, str) else category_field
+                    drop_na_columns = [text_field] + list(cat_fields)
 
-                    def _pred(example):
-                        return all(example.get(k) == v for k, v in filters.items())
-
-                    ds = ds.filter(_pred)
-
-                if limit is not None:
-                    if limit <= 0:
-                        raise ValueError(f"limit must be > 0, got: {limit}")
-                    ds = ds.select(range(min(limit, len(ds))))
+                ds = cls._postprocess_non_streaming_dataset(
+                    ds,
+                    filters=filters,
+                    limit=limit,
+                    stratify_by=stratify_by,
+                    stratify_seed=stratify_seed,
+                    drop_na_columns=drop_na_columns,
+                )
         except Exception as e:
             raise RuntimeError(
                 f"Failed to load classification dataset from HuggingFace Hub: "
@@ -434,6 +456,9 @@ class ClassificationDataset(BaseDataset):
         text_field: str = "text",
         category_field: Union[str, List[str]] = "category",
         delimiter: str = ",",
+        stratify_by: Optional[str] = None,
+        stratify_seed: Optional[int] = None,
+        drop_na: bool = False,
         **kwargs,
     ) -> "ClassificationDataset":
         """
@@ -446,6 +471,9 @@ class ClassificationDataset(BaseDataset):
             text_field: Name of the column containing text
             category_field: Name(s) of the column(s) containing category/label
             delimiter: CSV delimiter (default: comma)
+            stratify_by: Optional column used for stratified sampling
+            stratify_seed: Optional RNG seed for stratified sampling
+            drop_na: Whether to drop rows with None/empty text or categories
             **kwargs: Additional arguments for load_dataset
 
         Returns:
@@ -455,12 +483,20 @@ class ClassificationDataset(BaseDataset):
             FileNotFoundError: If CSV file doesn't exist
             RuntimeError: If dataset loading fails
         """
+        drop_na_columns = None
+        if drop_na:
+            cat_fields = [category_field] if isinstance(category_field, str) else category_field
+            drop_na_columns = [text_field] + list(cat_fields)
+
         dataset = super().from_csv(
             source,
             store=store,
             loading_strategy=loading_strategy,
             text_field=text_field,
             delimiter=delimiter,
+            stratify_by=stratify_by,
+            stratify_seed=stratify_seed,
+            drop_na_columns=drop_na_columns,
             **kwargs,
         )
         return cls(
@@ -480,6 +516,9 @@ class ClassificationDataset(BaseDataset):
         loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
         text_field: str = "text",
         category_field: Union[str, List[str]] = "category",
+        stratify_by: Optional[str] = None,
+        stratify_seed: Optional[int] = None,
+        drop_na: bool = False,
         **kwargs,
     ) -> "ClassificationDataset":
         """
@@ -491,6 +530,9 @@ class ClassificationDataset(BaseDataset):
             loading_strategy: Loading strategy
             text_field: Name of the field containing text
             category_field: Name(s) of the field(s) containing category/label
+            stratify_by: Optional column used for stratified sampling
+            stratify_seed: Optional RNG seed for stratified sampling
+            drop_na: Whether to drop rows with None/empty text or categories
             **kwargs: Additional arguments for load_dataset
 
         Returns:
@@ -500,11 +542,19 @@ class ClassificationDataset(BaseDataset):
             FileNotFoundError: If JSON file doesn't exist
             RuntimeError: If dataset loading fails
         """
+        drop_na_columns = None
+        if drop_na:
+            cat_fields = [category_field] if isinstance(category_field, str) else category_field
+            drop_na_columns = [text_field] + list(cat_fields)
+
         dataset = super().from_json(
             source,
             store=store,
             loading_strategy=loading_strategy,
             text_field=text_field,
+            stratify_by=stratify_by,
+            stratify_seed=stratify_seed,
+            drop_na_columns=drop_na_columns,
             **kwargs,
         )
         return cls(
