@@ -417,3 +417,293 @@ class TestModelInputDetectorClearCaptured:
         assert detector.get_captured_input_ids() is None
         assert 'input_ids_shape' not in detector.metadata
 
+
+class TestModelInputDetectorSpecialTokenMask:
+    """Tests for special token mask feature."""
+
+    def test_init_with_save_special_token_mask(self):
+        """Test initialization with save_special_token_mask=True."""
+        detector = ModelInputDetector(
+            layer_signature="layer_0",
+            save_special_token_mask=True
+        )
+        assert detector.save_special_token_mask is True
+        assert detector.special_token_ids is None
+
+    def test_init_with_special_token_ids(self):
+        """Test initialization with user-provided special token IDs."""
+        special_ids = [0, 1, 2, 3]
+        detector = ModelInputDetector(
+            layer_signature="layer_0",
+            save_special_token_mask=True,
+            special_token_ids=special_ids
+        )
+        assert detector.save_special_token_mask is True
+        assert detector.special_token_ids == {0, 1, 2, 3}
+
+    def test_init_with_special_token_ids_set(self):
+        """Test initialization with special token IDs as set."""
+        special_ids = {0, 1, 2}
+        detector = ModelInputDetector(
+            layer_signature="layer_0",
+            save_special_token_mask=True,
+            special_token_ids=special_ids
+        )
+        assert detector.special_token_ids == {0, 1, 2}
+
+    def test_get_special_token_ids_from_user_provided(self):
+        """Test _get_special_token_ids returns user-provided IDs."""
+        detector = ModelInputDetector(
+            layer_signature="layer_0",
+            special_token_ids=[5, 10, 15]
+        )
+        module = nn.Linear(10, 5)
+        special_ids = detector._get_special_token_ids(module)
+        assert special_ids == {5, 10, 15}
+
+    def test_get_special_token_ids_from_tokenizer(self):
+        """Test _get_special_token_ids extracts from tokenizer attribute."""
+        from tests.unit.fixtures.tokenizers import MockTokenizer
+        
+        detector = ModelInputDetector(layer_signature="layer_0")
+        tokenizer = MockTokenizer()
+        
+        class MockModule:
+            def __init__(self):
+                self.tokenizer = tokenizer
+        
+        module = MockModule()
+        special_ids = detector._get_special_token_ids(module)
+        
+        # MockTokenizer has pad_token_id=0, eos_token_id=2, bos_token_id=3, unk_token_id=1
+        assert 0 in special_ids  # pad_token_id
+        assert 1 in special_ids  # unk_token_id
+        assert 2 in special_ids  # eos_token_id
+        assert 3 in special_ids  # bos_token_id
+
+    def test_get_special_token_ids_from_config(self):
+        """Test _get_special_token_ids extracts from config attribute."""
+        detector = ModelInputDetector(layer_signature="layer_0")
+        
+        class MockConfig:
+            pad_token_id = 100
+            eos_token_id = 101
+            bos_token_id = 102
+        
+        class MockModule:
+            def __init__(self):
+                self.config = MockConfig()
+        
+        module = MockModule()
+        special_ids = detector._get_special_token_ids(module)
+        
+        assert 100 in special_ids  # pad_token_id
+        assert 101 in special_ids  # eos_token_id
+        assert 102 in special_ids  # bos_token_id
+
+    def test_get_special_token_ids_no_special_tokens(self):
+        """Test _get_special_token_ids returns empty set when no special tokens found."""
+        detector = ModelInputDetector(layer_signature="layer_0")
+        module = nn.Linear(10, 5)  # No tokenizer or config
+        special_ids = detector._get_special_token_ids(module)
+        assert special_ids == set()
+
+    def test_create_special_token_mask_with_user_ids(self):
+        """Test _create_special_token_mask with user-provided special token IDs."""
+        detector = ModelInputDetector(
+            layer_signature="layer_0",
+            special_token_ids=[0, 2]
+        )
+        module = nn.Linear(10, 5)
+        
+        # input_ids: [[0, 1, 2, 3], [2, 4, 5, 0]]
+        # Special tokens: 0, 2
+        # Expected mask: [[1, 0, 1, 0], [1, 0, 0, 1]]
+        input_ids = torch.tensor([[0, 1, 2, 3], [2, 4, 5, 0]])
+        mask = detector._create_special_token_mask(input_ids, module)
+        
+        assert mask.shape == input_ids.shape
+        assert mask.dtype == torch.bool
+        expected_mask = torch.tensor([[True, False, True, False], [True, False, False, True]])
+        assert torch.equal(mask, expected_mask)
+
+    def test_create_special_token_mask_no_special_tokens(self):
+        """Test _create_special_token_mask returns all zeros when no special tokens."""
+        detector = ModelInputDetector(layer_signature="layer_0")
+        module = nn.Linear(10, 5)
+        
+        input_ids = torch.tensor([[1, 2, 3], [4, 5, 6]])
+        mask = detector._create_special_token_mask(input_ids, module)
+        
+        assert mask.shape == input_ids.shape
+        assert mask.dtype == torch.bool
+        assert torch.all(mask == False)
+
+    def test_create_special_token_mask_shape(self):
+        """Test that mask shape matches input_ids shape."""
+        detector = ModelInputDetector(
+            layer_signature="layer_0",
+            special_token_ids=[0]
+        )
+        module = nn.Linear(10, 5)
+        
+        # Test various shapes
+        for shape in [(1, 5), (2, 10), (3, 7, 8)]:
+            input_ids = torch.randint(0, 100, shape)
+            mask = detector._create_special_token_mask(input_ids, module)
+            assert mask.shape == input_ids.shape
+
+    def test_process_activations_with_special_token_mask(self):
+        """Test process_activations saves special token mask."""
+        detector = ModelInputDetector(
+            layer_signature="layer_0",
+            save_special_token_mask=True,
+            special_token_ids=[0, 2]
+        )
+        module = nn.Linear(10, 5)
+        input_ids = torch.tensor([[0, 1, 2, 3]])
+        input_data = ({"input_ids": input_ids},)
+        
+        detector.process_activations(module, input_data, None)
+        
+        mask = detector.get_captured_special_token_mask()
+        assert mask is not None
+        assert mask.shape == input_ids.shape
+        assert mask.dtype == torch.bool
+        assert mask.device.type == "cpu"
+        expected_mask = torch.tensor([[True, False, True, False]])
+        assert torch.equal(mask, expected_mask)
+
+    def test_set_inputs_from_encodings_with_special_token_mask(self):
+        """Test set_inputs_from_encodings saves special token mask."""
+        detector = ModelInputDetector(
+            layer_signature="layer_0",
+            save_special_token_mask=True,
+            special_token_ids=[0, 2]
+        )
+        input_ids = torch.tensor([[0, 1, 2, 3], [2, 4, 5, 0]])
+        encodings = {"input_ids": input_ids}
+        
+        detector.set_inputs_from_encodings(encodings)
+        
+        mask = detector.get_captured_special_token_mask()
+        assert mask is not None
+        assert mask.shape == input_ids.shape
+        assert mask.dtype == torch.bool
+        expected_mask = torch.tensor([[True, False, True, False], [True, False, False, True]])
+        assert torch.equal(mask, expected_mask)
+
+    def test_set_inputs_from_encodings_with_module(self):
+        """Test set_inputs_from_encodings uses module for special token extraction."""
+        from tests.unit.fixtures.tokenizers import MockTokenizer
+        
+        detector = ModelInputDetector(
+            layer_signature="layer_0",
+            save_special_token_mask=True
+        )
+        tokenizer = MockTokenizer()
+        
+        class MockModule:
+            def __init__(self):
+                self.tokenizer = tokenizer
+        
+        module = MockModule()
+        # MockTokenizer: pad_token_id=0, eos_token_id=2, bos_token_id=3, unk_token_id=1
+        input_ids = torch.tensor([[0, 1, 2, 3, 4]])
+        encodings = {"input_ids": input_ids}
+        
+        detector.set_inputs_from_encodings(encodings, module=module)
+        
+        mask = detector.get_captured_special_token_mask()
+        assert mask is not None
+        # All tokens 0, 1, 2, 3 should be marked as special
+        assert mask[0, 0] == True  # pad_token_id=0
+        assert mask[0, 1] == True  # unk_token_id=1
+        assert mask[0, 2] == True  # eos_token_id=2
+        assert mask[0, 3] == True  # bos_token_id=3
+        assert mask[0, 4] == False  # regular token
+
+    def test_set_inputs_from_encodings_save_special_token_mask_false(self):
+        """Test that special token mask is not saved when save_special_token_mask=False."""
+        detector = ModelInputDetector(
+            layer_signature="layer_0",
+            save_special_token_mask=False,
+            special_token_ids=[0, 2]
+        )
+        encodings = {"input_ids": torch.tensor([[0, 1, 2, 3]])}
+        
+        detector.set_inputs_from_encodings(encodings)
+        
+        assert detector.get_captured_special_token_mask() is None
+
+    def test_get_captured_special_token_mask_returns_tensor(self):
+        """Test that get_captured_special_token_mask returns captured tensor."""
+        detector = ModelInputDetector(
+            layer_signature="layer_0",
+            save_special_token_mask=True,
+            special_token_ids=[0]
+        )
+        input_ids = torch.tensor([[0, 1, 2]])
+        detector.set_inputs_from_encodings({"input_ids": input_ids})
+        
+        mask = detector.get_captured_special_token_mask()
+        
+        assert mask is not None
+        assert isinstance(mask, torch.Tensor)
+        assert mask.device.type == "cpu"
+
+    def test_get_captured_special_token_mask_returns_none_when_nothing_captured(self):
+        """Test that get_captured_special_token_mask returns None when nothing captured."""
+        detector = ModelInputDetector(layer_signature="layer_0")
+        mask = detector.get_captured_special_token_mask()
+        assert mask is None
+
+    def test_clear_captured_removes_special_token_mask(self):
+        """Test that clear_captured removes special token mask."""
+        detector = ModelInputDetector(
+            layer_signature="layer_0",
+            save_special_token_mask=True,
+            special_token_ids=[0]
+        )
+        encodings = {
+            "input_ids": torch.tensor([[0, 1, 2]]),
+            "attention_mask": torch.ones(1, 3)
+        }
+        detector.set_inputs_from_encodings(encodings)
+        
+        assert detector.get_captured_special_token_mask() is not None
+        
+        detector.clear_captured()
+        
+        assert detector.get_captured_special_token_mask() is None
+        assert 'special_token_mask_shape' not in detector.metadata
+
+    def test_special_token_mask_with_all_special_ids(self):
+        """Test special token mask extraction using all_special_ids."""
+        from tests.unit.fixtures.tokenizers import MockTokenizer
+        
+        # Create a custom tokenizer class that has all_special_ids
+        class TokenizerWithAllSpecialIds(MockTokenizer):
+            @property
+            def all_special_ids(self):
+                return [0, 1, 2, 3]
+        
+        detector = ModelInputDetector(layer_signature="layer_0", save_special_token_mask=True)
+        tokenizer = TokenizerWithAllSpecialIds()
+        
+        class MockModule:
+            def __init__(self):
+                self.tokenizer = tokenizer
+        
+        module = MockModule()
+        input_ids = torch.tensor([[0, 1, 2, 3, 4, 5]])
+        encodings = {"input_ids": input_ids}
+        
+        detector.set_inputs_from_encodings(encodings, module=module)
+        
+        mask = detector.get_captured_special_token_mask()
+        assert mask is not None
+        # First 4 tokens should be special
+        assert torch.all(mask[0, :4] == True)
+        assert torch.all(mask[0, 4:] == False)
+
