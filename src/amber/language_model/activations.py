@@ -9,6 +9,7 @@ from amber.hooks import HookType
 from amber.hooks.implementations.layer_activation_detector import LayerActivationDetector
 from amber.store.store import Store
 from amber.utils import get_logger
+from amber.language_model.utils import get_device_from_model
 
 if TYPE_CHECKING:
     from amber.language_model.context import LanguageModelContext
@@ -301,7 +302,6 @@ class LanguageModelActivations:
         if store is None:
             raise ValueError("Store must be provided or set on the language model")
 
-        from amber.language_model.utils import get_device_from_model
 
         device = get_device_from_model(model)
         device_type = str(device.type)
