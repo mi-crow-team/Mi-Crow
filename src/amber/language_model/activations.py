@@ -1,5 +1,5 @@
 import datetime
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any, Dict, Sequence
 
 import torch
 from torch import nn
@@ -81,32 +81,6 @@ class LanguageModelActivations:
             layer_sig_list = []
         return layer_sig_str, layer_sig_list
 
-    def _extract_dataset_info(self, dataset: BaseDataset | None) -> Dict[str, Any]:
-        """
-        Extract dataset information for metadata.
-
-        Args:
-            dataset: Optional dataset instance
-
-        Returns:
-            Dictionary with dataset information
-        """
-        if dataset is None:
-            return {}
-
-        try:
-            ds_id = str(getattr(dataset, "dataset_dir", ""))
-            ds_len = int(len(dataset))
-            return {
-                "dataset_dir": ds_id,
-                "length": ds_len,
-            }
-        except (AttributeError, TypeError, ValueError, RuntimeError):
-            return {
-                "dataset_dir": "",
-                "length": -1,
-            }
-
     def _prepare_run_metadata(
         self,
         layer_signatures: str | int | list[str | int] | None,
@@ -140,21 +114,15 @@ class LanguageModelActivations:
         else:
             layer_sig_list = []
 
-        dataset_info = self._extract_dataset_info(dataset)
-
-        meta: Dict[str, Any] = {
-            "run_name": run_name,
-            "model": getattr(self.context.model, "model_name", self.context.model.__class__.__name__),
-            "options": options.copy(),
-        }
+        run_name_base, meta = self.context.language_model.inference._prepare_run_metadata(
+            dataset=dataset, run_name=run_name, options=options
+        )
 
         if layer_sig_list:
             meta["layer_signatures"] = layer_sig_list
             meta["num_layers"] = len(layer_sig_list)
-        if dataset_info:
-            meta["dataset"] = dataset_info
 
-        return run_name, meta
+        return run_name_base, meta
 
     @staticmethod
     def _save_run_metadata(
@@ -172,17 +140,12 @@ class LanguageModelActivations:
             meta: Metadata dictionary
             verbose: Whether to log
         """
-        logger = get_logger(__name__)
-        try:
-            store.put_run_metadata(run_name, meta)
-        except (OSError, IOError, ValueError, RuntimeError) as e:
-            if verbose:
-                logger.warning(f"Failed to save run metadata for {run_name}: {e}")
+        from amber.language_model.inference import InferenceEngine
+        InferenceEngine._save_run_metadata(store, run_name, meta, verbose)
 
     def _process_batch(
         self,
-        batch: list,
-        dataset: BaseDataset,
+        texts: Sequence[str],
         run_name: str,
         batch_index: int,
         max_length: int | None,
@@ -191,11 +154,10 @@ class LanguageModelActivations:
         dtype: torch.dtype | None,
         verbose: bool,
     ) -> None:
-        """Process a single batch from the dataset.
+        """Process a single batch of texts.
 
         Args:
-            batch: Batch from dataset.iter_batches()
-            dataset: Dataset instance to extract texts from
+            texts: Sequence of text strings
             run_name: Run name
             batch_index: Batch index
             max_length: Optional max length for tokenization
@@ -204,17 +166,14 @@ class LanguageModelActivations:
             dtype: Optional dtype to convert activations to
             verbose: Whether to log progress
         """
-        if not batch:
+        if not texts:
             return
-
-        # Extract texts from batch using dataset's method
-        texts = dataset.extract_texts_from_batch(batch)
 
         tok_kwargs = {}
         if max_length is not None:
             tok_kwargs["max_length"] = max_length
 
-        self.context.language_model._inference_engine.execute_inference(
+        self.context.language_model.inference.execute_inference(
             texts,
             tok_kwargs=tok_kwargs,
             autocast=autocast,
@@ -330,8 +289,9 @@ class LanguageModelActivations:
         try:
             with torch.inference_mode():
                 for batch_index, batch in enumerate(dataset.iter_batches(batch_size)):
+                    texts = dataset.extract_texts_from_batch(batch)
                     self._process_batch(
-                        batch, dataset, run_name, batch_index, max_length, autocast, autocast_dtype, dtype, verbose
+                        texts, run_name, batch_index, max_length, autocast, autocast_dtype, dtype, verbose
                     )
                     batch_counter += 1
                     self._manage_cuda_cache(batch_counter, free_cuda_cache_every, device_type, verbose)
@@ -339,5 +299,96 @@ class LanguageModelActivations:
             self._cleanup_detector(hook_id)
             if verbose:
                 logger.info(f"Completed save_activations_dataset: run={run_name}, batches_saved={batch_counter}")
+        
+        return run_name
+    
+    def save_activations(
+        self,
+        texts: Sequence[str],
+        layer_signature: str | int,
+        run_name: str | None = None,
+        batch_size: int | None = None,
+        *,
+        dtype: torch.dtype | None = None,
+        max_length: int | None = None,
+        autocast: bool = True,
+        autocast_dtype: torch.dtype | None = None,
+        free_cuda_cache_every: int | None = 0,
+        verbose: bool = False,
+    ) -> str:
+        """
+        Save activations from a list of texts.
+
+        Args:
+            texts: Sequence of text strings to process
+            layer_signature: Layer signature to capture activations from
+            run_name: Optional run name (generated if None)
+            batch_size: Optional batch size for processing (if None, processes all at once)
+            dtype: Optional dtype to convert activations to
+            max_length: Optional max length for tokenization
+            autocast: Whether to use autocast
+            autocast_dtype: Optional dtype for autocast
+            free_cuda_cache_every: Clear CUDA cache every N batches (0 or None to disable)
+            verbose: Whether to log progress
+
+        Returns:
+            Run name used for saving
+
+        Raises:
+            ValueError: If model or store is not initialized
+        """
+        model: nn.Module | None = self.context.model
+        if model is None:
+            raise ValueError("Model must be initialized before running")
+
+        store = self.context.store
+        if store is None:
+            raise ValueError("Store must be provided or set on the language model")
+
+        if not texts:
+            raise ValueError("Texts list cannot be empty")
+
+        device = get_device_from_model(model)
+        device_type = str(device.type)
+
+        if batch_size is None:
+            batch_size = len(texts)
+
+        options = {
+            "dtype": str(dtype) if dtype is not None else None,
+            "max_length": max_length,
+            "batch_size": int(batch_size),
+        }
+
+        run_name, meta = self._prepare_run_metadata(
+            layer_signature, dataset=None, run_name=run_name, options=options
+        )
+
+        if verbose:
+            logger.info(
+                f"Starting save_activations: run={run_name}, layer={layer_signature}, "
+                f"batch_size={batch_size}, device={device_type}"
+            )
+
+        self._save_run_metadata(store, run_name, meta, verbose)
+
+        detector, hook_id = self._setup_detector(layer_signature, f"save_{run_name}")
+        batch_counter = 0
+
+        try:
+            with torch.inference_mode():
+                for i in range(0, len(texts), batch_size):
+                    batch_texts = texts[i:i + batch_size]
+                    batch_index = i // batch_size
+                    
+                    self._process_batch(
+                        batch_texts, run_name, batch_index, max_length, autocast, autocast_dtype, dtype, verbose
+                    )
+                    batch_counter += 1
+                    self._manage_cuda_cache(batch_counter, free_cuda_cache_every, device_type, verbose)
+        finally:
+            self._cleanup_detector(hook_id)
+            if verbose:
+                logger.info(f"Completed save_activations: run={run_name}, batches_saved={batch_counter}")
         
         return run_name

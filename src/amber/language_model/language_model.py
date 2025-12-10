@@ -98,7 +98,8 @@ class LanguageModel:
         self.layers = LanguageModelLayers(self.context)
         self.lm_tokenizer = LanguageModelTokenizer(self.context)
         self.activations = LanguageModelActivations(self.context)
-        self._inference_engine = InferenceEngine(self)
+        self.inference = InferenceEngine(self)
+        self._inference_engine = self.inference
 
         self._input_tracker: "InputTracker | None" = None
 

@@ -346,6 +346,56 @@ class TestLanguageModelActivations:
         with pytest.raises(ValueError, match="Model must be initialized"):
             activations.save_activations_dataset(dataset, 0)
 
+    def test_save_activations_success(self, mock_language_model, temp_store):
+        """Test saving activations from texts successfully."""
+        activations = LanguageModelActivations(mock_language_model.context)
+        texts = ["text1", "text2", "text3"]
+        
+        layer_names = mock_language_model.layers.get_layer_names()
+        layer_sig = layer_names[0] if layer_names else 0
+        
+        mock_language_model._inference_engine.execute_inference = Mock()
+        mock_language_model.save_detector_metadata = Mock()
+        
+        with patch("torch.inference_mode"):
+            run_name = activations.save_activations(
+                texts, layer_sig, run_name="test_run", batch_size=2, verbose=True
+            )
+        
+        assert run_name == "test_run"
+        assert mock_language_model._inference_engine.execute_inference.call_count == 2
+        assert mock_language_model.save_detector_metadata.call_count == 2
+
+    def test_save_activations_no_batching(self, mock_language_model, temp_store):
+        """Test saving activations without batching."""
+        activations = LanguageModelActivations(mock_language_model.context)
+        texts = ["text1", "text2"]
+        
+        layer_names = mock_language_model.layers.get_layer_names()
+        layer_sig = layer_names[0] if layer_names else 0
+        
+        mock_language_model._inference_engine.execute_inference = Mock()
+        mock_language_model.save_detector_metadata = Mock()
+        
+        with patch("torch.inference_mode"):
+            run_name = activations.save_activations(
+                texts, layer_sig, run_name="test_run", batch_size=None, verbose=True
+            )
+        
+        assert run_name == "test_run"
+        assert mock_language_model._inference_engine.execute_inference.call_count == 1
+        assert mock_language_model.save_detector_metadata.call_count == 1
+
+    def test_save_activations_empty_texts(self, mock_language_model, temp_store):
+        """Test saving activations with empty texts."""
+        activations = LanguageModelActivations(mock_language_model.context)
+        
+        layer_names = mock_language_model.layers.get_layer_names()
+        layer_sig = layer_names[0] if layer_names else 0
+        
+        with pytest.raises(ValueError, match="Texts list cannot be empty"):
+            activations.save_activations([], layer_sig)
+
     def test_save_activations_dataset_store_not_set(self, mock_language_model, temp_store):
         """Test saving activations when store is not set."""
         from datasets import Dataset
