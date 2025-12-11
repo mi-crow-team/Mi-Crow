@@ -110,7 +110,9 @@ style: |
 ## 2. Motivation: The Gap in XAI Tools
 
 **Current State**
-- Wraz z rosnącym zastosowaniem systemów wyjaśnialnej sztucznej inteligencji w przemyśle i badaniach coraz ważniejsze staje się nie tylko ich wdrażanie, lecz także dogłębne rozumienie i kontrola działania.
+- Growing use of explainable artificial intelligence systems in industry and research
+- Need to thoroughly understand and control their operation.
+
 
 **Key Gaps**
 - No comprehensive, open-source XAI framework
@@ -131,7 +133,6 @@ style: |
 - Compare mechanistic interpretability methods with Bielik-Guard
 - Make moderation **faster, less costly, and less hardware-intensive**
 - Access to evaluation datasets from Bielik team
-- Test on WildGuardMix dataset for harmful prompt detection
 
 ---
 
