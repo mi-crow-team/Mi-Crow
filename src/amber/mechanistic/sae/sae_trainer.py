@@ -2,6 +2,9 @@
 
 from dataclasses import dataclass
 from typing import Any, Optional, TYPE_CHECKING
+from datetime import datetime
+import json
+import logging
 
 import torch
 
@@ -11,8 +14,6 @@ from amber.utils import get_logger
 if TYPE_CHECKING:
     from amber.mechanistic.sae.sae import Sae
     from amber.store.store import Store
-
-logger = get_logger(__name__)
 
 
 @dataclass
@@ -67,78 +68,120 @@ class SaeTrainer:
             store: "Store",
             run_id: str,
             layer_signature: str | int,
-            config: SaeTrainingConfig | None = None
-    ) -> dict[str, list[float]]:
+            config: SaeTrainingConfig | None = None,
+            training_run_id: str | None = None
+    ) -> dict[str, Any]:
+        self._ensure_overcomplete_available()
+        cfg = config or SaeTrainingConfig()
+
+        wandb_run = self._initialize_wandb(cfg, run_id)
+        device = self._setup_device(cfg)
+        optimizer = self._create_optimizer(cfg)
+        criterion = self._create_criterion(cfg)
+        dataloader = self._create_dataloader(store, run_id, layer_signature, cfg)
+        monitoring = self._configure_logging(cfg, run_id)
+
+        logs = self._run_training(cfg, dataloader, criterion, optimizer, device, monitoring)
+        history = self._process_training_logs(logs, cfg)
+
+        if wandb_run is not None:
+            self._log_to_wandb(wandb_run, history, cfg)
+
+        if cfg.verbose:
+            self.logger.info(f"[SaeTrainer] Training completed, processing {len(history['loss'])} epochs of results")
+            self.logger.info("[SaeTrainer] Completed training")
+
+        if training_run_id is None:
+            training_run_id = f"training_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
+        if cfg.verbose:
+            self.logger.info(f"[SaeTrainer] Saving training outputs to store/runs/{training_run_id}/")
+
+        self._save_training_to_store(
+            store=store,
+            training_run_id=training_run_id,
+            run_id=run_id,
+            layer_signature=layer_signature,
+            history=history,
+            config=cfg
+        )
+
+        return {
+            "history": history,
+            "training_run_id": training_run_id
+        }
+
+    def _ensure_overcomplete_available(self) -> None:
         try:
             from overcomplete.sae.train import train_sae, train_sae_amp
         except ImportError:
             raise ImportError("overcomplete.sae.train module not available. Cannot use overcomplete training.")
 
-        cfg = config or SaeTrainingConfig()
+    def _initialize_wandb(self, cfg: SaeTrainingConfig, run_id: str) -> Any:
+        if not cfg.use_wandb:
+            return None
 
-        # Initialize wandb if enabled
-        wandb_run = None
-        if cfg.use_wandb:
-            try:
-                import wandb
-                wandb_project = cfg.wandb_project or "sae-training"
-                wandb_name = cfg.wandb_name or run_id
-                wandb_mode = cfg.wandb_mode.lower() if cfg.wandb_mode else "online"
+        try:
+            import wandb
+            wandb_project = cfg.wandb_project or "sae-training"
+            wandb_name = cfg.wandb_name or run_id
+            wandb_mode = cfg.wandb_mode.lower() if cfg.wandb_mode else "online"
 
-                # Try to initialize wandb
-                wandb_run = wandb.init(
-                    project=wandb_project,
-                    entity=cfg.wandb_entity,
-                    name=wandb_name,
-                    mode=wandb_mode,
-                    config={
-                        "run_id": run_id,
-                        "epochs": cfg.epochs,
-                        "batch_size": cfg.batch_size,
-                        "lr": cfg.lr,
-                        "l1_lambda": cfg.l1_lambda,
-                        "device": str(cfg.device),
-                        "dtype": str(cfg.dtype) if cfg.dtype else None,
-                        "use_amp": cfg.use_amp,
-                        "clip_grad": cfg.clip_grad,
-                        "max_batches_per_epoch": cfg.max_batches_per_epoch,
-                        **(cfg.wandb_config or {}),
-                    },
-                    tags=cfg.wandb_tags or [],
-                )
-            except ImportError:
-                self.logger.warning("[SaeTrainer] wandb not installed, skipping wandb logging")
-                self.logger.warning("[SaeTrainer] Install with: pip install wandb")
-            except Exception as e:
-                self.logger.warning(f"[SaeTrainer] Unexpected error initializing wandb: {e}")
-                self.logger.warning("[SaeTrainer] Continuing training without wandb logging")
+            return wandb.init(
+                project=wandb_project,
+                entity=cfg.wandb_entity,
+                name=wandb_name,
+                mode=wandb_mode,
+                config={
+                    "run_id": run_id,
+                    "epochs": cfg.epochs,
+                    "batch_size": cfg.batch_size,
+                    "lr": cfg.lr,
+                    "l1_lambda": cfg.l1_lambda,
+                    "device": str(cfg.device),
+                    "dtype": str(cfg.dtype) if cfg.dtype else None,
+                    "use_amp": cfg.use_amp,
+                    "clip_grad": cfg.clip_grad,
+                    "max_batches_per_epoch": cfg.max_batches_per_epoch,
+                    **(cfg.wandb_config or {}),
+                },
+                tags=cfg.wandb_tags or [],
+            )
+        except ImportError:
+            self.logger.warning("[SaeTrainer] wandb not installed, skipping wandb logging")
+            self.logger.warning("[SaeTrainer] Install with: pip install wandb")
+            return None
+        except Exception as e:
+            self.logger.warning(f"[SaeTrainer] Unexpected error initializing wandb: {e}")
+            self.logger.warning("[SaeTrainer] Continuing training without wandb logging")
+            return None
 
-        # Set up device
+    def _setup_device(self, cfg: SaeTrainingConfig) -> torch.device:
         device_str = str(cfg.device)
         device = torch.device(device_str)
         self.sae.sae_engine.to(device)
+        
         if cfg.dtype is not None:
             try:
                 self.sae.sae_engine.to(device, dtype=cfg.dtype)
             except (TypeError, AttributeError):
                 self.sae.sae_engine.to(device)
+        
+        return device
 
-        # Set up optimizer - train sae_engine parameters
-        optimizer = torch.optim.AdamW(self.sae.sae_engine.parameters(), lr=cfg.lr)
+    def _create_optimizer(self, cfg: SaeTrainingConfig) -> torch.optim.Optimizer:
+        return torch.optim.AdamW(self.sae.sae_engine.parameters(), lr=cfg.lr)
 
-        # Create criterion function matching overcomplete's signature: criterion(x, x_hat, z_pre, z, dictionary)
+    def _create_criterion(self, cfg: SaeTrainingConfig):
         def criterion(x: torch.Tensor, x_hat: torch.Tensor, z_pre: torch.Tensor, z: torch.Tensor,
                       dictionary: torch.Tensor) -> torch.Tensor:
-            """Loss function compatible with overcomplete's train_sae."""
-            # Reconstruction loss (MSE)
             recon_loss = ((x_hat - x) ** 2).mean()
-
-            # L1 sparsity penalty if configured
             l1_penalty = z.abs().mean() * cfg.l1_lambda if cfg.l1_lambda > 0 else torch.tensor(0.0, device=x.device)
-
             return recon_loss + l1_penalty
+        return criterion
 
-        dataloader = StoreDataloader(
+    def _create_dataloader(self, store: "Store", run_id: str, layer_signature: str | int, cfg: SaeTrainingConfig) -> StoreDataloader:
+        return StoreDataloader(
             store=store,
             run_id=run_id,
             layer=layer_signature,
@@ -149,111 +192,125 @@ class SaeTrainer:
             logger_instance=self.logger
         )
 
+    def _configure_logging(self, cfg: SaeTrainingConfig, run_id: str) -> int:
         monitoring = cfg.monitoring
         if cfg.verbose and monitoring < 2:
             monitoring = 2
 
         if cfg.verbose:
+            device_str = str(cfg.device)
             self.logger.info(
                 f"[SaeTrainer] Starting training run_id={run_id} epochs={cfg.epochs} batch_size={cfg.batch_size} "
                 f"device={device_str} use_amp={cfg.use_amp}"
             )
 
-        if cfg.use_amp and device.type in ("cuda", "cpu"):
-            logs = train_sae_amp(
-                model=self.sae.sae_engine,
-                dataloader=dataloader,
-                criterion=criterion,
-                optimizer=optimizer,
-                scheduler=cfg.scheduler,
-                nb_epochs=cfg.epochs,
-                clip_grad=cfg.clip_grad,
-                monitoring=monitoring,
-                device=device_str,
-                max_nan_fallbacks=cfg.max_nan_fallbacks
-            )
+        overcomplete_logger = logging.getLogger("overcomplete")
+        if cfg.verbose:
+            overcomplete_logger.setLevel(logging.INFO)
+            if not overcomplete_logger.handlers:
+                handler = logging.StreamHandler()
+                handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s"))
+                overcomplete_logger.addHandler(handler)
+            overcomplete_logger.propagate = True
         else:
-            logs = train_sae(
-                model=self.sae.sae_engine,
-                dataloader=dataloader,
-                criterion=criterion,
-                optimizer=optimizer,
-                scheduler=cfg.scheduler,
-                nb_epochs=cfg.epochs,
-                clip_grad=cfg.clip_grad,
-                monitoring=monitoring,
-                device=device_str
-            )
+            overcomplete_logger.setLevel(logging.WARNING)
 
+        return monitoring
+
+    def _run_training(self, cfg: SaeTrainingConfig, dataloader: StoreDataloader, criterion, optimizer: torch.optim.Optimizer,
+                     device: torch.device, monitoring: int) -> dict[str, Any]:
+        from overcomplete.sae.train import train_sae, train_sae_amp
+
+        device_str = str(device)
+        
+        try:
+            if cfg.use_amp and device.type in ("cuda", "cpu"):
+                if cfg.verbose:
+                    self.logger.info(f"[SaeTrainer] Using train_sae_amp with monitoring={monitoring}")
+                logs = train_sae_amp(
+                    model=self.sae.sae_engine,
+                    dataloader=dataloader,
+                    criterion=criterion,
+                    optimizer=optimizer,
+                    scheduler=cfg.scheduler,
+                    nb_epochs=cfg.epochs,
+                    clip_grad=cfg.clip_grad,
+                    monitoring=monitoring,
+                    device=device_str,
+                    max_nan_fallbacks=cfg.max_nan_fallbacks
+                )
+            else:
+                if cfg.verbose:
+                    self.logger.info(f"[SaeTrainer] Using train_sae with monitoring={monitoring}")
+                logs = train_sae(
+                    model=self.sae.sae_engine,
+                    dataloader=dataloader,
+                    criterion=criterion,
+                    optimizer=optimizer,
+                    scheduler=cfg.scheduler,
+                    nb_epochs=cfg.epochs,
+                    clip_grad=cfg.clip_grad,
+                    monitoring=monitoring,
+                    device=device_str
+                )
+            
+            if cfg.verbose:
+                self.logger.info(
+                    f"[SaeTrainer] Overcomplete training function returned, processing {len(logs.get('avg_loss', []))} epoch results...")
+            
+            return logs
+        except Exception as e:
+            self.logger.error(f"[SaeTrainer] Error during training: {e}")
+            import traceback
+            self.logger.error(f"[SaeTrainer] Traceback: {traceback.format_exc()}")
+            raise
+
+    def _process_training_logs(self, logs: dict[str, Any], cfg: SaeTrainingConfig) -> dict[str, list[float]]:
         history: dict[str, list[float]] = {
             "loss": logs.get("avg_loss", []),
             "recon_mse": [],
             "l1": [],
             "r2": [],
-            "l0": [],  # Number of active features (sparsity)
-            "dead_features_pct": [],  # Percentage of dead features
+            "l0": [],
+            "dead_features_pct": [],
         }
 
-        # Extract R2 scores and compute reconstruction MSE
+        self._extract_r2_and_mse(history, logs)
+        self._extract_sparsity_metrics(history, logs, cfg)
+
+        return history
+
+    def _extract_r2_and_mse(self, history: dict[str, list[float]], logs: dict[str, Any]) -> None:
         if "r2" in logs:
             history["r2"] = logs["r2"]
             history["recon_mse"] = [(1.0 - r2) for r2 in logs["r2"]]
         else:
             history["r2"] = [0.0] * len(history["loss"])
 
-        # Extract L1 sparsity (fast metric - computed every epoch)
-        # L0 and dead features (slow metrics - computed less frequently)
+    def _extract_sparsity_metrics(self, history: dict[str, list[float]], logs: dict[str, Any], cfg: SaeTrainingConfig) -> None:
         if "z" in logs and logs["z"]:
-            n_latents = self.sae.context.n_latents if hasattr(self.sae, 'context') and hasattr(self.sae.context,
-                                                                                               'n_latents') else None
+            n_latents = self._get_n_latents()
             slow_metrics_freq = cfg.wandb_slow_metrics_frequency if cfg.use_wandb else 1
 
             for epoch_idx, z_batch_list in enumerate(logs["z"]):
                 if isinstance(z_batch_list, list) and len(z_batch_list) > 0:
-                    # Fast metric: Compute L1 (mean absolute value) - average across all batches
-                    l1_vals = [z.abs().mean().item() for z in z_batch_list if isinstance(z, torch.Tensor)]
-                    history["l1"].append(sum(l1_vals) / len(l1_vals) if l1_vals else 0.0)
+                    history["l1"].append(self._compute_l1(z_batch_list))
 
-                    # Slow metrics: Only compute when needed (every N epochs or last epoch)
                     should_compute_slow = (epoch_idx % slow_metrics_freq == 0) or (epoch_idx == len(logs["z"]) - 1)
 
                     if should_compute_slow:
-                        # Compute L0 (number of active features) - average across all batches
-                        l0_vals = []
-                        # Concatenate all batches to compute dead features across entire epoch
-                        all_z_epoch = []
-                        for z in z_batch_list:
-                            if isinstance(z, torch.Tensor):
-                                # L0: average number of non-zero features per sample
-                                active = (z.abs() > 1e-6).float()  # Threshold for "active"
-                                l0_vals.append(active.sum(dim=-1).mean().item())
-                                all_z_epoch.append(z)
-
-                        history["l0"].append(sum(l0_vals) / len(l0_vals) if l0_vals else 0.0)
-
-                        # Compute dead features percentage across all batches in epoch
-                        if all_z_epoch and n_latents is not None:
-                            # Concatenate all batches: [batch_size_1, n_latents], [batch_size_2, n_latents], ... -> [total_samples, n_latents]
-                            z_concatenated = torch.cat(all_z_epoch, dim=0)  # [total_samples, n_latents]
-                            # Check which features are active at least once across all samples
-                            feature_activity = (z_concatenated.abs() > 1e-6).any(dim=0).float()  # [n_latents]
-                            dead_count = (feature_activity == 0).sum().item()
-                            dead_features_pct = dead_count / n_latents * 100.0 if n_latents > 0 else 0.0
-                            history["dead_features_pct"].append(dead_features_pct)
-                        else:
-                            history["dead_features_pct"].append(0.0)
+                        l0, dead_pct = self._compute_slow_metrics(z_batch_list, n_latents)
+                        history["l0"].append(l0)
+                        history["dead_features_pct"].append(dead_pct)
                     else:
-                        # Don't compute slow metrics this epoch - use previous value or 0
-                        # We'll interpolate or use last known value when logging
-                        history["l0"].append(None)  # Mark as not computed
-                        history["dead_features_pct"].append(None)  # Mark as not computed
+                        history["l0"].append(None)
+                        history["dead_features_pct"].append(None)
                 else:
                     history["l1"].append(0.0)
                     history["l0"].append(0.0)
                     history["dead_features_pct"].append(0.0)
         elif "z_sparsity" in logs:
             history["l1"] = logs["z_sparsity"]
-            # Fill L0 and dead_features_pct with zeros if not available
             history["l0"] = [0.0] * len(history["loss"])
             history["dead_features_pct"] = [0.0] * len(history["loss"])
         else:
@@ -261,90 +318,216 @@ class SaeTrainer:
             history["l0"] = [0.0] * len(history["loss"])
             history["dead_features_pct"] = [0.0] * len(history["loss"])
 
-        # Log metrics to wandb if enabled
-        if wandb_run is not None:
-            try:
-                # Log metrics for each epoch
-                num_epochs = len(history["loss"])
-                slow_metrics_freq = cfg.wandb_slow_metrics_frequency
+    def _get_n_latents(self) -> Optional[int]:
+        if hasattr(self.sae, 'context') and hasattr(self.sae.context, 'n_latents'):
+            return self.sae.context.n_latents
+        return None
 
-                # Helper to get last known value for slow metrics
-                def get_last_known_value(values, idx):
-                    """Get the last non-None value up to idx, or 0.0 if none found."""
-                    for i in range(idx, -1, -1):
-                        if i < len(values) and values[i] is not None:
-                            return values[i]
-                    return 0.0
+    def _compute_l1(self, z_batch_list: list[torch.Tensor]) -> float:
+        l1_vals = [z.abs().mean().item() for z in z_batch_list if isinstance(z, torch.Tensor)]
+        return sum(l1_vals) / len(l1_vals) if l1_vals else 0.0
 
-                for epoch in range(1, num_epochs + 1):
-                    epoch_idx = epoch - 1
-                    should_log_slow = (epoch % slow_metrics_freq == 0) or (epoch == num_epochs)
+    def _compute_slow_metrics(self, z_batch_list: list[torch.Tensor], n_latents: Optional[int]) -> tuple[float, float]:
+        l0_vals = []
+        all_z_epoch = []
+        
+        for z in z_batch_list:
+            if isinstance(z, torch.Tensor):
+                active = (z.abs() > 1e-6).float()
+                l0_vals.append(active.sum(dim=-1).mean().item())
+                all_z_epoch.append(z)
 
-                    # Fast metrics (logged every epoch)
-                    metrics = {
-                        "epoch": epoch,
-                        "train/loss": history["loss"][epoch_idx] if epoch_idx < len(history["loss"]) else 0.0,
-                        "train/reconstruction_mse": history["recon_mse"][epoch_idx] if epoch_idx < len(
-                            history["recon_mse"]) else 0.0,
-                        "train/r2_score": history["r2"][epoch_idx] if epoch_idx < len(history["r2"]) else 0.0,
-                        "train/l1_penalty": history["l1"][epoch_idx] if epoch_idx < len(history["l1"]) else 0.0,
-                        "train/learning_rate": cfg.lr,
-                    }
+        l0 = sum(l0_vals) / len(l0_vals) if l0_vals else 0.0
 
-                    # Slow metrics (logged only when computed)
-                    if should_log_slow:
-                        l0_val = history["l0"][epoch_idx] if epoch_idx < len(history["l0"]) and history["l0"][
-                            epoch_idx] is not None else get_last_known_value(history["l0"], epoch_idx)
-                        dead_pct = history["dead_features_pct"][epoch_idx] if epoch_idx < len(
-                            history["dead_features_pct"]) and history["dead_features_pct"][
-                                                                                  epoch_idx] is not None else get_last_known_value(
-                            history["dead_features_pct"], epoch_idx)
-                        metrics["train/l0_sparsity"] = l0_val
-                        metrics["train/dead_features_pct"] = dead_pct
+        if all_z_epoch and n_latents is not None:
+            z_concatenated = torch.cat(all_z_epoch, dim=0)
+            feature_activity = (z_concatenated.abs() > 1e-6).any(dim=0).float()
+            dead_count = (feature_activity == 0).sum().item()
+            dead_features_pct = dead_count / n_latents * 100.0 if n_latents > 0 else 0.0
+        else:
+            dead_features_pct = 0.0
 
-                    wandb_run.log(metrics)
+        return l0, dead_features_pct
 
-                # Log final metrics to summary
-                # Get last computed values for slow metrics (handle None values)
-                final_l0 = get_last_known_value(history["l0"], len(history["l0"]) - 1) if history["l0"] else 0.0
-                final_dead_pct = get_last_known_value(history["dead_features_pct"],
-                                                      len(history["dead_features_pct"]) - 1) if history[
-                    "dead_features_pct"] else 0.0
+    def _log_to_wandb(self, wandb_run: Any, history: dict[str, list[float]], cfg: SaeTrainingConfig) -> None:
+        try:
+            num_epochs = len(history["loss"])
+            slow_metrics_freq = cfg.wandb_slow_metrics_frequency
 
-                final_metrics = {
-                    "final/loss": history["loss"][-1] if history["loss"] else 0.0,
-                    "final/reconstruction_mse": history["recon_mse"][-1] if history["recon_mse"] else 0.0,
-                    "final/r2_score": history["r2"][-1] if history["r2"] else 0.0,
-                    "final/l1_penalty": history["l1"][-1] if history["l1"] else 0.0,
-                    "final/l0_sparsity": final_l0,
-                    "final/dead_features_pct": final_dead_pct,
-                    "training/num_epochs": num_epochs,
-                }
+            for epoch in range(1, num_epochs + 1):
+                epoch_idx = epoch - 1
+                should_log_slow = (epoch % slow_metrics_freq == 0) or (epoch == num_epochs)
 
-                # Add best metrics
-                if history["loss"]:
-                    best_loss_idx = min(range(len(history["loss"])), key=lambda i: history["loss"][i])
-                    final_metrics["best/loss"] = history["loss"][best_loss_idx]
-                    final_metrics["best/loss_epoch"] = best_loss_idx + 1
+                metrics = self._build_epoch_metrics(history, epoch, epoch_idx, cfg, should_log_slow)
+                wandb_run.log(metrics)
 
-                if history["r2"]:
-                    best_r2_idx = max(range(len(history["r2"])), key=lambda i: history["r2"][i])
-                    final_metrics["best/r2_score"] = history["r2"][best_r2_idx]
-                    final_metrics["best/r2_epoch"] = best_r2_idx + 1
+            final_metrics = self._build_final_metrics(history, num_epochs)
+            wandb_run.summary.update(final_metrics)
 
-                wandb_run.summary.update(final_metrics)
+            if cfg.verbose:
+                try:
+                    url = wandb_run.url
+                    self.logger.info(f"[SaeTrainer] Metrics logged to wandb: {url}")
+                except (AttributeError, RuntimeError):
+                    self.logger.info("[SaeTrainer] Metrics logged to wandb (offline mode)")
+        except Exception as e:
+            self.logger.warning(f"[SaeTrainer] Failed to log metrics to wandb: {e}")
 
-                if cfg.verbose:
-                    try:
-                        url = wandb_run.url
-                        self.logger.info(f"[SaeTrainer] Metrics logged to wandb: {url}")
-                    except (AttributeError, RuntimeError):
-                        # Offline mode or URL not available
-                        self.logger.info("[SaeTrainer] Metrics logged to wandb (offline mode)")
-            except Exception as e:
-                self.logger.warning(f"[SaeTrainer] Failed to log metrics to wandb: {e}")
+    def _build_epoch_metrics(self, history: dict[str, list[float]], epoch: int, epoch_idx: int, 
+                             cfg: SaeTrainingConfig, should_log_slow: bool) -> dict[str, Any]:
+        metrics = {
+            "epoch": epoch,
+            "train/loss": history["loss"][epoch_idx] if epoch_idx < len(history["loss"]) else 0.0,
+            "train/reconstruction_mse": history["recon_mse"][epoch_idx] if epoch_idx < len(history["recon_mse"]) else 0.0,
+            "train/r2_score": history["r2"][epoch_idx] if epoch_idx < len(history["r2"]) else 0.0,
+            "train/l1_penalty": history["l1"][epoch_idx] if epoch_idx < len(history["l1"]) else 0.0,
+            "train/learning_rate": cfg.lr,
+        }
 
-        if cfg.verbose:
-            self.logger.info("[SaeTrainer] Completed training")
+        if should_log_slow:
+            l0_val = self._get_metric_value(history["l0"], epoch_idx)
+            dead_pct = self._get_metric_value(history["dead_features_pct"], epoch_idx)
+            metrics["train/l0_sparsity"] = l0_val
+            metrics["train/dead_features_pct"] = dead_pct
 
-        return history
+        return metrics
+
+    def _get_metric_value(self, values: list[float | None], idx: int) -> float:
+        if idx < len(values) and values[idx] is not None:
+            return values[idx]
+        return self._get_last_known_value(values, idx)
+
+    def _get_last_known_value(self, values: list[float | None], idx: int) -> float:
+        for i in range(idx, -1, -1):
+            if i < len(values) and values[i] is not None:
+                return values[i]
+        return 0.0
+
+    def _build_final_metrics(self, history: dict[str, list[float]], num_epochs: int) -> dict[str, Any]:
+        final_l0 = self._get_last_known_value(history["l0"], len(history["l0"]) - 1) if history["l0"] else 0.0
+        final_dead_pct = self._get_last_known_value(history["dead_features_pct"], len(history["dead_features_pct"]) - 1) if history["dead_features_pct"] else 0.0
+
+        final_metrics = {
+            "final/loss": history["loss"][-1] if history["loss"] else 0.0,
+            "final/reconstruction_mse": history["recon_mse"][-1] if history["recon_mse"] else 0.0,
+            "final/r2_score": history["r2"][-1] if history["r2"] else 0.0,
+            "final/l1_penalty": history["l1"][-1] if history["l1"] else 0.0,
+            "final/l0_sparsity": final_l0,
+            "final/dead_features_pct": final_dead_pct,
+            "training/num_epochs": num_epochs,
+        }
+
+        if history["loss"]:
+            best_loss_idx = min(range(len(history["loss"])), key=lambda i: history["loss"][i])
+            final_metrics["best/loss"] = history["loss"][best_loss_idx]
+            final_metrics["best/loss_epoch"] = best_loss_idx + 1
+
+        if history["r2"]:
+            best_r2_idx = max(range(len(history["r2"])), key=lambda i: history["r2"][i])
+            final_metrics["best/r2_score"] = history["r2"][best_r2_idx]
+            final_metrics["best/r2_epoch"] = best_r2_idx + 1
+
+        return final_metrics
+
+    def _save_training_to_store(
+            self,
+            store: "Store",
+            training_run_id: str,
+            run_id: str,
+            layer_signature: str | int,
+            history: dict[str, list[float]],
+            config: SaeTrainingConfig
+    ) -> None:
+        """Save training outputs (model, history, metadata) to store under training_run_id.
+        
+        Args:
+            store: Store instance
+            training_run_id: Training run ID to save under
+            run_id: Original activation run ID used for training
+            layer_signature: Layer signature used for training
+            history: Training history dictionary
+            config: Training configuration
+        """
+        try:
+            run_path = store._run_key(training_run_id)
+            run_path.mkdir(parents=True, exist_ok=True)
+
+            model_path = run_path / "model.pt"
+            history_path = run_path / "history.json"
+
+            sae_state_dict = self.sae.sae_engine.state_dict()
+
+            amber_metadata = {
+                "concepts_state": {
+                    'multiplication': self.sae.concepts.multiplication.data.cpu().clone(),
+                    'bias': self.sae.concepts.bias.data.cpu().clone(),
+                },
+                "n_latents": self.sae.context.n_latents,
+                "n_inputs": self.sae.context.n_inputs,
+                "device": self.sae.context.device,
+                "layer_signature": self.sae.context.lm_layer_signature,
+                "model_id": self.sae.context.model_id,
+            }
+
+            if hasattr(self.sae, 'k'):
+                amber_metadata["k"] = self.sae.k
+
+            payload = {
+                "sae_state_dict": sae_state_dict,
+                "amber_metadata": amber_metadata,
+            }
+
+            torch.save(payload, model_path)
+
+            with open(history_path, "w") as f:
+                json.dump(history, f, indent=2)
+
+            training_metadata = {
+                "training_run_id": training_run_id,
+                "activation_run_id": run_id,
+                "layer_signature": str(layer_signature),
+                "model_id": self.sae.context.model_id if hasattr(self.sae.context, 'model_id') else None,
+                "sae_type": type(self.sae).__name__,
+                "training_config": {
+                    "epochs": config.epochs,
+                    "batch_size": config.batch_size,
+                    "lr": config.lr,
+                    "l1_lambda": config.l1_lambda,
+                    "device": str(config.device),
+                    "dtype": str(config.dtype) if config.dtype else None,
+                    "use_amp": config.use_amp,
+                    "clip_grad": config.clip_grad,
+                    "monitoring": config.monitoring,
+                },
+                "final_metrics": {
+                    "loss": history["loss"][-1] if history["loss"] else None,
+                    "r2": history["r2"][-1] if history["r2"] else None,
+                    "recon_mse": history["recon_mse"][-1] if history["recon_mse"] else None,
+                    "l1": history["l1"][-1] if history["l1"] else None,
+                },
+                "n_epochs": len(history["loss"]),
+                "timestamp": datetime.now().isoformat(),
+            }
+
+            if history["l0"]:
+                final_l0 = [x for x in history["l0"] if x is not None]
+                if final_l0:
+                    training_metadata["final_metrics"]["l0"] = final_l0[-1]
+
+            if history["dead_features_pct"]:
+                final_dead = [x for x in history["dead_features_pct"] if x is not None]
+                if final_dead:
+                    training_metadata["final_metrics"]["dead_features_pct"] = final_dead[-1]
+
+            store.put_run_metadata(training_run_id, training_metadata)
+
+            if config.verbose:
+                self.logger.info(f"[SaeTrainer] Saved model to: {model_path}")
+                self.logger.info(f"[SaeTrainer] Saved history to: {history_path}")
+                self.logger.info(f"[SaeTrainer] Saved metadata to: runs/{training_run_id}/meta.json")
+
+        except Exception as e:
+            self.logger.warning(f"[SaeTrainer] Failed to save training outputs to store: {e}")
+            if config.verbose:
+                import traceback
+                self.logger.warning(f"[SaeTrainer] Traceback: {traceback.format_exc()}")

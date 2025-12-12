@@ -7,7 +7,7 @@ from torch import nn
 
 from amber.hooks.controller import Controller
 from amber.hooks.detector import Detector
-from amber.hooks.hook import HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
+from amber.hooks.hook import Hook, HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
 from amber.mechanistic.sae.autoencoder_context import AutoencoderContext
 from amber.mechanistic.sae.concepts.autoencoder_concepts import AutoencoderConcepts
 from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary
@@ -64,6 +64,26 @@ class Sae(Controller, Detector, abc.ABC):
     def context(self, value: AutoencoderContext) -> None:
         """Set the AutoencoderContext for this SAE."""
         self._autoencoder_context = value
+
+    def set_context(self, context: "LanguageModelContext") -> None:
+        """Set the LanguageModelContext for this hook and sync to AutoencoderContext.
+        
+        When the hook is registered, this method is called with the LanguageModelContext.
+        It automatically syncs relevant values to the AutoencoderContext.
+        
+        Args:
+            context: The LanguageModelContext instance from the LanguageModel
+        """
+        Hook.set_context(self, context)
+        self._context = context
+        if context is not None:
+            self._autoencoder_context.lm = context.language_model
+            if context.model_id is not None:
+                self._autoencoder_context.model_id = context.model_id
+            if context.store is not None and self._autoencoder_context.store is None:
+                self._autoencoder_context.store = context.store
+            if self.layer_signature is not None:
+                self._autoencoder_context.lm_layer_signature = self.layer_signature
 
     @abc.abstractmethod
     def _initialize_sae_engine(self) -> OvercompleteSAE:
