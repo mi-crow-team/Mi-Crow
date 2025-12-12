@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Dict, Set, List, Optional
 import torch
 
 from amber.hooks.detector import Detector
@@ -16,7 +16,7 @@ class ModelInputDetector(Detector):
     
     This detector is designed to be attached to the root model module and captures:
     - Tokenized inputs (input_ids) from the model's forward pass
-    - Attention masks (optional) from the model's forward pass
+    - Attention masks (optional) that exclude both padding and special tokens
     
     Uses PRE_FORWARD hook to capture inputs before they are processed.
     Useful for saving tokenized inputs for analysis or training.
@@ -27,7 +27,8 @@ class ModelInputDetector(Detector):
             layer_signature: str | int | None = None,
             hook_id: str | None = None,
             save_input_ids: bool = True,
-            save_attention_mask: bool = False
+            save_attention_mask: bool = False,
+            special_token_ids: Optional[List[int] | Set[int]] = None
     ):
         """
         Initialize the model input detector.
@@ -36,7 +37,8 @@ class ModelInputDetector(Detector):
             layer_signature: Layer to capture from (typically the root model, can be None)
             hook_id: Unique identifier for this hook
             save_input_ids: Whether to save input_ids tensor
-            save_attention_mask: Whether to save attention_mask tensor
+            save_attention_mask: Whether to save attention_mask tensor (excludes padding and special tokens)
+            special_token_ids: Optional list/set of special token IDs. If None, will extract from LanguageModel context.
         """
         super().__init__(
             hook_type=HookType.PRE_FORWARD,
@@ -46,6 +48,7 @@ class ModelInputDetector(Detector):
         )
         self.save_input_ids = save_input_ids
         self.save_attention_mask = save_attention_mask
+        self.special_token_ids = set(special_token_ids) if special_token_ids is not None else None
 
     def _extract_input_ids(self, input: HOOK_FUNCTION_INPUT) -> torch.Tensor | None:
         """
@@ -67,13 +70,11 @@ class ModelInputDetector(Detector):
         
         first_item = input[0]
         
-        # Handle dict input (most common case for HuggingFace models)
         if isinstance(first_item, dict):
             if 'input_ids' in first_item:
                 return first_item['input_ids']
             return None
         
-        # Handle tensor input (direct input_ids)
         if isinstance(first_item, torch.Tensor):
             return first_item
         
@@ -100,7 +101,62 @@ class ModelInputDetector(Detector):
         
         return None
 
-    def set_inputs_from_encodings(self, encodings: Dict[str, torch.Tensor]) -> None:
+    def _get_special_token_ids(self, module: torch.nn.Module) -> Set[int]:
+        """
+        Get special token IDs from user-provided list or from LanguageModel context.
+        
+        Priority order:
+        1. self.special_token_ids (user-provided during initialization)
+        2. self.context.special_token_ids (from LanguageModel initialization)
+        
+        Args:
+            module: The PyTorch module being hooked (unused, kept for API compatibility)
+            
+        Returns:
+            Set of special token IDs, or empty set if none available
+        """
+        if self.special_token_ids is not None:
+            return self.special_token_ids
+        
+        if self.context is not None and self.context.special_token_ids is not None:
+            return self.context.special_token_ids
+        
+        return set()
+
+    def _create_combined_attention_mask(
+        self, 
+        input_ids: torch.Tensor, 
+        attention_mask: torch.Tensor | None,
+        module: torch.nn.Module
+    ) -> torch.Tensor:
+        """
+        Create a combined attention mask that excludes both padding and special tokens.
+        
+        Args:
+            input_ids: Input token IDs tensor (batch_size × sequence_length)
+            attention_mask: Original attention mask from tokenizer (None if not provided)
+            module: The PyTorch module being hooked
+            
+        Returns:
+            Binary mask tensor with same shape as input_ids (1 for regular tokens, 0 for padding/special tokens)
+        """
+        if attention_mask is None:
+            attention_mask = torch.ones_like(input_ids, dtype=torch.bool)
+        else:
+            attention_mask = attention_mask.bool()
+        
+        special_token_ids = self._get_special_token_ids(module)
+        
+        if special_token_ids:
+            special_ids_tensor = torch.tensor(list(special_token_ids), device=input_ids.device, dtype=input_ids.dtype)
+            expanded_input = input_ids.unsqueeze(-1)
+            expanded_special = special_ids_tensor.unsqueeze(0).unsqueeze(0)
+            is_special = (expanded_input == expanded_special).any(dim=-1)
+            attention_mask = attention_mask & ~is_special
+        
+        return attention_mask.to(torch.bool)
+
+    def set_inputs_from_encodings(self, encodings: Dict[str, torch.Tensor], module: Optional[torch.nn.Module] = None) -> None:
         """
         Manually set inputs from encodings dictionary.
         
@@ -109,6 +165,7 @@ class ModelInputDetector(Detector):
         
         Args:
             encodings: Dictionary of encoded inputs (e.g., from lm.forwards() or lm.tokenize())
+            module: Optional module for extracting special token IDs. If None, will use DummyModule.
             
         Raises:
             RuntimeError: If tensor extraction or storage fails
@@ -119,10 +176,17 @@ class ModelInputDetector(Detector):
                 self.tensor_metadata['input_ids'] = input_ids.detach().to("cpu")
                 self.metadata['input_ids_shape'] = tuple(input_ids.shape)
             
-            if self.save_attention_mask and 'attention_mask' in encodings:
-                attention_mask = encodings['attention_mask']
-                self.tensor_metadata['attention_mask'] = attention_mask.detach().to("cpu")
-                self.metadata['attention_mask_shape'] = tuple(attention_mask.shape)
+            if self.save_attention_mask and 'input_ids' in encodings:
+                input_ids = encodings['input_ids']
+                if module is None:
+                    class DummyModule:
+                        pass
+                    module = DummyModule()
+                
+                original_attention_mask = encodings.get('attention_mask')
+                combined_mask = self._create_combined_attention_mask(input_ids, original_attention_mask, module)
+                self.tensor_metadata['attention_mask'] = combined_mask.detach().to("cpu")
+                self.metadata['attention_mask_shape'] = tuple(combined_mask.shape)
         except Exception as e:
             raise RuntimeError(
                 f"Error setting inputs from encodings in ModelInputDetector {self.id}: {e}"
@@ -150,7 +214,6 @@ class ModelInputDetector(Detector):
             RuntimeError: If tensor extraction or storage fails
         """
         try:
-            # Extract and save inputs
             if self.save_input_ids:
                 input_ids = self._extract_input_ids(input)
                 if input_ids is not None:
@@ -158,10 +221,12 @@ class ModelInputDetector(Detector):
                     self.metadata['input_ids_shape'] = tuple(input_ids.shape)
             
             if self.save_attention_mask:
-                attention_mask = self._extract_attention_mask(input)
-                if attention_mask is not None:
-                    self.tensor_metadata['attention_mask'] = attention_mask.detach().to("cpu")
-                    self.metadata['attention_mask_shape'] = tuple(attention_mask.shape)
+                input_ids = self._extract_input_ids(input)
+                if input_ids is not None:
+                    original_attention_mask = self._extract_attention_mask(input)
+                    combined_mask = self._create_combined_attention_mask(input_ids, original_attention_mask, module)
+                    self.tensor_metadata['attention_mask'] = combined_mask.detach().to("cpu")
+                    self.metadata['attention_mask_shape'] = tuple(combined_mask.shape)
                 
         except Exception as e:
             raise RuntimeError(
@@ -173,7 +238,7 @@ class ModelInputDetector(Detector):
         return self.tensor_metadata.get('input_ids')
 
     def get_captured_attention_mask(self) -> torch.Tensor | None:
-        """Get the captured attention_mask from the current batch."""
+        """Get the captured attention_mask from the current batch (excludes padding and special tokens)."""
         return self.tensor_metadata.get('attention_mask')
 
     def clear_captured(self) -> None:

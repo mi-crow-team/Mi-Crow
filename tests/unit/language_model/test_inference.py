@@ -23,7 +23,7 @@ class TestInferenceEngine:
     def test_prepare_tokenizer_kwargs_none(self, mock_language_model):
         """Test preparing tokenizer kwargs with None."""
         engine = InferenceEngine(mock_language_model)
-        kwargs = engine.prepare_tokenizer_kwargs(None)
+        kwargs = engine._prepare_tokenizer_kwargs(None)
         
         assert kwargs["padding"] is True
         assert kwargs["truncation"] is True
@@ -32,10 +32,10 @@ class TestInferenceEngine:
     def test_prepare_tokenizer_kwargs_with_kwargs(self, mock_language_model):
         """Test preparing tokenizer kwargs with existing kwargs."""
         engine = InferenceEngine(mock_language_model)
-        kwargs = engine.prepare_tokenizer_kwargs({"max_length": 128, "padding": False})
+        kwargs = engine._prepare_tokenizer_kwargs({"max_length": 128, "padding": False})
         
         assert kwargs["max_length"] == 128
-        assert kwargs["padding"] is False  # User override
+        assert kwargs["padding"] is False
         assert kwargs["truncation"] is True
         assert kwargs["return_tensors"] == "pt"
 
@@ -46,7 +46,7 @@ class TestInferenceEngine:
         mock_tracker.enabled = True
         mock_language_model._input_tracker = mock_tracker
         
-        engine.setup_trackers(["text1", "text2"])
+        engine._setup_trackers(["text1", "text2"])
         
         mock_tracker.set_current_texts.assert_called_once_with(["text1", "text2"])
 
@@ -55,8 +55,7 @@ class TestInferenceEngine:
         engine = InferenceEngine(mock_language_model)
         mock_language_model._input_tracker = None
         
-        # Should not raise
-        engine.setup_trackers(["text1", "text2"])
+        engine._setup_trackers(["text1", "text2"])
 
     def test_setup_trackers_disabled(self, mock_language_model):
         """Test setting up trackers when tracker is disabled."""
@@ -65,8 +64,7 @@ class TestInferenceEngine:
         mock_tracker.enabled = False
         mock_language_model._input_tracker = mock_tracker
         
-        # Should not call set_current_texts
-        engine.setup_trackers(["text1", "text2"])
+        engine._setup_trackers(["text1", "text2"])
         mock_tracker.set_current_texts.assert_not_called()
 
     def test_prepare_controllers_with_controllers_true(self, mock_language_model):
@@ -74,7 +72,7 @@ class TestInferenceEngine:
         engine = InferenceEngine(mock_language_model)
         mock_language_model.layers.get_controllers = Mock(return_value=[])
         
-        result = engine.prepare_controllers(with_controllers=True)
+        result = engine._prepare_controllers(with_controllers=True)
         
         assert result == []
         mock_language_model.layers.get_controllers.assert_not_called()
@@ -91,7 +89,7 @@ class TestInferenceEngine:
         
         mock_language_model.layers.get_controllers = Mock(return_value=[controller1, controller2, controller3])
         
-        result = engine.prepare_controllers(with_controllers=False)
+        result = engine._prepare_controllers(with_controllers=False)
         
         assert result == [controller1, controller3]
         controller1.disable.assert_called_once()
@@ -104,7 +102,7 @@ class TestInferenceEngine:
         controller1 = Mock()
         controller2 = Mock()
         
-        engine.restore_controllers([controller1, controller2])
+        engine._restore_controllers([controller1, controller2])
         
         controller1.enable.assert_called_once()
         controller2.enable.assert_called_once()
@@ -117,7 +115,7 @@ class TestInferenceEngine:
         mock_language_model.context.model = Mock(return_value=mock_output)
         
         with patch("torch.inference_mode"):
-            output = engine.run_model_forward(enc, autocast=False, device_type="cpu", autocast_dtype=None)
+            output = engine._run_model_forward(enc, autocast=False, device_type="cpu", autocast_dtype=None)
         
         assert output == mock_output
         mock_language_model.context.model.assert_called_once_with(**enc)
@@ -133,7 +131,7 @@ class TestInferenceEngine:
             with patch("torch.autocast") as mock_autocast:
                 mock_autocast.return_value.__enter__ = Mock()
                 mock_autocast.return_value.__exit__ = Mock(return_value=None)
-                output = engine.run_model_forward(enc, autocast=True, device_type="cuda", autocast_dtype=None)
+                output = engine._run_model_forward(enc, autocast=True, device_type="cuda", autocast_dtype=None)
         
         assert output == mock_output
         mock_autocast.assert_called_once_with("cuda", dtype=torch.float16)
@@ -149,7 +147,7 @@ class TestInferenceEngine:
             with patch("torch.autocast") as mock_autocast:
                 mock_autocast.return_value.__enter__ = Mock()
                 mock_autocast.return_value.__exit__ = Mock(return_value=None)
-                output = engine.run_model_forward(enc, autocast=True, device_type="cuda", autocast_dtype=torch.bfloat16)
+                output = engine._run_model_forward(enc, autocast=True, device_type="cuda", autocast_dtype=torch.bfloat16)
         
         assert output == mock_output
         mock_autocast.assert_called_once_with("cuda", dtype=torch.bfloat16)
@@ -163,7 +161,7 @@ class TestInferenceEngine:
         
         with patch("torch.inference_mode"):
             with patch("torch.autocast") as mock_autocast:
-                output = engine.run_model_forward(enc, autocast=True, device_type="cpu", autocast_dtype=None)
+                output = engine._run_model_forward(enc, autocast=True, device_type="cpu", autocast_dtype=None)
         
         assert output == mock_output
         mock_autocast.assert_not_called()
@@ -262,4 +260,105 @@ class TestInferenceEngine:
         
         with pytest.raises(ValueError, match="Unable to extract logits"):
             engine.extract_logits("invalid")
+
+    def test_infer_texts_no_batching(self, mock_language_model, temp_store):
+        """Test infer_texts without batching."""
+        engine = InferenceEngine(mock_language_model)
+        mock_language_model.store = temp_store
+        texts = ["text1", "text2"]
+        
+        mock_enc = {"input_ids": torch.tensor([[1, 2], [3, 4]])}
+        mock_output = Mock()
+        
+        mock_language_model.tokenize = Mock(return_value=mock_enc)
+        mock_language_model.context.model = Mock(return_value=mock_output)
+        mock_language_model.context.model.eval = Mock()
+        mock_language_model.layers.get_controllers = Mock(return_value=[])
+        mock_language_model.save_detector_metadata = Mock()
+        
+        with patch("amber.language_model.inference.get_device_from_model", return_value=torch.device("cpu")):
+            with patch("amber.language_model.inference.move_tensors_to_device", return_value=mock_enc):
+                with patch("torch.inference_mode"):
+                    output, enc = engine.infer_texts(texts, run_name="test_run")
+        
+        assert output == mock_output
+        assert enc == mock_enc
+        mock_language_model.save_detector_metadata.assert_called_once_with("test_run", 0)
+
+    def test_infer_texts_with_batching(self, mock_language_model, temp_store):
+        """Test infer_texts with batching."""
+        engine = InferenceEngine(mock_language_model)
+        mock_language_model.store = temp_store
+        texts = ["text1", "text2", "text3", "text4"]
+        
+        mock_enc1 = {"input_ids": torch.tensor([[1, 2], [3, 4]])}
+        mock_enc2 = {"input_ids": torch.tensor([[5, 6], [7, 8]])}
+        mock_output1 = Mock()
+        mock_output2 = Mock()
+        
+        mock_language_model.tokenize = Mock(side_effect=[mock_enc1, mock_enc2])
+        mock_language_model.context.model = Mock(side_effect=[mock_output1, mock_output2])
+        mock_language_model.context.model.eval = Mock()
+        mock_language_model.layers.get_controllers = Mock(return_value=[])
+        mock_language_model.save_detector_metadata = Mock()
+        
+        with patch("amber.language_model.inference.get_device_from_model", return_value=torch.device("cpu")):
+            with patch("amber.language_model.inference.move_tensors_to_device", side_effect=[mock_enc1, mock_enc2]):
+                with patch("torch.inference_mode"):
+                    outputs, encodings = engine.infer_texts(texts, run_name="test_run", batch_size=2)
+        
+        assert len(outputs) == 2
+        assert len(encodings) == 2
+        assert mock_language_model.save_detector_metadata.call_count == 2
+
+    def test_infer_texts_no_run_name(self, mock_language_model):
+        """Test infer_texts without run_name (no metadata saving)."""
+        engine = InferenceEngine(mock_language_model)
+        texts = ["text1", "text2"]
+        
+        mock_enc = {"input_ids": torch.tensor([[1, 2], [3, 4]])}
+        mock_output = Mock()
+        
+        mock_language_model.tokenize = Mock(return_value=mock_enc)
+        mock_language_model.context.model = Mock(return_value=mock_output)
+        mock_language_model.context.model.eval = Mock()
+        mock_language_model.layers.get_controllers = Mock(return_value=[])
+        mock_language_model.save_detector_metadata = Mock()
+        
+        with patch("amber.language_model.inference.get_device_from_model", return_value=torch.device("cpu")):
+            with patch("amber.language_model.inference.move_tensors_to_device", return_value=mock_enc):
+                with patch("torch.inference_mode"):
+                    output, enc = engine.infer_texts(texts)
+        
+        assert output == mock_output
+        assert enc == mock_enc
+        mock_language_model.save_detector_metadata.assert_not_called()
+
+    def test_infer_dataset(self, mock_language_model, temp_store):
+        """Test infer_dataset."""
+        from datasets import Dataset
+        from amber.datasets import TextDataset
+        
+        engine = InferenceEngine(mock_language_model)
+        mock_language_model.store = temp_store
+        
+        hf_dataset = Dataset.from_dict({"text": ["text1", "text2", "text3"]})
+        dataset = TextDataset(hf_dataset, temp_store)
+        
+        mock_enc = {"input_ids": torch.tensor([[1, 2], [3, 4], [5, 6]])}
+        mock_output = Mock()
+        
+        mock_language_model.tokenize = Mock(return_value=mock_enc)
+        mock_language_model.context.model = Mock(return_value=mock_output)
+        mock_language_model.context.model.eval = Mock()
+        mock_language_model.layers.get_controllers = Mock(return_value=[])
+        mock_language_model.save_detector_metadata = Mock()
+        
+        with patch("amber.language_model.inference.get_device_from_model", return_value=torch.device("cpu")):
+            with patch("amber.language_model.inference.move_tensors_to_device", return_value=mock_enc):
+                with patch("torch.inference_mode"):
+                    run_name = engine.infer_dataset(dataset, run_name="test_run", batch_size=2)
+        
+        assert run_name == "test_run"
+        assert mock_language_model.save_detector_metadata.call_count == 2
 

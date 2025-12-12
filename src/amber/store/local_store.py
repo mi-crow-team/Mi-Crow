@@ -110,8 +110,13 @@ class LocalStore(Store):
         """
         if isinstance(tensors, dict):
             to_save = tensors
+        elif isinstance(tensors, list):
+            if len(tensors) == 0:
+                to_save = {"_empty_list": torch.tensor([])}
+            else:
+                to_save = {f"item_{i}": t for i, t in enumerate(tensors)}
         else:
-            to_save = {f"item_{i}": t for i, t in enumerate(tensors)}
+            to_save = {}
         # Use the batch key path but append .safetensors extension
         batch_key = self._run_batch_key(run_id, batch_index)
         batch_path = self.base_path / f"{self.runs_prefix}/{run_id}/batch_{batch_index:06d}.safetensors"
@@ -138,6 +143,8 @@ class LocalStore(Store):
         if batch_path.exists():
             loaded = storch.load_file(str(batch_path))
             keys = list(loaded.keys())
+            if keys == ["_empty_list"]:
+                return []
             if keys and all(k.startswith("item_") for k in keys):
                 try:
                     items = sorted(((int(k.split("_", 1)[1]), v) for k, v in loaded.items()), key=lambda x: x[0])
@@ -226,6 +233,10 @@ class LocalStore(Store):
         for p in base.glob("batch_*"):
             if p.is_dir():
                 shutil.rmtree(p, ignore_errors=True)
+        # Delete metadata file
+        metadata_path = self._run_metadata_key(run_id)
+        if metadata_path.exists():
+            metadata_path.unlink()
 
     def put_run_metadata(self, run_id: str, meta: Dict[str, Any]) -> str:
         """Persist metadata for a run.

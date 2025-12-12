@@ -270,16 +270,15 @@ class LanguageModelLayers:
         """
         layer = self._resolve_layer(layer_signature)
         
-        # Use hook's own hook_type if not provided
         if hook_type is None:
             hook_type = self._get_hook_type_from_hook(hook)
         elif isinstance(hook_type, str):
-            # Normalize string to HookType enum (hook.py already has this logic)
             hook_type = HookType(hook_type)
         
         self._validate_hook_registration(layer_signature, hook)
 
-        # Initialize registry entries if needed
+        hook.set_context(self.context)
+
         if layer_signature not in self.context._hook_registry:
             self.context._hook_registry[layer_signature] = {}
 

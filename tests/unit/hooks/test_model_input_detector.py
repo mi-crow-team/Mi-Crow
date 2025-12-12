@@ -157,15 +157,16 @@ class TestModelInputDetectorSetInputsFromEncodings:
             layer_signature="layer_0",
             save_attention_mask=True
         )
+        input_ids = torch.tensor([[1, 2, 3], [4, 5, 6]])
         attention_mask = torch.ones(2, 3)
-        encodings = {"attention_mask": attention_mask}
+        encodings = {"input_ids": input_ids, "attention_mask": attention_mask}
         
         detector.set_inputs_from_encodings(encodings)
         
         captured = detector.get_captured_attention_mask()
         assert captured is not None
-        assert torch.equal(captured, attention_mask.cpu())
-        assert detector.metadata['attention_mask_shape'] == tuple(attention_mask.shape)
+        assert captured.shape == input_ids.shape
+        assert detector.metadata['attention_mask_shape'] == tuple(captured.shape)
 
     def test_set_inputs_from_encodings_with_both(self):
         """Test setting inputs from encodings with both input_ids and attention_mask."""
@@ -267,14 +268,15 @@ class TestModelInputDetectorProcessActivations:
             save_attention_mask=True
         )
         module = nn.Linear(10, 5)
+        input_ids = torch.tensor([[1, 2, 3], [4, 5, 6]])
         attention_mask = torch.ones(2, 3)
-        input_data = ({"attention_mask": attention_mask},)
+        input_data = ({"input_ids": input_ids, "attention_mask": attention_mask},)
         
         detector.process_activations(module, input_data, None)
         
         captured = detector.get_captured_attention_mask()
         assert captured is not None
-        assert torch.equal(captured, attention_mask.cpu())
+        assert captured.shape == input_ids.shape
 
     def test_process_activations_empty_input(self):
         """Test processing activations with empty input."""
@@ -323,16 +325,19 @@ class TestModelInputDetectorProcessActivations:
         
         assert detector.get_captured_input_ids() is None
 
-    def test_process_activations_attention_mask_none_does_not_save(self):
-        """Test that None attention_mask is not saved."""
+    def test_process_activations_attention_mask_none_creates_default_mask(self):
+        """Test that when attention_mask is None, a default mask is created."""
         detector = ModelInputDetector(layer_signature="layer_0", save_attention_mask=True)
         module = nn.Linear(10, 5)
-        # Input that will result in None from _extract_attention_mask
-        input_data = ({"input_ids": torch.tensor([1, 2, 3])},)
+        input_ids = torch.tensor([[1, 2, 3]])
+        input_data = ({"input_ids": input_ids},)
         
         detector.process_activations(module, input_data, None)
         
-        assert detector.get_captured_attention_mask() is None
+        captured = detector.get_captured_attention_mask()
+        assert captured is not None
+        assert captured.shape == input_ids.shape
+        assert torch.all(captured == True)
 
 
 class TestModelInputDetectorGetCaptured:
@@ -359,8 +364,9 @@ class TestModelInputDetectorGetCaptured:
     def test_get_captured_attention_mask_returns_tensor(self):
         """Test that get_captured_attention_mask returns captured tensor."""
         detector = ModelInputDetector(layer_signature="layer_0", save_attention_mask=True)
+        input_ids = torch.tensor([[1, 2, 3], [4, 5, 6]])
         attention_mask = torch.ones(2, 3)
-        detector.set_inputs_from_encodings({"attention_mask": attention_mask})
+        detector.set_inputs_from_encodings({"input_ids": input_ids, "attention_mask": attention_mask})
         
         captured = detector.get_captured_attention_mask()
         
@@ -416,4 +422,190 @@ class TestModelInputDetectorClearCaptured:
         
         assert detector.get_captured_input_ids() is None
         assert 'input_ids_shape' not in detector.metadata
+
+
+class TestModelInputDetectorSpecialTokenMask:
+    """Tests for special token handling in attention mask."""
+
+    def test_init_with_special_token_ids(self):
+        """Test initialization with user-provided special token IDs."""
+        special_ids = [0, 1, 2, 3]
+        detector = ModelInputDetector(
+            layer_signature="layer_0",
+            special_token_ids=special_ids
+        )
+        assert detector.special_token_ids == {0, 1, 2, 3}
+
+    def test_init_with_special_token_ids_set(self):
+        """Test initialization with special token IDs as set."""
+        special_ids = {0, 1, 2}
+        detector = ModelInputDetector(
+            layer_signature="layer_0",
+            special_token_ids=special_ids
+        )
+        assert detector.special_token_ids == {0, 1, 2}
+
+    def test_get_special_token_ids_from_user_provided(self):
+        """Test _get_special_token_ids returns user-provided IDs."""
+        detector = ModelInputDetector(
+            layer_signature="layer_0",
+            special_token_ids=[5, 10, 15]
+        )
+        module = nn.Linear(10, 5)
+        special_ids = detector._get_special_token_ids(module)
+        assert special_ids == {5, 10, 15}
+
+    def test_get_special_token_ids_from_context(self):
+        """Test _get_special_token_ids extracts from context."""
+        from unittest.mock import MagicMock
+        
+        detector = ModelInputDetector(layer_signature="layer_0")
+        mock_context = MagicMock()
+        mock_context.special_token_ids = {0, 1, 2, 3}
+        detector.set_context(mock_context)
+        
+        module = nn.Linear(10, 5)
+        special_ids = detector._get_special_token_ids(module)
+        
+        assert special_ids == {0, 1, 2, 3}
+
+    def test_get_special_token_ids_from_context_when_user_provided_none(self):
+        """Test _get_special_token_ids falls back to context when user provided is None."""
+        from unittest.mock import MagicMock
+        
+        detector = ModelInputDetector(layer_signature="layer_0", special_token_ids=None)
+        mock_context = MagicMock()
+        mock_context.special_token_ids = {100, 101, 102}
+        detector.set_context(mock_context)
+        
+        module = nn.Linear(10, 5)
+        special_ids = detector._get_special_token_ids(module)
+        
+        assert special_ids == {100, 101, 102}
+
+    def test_get_special_token_ids_no_special_tokens(self):
+        """Test _get_special_token_ids returns empty set when no special tokens found."""
+        detector = ModelInputDetector(layer_signature="layer_0")
+        module = nn.Linear(10, 5)  # No tokenizer or config
+        special_ids = detector._get_special_token_ids(module)
+        assert special_ids == set()
+
+    def test_create_combined_attention_mask_with_user_ids(self):
+        """Test _create_combined_attention_mask with user-provided special token IDs."""
+        detector = ModelInputDetector(
+            layer_signature="layer_0",
+            special_token_ids=[0, 2]
+        )
+        module = nn.Linear(10, 5)
+        
+        input_ids = torch.tensor([[0, 1, 2, 3], [2, 4, 5, 0]])
+        attention_mask = torch.ones_like(input_ids, dtype=torch.bool)
+        combined_mask = detector._create_combined_attention_mask(input_ids, attention_mask, module)
+        
+        assert combined_mask.shape == input_ids.shape
+        assert combined_mask.dtype == torch.bool
+        expected_mask = torch.tensor([[False, True, False, True], [False, True, True, False]])
+        assert torch.equal(combined_mask, expected_mask)
+
+    def test_create_combined_attention_mask_no_special_tokens(self):
+        """Test _create_combined_attention_mask preserves attention_mask when no special tokens."""
+        detector = ModelInputDetector(layer_signature="layer_0")
+        module = nn.Linear(10, 5)
+        
+        input_ids = torch.tensor([[1, 2, 3], [4, 5, 6]])
+        attention_mask = torch.tensor([[1, 1, 0], [1, 0, 0]], dtype=torch.bool)
+        combined_mask = detector._create_combined_attention_mask(input_ids, attention_mask, module)
+        
+        assert combined_mask.shape == input_ids.shape
+        assert combined_mask.dtype == torch.bool
+        assert torch.equal(combined_mask, attention_mask)
+
+    def test_create_combined_attention_mask_shape(self):
+        """Test that combined mask shape matches input_ids shape."""
+        detector = ModelInputDetector(
+            layer_signature="layer_0",
+            special_token_ids=[0]
+        )
+        module = nn.Linear(10, 5)
+        
+        for shape in [(1, 5), (2, 10)]:
+            input_ids = torch.randint(0, 100, shape)
+            attention_mask = torch.ones(shape, dtype=torch.bool)
+            combined_mask = detector._create_combined_attention_mask(input_ids, attention_mask, module)
+            assert combined_mask.shape == input_ids.shape
+
+    def test_create_combined_attention_mask_with_none_attention_mask(self):
+        """Test _create_combined_attention_mask creates mask when attention_mask is None."""
+        detector = ModelInputDetector(
+            layer_signature="layer_0",
+            special_token_ids=[0, 2]
+        )
+        module = nn.Linear(10, 5)
+        
+        input_ids = torch.tensor([[0, 1, 2, 3], [2, 4, 5, 0]])
+        combined_mask = detector._create_combined_attention_mask(input_ids, None, module)
+        
+        assert combined_mask.shape == input_ids.shape
+        assert combined_mask.dtype == torch.bool
+        expected_mask = torch.tensor([[False, True, False, True], [False, True, True, False]])
+        assert torch.equal(combined_mask, expected_mask)
+
+    def test_create_combined_attention_mask_with_context_special_tokens(self):
+        """Test _create_combined_attention_mask uses context special tokens when available."""
+        from unittest.mock import MagicMock
+        
+        detector = ModelInputDetector(layer_signature="layer_0", special_token_ids=None)
+        mock_context = MagicMock()
+        mock_context.special_token_ids = {0, 2}
+        detector.set_context(mock_context)
+        
+        module = nn.Linear(10, 5)
+        input_ids = torch.tensor([[0, 1, 2, 3], [2, 4, 5, 0]])
+        attention_mask = torch.ones_like(input_ids, dtype=torch.bool)
+        combined_mask = detector._create_combined_attention_mask(input_ids, attention_mask, module)
+        
+        assert combined_mask.shape == input_ids.shape
+        expected_mask = torch.tensor([[False, True, False, True], [False, True, True, False]])
+        assert torch.equal(combined_mask, expected_mask)
+
+    def test_process_activations_with_combined_attention_mask(self):
+        """Test process_activations creates combined attention mask excluding special tokens."""
+        detector = ModelInputDetector(
+            layer_signature="layer_0",
+            save_attention_mask=True,
+            special_token_ids=[0, 2]
+        )
+        module = nn.Linear(10, 5)
+        input_ids = torch.tensor([[0, 1, 2, 3]])
+        attention_mask = torch.ones_like(input_ids, dtype=torch.bool)
+        input_data = ({"input_ids": input_ids, "attention_mask": attention_mask},)
+        
+        detector.process_activations(module, input_data, None)
+        
+        captured = detector.get_captured_attention_mask()
+        assert captured is not None
+        assert captured.shape == input_ids.shape
+        assert captured.dtype == torch.bool
+        expected_mask = torch.tensor([[False, True, False, True]])
+        assert torch.equal(captured, expected_mask)
+
+    def test_set_inputs_from_encodings_with_combined_attention_mask(self):
+        """Test set_inputs_from_encodings creates combined attention mask excluding special tokens."""
+        detector = ModelInputDetector(
+            layer_signature="layer_0",
+            save_attention_mask=True,
+            special_token_ids=[0, 2]
+        )
+        input_ids = torch.tensor([[0, 1, 2, 3], [2, 4, 5, 0]])
+        attention_mask = torch.ones_like(input_ids, dtype=torch.bool)
+        encodings = {"input_ids": input_ids, "attention_mask": attention_mask}
+        
+        detector.set_inputs_from_encodings(encodings)
+        
+        captured = detector.get_captured_attention_mask()
+        assert captured is not None
+        assert captured.shape == input_ids.shape
+        assert captured.dtype == torch.bool
+        expected_mask = torch.tensor([[False, True, False, True], [False, True, True, False]])
+        assert torch.equal(captured, expected_mask)
 
