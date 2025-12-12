@@ -41,7 +41,9 @@ class TestOvercompleteIntegration:
             config = SaeTrainingConfig(use_wandb=False)
             result = trainer.train(store, "run_1", "layer_0", config)
             
-            assert result["loss"] == [1.0, 0.5, 0.3]
+            assert "history" in result
+            assert "training_run_id" in result
+            assert result["history"]["loss"] == [1.0, 0.5, 0.3]
             mock_train_sae_amp.assert_called_once()
 
     def test_overcomplete_unavailable_raises_error(self):
