@@ -54,7 +54,7 @@ def _extract_special_token_ids(tokenizer: PreTrainedTokenizerBase) -> Set[int]:
     
     if hasattr(tokenizer, 'all_special_ids'):
         all_special_ids = tokenizer.all_special_ids
-        if all_special_ids:
+        if all_special_ids and isinstance(all_special_ids, (list, tuple, set)):
             special_ids.update(all_special_ids)
     
     return special_ids
@@ -122,6 +122,11 @@ class LanguageModel:
     def store(self) -> Store:
         """Get the store instance."""
         return self.context.store
+
+    @store.setter
+    def store(self, value: Store) -> None:
+        """Set the store instance."""
+        self.context.store = value
 
     def tokenize(self, texts: Sequence[str], **kwargs: Any):
         """

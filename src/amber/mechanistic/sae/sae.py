@@ -40,20 +40,30 @@ class Sae(Controller, Detector, abc.ABC):
         Controller.__init__(self, hook_type=HookType.FORWARD, hook_id=hook_id)
         Detector.__init__(self, hook_type=HookType.FORWARD, hook_id=hook_id, store=store)
 
-        self.context = AutoencoderContext(
+        self._autoencoder_context = AutoencoderContext(
             autoencoder=self,
             n_latents=n_latents,
             n_inputs=n_inputs
         )
-        self.context.device = device
+        self._autoencoder_context.device = device
         self.sae_engine: OvercompleteSAE = self._initialize_sae_engine()
-        self.concepts = AutoencoderConcepts(self.context)
+        self.concepts = AutoencoderConcepts(self._autoencoder_context)
 
         # Text tracking flag
         self._text_tracking_enabled: bool = False
 
         # Training component
         self.trainer = SaeTrainer(self)
+
+    @property
+    def context(self) -> AutoencoderContext:
+        """Get the AutoencoderContext associated with this SAE."""
+        return self._autoencoder_context
+
+    @context.setter
+    def context(self, value: AutoencoderContext) -> None:
+        """Set the AutoencoderContext for this SAE."""
+        self._autoencoder_context = value
 
     @abc.abstractmethod
     def _initialize_sae_engine(self) -> OvercompleteSAE:

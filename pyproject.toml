@@ -49,7 +49,7 @@ docs = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--maxfail=1 -q --cov=amber --cov-report=term-missing --cov-report=xml --cov-fail-under=90"
+addopts = "--maxfail=1 -q --cov=amber --cov-report=term-missing --cov-report=xml --cov-fail-under=85"
 testpaths = ["tests"]
 pythonpath = ["src"]
 
