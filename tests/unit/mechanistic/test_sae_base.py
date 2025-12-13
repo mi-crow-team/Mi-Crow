@@ -597,37 +597,165 @@ class TestSaeMultipleInheritance:
         assert len(process_called) == 0
         assert len(modify_called) == 0
         assert result is None
-        """Test that SAE's _hook_fn calls both process_activations and modify_activations."""
-        sae = ConcreteSae(n_latents=5, n_inputs=10)
-        module = Mock()
+
+
+class TestSaeContext:
+    """Tests for SAE context management."""
+
+    def test_context_property_getter(self):
+        """Test context property getter."""
+        sae = ConcreteSae(n_latents=100, n_inputs=200)
+        context = sae.context
         
-        # Mock both methods to track calls
-        process_called = []
-        modify_called = []
+        assert context is not None
+        assert context.autoencoder == sae
+        assert context.n_latents == 100
+        assert context.n_inputs == 200
+
+    def test_context_property_setter(self):
+        """Test context property setter."""
+        from amber.mechanistic.sae.autoencoder_context import AutoencoderContext
         
-        def mock_process_activations(module, input, output):
-            process_called.append((module, input, output))
+        sae = ConcreteSae(n_latents=100, n_inputs=200)
+        new_context = AutoencoderContext(
+            autoencoder=sae,
+            n_latents=150,
+            n_inputs=250
+        )
         
-        def mock_modify_activations(module, inputs, output):
-            modify_called.append((module, inputs, output))
-            return output * 0.5 if output is not None else None
+        sae.context = new_context
         
-        sae.process_activations = mock_process_activations
-        sae.modify_activations = mock_modify_activations
+        assert sae.context == new_context
+        assert sae.context.n_latents == 150
+        assert sae.context.n_inputs == 250
+
+    def test_set_context_syncs_language_model_context(self):
+        """Test that set_context syncs LanguageModelContext to AutoencoderContext."""
+        from amber.language_model.context import LanguageModelContext
+        from unittest.mock import Mock
         
-        # Create test output
-        output = torch.randn(2, 10)
+        sae = ConcreteSae(n_latents=100, n_inputs=200)
+        lm_context = LanguageModelContext(language_model=Mock())
+        lm_context.language_model = Mock()
+        lm_context.model_id = "test_model"
+        lm_context.store = Mock()
         
-        # Call _hook_fn (which should call both methods)
-        result = sae._hook_fn(module, (), output)
+        sae.layer_signature = 5
+        sae.set_context(lm_context)
         
-        # Verify both methods were called
-        assert len(process_called) == 1, "process_activations should be called once"
-        assert len(modify_called) == 1, "modify_activations should be called once"
+        assert sae.context.lm == lm_context.language_model
+        assert sae.context.model_id == "test_model"
+        assert sae.context.store == lm_context.store
+        assert sae.context.lm_layer_signature == 5
+
+    def test_set_context_sets_hook_context(self):
+        """Test that set_context also sets Hook context."""
+        from amber.language_model.context import LanguageModelContext
+        from unittest.mock import Mock
         
-        # Verify process_activations was called first (with original output)
-        assert process_called[0][2] is output
+        sae = ConcreteSae(n_latents=100, n_inputs=200)
+        lm_context = LanguageModelContext(language_model=Mock())
         
-        # Verify modify_activations was called after
-        assert modify_called[0][2] is output
+        sae.set_context(lm_context)
+        
+        assert sae._context == lm_context
+
+    def test_set_context_handles_none_context(self):
+        """Test that set_context handles None context gracefully."""
+        sae = ConcreteSae(n_latents=100, n_inputs=200)
+        
+        sae.set_context(None)
+        
+        assert sae._context is None
+
+    def test_set_context_preserves_existing_store(self):
+        """Test that set_context preserves existing store if context store is None."""
+        from amber.language_model.context import LanguageModelContext
+        from unittest.mock import Mock
+        
+        sae = ConcreteSae(n_latents=100, n_inputs=200)
+        existing_store = Mock()
+        sae.context.store = existing_store
+        
+        lm_context = LanguageModelContext(language_model=Mock())
+        lm_context.store = None
+        
+        sae.set_context(lm_context)
+        
+        assert sae.context.store == existing_store
+
+    def test_set_context_updates_store_when_context_has_store(self):
+        """Test that set_context updates store when context has store."""
+        from amber.language_model.context import LanguageModelContext
+        from unittest.mock import Mock
+        
+        sae = ConcreteSae(n_latents=100, n_inputs=200)
+        new_store = Mock()
+        
+        lm_context = LanguageModelContext(language_model=Mock())
+        lm_context.store = new_store
+        
+        sae.set_context(lm_context)
+        
+        assert sae.context.store == new_store
+
+
+class TestSaeApplyActivationFn:
+    """Tests for _apply_activation_fn static method."""
+
+    @pytest.mark.parametrize("activation_fn,expected_fn", [
+        ("relu", torch.relu),
+        ("linear", lambda x: x),
+        (None, lambda x: x),
+    ])
+    def test_apply_activation_fn_valid(self, activation_fn, expected_fn):
+        """Test _apply_activation_fn with valid activation functions."""
+        tensor = torch.tensor([-2.0, -1.0, 0.0, 1.0, 2.0])
+        result = Sae._apply_activation_fn(tensor, activation_fn)
+        expected = expected_fn(tensor)
+        
+        assert torch.equal(result, expected)
+
+    def test_apply_activation_fn_relu_zeros_negatives(self):
+        """Test that relu activation zeros negative values."""
+        tensor = torch.tensor([-5.0, -1.0, 0.0, 1.0, 5.0])
+        result = Sae._apply_activation_fn(tensor, "relu")
+        expected = torch.tensor([0.0, 0.0, 0.0, 1.0, 5.0])
+        
+        assert torch.equal(result, expected)
+
+    def test_apply_activation_fn_linear_preserves_values(self):
+        """Test that linear activation preserves all values."""
+        tensor = torch.tensor([-5.0, -1.0, 0.0, 1.0, 5.0])
+        result = Sae._apply_activation_fn(tensor, "linear")
+        
+        assert torch.equal(result, tensor)
+
+    def test_apply_activation_fn_none_preserves_values(self):
+        """Test that None activation preserves all values."""
+        tensor = torch.tensor([-5.0, -1.0, 0.0, 1.0, 5.0])
+        result = Sae._apply_activation_fn(tensor, None)
+        
+        assert torch.equal(result, tensor)
+
+    def test_apply_activation_fn_invalid_raises_error(self):
+        """Test that invalid activation function raises ValueError."""
+        tensor = torch.tensor([1.0])
+        
+        with pytest.raises(ValueError, match="Unknown activation function"):
+            Sae._apply_activation_fn(tensor, "sigmoid")
+        
+        with pytest.raises(ValueError, match="Unknown activation function"):
+            Sae._apply_activation_fn(tensor, "tanh")
+        
+        with pytest.raises(ValueError, match="Unknown activation function"):
+            Sae._apply_activation_fn(tensor, "")
+
+    def test_apply_activation_fn_preserves_tensor_properties(self):
+        """Test that _apply_activation_fn preserves tensor device and dtype."""
+        tensor = torch.tensor([-1.0, 0.0, 1.0], dtype=torch.float32)
+        result = Sae._apply_activation_fn(tensor, "relu")
+        
+        assert result.dtype == tensor.dtype
+        assert result.device == tensor.device
 

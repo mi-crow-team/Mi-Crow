@@ -39,8 +39,7 @@ class AutoencoderConcepts:
 
     def enable_text_tracking(self):
         """Enable text tracking using context parameters."""
-        if not (self.context.text_tracking_enabled and
-                self.context.lm is not None):
+        if self.context.lm is None:
             raise ValueError("LanguageModel must be set in context to enable tracking")
 
         # Store tracking parameters
@@ -174,11 +173,16 @@ class AutoencoderConcepts:
             heap = self._top_texts_heaps[j]
 
             # For each text in the batch, find the max activation and its token position
+            texts_processed = 0
+            texts_added = 0
+            texts_updated = 0
+            texts_skipped_duplicate = 0
             for batch_idx in range(original_B):
                 if batch_idx >= len(texts):
                     continue
 
                 text = texts[batch_idx]
+                texts_processed += 1
 
                 # Get activations for this text (all token positions)
                 if original_shape is not None and len(original_shape) == 3:
@@ -213,7 +217,9 @@ class AutoencoderConcepts:
                 # Check if we already have this text in the heap
                 # If so, only update if this activation is better
                 existing_entry = None
+                heap_texts = []
                 for heap_idx, (heap_adj, (heap_score, heap_text, heap_token_idx)) in enumerate(heap):
+                    heap_texts.append(heap_text[:50] if len(heap_text) > 50 else heap_text)
                     if heap_text == text:
                         existing_entry = (heap_idx, heap_adj, heap_score, heap_token_idx)
                         break
@@ -225,14 +231,19 @@ class AutoencoderConcepts:
                         # Replace with better activation
                         heap[heap_idx] = (adj, (max_score, text, token_idx))
                         heapq.heapify(heap)  # Re-heapify after modification
+                        texts_updated += 1
+                    else:
+                        texts_skipped_duplicate += 1
                 else:
                     # New text, add to heap
                     if len(heap) < self._text_tracking_k:
                         heapq.heappush(heap, (adj, (max_score, text, token_idx)))
+                        texts_added += 1
                     else:
                         # Compare with smallest adjusted score; replace if better
                         if adj > heap[0][0]:
                             heapq.heapreplace(heap, (adj, (max_score, text, token_idx)))
+                            texts_added += 1
 
     def get_top_texts_for_neuron(self, neuron_idx: int, top_m: int | None = None) -> list[NeuronText]:
         """Get top texts for a specific neuron."""

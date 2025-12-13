@@ -277,6 +277,7 @@ class LanguageModelLayers:
         
         self._validate_hook_registration(layer_signature, hook)
 
+        hook.layer_signature = layer_signature
         hook.set_context(self.context)
 
         if layer_signature not in self.context._hook_registry:

@@ -26,6 +26,7 @@ class StoreDataloader:
             key: str = "activations",
             batch_size: int = 32,
             dtype: Optional[torch.dtype] = None,
+            device: Optional[torch.device] = None,
             max_batches: Optional[int] = None,
             logger_instance=None
     ):
@@ -39,6 +40,7 @@ class StoreDataloader:
             key: Tensor key to load (default: "activations")
             batch_size: Mini-batch size
             dtype: Optional dtype to cast activations to
+            device: Optional device to move tensors to
             max_batches: Optional limit on number of batches per epoch
             logger_instance: Optional logger instance for debug messages
         """
@@ -48,6 +50,7 @@ class StoreDataloader:
         self.key = key
         self.batch_size = batch_size
         self.dtype = dtype
+        self.device = device
         self.max_batches = max_batches
         self.logger = logger_instance or logger
 
@@ -106,6 +109,10 @@ class StoreDataloader:
             # dtype handling
             if self.dtype is not None:
                 acts = acts.to(self.dtype)
+            
+            # device handling
+            if self.device is not None:
+                acts = acts.to(self.device)
 
             # Yield mini-batches
             bs = max(1, int(self.batch_size))

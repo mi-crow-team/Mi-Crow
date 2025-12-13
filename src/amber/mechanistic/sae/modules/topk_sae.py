@@ -15,6 +15,16 @@ from amber.utils import get_logger
 logger = get_logger(__name__)
 
 
+class TopKSaeTrainingConfig(SaeTrainingConfig):
+    """Training configuration for TopK SAE models.
+    
+    Extends SaeTrainingConfig with TopK-specific training parameters.
+    Currently, TopK SAE uses the same training parameters as the base SAE,
+    but this class provides a clear extension point for future TopK-specific options.
+    """
+    pass
+
+
 class TopKSae(Sae):
     def __init__(
             self,
@@ -83,8 +93,9 @@ class TopKSae(Sae):
             store: Store,
             run_id: str,
             layer_signature: str | int,
-            config: SaeTrainingConfig | None = None
-    ) -> dict[str, list[float]]:
+            config: TopKSaeTrainingConfig | None = None,
+            training_run_id: str | None = None
+    ) -> dict[str, Any]:
         """
         Train TopKSAE using activations from a Store.
         
@@ -96,9 +107,13 @@ class TopKSae(Sae):
             config: Training configuration
             
         Returns:
-            Dictionary with training history
+            Dictionary with keys:
+                - "history": Training history dictionary
+                - "training_run_id": Training run ID where outputs were saved
         """
-        return self.trainer.train(store, run_id, layer_signature, config)
+        if config is None:
+            config = TopKSaeTrainingConfig()
+        return self.trainer.train(store, run_id, layer_signature, config, training_run_id)
 
     def modify_activations(
             self,
@@ -293,10 +308,13 @@ class TopKSae(Sae):
         p = Path(path)
 
         # Load payload
-        payload = torch.load(
-            p,
-            map_location='cuda' if torch.cuda.is_available() else 'cpu'
-        )
+        if torch.cuda.is_available():
+            map_location = 'cuda'
+        elif torch.backends.mps.is_available():
+            map_location = 'mps'
+        else:
+            map_location = 'cpu'
+        payload = torch.load(p, map_location=map_location)
 
         # Extract our metadata
         if "amber_metadata" not in payload:
@@ -331,10 +349,13 @@ class TopKSae(Sae):
 
         # Load concepts state
         if concepts_state:
+            device = topk_sae.context.device
+            if isinstance(device, str):
+                device = torch.device(device)
             if "multiplication" in concepts_state:
-                topk_sae.concepts.multiplication.data = concepts_state["multiplication"]
+                topk_sae.concepts.multiplication.data = concepts_state["multiplication"].to(device)
             if "bias" in concepts_state:
-                topk_sae.concepts.bias.data = concepts_state["bias"]
+                topk_sae.concepts.bias.data = concepts_state["bias"].to(device)
 
         # Note: Top texts loading was removed as serialization methods were removed
         # Top texts should be exported/imported separately if needed

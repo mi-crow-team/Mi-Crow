@@ -25,6 +25,7 @@ dependencies = [
     "wandb>=0.22.1",
     "pytest>=8.4.2",
     "pytest-xdist>=3.8.0",
+    "seaborn>=0.13.2",
 ]
 dynamic = ["version"]
 
