@@ -308,10 +308,13 @@ class TopKSae(Sae):
         p = Path(path)
 
         # Load payload
-        payload = torch.load(
-            p,
-            map_location='cuda' if torch.cuda.is_available() else 'cpu'
-        )
+        if torch.cuda.is_available():
+            map_location = 'cuda'
+        elif torch.backends.mps.is_available():
+            map_location = 'mps'
+        else:
+            map_location = 'cpu'
+        payload = torch.load(p, map_location=map_location)
 
         # Extract our metadata
         if "amber_metadata" not in payload:

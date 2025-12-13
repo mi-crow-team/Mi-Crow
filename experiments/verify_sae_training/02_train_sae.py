@@ -1,4 +1,3 @@
-import json
 import torch
 from pathlib import Path
 
@@ -15,12 +14,12 @@ STORE_DIR = Path(__file__).parent / "store"
 N_LATENTS_MULTIPLIER = 4
 TOP_K = 8
 
-EPOCHS = 1
+EPOCHS = 10
 BATCH_SIZE_TRAIN = 32
 LR = 1e-3
 L1_LAMBDA = 1e-4
 
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = "mps"
 DTYPE = torch.float16 if torch.cuda.is_available() else None
 
 
@@ -100,6 +99,7 @@ def main():
     logger.info(f"   L1 lambda: {L1_LAMBDA}")
     logger.info(f"   Device: {DEVICE}")
     logger.info(f"   Monitoring: detailed (level 2)")
+    logger.info(f"   Memory efficient: True")
 
     use_amp = DEVICE != "cpu"
     if not use_amp:
@@ -117,6 +117,7 @@ def main():
         amp_dtype=DTYPE if use_amp else None,
         clip_grad=1.0,
         monitoring=2,
+        memory_efficient=True,
     )
 
     logger.info("📦 Checking dataloader...")

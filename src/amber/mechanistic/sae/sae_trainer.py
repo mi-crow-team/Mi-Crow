@@ -5,6 +5,7 @@ from typing import Any, Optional, TYPE_CHECKING
 from datetime import datetime
 import json
 import logging
+import gc
 
 import torch
 
@@ -43,6 +44,7 @@ class SaeTrainingConfig:
     wandb_config: Optional[dict[str, Any]] = None  # Additional config to log to wandb
     wandb_mode: str = "online"  # Wandb mode: "online", "offline", or "disabled"
     wandb_slow_metrics_frequency: int = 50  # Log slow metrics (L0, dead features) every N epochs (default: 50)
+    memory_efficient: bool = False  # Enable memory-efficient processing (moves tensors to CPU, clears cache)
 
 
 class SaeTrainer:
@@ -78,11 +80,13 @@ class SaeTrainer:
         device = self._setup_device(cfg)
         optimizer = self._create_optimizer(cfg)
         criterion = self._create_criterion(cfg)
-        dataloader = self._create_dataloader(store, run_id, layer_signature, cfg)
+        dataloader = self._create_dataloader(store, run_id, layer_signature, cfg, device)
         monitoring = self._configure_logging(cfg, run_id)
 
         logs = self._run_training(cfg, dataloader, criterion, optimizer, device, monitoring)
         history = self._process_training_logs(logs, cfg)
+        if cfg.memory_efficient:
+            self._clear_memory()
 
         if wandb_run is not None:
             self._log_to_wandb(wandb_run, history, cfg)
@@ -180,7 +184,7 @@ class SaeTrainer:
             return recon_loss + l1_penalty
         return criterion
 
-    def _create_dataloader(self, store: "Store", run_id: str, layer_signature: str | int, cfg: SaeTrainingConfig) -> StoreDataloader:
+    def _create_dataloader(self, store: "Store", run_id: str, layer_signature: str | int, cfg: SaeTrainingConfig, device: torch.device) -> StoreDataloader:
         return StoreDataloader(
             store=store,
             run_id=run_id,
@@ -188,6 +192,7 @@ class SaeTrainer:
             key="activations",
             batch_size=cfg.batch_size,
             dtype=cfg.dtype,
+            device=device,
             max_batches=cfg.max_batches_per_epoch,
             logger_instance=self.logger
         )
@@ -288,54 +293,119 @@ class SaeTrainer:
             history["r2"] = [0.0] * len(history["loss"])
 
     def _extract_sparsity_metrics(self, history: dict[str, list[float]], logs: dict[str, Any], cfg: SaeTrainingConfig) -> None:
+        memory_efficient = cfg.memory_efficient
+        num_epochs = len(history["loss"])
+        
+        if "dead_features" in logs and isinstance(logs["dead_features"], list) and len(logs["dead_features"]) == num_epochs:
+            history["dead_features_pct"] = logs["dead_features"]
+        else:
+            history["dead_features_pct"] = [0.0] * num_epochs
+        
+        if "z_sparsity" in logs and isinstance(logs["z_sparsity"], list) and len(logs["z_sparsity"]) == num_epochs:
+            history["l0"] = logs["z_sparsity"]
+        else:
+            history["l0"] = [0.0] * num_epochs
+        
         if "z" in logs and logs["z"]:
-            n_latents = self._get_n_latents()
-            slow_metrics_freq = cfg.wandb_slow_metrics_frequency if cfg.use_wandb else 1
-
-            for epoch_idx, z_batch_list in enumerate(logs["z"]):
-                if isinstance(z_batch_list, list) and len(z_batch_list) > 0:
-                    history["l1"].append(self._compute_l1(z_batch_list))
-
-                    should_compute_slow = (epoch_idx % slow_metrics_freq == 0) or (epoch_idx == len(logs["z"]) - 1)
-
-                    if should_compute_slow:
-                        l0, dead_pct = self._compute_slow_metrics(z_batch_list, n_latents)
-                        history["l0"].append(l0)
-                        history["dead_features_pct"].append(dead_pct)
+            first_z = logs["z"][0] if len(logs["z"]) > 0 else None
+            is_flat_list = isinstance(first_z, torch.Tensor) if first_z is not None else False
+            
+            if is_flat_list:
+                batches_per_epoch = len(logs["z"]) // num_epochs if num_epochs > 0 else len(logs["z"])
+                
+                for epoch_idx in range(num_epochs):
+                    start_idx = epoch_idx * batches_per_epoch
+                    end_idx = start_idx + batches_per_epoch
+                    epoch_z_tensors = logs["z"][start_idx:end_idx]
+                    
+                    if epoch_z_tensors:
+                        l1_val = self._compute_l1(epoch_z_tensors, memory_efficient)
+                        history["l1"].append(l1_val)
                     else:
-                        history["l0"].append(None)
-                        history["dead_features_pct"].append(None)
-                else:
-                    history["l1"].append(0.0)
-                    history["l0"].append(0.0)
-                    history["dead_features_pct"].append(0.0)
+                        history["l1"].append(0.0)
+            else:
+                n_latents = self._get_n_latents()
+                slow_metrics_freq = cfg.wandb_slow_metrics_frequency if cfg.use_wandb else 1
+
+                for epoch_idx, z_batch_list in enumerate(logs["z"]):
+                    if isinstance(z_batch_list, list) and len(z_batch_list) > 0:
+                        l1_val = self._compute_l1(z_batch_list, memory_efficient)
+                        history["l1"].append(l1_val)
+
+                        should_compute_slow = (epoch_idx % slow_metrics_freq == 0) or (epoch_idx == len(logs["z"]) - 1)
+
+                        if should_compute_slow:
+                            l0, dead_pct = self._compute_slow_metrics(z_batch_list, n_latents, memory_efficient)
+                            if len(history["l0"]) <= epoch_idx:
+                                history["l0"].extend([None] * (epoch_idx + 1 - len(history["l0"])))
+                            history["l0"][epoch_idx] = l0
+                            if len(history["dead_features_pct"]) <= epoch_idx:
+                                history["dead_features_pct"].extend([None] * (epoch_idx + 1 - len(history["dead_features_pct"])))
+                            history["dead_features_pct"][epoch_idx] = dead_pct
+                        else:
+                            if len(history["l0"]) <= epoch_idx:
+                                history["l0"].extend([None] * (epoch_idx + 1 - len(history["l0"])))
+                            history["l0"].append(None)
+                            if len(history["dead_features_pct"]) <= epoch_idx:
+                                history["dead_features_pct"].extend([None] * (epoch_idx + 1 - len(history["dead_features_pct"])))
+                            history["dead_features_pct"].append(None)
+                        
+                        if memory_efficient:
+                            del z_batch_list
+                            if epoch_idx % 5 == 0:
+                                self._clear_memory()
+                    else:
+                        history["l1"].append(0.0)
         elif "z_sparsity" in logs:
             history["l1"] = logs["z_sparsity"]
-            history["l0"] = [0.0] * len(history["loss"])
-            history["dead_features_pct"] = [0.0] * len(history["loss"])
         else:
-            history["l1"] = [0.0] * len(history["loss"])
-            history["l0"] = [0.0] * len(history["loss"])
-            history["dead_features_pct"] = [0.0] * len(history["loss"])
+            history["l1"] = [0.0] * num_epochs
+        
+        if memory_efficient and "z" in logs:
+            del logs["z"]
+            self._clear_memory()
 
     def _get_n_latents(self) -> Optional[int]:
         if hasattr(self.sae, 'context') and hasattr(self.sae.context, 'n_latents'):
             return self.sae.context.n_latents
         return None
 
-    def _compute_l1(self, z_batch_list: list[torch.Tensor]) -> float:
-        l1_vals = [z.abs().mean().item() for z in z_batch_list if isinstance(z, torch.Tensor)]
+    def _clear_memory(self) -> None:
+        """Clear GPU/MPS memory cache and run garbage collection."""
+        gc.collect()
+        if torch.backends.mps.is_available():
+            torch.mps.empty_cache()
+        elif torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+    def _compute_l1(self, z_batch_list: list[torch.Tensor], memory_efficient: bool = False) -> float:
+        l1_vals = []
+        for z in z_batch_list:
+            if isinstance(z, torch.Tensor):
+                if memory_efficient and z.device.type != "cpu":
+                    z_cpu = z.cpu()
+                    l1_vals.append(z_cpu.abs().mean().item())
+                    del z
+                else:
+                    l1_vals.append(z.abs().mean().item())
         return sum(l1_vals) / len(l1_vals) if l1_vals else 0.0
 
-    def _compute_slow_metrics(self, z_batch_list: list[torch.Tensor], n_latents: Optional[int]) -> tuple[float, float]:
+    def _compute_slow_metrics(self, z_batch_list: list[torch.Tensor], n_latents: Optional[int], memory_efficient: bool = False) -> tuple[float, float]:
         l0_vals = []
         all_z_epoch = []
         
         for z in z_batch_list:
             if isinstance(z, torch.Tensor):
-                active = (z.abs() > 1e-6).float()
-                l0_vals.append(active.sum(dim=-1).mean().item())
-                all_z_epoch.append(z)
+                if memory_efficient and z.device.type != "cpu":
+                    z_cpu = z.cpu()
+                    active = (z_cpu.abs() > 1e-6).float()
+                    l0_vals.append(active.sum(dim=-1).mean().item())
+                    all_z_epoch.append(z_cpu)
+                    del z
+                else:
+                    active = (z.abs() > 1e-6).float()
+                    l0_vals.append(active.sum(dim=-1).mean().item())
+                    all_z_epoch.append(z)
 
         l0 = sum(l0_vals) / len(l0_vals) if l0_vals else 0.0
 
@@ -344,9 +414,13 @@ class SaeTrainer:
             feature_activity = (z_concatenated.abs() > 1e-6).any(dim=0).float()
             dead_count = (feature_activity == 0).sum().item()
             dead_features_pct = dead_count / n_latents * 100.0 if n_latents > 0 else 0.0
+            if memory_efficient:
+                del z_concatenated, feature_activity
         else:
             dead_features_pct = 0.0
 
+        if memory_efficient:
+            del all_z_epoch
         return l0, dead_features_pct
 
     def _log_to_wandb(self, wandb_run: Any, history: dict[str, list[float]], cfg: SaeTrainingConfig) -> None:
