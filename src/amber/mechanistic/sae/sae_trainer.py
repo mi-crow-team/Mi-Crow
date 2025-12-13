@@ -301,10 +301,7 @@ class SaeTrainer:
         else:
             history["dead_features_pct"] = [0.0] * num_epochs
         
-        if "z_sparsity" in logs and isinstance(logs["z_sparsity"], list) and len(logs["z_sparsity"]) == num_epochs:
-            history["l0"] = logs["z_sparsity"]
-        else:
-            history["l0"] = [0.0] * num_epochs
+        history["l0"] = [0.0] * num_epochs
         
         if "z" in logs and logs["z"]:
             first_z = logs["z"][0] if len(logs["z"]) > 0 else None

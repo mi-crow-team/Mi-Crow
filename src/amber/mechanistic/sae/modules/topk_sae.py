@@ -349,10 +349,13 @@ class TopKSae(Sae):
 
         # Load concepts state
         if concepts_state:
+            device = topk_sae.context.device
+            if isinstance(device, str):
+                device = torch.device(device)
             if "multiplication" in concepts_state:
-                topk_sae.concepts.multiplication.data = concepts_state["multiplication"]
+                topk_sae.concepts.multiplication.data = concepts_state["multiplication"].to(device)
             if "bias" in concepts_state:
-                topk_sae.concepts.bias.data = concepts_state["bias"]
+                topk_sae.concepts.bias.data = concepts_state["bias"].to(device)
 
         # Note: Top texts loading was removed as serialization methods were removed
         # Top texts should be exported/imported separately if needed
