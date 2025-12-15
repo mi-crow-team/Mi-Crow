@@ -1,4 +1,15 @@
-<!-- 83a10087-efc7-4b48-bfc7-e8b63cf4a7e3 6b0da815-7e7d-4d77-8d4b-f9715bfede32 -->
+---
+name: Plan raportu implementacji modułów i automatyzacji
+overview: ""
+todos:
+  - id: 41a71e17-1a66-482a-927c-8b8739cedd36
+    content: Utworzenie pliku docs/automation.md z opisem wszystkich procedur automatyzacji (UV, pre-commit, ruff, pytest, GitHub Actions, MkD
+    status: pending
+  - id: ab21d40e-3967-484a-8a10-8dd60a424cb5
+    content: Utworzenie pliku docs/modules.md z dokumentacją wszystkich modułów, ich parametrów i konfiguracjiAktualizacja mkdocs.yml - dodanie nowych sekcji do nawigacjiAktualizacja docs/index.md - dodanie linków do nowych sekcji dokumentacjiUtworzenie pliku docs/automation.md z opisem wszystkich procedur automatyzacji (UV, pre-commit, ruff, pytest, GitHub Actions, MkDocs)Utworzenie pliku docs/modules.md z dokumentacją wszystkich modułów, ich parametrów i konfiguracjiAktualizacja mkdocs.yml - dodanie nowych sekcji do nawigacjiAktualizacja docs/index.md - dodanie linków do nowych sekcji dokumentacUtworzenie pliku docs/automation.md z opisem wszystkich procedur automatyzacji (UV, pre-commit, ruff, pytest, GitHub Actions, MkDocs)Utworzenie pliku docs/modules.md z dokumentacją wszystkich modułów, ich parametrów i konfiguracjiAktualizacja mkdocs.yml - dodanie nowych sekcji do nawigacjiAktualizacja docs/index.md - dodanie linków do nowych sekcji dokumentacji
+    status: pending
+---
+
 # Plan raportu implementacji modułów i automatyzacji
 
 ## Cel
@@ -106,8 +117,3 @@ Jeden plik Markdown (np. `raport.md` lub `raport_implementacji.md`) w katalogu g
 - Parametry: `base_path`, `runs_prefix`, `dataset_prefix`, `model_prefix`
 - Organizacja: runs -> batches -> layers -> keys
 - **LocalStore**: Implementacja lokalnego przechowywania (safetensors)
-
-### To-dos
-
-- [ ] Utworzenie pliku docs/automation.md z opisem wszystkich procedur automatyzacji (UV, pre-commit, ruff, pytest, GitHub Actions, MkD
-- [ ] Utworzenie pliku docs/modules.md z dokumentacją wszystkich modułów, ich parametrów i konfiguracjiAktualizacja mkdocs.yml - dodanie nowych sekcji do nawigacjiAktualizacja docs/index.md - dodanie linków do nowych sekcji dokumentacjiUtworzenie pliku docs/automation.md z opisem wszystkich procedur automatyzacji (UV, pre-commit, ruff, pytest, GitHub Actions, MkDocs)Utworzenie pliku docs/modules.md z dokumentacją wszystkich modułów, ich parametrów i konfiguracjiAktualizacja mkdocs.yml - dodanie nowych sekcji do nawigacjiAktualizacja docs/index.md - dodanie linków do nowych sekcji dokumentacUtworzenie pliku docs/automation.md z opisem wszystkich procedur automatyzacji (UV, pre-commit, ruff, pytest, GitHub Actions, MkDocs)Utworzenie pliku docs/modules.md z dokumentacją wszystkich modułów, ich parametrów i konfiguracjiAktualizacja mkdocs.yml - dodanie nowych sekcji do nawigacjiAktualizacja docs/index.md - dodanie linków do nowych sekcji dokumentacji

@@ -247,6 +247,26 @@ class LanguageModel:
 
         return detectors_metadata, detectors_tensor_metadata
 
+    def clear_detectors(self) -> None:
+        """
+        Clear all accumulated metadata for registered detectors.
+
+        This is useful when running multiple independent inference runs
+        (e.g. separate `infer_texts` / `infer_dataset` calls) and you want
+        to ensure that detector state does not leak between runs.
+        """
+        detectors = self.layers.get_detectors()
+        for detector in detectors:
+            # Clear generic accumulated metadata
+            detector.metadata.clear()
+            detector.tensor_metadata.clear()
+
+            # Allow detector implementations to provide more specialized
+            # clearing logic (e.g. ModelInputDetector, ModelOutputDetector).
+            clear_captured = getattr(detector, "clear_captured", None)
+            if callable(clear_captured):
+                clear_captured()
+
     def save_detector_metadata(self, run_name: str, batch_idx: int) -> str:
         """
         Save detector metadata to store.

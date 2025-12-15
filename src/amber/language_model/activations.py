@@ -221,7 +221,7 @@ class LanguageModelActivations:
     def save_activations_dataset(
         self,
         dataset: BaseDataset,
-        layer_signature: str | int,
+        layer_signature: str | int | list[str | int],
         run_name: str | None = None,
         batch_size: int = 32,
         *,
@@ -237,7 +237,7 @@ class LanguageModelActivations:
 
         Args:
             dataset: Dataset to process
-            layer_signature: Layer signature to capture activations from
+            layer_signature: Layer signature (or list of signatures) to capture activations from
             run_name: Optional run name (generated if None)
             batch_size: Batch size for processing
             dtype: Optional dtype to convert activations to
@@ -256,6 +256,9 @@ class LanguageModelActivations:
         model: nn.Module | None = self.context.model
         if model is None:
             raise ValueError("Model must be initialized before running")
+
+        # Normalize layer signatures so we always work with a list of strings internally
+        _, layer_sig_list = self._normalize_layer_signatures(layer_signature)
 
         store = self.context.store
         if store is None:
@@ -277,13 +280,17 @@ class LanguageModelActivations:
 
         if verbose:
             logger.info(
-                f"Starting save_activations_dataset: run={run_name}, layer={layer_signature}, "
+                f"Starting save_activations_dataset: run={run_name}, layers={layer_sig_list}, "
                 f"batch_size={batch_size}, device={device_type}"
             )
 
         self._save_run_metadata(store, run_name, meta, verbose)
 
-        detector, hook_id = self._setup_detector(layer_signature, f"save_{run_name}")
+        hook_ids: list[str] = []
+        for sig in layer_sig_list:
+            _, hook_id = self._setup_detector(sig, f"save_{run_name}_{sig}")
+            hook_ids.append(hook_id)
+
         batch_counter = 0
 
         try:
@@ -296,7 +303,8 @@ class LanguageModelActivations:
                     batch_counter += 1
                     self._manage_cuda_cache(batch_counter, free_cuda_cache_every, device_type, verbose)
         finally:
-            self._cleanup_detector(hook_id)
+            for hook_id in hook_ids:
+                self._cleanup_detector(hook_id)
             if verbose:
                 logger.info(f"Completed save_activations_dataset: run={run_name}, batches_saved={batch_counter}")
         
@@ -305,7 +313,7 @@ class LanguageModelActivations:
     def save_activations(
         self,
         texts: Sequence[str],
-        layer_signature: str | int,
+        layer_signature: str | int | list[str | int],
         run_name: str | None = None,
         batch_size: int | None = None,
         *,
@@ -321,7 +329,7 @@ class LanguageModelActivations:
 
         Args:
             texts: Sequence of text strings to process
-            layer_signature: Layer signature to capture activations from
+            layer_signature: Layer signature (or list of signatures) to capture activations from
             run_name: Optional run name (generated if None)
             batch_size: Optional batch size for processing (if None, processes all at once)
             dtype: Optional dtype to convert activations to
@@ -340,6 +348,9 @@ class LanguageModelActivations:
         model: nn.Module | None = self.context.model
         if model is None:
             raise ValueError("Model must be initialized before running")
+
+        # Normalize layer signatures so we always work with a list of strings internally
+        _, layer_sig_list = self._normalize_layer_signatures(layer_signature)
 
         store = self.context.store
         if store is None:
@@ -366,13 +377,17 @@ class LanguageModelActivations:
 
         if verbose:
             logger.info(
-                f"Starting save_activations: run={run_name}, layer={layer_signature}, "
+                f"Starting save_activations: run={run_name}, layers={layer_sig_list}, "
                 f"batch_size={batch_size}, device={device_type}"
             )
 
         self._save_run_metadata(store, run_name, meta, verbose)
 
-        detector, hook_id = self._setup_detector(layer_signature, f"save_{run_name}")
+        hook_ids: list[str] = []
+        for sig in layer_sig_list:
+            _, hook_id = self._setup_detector(sig, f"save_{run_name}_{sig}")
+            hook_ids.append(hook_id)
+
         batch_counter = 0
 
         try:
@@ -387,7 +402,8 @@ class LanguageModelActivations:
                     batch_counter += 1
                     self._manage_cuda_cache(batch_counter, free_cuda_cache_every, device_type, verbose)
         finally:
-            self._cleanup_detector(hook_id)
+            for hook_id in hook_ids:
+                self._cleanup_detector(hook_id)
             if verbose:
                 logger.info(f"Completed save_activations: run={run_name}, batches_saved={batch_counter}")
         

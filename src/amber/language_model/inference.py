@@ -20,6 +20,14 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
+class _EarlyStopInference(Exception):
+    """Internal exception used to stop model forward pass after a specific layer."""
+
+    def __init__(self, output: Any):
+        super().__init__("Early stop after requested layer")
+        self.output = output
+
+
 class InferenceEngine:
     """Handles inference operations for LanguageModel."""
     
@@ -113,7 +121,7 @@ class InferenceEngine:
             enc: Dict[str, torch.Tensor],
             autocast: bool,
             device_type: str,
-            autocast_dtype: torch.dtype | None
+            autocast_dtype: torch.dtype | None,
     ) -> Any:
         """
         Run model forward pass with optional autocast.
@@ -127,12 +135,17 @@ class InferenceEngine:
         Returns:
             Model output
         """
-        with torch.inference_mode():
-            if autocast and device_type == "cuda":
-                amp_dtype = autocast_dtype or torch.float16
-                with torch.autocast(device_type, dtype=amp_dtype):
-                    return self.lm.model(**enc)
-            return self.lm.model(**enc)
+        try:
+            with torch.inference_mode():
+                if autocast and device_type == "cuda":
+                    amp_dtype = autocast_dtype or torch.float16
+                    with torch.autocast(device_type, dtype=amp_dtype):
+                        return self.lm.model(**enc)
+                return self.lm.model(**enc)
+        except _EarlyStopInference as e:
+            # Early stopping hook raised this to short‑circuit the remaining forward pass.
+            # We return the output captured at the requested layer.
+            return e.output
     
     def execute_inference(
             self,
@@ -141,6 +154,7 @@ class InferenceEngine:
             autocast: bool = True,
             autocast_dtype: torch.dtype | None = None,
             with_controllers: bool = True,
+            stop_after_layer: str | int | None = None,
     ) -> tuple[Any, Dict[str, torch.Tensor]]:
         """
         Execute inference on texts.
@@ -151,6 +165,8 @@ class InferenceEngine:
             autocast: Whether to use automatic mixed precision
             autocast_dtype: Optional dtype for autocast
             with_controllers: Whether to use controllers during inference
+            stop_after_layer: Optional layer signature (name or index) after which
+                the forward pass should be stopped early
             
         Returns:
             Tuple of (model_output, encodings)
@@ -178,10 +194,26 @@ class InferenceEngine:
 
         controllers_to_restore = self._prepare_controllers(with_controllers)
 
+        hook_handle = None
         try:
+            if stop_after_layer is not None:
+                # Register a temporary forward hook that stops the forward pass
+                def _early_stop_hook(module: nn.Module, inputs: tuple, output: Any):
+                    raise _EarlyStopInference(output)
+
+                hook_handle = self.lm.layers.register_forward_hook_for_layer(
+                    stop_after_layer, _early_stop_hook
+                )
+
             output = self._run_model_forward(enc, autocast, device_type, autocast_dtype)
             return output, enc
         finally:
+            if hook_handle is not None:
+                try:
+                    hook_handle.remove()
+                except Exception:
+                    # Best‑effort cleanup; ignore failures during hook removal.
+                    pass
             self._restore_controllers(controllers_to_restore)
     
     def extract_logits(self, output: Any) -> torch.Tensor:
@@ -289,7 +321,9 @@ class InferenceEngine:
         autocast: bool = True,
         autocast_dtype: torch.dtype | None = None,
         with_controllers: bool = True,
+        clear_detectors_before: bool = False,
         verbose: bool = False,
+        stop_after_layer: str | int | None = None,
     ) -> tuple[Any, Dict[str, torch.Tensor]] | tuple[List[Any], List[Dict[str, torch.Tensor]]]:
         """
         Run inference on list of strings with optional metadata saving.
@@ -302,7 +336,10 @@ class InferenceEngine:
             autocast: Whether to use automatic mixed precision
             autocast_dtype: Optional dtype for autocast
             with_controllers: Whether to use controllers during inference
+            clear_detectors_before: If True, clears all detector state before running
             verbose: Whether to log progress
+            stop_after_layer: Optional layer signature (name or index) after which
+                the forward pass should be stopped early
             
         Returns:
             If batch_size is None or >= len(texts): Tuple of (model_output, encodings)
@@ -317,6 +354,9 @@ class InferenceEngine:
         if self.lm.tokenizer is None:
             raise ValueError("Tokenizer must be initialized before running inference")
         
+        if clear_detectors_before:
+            self.lm.clear_detectors()
+
         store = self.lm.store
         if run_name is not None and store is None:
             raise ValueError("Store must be provided to save metadata")
@@ -328,6 +368,7 @@ class InferenceEngine:
                 autocast=autocast,
                 autocast_dtype=autocast_dtype,
                 with_controllers=with_controllers,
+                stop_after_layer=stop_after_layer,
             )
             
             if run_name is not None:
@@ -361,6 +402,7 @@ class InferenceEngine:
                 autocast=autocast,
                 autocast_dtype=autocast_dtype,
                 with_controllers=with_controllers,
+                stop_after_layer=stop_after_layer,
             )
             
             all_outputs.append(output)
@@ -385,7 +427,9 @@ class InferenceEngine:
         autocast_dtype: torch.dtype | None = None,
         with_controllers: bool = True,
         free_cuda_cache_every: int | None = 0,
+        clear_detectors_before: bool = False,
         verbose: bool = False,
+        stop_after_layer: str | int | None = None,
     ) -> str:
         """
         Run inference on whole dataset with metadata saving.
@@ -399,7 +443,10 @@ class InferenceEngine:
             autocast_dtype: Optional dtype for autocast
             with_controllers: Whether to use controllers during inference
             free_cuda_cache_every: Clear CUDA cache every N batches (0 or None to disable)
+            clear_detectors_before: If True, clears all detector state before running
             verbose: Whether to log progress
+            stop_after_layer: Optional layer signature (name or index) after which
+                the forward pass should be stopped early
             
         Returns:
             Run name used for saving
@@ -407,6 +454,9 @@ class InferenceEngine:
         Raises:
             ValueError: If model or store is not initialized
         """
+        if clear_detectors_before:
+            self.lm.clear_detectors()
+
         model: nn.Module | None = self.lm.model
         if model is None:
             raise ValueError("Model must be initialized before running")
@@ -448,6 +498,7 @@ class InferenceEngine:
                     autocast=autocast,
                     autocast_dtype=autocast_dtype,
                     with_controllers=with_controllers,
+                    stop_after_layer=stop_after_layer,
                 )
                 
                 self.lm.save_detector_metadata(run_name, batch_index)

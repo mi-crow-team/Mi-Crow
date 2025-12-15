@@ -362,3 +362,94 @@ class TestInferenceEngine:
         assert run_name == "test_run"
         assert mock_language_model.save_detector_metadata.call_count == 2
 
+    def test_infer_texts_clears_detectors_when_requested(self, mock_language_model, temp_store):
+        """infer_texts should clear detectors when clear_detectors_before is True."""
+        engine = InferenceEngine(mock_language_model)
+        mock_language_model.store = temp_store
+
+        texts = ["text1", "text2"]
+        mock_enc = {"input_ids": torch.tensor([[1, 2], [3, 4]])}
+        mock_output = Mock()
+
+        mock_language_model.tokenize = Mock(return_value=mock_enc)
+        mock_language_model.context.model = Mock(return_value=mock_output)
+        mock_language_model.context.model.eval = Mock()
+        mock_language_model.layers.get_controllers = Mock(return_value=[])
+        mock_language_model.save_detector_metadata = Mock()
+        mock_language_model.clear_detectors = Mock()
+
+        with patch("amber.language_model.inference.get_device_from_model", return_value=torch.device("cpu")):
+            with patch("amber.language_model.inference.move_tensors_to_device", return_value=mock_enc):
+                with patch("torch.inference_mode"):
+                    engine.infer_texts(
+                        texts,
+                        run_name="test_run",
+                        clear_detectors_before=True,
+                    )
+
+        mock_language_model.clear_detectors.assert_called_once()
+
+    def test_infer_dataset_clears_detectors_when_requested(self, mock_language_model, temp_store):
+        """infer_dataset should clear detectors when clear_detectors_before is True."""
+        from datasets import Dataset
+        from amber.datasets import TextDataset
+
+        engine = InferenceEngine(mock_language_model)
+        mock_language_model.store = temp_store
+
+        hf_dataset = Dataset.from_dict({"text": ["text1", "text2", "text3"]})
+        dataset = TextDataset(hf_dataset, temp_store)
+
+        mock_enc = {"input_ids": torch.tensor([[1, 2], [3, 4], [5, 6]])}
+        mock_output = Mock()
+
+        mock_language_model.tokenize = Mock(return_value=mock_enc)
+        mock_language_model.context.model = Mock(return_value=mock_output)
+        mock_language_model.context.model.eval = Mock()
+        mock_language_model.layers.get_controllers = Mock(return_value=[])
+        mock_language_model.save_detector_metadata = Mock()
+        mock_language_model.clear_detectors = Mock()
+
+        with patch("amber.language_model.inference.get_device_from_model", return_value=torch.device("cpu")):
+            with patch("amber.language_model.inference.move_tensors_to_device", return_value=mock_enc):
+                with patch("torch.inference_mode"):
+                    engine.infer_dataset(
+                        dataset,
+                        run_name="test_run",
+                        batch_size=2,
+                        clear_detectors_before=True,
+                    )
+
+        mock_language_model.clear_detectors.assert_called_once()
+
+    def test_infer_texts_stop_after_layer_changes_output_shape(self, temp_store):
+        """infer_texts with stop_after_layer should return an intermediate layer output."""
+        from tests.unit.fixtures.language_models import create_language_model_from_mock
+
+        # Use a real LanguageModel so that layers and hooks behave as in production.
+        lm = create_language_model_from_mock(temp_store)
+        engine = InferenceEngine(lm)
+
+        texts = ["hello world"]
+        enc = {"input_ids": torch.tensor([[1, 2, 3]])}
+
+        # Patch tokenize to avoid real tokenizer logic
+        lm.tokenize = Mock(return_value=enc)
+
+        with patch("amber.language_model.inference.get_device_from_model", return_value=torch.device("cpu")), \
+             patch("amber.language_model.inference.move_tensors_to_device", return_value=enc):
+            # Full forward (no early stop) – should return final logits
+            full_output, _ = engine.infer_texts(texts)
+            # Early stop after first flattened layer (index 0)
+            early_output, _ = engine.infer_texts(texts, stop_after_layer=0)
+
+        assert isinstance(full_output, torch.Tensor)
+        assert isinstance(early_output, torch.Tensor)
+
+        # Batch and sequence dimensions should match
+        assert early_output.shape[0] == full_output.shape[0]
+        assert early_output.shape[1] == full_output.shape[1]
+
+        # Last dimension should differ: early output is hidden_size, full output is vocab_size
+        assert early_output.shape[-1] != full_output.shape[-1]
+
