@@ -267,13 +267,15 @@ class LanguageModel:
             if callable(clear_captured):
                 clear_captured()
 
-    def save_detector_metadata(self, run_name: str, batch_idx: int) -> str:
+    def save_detector_metadata(self, run_name: str, batch_idx: int | None, unified: bool = False) -> str:
         """
         Save detector metadata to store.
         
         Args:
             run_name: Name of the run
-            batch_idx: Batch index
+            batch_idx: Batch index. Ignored when ``unified`` is True.
+            unified: If True, save metadata in a single detectors directory
+                for the whole run instead of per‑batch directories.
             
         Returns:
             Path where metadata was saved
@@ -284,6 +286,10 @@ class LanguageModel:
         if self.store is None:
             raise ValueError("Store must be provided or set on the language model")
         detectors_metadata, detectors_tensor_metadata = self.get_all_detector_metadata()
+        if unified:
+            return self.store.put_run_detector_metadata(run_name, detectors_metadata, detectors_tensor_metadata)
+        if batch_idx is None:
+            raise ValueError("batch_idx must be provided when unified is False")
         return self.store.put_detector_metadata(run_name, batch_idx, detectors_metadata, detectors_tensor_metadata)
 
     def _ensure_input_tracker(self) -> "InputTracker":

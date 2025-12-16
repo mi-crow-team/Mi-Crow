@@ -98,12 +98,6 @@ store/
 src/frontend/node_modules/
 src/frontend/dist/
 src/frontend/build/
-src/frontend/public/
-src/frontend/src/assets/
-src/frontend/src/components/
-src/frontend/src/pages/
-src/frontend/src/styles/
-src/frontend/src/utils/
-src/frontend/src/views/
+src/frontend/.next/
 
 amber_server

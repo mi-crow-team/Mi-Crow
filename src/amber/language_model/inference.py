@@ -212,7 +212,6 @@ class InferenceEngine:
                 try:
                     hook_handle.remove()
                 except Exception:
-                    # Best‑effort cleanup; ignore failures during hook removal.
                     pass
             self._restore_controllers(controllers_to_restore)
     
@@ -324,6 +323,7 @@ class InferenceEngine:
         clear_detectors_before: bool = False,
         verbose: bool = False,
         stop_after_layer: str | int | None = None,
+        save_in_batches: bool = True,
     ) -> tuple[Any, Dict[str, torch.Tensor]] | tuple[List[Any], List[Dict[str, torch.Tensor]]]:
         """
         Run inference on list of strings with optional metadata saving.
@@ -340,6 +340,9 @@ class InferenceEngine:
             verbose: Whether to log progress
             stop_after_layer: Optional layer signature (name or index) after which
                 the forward pass should be stopped early
+            save_in_batches: If True, save detector metadata in per‑batch
+                directories. If False, aggregate all detector metadata for
+                the run under a single detectors directory.
             
         Returns:
             If batch_size is None or >= len(texts): Tuple of (model_output, encodings)
@@ -378,7 +381,7 @@ class InferenceEngine:
                 }
                 _, meta = self._prepare_run_metadata(dataset=None, run_name=run_name, options=options)
                 self._save_run_metadata(store, run_name, meta, verbose)
-                self.lm.save_detector_metadata(run_name, 0)
+                self.lm.save_detector_metadata(run_name, 0, unified=not save_in_batches)
             
             return output, enc
         
@@ -409,7 +412,7 @@ class InferenceEngine:
             all_encodings.append(enc)
             
             if run_name is not None:
-                self.lm.save_detector_metadata(run_name, batch_counter)
+                self.lm.save_detector_metadata(run_name, batch_counter, unified=not save_in_batches)
                 if verbose:
                     logger.info(f"Saved batch {batch_counter} for run={run_name}")
             
@@ -430,6 +433,7 @@ class InferenceEngine:
         clear_detectors_before: bool = False,
         verbose: bool = False,
         stop_after_layer: str | int | None = None,
+        save_in_batches: bool = True,
     ) -> str:
         """
         Run inference on whole dataset with metadata saving.
@@ -501,7 +505,7 @@ class InferenceEngine:
                     stop_after_layer=stop_after_layer,
                 )
                 
-                self.lm.save_detector_metadata(run_name, batch_index)
+                self.lm.save_detector_metadata(run_name, batch_index, unified=not save_in_batches)
                 
                 batch_counter += 1
                 

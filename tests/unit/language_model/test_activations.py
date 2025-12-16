@@ -255,7 +255,7 @@ class TestLanguageModelActivations:
         )
 
         mock_language_model._inference_engine.execute_inference.assert_called_once()
-        mock_language_model.save_detector_metadata.assert_called_once_with("test_run", 0)
+        mock_language_model.save_detector_metadata.assert_called_once_with("test_run", 0, unified=False)
 
     def test_convert_activations_to_dtype(self, mock_language_model):
         """Test converting activations to dtype."""

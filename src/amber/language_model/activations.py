@@ -106,7 +106,6 @@ class LanguageModelActivations:
         if options is None:
             options = {}
 
-        # Convert layer_signatures to list of strings
         if isinstance(layer_signatures, (str, int)):
             layer_sig_list = [str(layer_signatures)]
         elif isinstance(layer_signatures, list):
@@ -153,6 +152,7 @@ class LanguageModelActivations:
         autocast_dtype: torch.dtype | None,
         dtype: torch.dtype | None,
         verbose: bool,
+        save_in_batches: bool = True,
     ) -> None:
         """Process a single batch of texts.
 
@@ -183,7 +183,11 @@ class LanguageModelActivations:
         if dtype is not None:
             self._convert_activations_to_dtype(dtype)
 
-        self.context.language_model.save_detector_metadata(run_name, batch_index)
+        self.context.language_model.save_detector_metadata(
+            run_name,
+            batch_index,
+            unified=not save_in_batches,
+        )
 
         if verbose:
             logger.info(f"Saved batch {batch_index} for run={run_name}")
@@ -231,6 +235,7 @@ class LanguageModelActivations:
         autocast_dtype: torch.dtype | None = None,
         free_cuda_cache_every: int | None = 0,
         verbose: bool = False,
+        save_in_batches: bool = True,
     ) -> str:
         """
         Save activations from a dataset.
@@ -257,7 +262,6 @@ class LanguageModelActivations:
         if model is None:
             raise ValueError("Model must be initialized before running")
 
-        # Normalize layer signatures so we always work with a list of strings internally
         _, layer_sig_list = self._normalize_layer_signatures(layer_signature)
 
         store = self.context.store
@@ -298,7 +302,15 @@ class LanguageModelActivations:
                 for batch_index, batch in enumerate(dataset.iter_batches(batch_size)):
                     texts = dataset.extract_texts_from_batch(batch)
                     self._process_batch(
-                        texts, run_name, batch_index, max_length, autocast, autocast_dtype, dtype, verbose
+                        texts,
+                        run_name,
+                        batch_index,
+                        max_length,
+                        autocast,
+                        autocast_dtype,
+                        dtype,
+                        verbose,
+                        save_in_batches=save_in_batches,
                     )
                     batch_counter += 1
                     self._manage_cuda_cache(batch_counter, free_cuda_cache_every, device_type, verbose)
@@ -323,6 +335,7 @@ class LanguageModelActivations:
         autocast_dtype: torch.dtype | None = None,
         free_cuda_cache_every: int | None = 0,
         verbose: bool = False,
+        save_in_batches: bool = True,
     ) -> str:
         """
         Save activations from a list of texts.
@@ -349,7 +362,6 @@ class LanguageModelActivations:
         if model is None:
             raise ValueError("Model must be initialized before running")
 
-        # Normalize layer signatures so we always work with a list of strings internally
         _, layer_sig_list = self._normalize_layer_signatures(layer_signature)
 
         store = self.context.store
@@ -397,7 +409,15 @@ class LanguageModelActivations:
                     batch_index = i // batch_size
                     
                     self._process_batch(
-                        batch_texts, run_name, batch_index, max_length, autocast, autocast_dtype, dtype, verbose
+                        batch_texts,
+                        run_name,
+                        batch_index,
+                        max_length,
+                        autocast,
+                        autocast_dtype,
+                        dtype,
+                        verbose,
+                        save_in_batches=save_in_batches,
                     )
                     batch_counter += 1
                     self._manage_cuda_cache(batch_counter, free_cuda_cache_every, device_type, verbose)

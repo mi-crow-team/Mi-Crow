@@ -283,7 +283,7 @@ class TestInferenceEngine:
         
         assert output == mock_output
         assert enc == mock_enc
-        mock_language_model.save_detector_metadata.assert_called_once_with("test_run", 0)
+        mock_language_model.save_detector_metadata.assert_called_once_with("test_run", 0, unified=False)
 
     def test_infer_texts_with_batching(self, mock_language_model, temp_store):
         """Test infer_texts with batching."""
@@ -361,6 +361,28 @@ class TestInferenceEngine:
         
         assert run_name == "test_run"
         assert mock_language_model.save_detector_metadata.call_count == 2
+
+    def test_infer_texts_uses_save_in_batches_flag(self, mock_language_model, temp_store):
+        """infer_texts should propagate save_in_batches to LanguageModel."""
+        engine = InferenceEngine(mock_language_model)
+        mock_language_model.store = temp_store
+        texts = ["text"]
+
+        mock_enc = {"input_ids": torch.tensor([[1, 2]])}
+        mock_output = Mock()
+
+        mock_language_model.tokenize = Mock(return_value=mock_enc)
+        mock_language_model.context.model = Mock(return_value=mock_output)
+        mock_language_model.context.model.eval = Mock()
+        mock_language_model.layers.get_controllers = Mock(return_value=[])
+        mock_language_model.save_detector_metadata = Mock()
+
+        with patch("amber.language_model.inference.get_device_from_model", return_value=torch.device("cpu")):
+            with patch("amber.language_model.inference.move_tensors_to_device", return_value=mock_enc):
+                with patch("torch.inference_mode"):
+                    engine.infer_texts(texts, run_name="run_unified", save_in_batches=False)
+
+        mock_language_model.save_detector_metadata.assert_called_once_with("run_unified", 0, unified=True)
 
     def test_infer_texts_clears_detectors_when_requested(self, mock_language_model, temp_store):
         """infer_texts should clear detectors when clear_detectors_before is True."""
