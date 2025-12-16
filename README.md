@@ -1,6 +1,8 @@
 ![CI](https://github.com/AdamKaniasty/Inzynierka/actions/workflows/tests.yml/badge.svg?branch=main)
 [![Docs](https://img.shields.io/badge/docs-gh--pages-blue)](https://adamkaniasty.github.io/Inzynierka/)
 
+[Docs](https://adamkaniasty.com/Inzynierka/)
+
 ## Running Tests
 
 The project uses pytest for testing. Tests are organized into unit tests and end-to-end tests.
