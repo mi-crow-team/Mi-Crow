@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+import pytest
+
+# Skip entire module if server dependencies are not installed
+pytest.importorskip("fastapi")
+
 from pathlib import Path
 from typing import List
 import json

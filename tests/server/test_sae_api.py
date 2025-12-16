@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import pytest
+
+# Skip entire module if server dependencies are not installed
+pytest.importorskip("fastapi")
+
 from pathlib import Path
 from typing import Dict, List
 import json
 
-import pytest
 import torch
 from fastapi.testclient import TestClient
 from torch import nn
