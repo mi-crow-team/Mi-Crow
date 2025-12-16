@@ -401,6 +401,35 @@ class TestLanguageModelActivations:
         with pytest.raises(ValueError, match="Texts list cannot be empty"):
             activations.save_activations([], layer_sig)
 
+    def test_save_activations_multiple_layers(self, mock_language_model, temp_store):
+        """Test saving activations from texts with multiple layers."""
+        activations = LanguageModelActivations(mock_language_model.context)
+        texts = ["text1", "text2", "text3"]
+
+        layer_names = mock_language_model.layers.get_layer_names()
+        if len(layer_names) >= 2:
+            layer_sigs = [layer_names[0], layer_names[1]]
+        elif layer_names:
+            layer_sigs = [layer_names[0], f"{layer_names[0]}_alt"]
+        else:
+            layer_sigs = ["layer_0", "layer_1"]
+
+        mock_language_model._inference_engine.execute_inference = Mock()
+        mock_language_model.save_detector_metadata = Mock()
+
+        with patch.object(activations, "_setup_detector", return_value=(Mock(), "hook_id")) as mock_setup, patch.object(
+            activations, "_cleanup_detector"
+        ) as mock_cleanup, patch("torch.inference_mode"):
+            run_name = activations.save_activations(
+                texts, layer_sigs, run_name="test_run_multi", batch_size=2, verbose=True
+            )
+
+        assert run_name == "test_run_multi"
+        assert mock_language_model._inference_engine.execute_inference.call_count == 2
+        assert mock_language_model.save_detector_metadata.call_count == 2
+        assert mock_setup.call_count == len(layer_sigs)
+        assert mock_cleanup.call_count == len(layer_sigs)
+
     def test_save_activations_dataset_store_not_set(self, mock_language_model, temp_store):
         """Test saving activations when store is not set."""
         from datasets import Dataset
@@ -489,3 +518,37 @@ class TestLanguageModelActivations:
 
         # Verify cleanup was called
         assert mock_language_model.layers.unregister_hook.called
+
+    def test_save_activations_dataset_multiple_layers(self, mock_language_model, temp_store):
+        """Test saving activations from dataset with multiple layers."""
+        from datasets import Dataset
+
+        from amber.datasets import TextDataset
+
+        activations = LanguageModelActivations(mock_language_model.context)
+        hf_dataset = Dataset.from_dict({"text": ["text1", "text2", "text3"]})
+        dataset = TextDataset(hf_dataset, temp_store)
+
+        layer_names = mock_language_model.layers.get_layer_names()
+        if len(layer_names) >= 2:
+            layer_sigs = [layer_names[0], layer_names[1]]
+        elif layer_names:
+            layer_sigs = [layer_names[0], f"{layer_names[0]}_alt"]
+        else:
+            layer_sigs = ["layer_0", "layer_1"]
+
+        mock_language_model._inference_engine.execute_inference = Mock()
+        mock_language_model.save_detector_metadata = Mock()
+
+        with patch.object(activations, "_setup_detector", return_value=(Mock(), "hook_id")) as mock_setup, patch.object(
+            activations, "_cleanup_detector"
+        ) as mock_cleanup, patch("torch.inference_mode"):
+            run_name = activations.save_activations_dataset(
+                dataset, layer_sigs, run_name="test_run_multi", batch_size=2, verbose=True
+            )
+
+        assert run_name == "test_run_multi"
+        assert mock_language_model._inference_engine.execute_inference.called
+        assert mock_language_model.save_detector_metadata.called
+        assert mock_setup.call_count == len(layer_sigs)
+        assert mock_cleanup.call_count == len(layer_sigs)

@@ -618,3 +618,486 @@ class TestSaeTrainerHelperMethods:
         assert "best/loss" in metrics
         assert "best/r2_score" in metrics
 
+    def test_setup_device_with_dtype_error_handles_gracefully(self):
+        """Test _setup_device handles dtype conversion errors."""
+        sae = ConcreteSae(n_latents=4, n_inputs=4)
+        call_count = [0]
+        def mock_to(*args, **kwargs):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                return sae.sae_engine
+            elif call_count[0] == 2:
+                # Second call with dtype should raise TypeError
+                raise TypeError("dtype not supported")
+            return sae.sae_engine
+        sae.sae_engine.to = Mock(side_effect=mock_to)
+        trainer = SaeTrainer(sae)
+        config = SaeTrainingConfig(device="cpu", dtype=torch.float16)
+        
+        # Should not raise, should fall back to device-only conversion
+        device = trainer._setup_device(config)
+        
+        assert device.type == "cpu"
+        assert sae.sae_engine.to.call_count == 3  # First call, dtype call (fails), fallback call
+
+    def test_setup_device_with_attribute_error_handles_gracefully(self):
+        """Test _setup_device handles AttributeError during dtype conversion."""
+        sae = ConcreteSae(n_latents=4, n_inputs=4)
+        call_count = [0]
+        def mock_to(*args, **kwargs):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                return sae.sae_engine
+            elif call_count[0] == 2:
+                # Second call with dtype should raise AttributeError
+                raise AttributeError("no dtype attr")
+            return sae.sae_engine
+        sae.sae_engine.to = Mock(side_effect=mock_to)
+        trainer = SaeTrainer(sae)
+        config = SaeTrainingConfig(device="cpu", dtype=torch.float16)
+        
+        # Should not raise, should fall back to device-only conversion
+        device = trainer._setup_device(config)
+        
+        assert device.type == "cpu"
+        assert sae.sae_engine.to.call_count == 3  # First call, dtype call (fails), fallback call
+
+    def test_wandb_unexpected_error_logs_warning(self, monkeypatch, caplog):
+        """Test wandb initialization with unexpected error logs warning."""
+        module = types.SimpleNamespace()
+        logs = {"avg_loss": [0.4], "r2": [0.2], "z": [[torch.ones(1, 2)]]}
+        module.train_sae_amp = lambda **kwargs: logs
+        module.train_sae = lambda **kwargs: logs
+        monkeypatch.setitem(sys.modules, "overcomplete.sae.train", module)
+
+        class DummyDataLoader:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            def __iter__(self):
+                yield torch.ones(1, 2)
+
+        monkeypatch.setattr("amber.mechanistic.sae.sae_trainer.StoreDataloader", DummyDataLoader)
+
+        def failing_wandb_init(**kwargs):
+            raise RuntimeError("Unexpected wandb error")
+
+        monkeypatch.setitem(sys.modules, "wandb", types.SimpleNamespace(init=failing_wandb_init))
+
+        sae = ConcreteSae(n_latents=2, n_inputs=2)
+        sae.sae_engine.parameters.return_value = [torch.nn.Parameter(torch.ones(1, requires_grad=True))]
+        sae.sae_engine.to.return_value = sae.sae_engine
+
+        trainer = SaeTrainer(sae)
+        config = SaeTrainingConfig(use_amp=True, epochs=1, batch_size=1, use_wandb=True)
+        with caplog.at_level("WARNING"):
+            trainer.train(store=Mock(), run_id="run", layer_signature="layer", config=config)
+        assert "Unexpected error initializing wandb" in caplog.text
+
+        sys.modules.pop("overcomplete.sae.train", None)
+        sys.modules.pop("wandb", None)
+
+    def test_train_with_memory_efficient_mode(self, monkeypatch, tmp_path):
+        """Test training with memory efficient mode enabled."""
+        module = types.SimpleNamespace()
+        logs = {
+            "avg_loss": [0.5],
+            "r2": [0.2],
+            "z": [[torch.ones(2, 3)]],
+        }
+        module.train_sae_amp = lambda **kwargs: logs
+        module.train_sae = lambda **kwargs: logs
+        monkeypatch.setitem(sys.modules, "overcomplete.sae.train", module)
+
+        class DummyDataLoader:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            def __iter__(self):
+                yield torch.ones(2, 3)
+
+        monkeypatch.setattr("amber.mechanistic.sae.sae_trainer.StoreDataloader", DummyDataLoader)
+
+        sae = ConcreteSae(n_latents=4, n_inputs=4)
+        sae.sae_engine.parameters.return_value = [torch.nn.Parameter(torch.ones(1, requires_grad=True))]
+        sae.sae_engine.to.return_value = sae.sae_engine
+
+        trainer = SaeTrainer(sae)
+        config = SaeTrainingConfig(epochs=1, batch_size=2, use_amp=True, memory_efficient=True)
+        result = trainer.train(store=Mock(), run_id="run", layer_signature="layer", config=config)
+
+        assert "history" in result
+        assert result["history"]["loss"] == [0.5]
+
+        sys.modules.pop("overcomplete.sae.train", None)
+
+    def test_train_training_exception_raises(self, monkeypatch):
+        """Test that training exceptions are properly raised."""
+        module = types.SimpleNamespace()
+        module.train_sae_amp = lambda **kwargs: (_ for _ in ()).throw(RuntimeError("Training failed"))
+        module.train_sae = lambda **kwargs: (_ for _ in ()).throw(RuntimeError("Training failed"))
+        monkeypatch.setitem(sys.modules, "overcomplete.sae.train", module)
+
+        class DummyDataLoader:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            def __iter__(self):
+                yield torch.ones(1, 2)
+
+        monkeypatch.setattr("amber.mechanistic.sae.sae_trainer.StoreDataloader", DummyDataLoader)
+
+        sae = ConcreteSae(n_latents=2, n_inputs=2)
+        sae.sae_engine.parameters.return_value = [torch.nn.Parameter(torch.ones(1, requires_grad=True))]
+        sae.sae_engine.to.return_value = sae.sae_engine
+
+        trainer = SaeTrainer(sae)
+        config = SaeTrainingConfig(use_amp=False, epochs=1, batch_size=1)
+
+        def failing_train(**kwargs):
+            raise RuntimeError("Training failed")
+
+        module.train_sae = failing_train
+
+        with pytest.raises(RuntimeError, match="Training failed"):
+            trainer.train(store=Mock(), run_id="run", layer_signature="layer", config=config)
+
+        sys.modules.pop("overcomplete.sae.train", None)
+
+    def test_compute_l1_with_memory_efficient_mode(self):
+        """Test _compute_l1 with memory efficient mode."""
+        sae = ConcreteSae(n_latents=4, n_inputs=4)
+        trainer = SaeTrainer(sae)
+        
+        z_list = [
+            torch.tensor([[1.0, -2.0, 0.0, 3.0]], device="cpu"),
+            torch.tensor([[0.0, 1.0, -1.0, 0.0]], device="cpu"),
+        ]
+        
+        l1 = trainer._compute_l1(z_list, memory_efficient=True)
+        
+        expected = (abs(1.0) + abs(-2.0) + abs(3.0) + abs(1.0) + abs(-1.0)) / 2.0 / 4.0
+        assert abs(l1 - expected) < 1e-6
+
+    def test_compute_slow_metrics_with_memory_efficient_mode(self):
+        """Test _compute_slow_metrics with memory efficient mode."""
+        sae = ConcreteSae(n_latents=3, n_inputs=4)
+        sae.context.n_latents = 3
+        trainer = SaeTrainer(sae)
+        
+        z_list = [
+            torch.tensor([[1.0, 2.0, 3.0]], device="cpu"),
+            torch.tensor([[4.0, 5.0, 6.0]], device="cpu"),
+        ]
+        
+        l0, dead_pct = trainer._compute_slow_metrics(z_list, 3, memory_efficient=True)
+        
+        assert l0 > 0
+        assert dead_pct == 0.0
+
+    def test_extract_sparsity_metrics_with_flat_z_list(self):
+        """Test _extract_sparsity_metrics with flat z list format."""
+        sae = ConcreteSae(n_latents=4, n_inputs=4)
+        sae.context.n_latents = 4
+        trainer = SaeTrainer(sae)
+        config = SaeTrainingConfig()
+        
+        history = {
+            "loss": [0.5, 0.3],
+            "l1": [],
+            "l0": [],
+            "dead_features_pct": []
+        }
+        logs = {
+            "z": [torch.tensor([[1.0, 0.0, 2.0, 0.0]]), torch.tensor([[0.0, 1.0, 0.0, 2.0]])]
+        }
+        
+        trainer._extract_sparsity_metrics(history, logs, config)
+        
+        assert len(history["l1"]) == 2
+
+    def test_extract_sparsity_metrics_with_dead_features_list(self):
+        """Test _extract_sparsity_metrics with dead_features in logs (no z)."""
+        sae = ConcreteSae(n_latents=4, n_inputs=4)
+        sae.context.n_latents = 4
+        trainer = SaeTrainer(sae)
+        config = SaeTrainingConfig()
+        
+        history = {
+            "loss": [0.5, 0.3],
+            "l1": [],
+            "l0": [],
+            "dead_features_pct": []
+        }
+        logs = {
+            "dead_features": [5.0, 3.0],
+            # No z - dead_features should be used directly
+        }
+        
+        trainer._extract_sparsity_metrics(history, logs, config)
+        
+        # dead_features should be used if length matches num_epochs and no z
+        assert len(history["dead_features_pct"]) == 2
+        assert history["dead_features_pct"] == [5.0, 3.0]
+
+    def test_extract_sparsity_metrics_with_slow_metrics_frequency(self):
+        """Test _extract_sparsity_metrics with slow metrics frequency."""
+        sae = ConcreteSae(n_latents=4, n_inputs=4)
+        sae.context.n_latents = 4
+        trainer = SaeTrainer(sae)
+        config = SaeTrainingConfig(use_wandb=True, wandb_slow_metrics_frequency=2)
+        
+        history = {
+            "loss": [0.5, 0.3, 0.2],
+            "l1": [],
+            "l0": [],
+            "dead_features_pct": []
+        }
+        logs = {
+            "z": [
+                [torch.tensor([[1.0, 0.0, 2.0, 0.0]])],
+                [torch.tensor([[0.0, 1.0, 0.0, 2.0]])],
+                [torch.tensor([[1.0, 1.0, 1.0, 1.0]])],
+            ]
+        }
+        
+        trainer._extract_sparsity_metrics(history, logs, config)
+        
+        assert len(history["l1"]) == 3
+        # Verify that slow metrics frequency affects computation
+        # With frequency=2, some epochs should have computed values, others may be 0.0 or None
+        assert len(history["l0"]) >= 3
+        # At least some values should be computed (not all 0.0)
+        computed_values = [v for v in history["l0"] if v is not None and v != 0.0]
+        assert len(computed_values) > 0  # At least one epoch should have computed metrics
+
+    def test_extract_sparsity_metrics_with_empty_z_batch_list(self):
+        """Test _extract_sparsity_metrics with empty z batch list."""
+        sae = ConcreteSae(n_latents=4, n_inputs=4)
+        sae.context.n_latents = 4
+        trainer = SaeTrainer(sae)
+        config = SaeTrainingConfig()
+        
+        history = {
+            "loss": [0.5],
+            "l1": [],
+            "l0": [],
+            "dead_features_pct": []
+        }
+        logs = {
+            "z": [[]]
+        }
+        
+        trainer._extract_sparsity_metrics(history, logs, config)
+        
+        assert history["l1"] == [0.0]
+
+    def test_save_training_to_store_success(self, tmp_path):
+        """Test _save_training_to_store saves successfully."""
+        from amber.store.local_store import LocalStore
+        
+        store = LocalStore(base_path=tmp_path)
+        sae = ConcreteSae(n_latents=4, n_inputs=4)
+        sae.sae_engine.state_dict = Mock(return_value={"weight": torch.tensor([1.0])})
+        trainer = SaeTrainer(sae)
+        
+        history = {
+            "loss": [0.5],
+            "r2": [0.8],
+            "recon_mse": [0.2],
+            "l1": [0.7],
+            "l0": [10.0],
+            "dead_features_pct": [5.0],
+        }
+        config = SaeTrainingConfig(verbose=True)
+        
+        trainer._save_training_to_store(
+            store=store,
+            training_run_id="train_run",
+            run_id="run",
+            layer_signature="layer",
+            history=history,
+            config=config
+        )
+        
+        metadata = store.get_run_metadata("train_run")
+        assert metadata["training_run_id"] == "train_run"
+        assert metadata["activation_run_id"] == "run"
+
+    def test_save_training_to_store_with_k_attribute(self, tmp_path):
+        """Test _save_training_to_store with SAE that has k attribute."""
+        from amber.store.local_store import LocalStore
+        
+        store = LocalStore(base_path=tmp_path)
+        sae = ConcreteSae(n_latents=4, n_inputs=4)
+        sae.k = 10
+        sae.sae_engine.state_dict = Mock(return_value={"weight": torch.tensor([1.0])})
+        trainer = SaeTrainer(sae)
+        
+        history = {"loss": [0.5], "r2": [0.8], "recon_mse": [0.2], "l1": [0.7], "l0": [], "dead_features_pct": []}
+        config = SaeTrainingConfig()
+        
+        trainer._save_training_to_store(
+            store=store,
+            training_run_id="train_run",
+            run_id="run",
+            layer_signature="layer",
+            history=history,
+            config=config
+        )
+        
+        metadata = store.get_run_metadata("train_run")
+        assert metadata is not None
+
+    def test_save_training_to_store_handles_exception(self, tmp_path, caplog):
+        """Test _save_training_to_store handles exceptions gracefully."""
+        from amber.store.local_store import LocalStore
+        
+        store = LocalStore(base_path=tmp_path)
+        sae = ConcreteSae(n_latents=4, n_inputs=4)
+        sae.sae_engine.state_dict = Mock(side_effect=RuntimeError("Save failed"))
+        trainer = SaeTrainer(sae)
+        
+        history = {"loss": [0.5], "r2": [0.8], "recon_mse": [0.2], "l1": [0.7], "l0": [], "dead_features_pct": []}
+        config = SaeTrainingConfig(verbose=True)
+        
+        with caplog.at_level("WARNING"):
+            trainer._save_training_to_store(
+                store=store,
+                training_run_id="train_run",
+                run_id="run",
+                layer_signature="layer",
+                history=history,
+                config=config
+            )
+        
+        assert "Failed to save training outputs" in caplog.text
+
+    def test_log_to_wandb_with_url_error(self, monkeypatch):
+        """Test _log_to_wandb handles URL access errors."""
+        sae = ConcreteSae(n_latents=4, n_inputs=4)
+        trainer = SaeTrainer(sae)
+        
+        class DummyRun:
+            def __init__(self):
+                self.logged = []
+                self.summary = {}
+                self.url = None  # Will cause AttributeError
+
+            def log(self, data):
+                self.logged.append(data)
+
+        wandb_run = DummyRun()
+        history = {
+            "loss": [0.5, 0.3],
+            "recon_mse": [0.2, 0.1],
+            "r2": [0.8, 0.9],
+            "l1": [0.7, 0.6],
+            "l0": [10.0, 8.0],
+            "dead_features_pct": [5.0, 3.0],
+        }
+        config = SaeTrainingConfig(verbose=True, wandb_slow_metrics_frequency=1)
+        
+        # Should not raise
+        trainer._log_to_wandb(wandb_run, history, config)
+        
+        assert len(wandb_run.logged) == 2
+
+    def test_log_to_wandb_with_exception(self, monkeypatch, caplog):
+        """Test _log_to_wandb handles exceptions during logging."""
+        sae = ConcreteSae(n_latents=4, n_inputs=4)
+        trainer = SaeTrainer(sae)
+        
+        class FailingRun:
+            def log(self, data):
+                raise RuntimeError("Logging failed")
+
+            @property
+            def summary(self):
+                return {}
+
+        wandb_run = FailingRun()
+        history = {"loss": [0.5], "recon_mse": [0.2], "r2": [0.8], "l1": [0.7], "l0": [], "dead_features_pct": []}
+        config = SaeTrainingConfig()
+        
+        with caplog.at_level("WARNING"):
+            trainer._log_to_wandb(wandb_run, history, config)
+        
+        assert "Failed to log metrics to wandb" in caplog.text
+
+    def test_build_final_metrics_with_empty_history(self):
+        """Test _build_final_metrics with empty history."""
+        sae = ConcreteSae(n_latents=4, n_inputs=4)
+        trainer = SaeTrainer(sae)
+        
+        history = {
+            "loss": [],
+            "recon_mse": [],
+            "r2": [],
+            "l1": [],
+            "l0": [],
+            "dead_features_pct": [],
+        }
+        
+        metrics = trainer._build_final_metrics(history, 0)
+        
+        assert metrics["final/loss"] == 0.0
+        assert metrics["final/reconstruction_mse"] == 0.0
+        assert metrics["final/r2_score"] == 0.0
+        assert metrics["final/l1_penalty"] == 0.0
+        assert metrics["training/num_epochs"] == 0
+
+    def test_build_final_metrics_with_none_values(self):
+        """Test _build_final_metrics with None values in history."""
+        sae = ConcreteSae(n_latents=4, n_inputs=4)
+        trainer = SaeTrainer(sae)
+        
+        history = {
+            "loss": [0.5, 0.3],
+            "recon_mse": [0.2, 0.1],
+            "r2": [0.8, 0.9],
+            "l1": [0.7, 0.6],
+            "l0": [None, 6.0],
+            "dead_features_pct": [None, 2.0],
+        }
+        
+        metrics = trainer._build_final_metrics(history, 2)
+        
+        assert metrics["final/l0_sparsity"] == 6.0
+        assert metrics["final/dead_features_pct"] == 2.0
+
+    def test_train_with_custom_training_run_id(self, monkeypatch):
+        """Test train with custom training_run_id."""
+        module = types.SimpleNamespace()
+        logs = {"avg_loss": [0.5], "r2": [0.2], "z": [[torch.ones(2, 3)]]}
+        module.train_sae_amp = lambda **kwargs: logs
+        module.train_sae = lambda **kwargs: logs
+        monkeypatch.setitem(sys.modules, "overcomplete.sae.train", module)
+
+        class DummyDataLoader:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            def __iter__(self):
+                yield torch.ones(2, 3)
+
+        monkeypatch.setattr("amber.mechanistic.sae.sae_trainer.StoreDataloader", DummyDataLoader)
+
+        sae = ConcreteSae(n_latents=4, n_inputs=4)
+        sae.sae_engine.parameters.return_value = [torch.nn.Parameter(torch.ones(1, requires_grad=True))]
+        sae.sae_engine.to.return_value = sae.sae_engine
+
+        trainer = SaeTrainer(sae)
+        config = SaeTrainingConfig(epochs=1, batch_size=2, use_amp=True)
+        result = trainer.train(
+            store=Mock(),
+            run_id="run",
+            layer_signature="layer",
+            config=config,
+            training_run_id="custom_training_id"
+        )
+
+        assert result["training_run_id"] == "custom_training_id"
+
+        sys.modules.pop("overcomplete.sae.train", None)
+

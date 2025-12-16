@@ -437,6 +437,42 @@ class TestBaseDatasetPostProcessing:
         assert all(item["label"] == "B" for item in processed_ds)
         assert all(item["text"] is not None for item in processed_ds)
 
+    def test_postprocess_non_streaming_dataset_invalid_limit_raises(self):
+        """limit must be > 0 both with and without stratification."""
+        data = {
+            "text": ["a", "b", "c"],
+            "label": ["A", "B", "A"],
+        }
+        ds = Dataset.from_dict(data)
+
+        # No stratification: limit <= 0 should raise
+        with pytest.raises(ValueError, match="limit must be > 0"):
+            BaseDataset._postprocess_non_streaming_dataset(ds, limit=0)
+
+        # With stratification: sample_size (derived from limit) must be > 0
+        with pytest.raises(ValueError, match="limit must be > 0 when stratifying"):
+            BaseDataset._postprocess_non_streaming_dataset(
+                ds,
+                limit=0,
+                stratify_by="label",
+            )
+
+    def test_stratified_sample_invalid_column_and_sample_size_raises(self):
+        """_stratified_sample should validate column name and sample_size."""
+        data = {
+            "text": ["a", "b", "c"],
+            "label": ["A", "B", "A"],
+        }
+        ds = Dataset.from_dict(data)
+
+        # Invalid stratify_by column
+        with pytest.raises(ValueError, match="Column 'missing' not found"):
+            BaseDataset._stratified_sample(ds, stratify_by="missing", sample_size=2, seed=42)
+
+        # Non‑positive sample_size
+        with pytest.raises(ValueError, match="sample_size must be greater than 0"):
+            BaseDataset._stratified_sample(ds, stratify_by="label", sample_size=0, seed=42)
+
     def test_from_csv_with_drop_na_and_stratify(self, temp_store):
         """Test from_csv with drop_na and stratification."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
