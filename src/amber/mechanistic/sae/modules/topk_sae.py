@@ -1,32 +1,28 @@
 from pathlib import Path
-from typing import Any, Iterator, Optional
-from dataclasses import dataclass
+from typing import Any
 
 import torch
-from torch import nn
-
 from overcomplete import (
     TopKSAE as OvercompleteTopkSAE,
     SAE as OvercompleteSAE
 )
-
 from amber.hooks.hook import HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
 from amber.mechanistic.sae.sae import Sae
 from amber.mechanistic.sae.sae_trainer import SaeTrainingConfig
 from amber.store.store import Store
 from amber.utils import get_logger
 
-try:
-    from tqdm.auto import tqdm  # type: ignore
-except Exception:  # pragma: no cover - tqdm is optional
-    def tqdm(iterable=None, *args, **kwargs):  # type: ignore
-        return iterable if iterable is not None else range(0)
-
 logger = get_logger(__name__)
 
-# TopKSAETrainingConfig is now SaeTrainingConfig in sae.py
-# Keep alias for backward compatibility
-TopKSAETrainingConfig = SaeTrainingConfig
+
+class TopKSaeTrainingConfig(SaeTrainingConfig):
+    """Training configuration for TopK SAE models.
+    
+    Extends SaeTrainingConfig with TopK-specific training parameters.
+    Currently, TopK SAE uses the same training parameters as the base SAE,
+    but this class provides a clear extension point for future TopK-specific options.
+    """
+    pass
 
 
 class TopKSae(Sae):
@@ -97,8 +93,9 @@ class TopKSae(Sae):
             store: Store,
             run_id: str,
             layer_signature: str | int,
-            config: SaeTrainingConfig | None = None
-    ) -> dict[str, list[float]]:
+            config: TopKSaeTrainingConfig | None = None,
+            training_run_id: str | None = None
+    ) -> dict[str, Any]:
         """
         Train TopKSAE using activations from a Store.
         
@@ -110,9 +107,13 @@ class TopKSae(Sae):
             config: Training configuration
             
         Returns:
-            Dictionary with training history
+            Dictionary with keys:
+                - "history": Training history dictionary
+                - "training_run_id": Training run ID where outputs were saved
         """
-        return self.trainer.train(store, run_id, layer_signature, config)
+        if config is None:
+            config = TopKSaeTrainingConfig()
+        return self.trainer.train(store, run_id, layer_signature, config, training_run_id)
 
     def modify_activations(
             self,
@@ -134,33 +135,75 @@ class TopKSae(Sae):
         Returns:
             Modified activations with same shape as input
         """
+        # Extract tensor from output/inputs, handling objects with last_hidden_state
         if self.hook_type == HookType.FORWARD:
-            tensor = output
-        else:
-            tensor = inputs[0] if len(inputs) > 0 else None
-
-        if tensor is None:
-            return output if self.hook_type == HookType.FORWARD else inputs
-
-        # Check if tensor is actually a torch.Tensor
-        if not isinstance(tensor, torch.Tensor):
-            # For FORWARD hooks with non-tensor output, try to extract tensor from inputs
-            if self.hook_type == HookType.FORWARD and len(inputs) > 0 and isinstance(inputs[0], torch.Tensor):
-                tensor = inputs[0]
+            if isinstance(output, torch.Tensor):
+                tensor = output
+            elif hasattr(output, "last_hidden_state") and isinstance(output.last_hidden_state, torch.Tensor):
+                tensor = output.last_hidden_state
+            elif isinstance(output, (tuple, list)):
+                # Try to find first tensor in tuple/list
+                tensor = next((item for item in output if isinstance(item, torch.Tensor)), None)
             else:
-                # Can't process non-tensor, return original
-                return output if self.hook_type == HookType.FORWARD else inputs
+                tensor = None
+        else:
+            tensor = inputs[0] if len(inputs) > 0 and isinstance(inputs[0], torch.Tensor) else None
+
+        if tensor is None or not isinstance(tensor, torch.Tensor):
+            return output if self.hook_type == HookType.FORWARD else inputs
 
         original_shape = tensor.shape
 
-        # Flatten to 2D if needed: (batch, seq_len, hidden) -> (batch * seq_len, hidden)
-        needs_reshape = len(original_shape) > 2
-        if needs_reshape:
+        # Flatten to 2D for SAE processing: (batch, seq_len, hidden) -> (batch * seq_len, hidden)
+        # or keep as 2D if already 2D: (batch, hidden)
+        if len(original_shape) > 2:
             batch_size, seq_len = original_shape[:2]
-            tensor = tensor.reshape(-1, original_shape[-1])
+            tensor_flat = tensor.reshape(-1, original_shape[-1])
+        else:
+            batch_size = original_shape[0]
+            seq_len = 1
+            tensor_flat = tensor
 
-        # Encode to get latents
-        latents = self.encode(tensor)
+        # Get full activations (pre_codes) and sparse codes
+        # Overcomplete TopKSAE encode returns (pre_codes, codes)
+        pre_codes, codes = self.sae_engine.encode(tensor_flat)
+        
+        # Save SAE activations (pre_codes) as 3D tensor: (batch, seq, n_latents)
+        latents_cpu = pre_codes.detach().cpu()
+        latents_3d = latents_cpu.reshape(batch_size, seq_len, -1)
+        
+        # Save to tensor_metadata
+        self.tensor_metadata['neurons'] = latents_3d
+        self.tensor_metadata['activations'] = latents_3d
+        
+        # Process each item in the batch individually for metadata
+        batch_items = []
+        n_items = latents_cpu.shape[0]
+        for item_idx in range(n_items):
+            item_latents = latents_cpu[item_idx]  # [n_latents]
+            
+            # Find nonzero indices for this item
+            nonzero_mask = item_latents != 0
+            nonzero_indices = torch.nonzero(nonzero_mask, as_tuple=False).flatten().tolist()
+            
+            # Create map of nonzero indices to activations
+            activations_map = {
+                int(idx): float(item_latents[idx].item())
+                for idx in nonzero_indices
+            }
+            
+            # Create item metadata
+            item_metadata = {
+                "nonzero_indices": nonzero_indices,
+                "activations": activations_map
+            }
+            batch_items.append(item_metadata)
+        
+        # Save batch items metadata
+        self.metadata['batch_items'] = batch_items
+
+        # Use sparse codes for reconstruction
+        latents = codes
 
         # Update top texts if text tracking is enabled
         if self._text_tracking_enabled and self.context.lm is not None:
@@ -168,19 +211,9 @@ class TopKSae(Sae):
             if input_tracker is not None:
                 texts = input_tracker.get_current_texts()
                 if texts:
-                    # For text tracking, use full (non-sparse) activations, not sparse TopK
-                    # Overcomplete TopKSAE encode returns (pre_codes, codes) where codes are sparse
-                    # We need pre_codes (full activations) for accurate text tracking
-                    # pre_codes are the raw activations before TopK sparsity
-                    pre_codes, _ = self.sae_engine.encode(tensor)
-                    # Use pre_codes directly (signed values) - the _text_tracking_negative flag
-                    # in concepts will handle whether to track negative activations
-                    full_latents = pre_codes
-
-                    # Update top texts using full latents and texts
-                    # Latents are already flattened, so pass original_shape for token index calculation
+                    # Use pre_codes (full activations) for text tracking
                     self.concepts.update_top_texts_from_latents(
-                        full_latents.detach().cpu(),
+                        latents_cpu,
                         texts,
                         original_shape
                     )
@@ -195,8 +228,8 @@ class TopKSae(Sae):
         # Decode to get reconstruction
         reconstructed = self.decode(latents)
 
-        # Reshape back to original shape if needed
-        if needs_reshape:
+        # Reshape back to original shape
+        if len(original_shape) > 2:
             reconstructed = reconstructed.reshape(original_shape)
 
         # Return in appropriate format
@@ -275,10 +308,13 @@ class TopKSae(Sae):
         p = Path(path)
 
         # Load payload
-        payload = torch.load(
-            p,
-            map_location='cuda' if torch.cuda.is_available() else 'cpu'
-        )
+        if torch.cuda.is_available():
+            map_location = 'cuda'
+        elif torch.backends.mps.is_available():
+            map_location = 'mps'
+        else:
+            map_location = 'cpu'
+        payload = torch.load(p, map_location=map_location)
 
         # Extract our metadata
         if "amber_metadata" not in payload:
@@ -313,10 +349,13 @@ class TopKSae(Sae):
 
         # Load concepts state
         if concepts_state:
+            device = topk_sae.context.device
+            if isinstance(device, str):
+                device = torch.device(device)
             if "multiplication" in concepts_state:
-                topk_sae.concepts.multiplication.data = concepts_state["multiplication"]
+                topk_sae.concepts.multiplication.data = concepts_state["multiplication"].to(device)
             if "bias" in concepts_state:
-                topk_sae.concepts.bias.data = concepts_state["bias"]
+                topk_sae.concepts.bias.data = concepts_state["bias"].to(device)
 
         # Note: Top texts loading was removed as serialization methods were removed
         # Top texts should be exported/imported separately if needed
@@ -337,74 +376,16 @@ class TopKSae(Sae):
             output: HOOK_FUNCTION_OUTPUT
     ) -> None:
         """
-        Override process_activations to save full neuron activations (pre_codes) 
-        instead of sparse TopK codes, with per-item batch metadata.
+        Process activations (Detector interface).
         
-        This ensures we capture all neuron values, not just the TopK active ones,
-        and saves metadata for each item in the batch individually.
+        Metadata saving is handled in modify_activations to avoid duplicate work.
+        This method is kept for interface compatibility but does nothing since
+        modify_activations already saves the metadata when called.
         
         Args:
             module: The PyTorch module being hooked
             input: Tuple of input tensors to the module
             output: Output tensor(s) from the module
         """
-        # Extract tensor from input/output based on hook type
-        if self.hook_type == HookType.FORWARD:
-            tensor = output
-        else:
-            tensor = input[0] if len(input) > 0 else None
-        
-        if tensor is None or not isinstance(tensor, torch.Tensor):
-            return
-        
-        original_shape = tensor.shape
-        
-        # Flatten to 2D if needed: (batch, seq_len, hidden) -> (batch * seq_len, hidden)
-        needs_reshape = len(original_shape) > 2
-        if needs_reshape:
-            tensor_flat = tensor.reshape(-1, original_shape[-1])
-        else:
-            tensor_flat = tensor
-        
-        # Get full activations (pre_codes) instead of sparse codes
-        # Overcomplete TopKSAE encode returns (pre_codes, codes)
-        pre_codes, _ = self.sae_engine.encode(tensor_flat)
-        latents = pre_codes  # Use full activations
-        latents_cpu = latents.detach().cpu()
-
-        # Save full neuron activations tensor to tensor_metadata for backward compatibility
-        if needs_reshape:
-            batch_size, seq_len = original_shape[:2]
-            latents_reshaped = latents_cpu.reshape(batch_size, seq_len, -1)
-            self.tensor_metadata['neurons'] = latents_reshaped
-        else:
-            self.tensor_metadata['neurons'] = latents_cpu
-
-        # Process each item in the batch individually
-        # latents_cpu shape: [batch*seq, n_latents] or [batch, n_latents]
-        batch_items = []
-        n_items = latents_cpu.shape[0]
-
-        for item_idx in range(n_items):
-            item_latents = latents_cpu[item_idx]  # [n_latents]
-            
-            # Find nonzero indices for this item
-            nonzero_mask = item_latents != 0
-            nonzero_indices = torch.nonzero(nonzero_mask, as_tuple=False).flatten().tolist()
-            
-            # Create map of nonzero indices to activations
-            activations_map = {
-                int(idx): float(item_latents[idx].item())
-                for idx in nonzero_indices
-            }
-            
-            # Create item metadata
-            item_metadata = {
-                "nonzero_indices": nonzero_indices,
-                "activations": activations_map
-            }
-            
-            batch_items.append(item_metadata)
-
-        # Save batch items metadata
-        self.metadata['batch_items'] = batch_items
+        # Metadata saving is done in modify_activations to avoid duplicate encoding
+        pass

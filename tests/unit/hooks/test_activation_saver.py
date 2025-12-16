@@ -4,7 +4,7 @@ import pytest
 import torch
 from torch import nn
 
-from amber.hooks.implementations.activation_saver import LayerActivationDetector
+from amber.hooks.implementations.layer_activation_detector import LayerActivationDetector
 from amber.hooks.hook import HookType
 
 
@@ -119,6 +119,62 @@ class TestLayerActivationDetectorProcessActivations:
         detector.process_activations(module, (input_tensor,), "invalid")
         captured = detector.get_captured()
         assert captured is None
+
+    def test_process_activations_cuda_tensor_moved_to_cpu(self):
+        """Test that CUDA tensors are moved to CPU."""
+        if not torch.cuda.is_available():
+            pytest.skip("CUDA not available")
+        
+        detector = LayerActivationDetector(layer_signature="layer_0")
+        module = nn.Linear(10, 5)
+        input_tensor = torch.randn(2, 10)
+        output_tensor = torch.randn(2, 5).cuda()
+        
+        detector.process_activations(module, (input_tensor,), output_tensor)
+        
+        captured = detector.get_captured()
+        assert captured is not None
+        assert captured.device.type == "cpu"
+        assert torch.allclose(captured, output_tensor.cpu())
+
+    def test_process_activations_preserves_gradient_detached(self):
+        """Test that captured tensors are detached from computation graph."""
+        detector = LayerActivationDetector(layer_signature="layer_0")
+        module = nn.Linear(10, 5)
+        input_tensor = torch.randn(2, 10, requires_grad=True)
+        output_tensor = torch.randn(2, 5, requires_grad=True)
+        
+        detector.process_activations(module, (input_tensor,), output_tensor)
+        
+        captured = detector.get_captured()
+        assert captured is not None
+        assert not captured.requires_grad
+
+    def test_process_activations_list_output(self):
+        """Test processing activations from list output."""
+        detector = LayerActivationDetector(layer_signature="layer_0")
+        module = nn.Linear(10, 5)
+        input_tensor = torch.randn(2, 10)
+        output_tensor1 = torch.randn(2, 5)
+        output_tensor2 = torch.randn(2, 3)
+        
+        detector.process_activations(module, (input_tensor,), [output_tensor1, output_tensor2])
+        
+        captured = detector.get_captured()
+        assert captured is not None
+        assert torch.equal(captured, output_tensor1.cpu())
+
+    def test_process_activations_metadata_shape_stored(self):
+        """Test that activation shape is stored in metadata."""
+        detector = LayerActivationDetector(layer_signature="layer_0")
+        module = nn.Linear(10, 5)
+        input_tensor = torch.randn(2, 10)
+        output_tensor = torch.randn(3, 7, 5)
+        
+        detector.process_activations(module, (input_tensor,), output_tensor)
+        
+        assert 'activations_shape' in detector.metadata
+        assert detector.metadata['activations_shape'] == (3, 7, 5)
 
 
 class TestLayerActivationDetectorGetCaptured:

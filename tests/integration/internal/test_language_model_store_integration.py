@@ -52,3 +52,14 @@ class TestLanguageModelStoreIntegration:
         
         assert retrieved == metadata
 
+    def test_unified_detector_metadata_saving_via_language_model(self, temp_store):
+        """Test unified detector metadata saving path."""
+        lm = create_language_model_from_mock(temp_store)
+        detector = create_activation_detector(layer_signature=0)
+
+        lm.layers.register_hook(0, detector)
+        lm.inference.infer_texts(["Hello unified"], run_name="unified_run", save_in_batches=False)
+
+        base = temp_store.base_path / temp_store.runs_prefix / "unified_run" / "detectors"
+        assert (base / "metadata.json").exists()
+

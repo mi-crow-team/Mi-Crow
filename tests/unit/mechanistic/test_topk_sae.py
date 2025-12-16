@@ -172,61 +172,118 @@ def test_save_and_load_roundtrip(tmp_path):
     assert torch.allclose(loaded.concepts.multiplication, torch.full((2,), 2.5))
 
 
-def test_process_activations_saves_full_activations():
-    """Test that TopKSae process_activations saves full pre_codes, not sparse codes."""
-    sae = make_topk()
-    module = MagicMock()
+def test_encode_sparsity_verification():
+    """Verify encode returns exactly k non-zero values per sample."""
+    class StubEngineSparse:
+        def encode(self, x):
+            pre_codes = torch.randn(x.shape[0], 8)
+            codes = torch.zeros_like(pre_codes)
+            for i in range(x.shape[0]):
+                topk_indices = torch.topk(pre_codes[i], k=4).indices
+                codes[i, topk_indices] = pre_codes[i, topk_indices]
+            return pre_codes, codes
     
-    # Create test input
-    output = torch.randn(2, 2)
+    sae = TopKSae(n_latents=8, n_inputs=16, k=4)
+    sae.sae_engine = StubEngineSparse()
+    x = torch.randn(5, 16)
+    encoded = sae.encode(x)
     
-    # The StubEngine.encode returns (pre_codes, codes) = (x + 1, x * 0.5)
-    # So for output, we get pre_codes = output + 1
-    sae.process_activations(module, (), output)
-    
-    # Verify batch_items metadata exists
-    assert 'batch_items' in sae.metadata
-    batch_items = sae.metadata['batch_items']
-    assert len(batch_items) == 2
-    
-    # Verify full neurons tensor is saved (pre_codes, not sparse codes)
-    assert 'neurons' in sae.tensor_metadata
-    neurons_tensor = sae.tensor_metadata['neurons']
-    # Should be shape (2, 2) for 2D input
-    assert neurons_tensor.shape == (2, 2)
-    # Should contain pre_codes (output + 1), not sparse codes (output * 0.5)
-    expected_pre_codes = (output + 1).cpu()
-    assert torch.allclose(neurons_tensor, expected_pre_codes)
+    assert encoded.shape == (5, 8)
+    for i in range(5):
+        non_zero = (encoded[i] != 0).sum().item()
+        assert non_zero == 4, f"Row {i} should have exactly 4 non-zero values, got {non_zero}"
 
 
-def test_process_activations_saves_batch_items_with_full_activations():
-    """Test that TopKSae saves batch items with full activations."""
-    sae = make_topk()
-    module = MagicMock()
+def test_modify_activations_uses_pre_codes_for_text_tracking():
+    """Verify modify_activations passes pre_codes (full activations) to text tracking."""
+    sae = TopKSae(n_latents=8, n_inputs=16, k=4)
+    sae.hook_type = HookType.FORWARD
+    sae._text_tracking_enabled = True
     
-    # Create test input with specific values
-    output = torch.tensor([
-        [1.0, 2.0],
-        [3.0, 4.0],
-    ])
+    tracker = MagicMock()
+    tracker.get_current_texts.return_value = ["test text"]
+    lm = MagicMock()
+    lm.get_input_tracker.return_value = tracker
+    sae.context.lm = lm
     
-    sae.process_activations(module, (), output)
+    spy = MagicMock()
+    sae.concepts.update_top_texts_from_latents = spy
     
-    # Verify batch_items
-    batch_items = sae.metadata['batch_items']
-    assert len(batch_items) == 2
+    pre_codes_full = torch.randn(2, 8)
+    codes_sparse = torch.zeros_like(pre_codes_full)
+    codes_sparse[:, :4] = pre_codes_full[:, :4]
     
-    # StubEngine.encode returns (x + 1, x * 0.5)
-    # So pre_codes for first item: [2.0, 3.0]
-    # pre_codes for second item: [4.0, 5.0]
-    item_0 = batch_items[0]
-    # All values are nonzero, so all indices should be present
-    assert set(item_0['nonzero_indices']) == {0, 1}
-    assert item_0['activations'][0] == 2.0  # 1.0 + 1
-    assert item_0['activations'][1] == 3.0  # 2.0 + 1
+    class StubEngineWithPreCodes:
+        def encode(self, x):
+            return pre_codes_full, codes_sparse
+        
+        def decode(self, z):
+            return torch.randn(z.shape[0], 16)
     
-    item_1 = batch_items[1]
-    assert set(item_1['nonzero_indices']) == {0, 1}
-    assert item_1['activations'][0] == 4.0  # 3.0 + 1
-    assert item_1['activations'][1] == 5.0  # 4.0 + 1
+    sae.sae_engine = StubEngineWithPreCodes()
+    
+    output = torch.randn(2, 16)
+    sae.modify_activations(module=None, inputs=(), output=output)
+    
+    spy.assert_called_once()
+    call_args = spy.call_args[0]
+    latents_passed = call_args[0]
+    
+    assert latents_passed.shape == (2, 8)
+    assert torch.allclose(latents_passed, pre_codes_full)
+
+
+def test_modify_activations_3d_reshaping():
+    """Verify 3D inputs are correctly reshaped and restored."""
+    sae = TopKSae(n_latents=8, n_inputs=16, k=4)
+    sae.hook_type = HookType.FORWARD
+    
+    x = torch.randn(2, 3, 16)
+    original_shape = x.shape
+    
+    result = sae.modify_activations(None, (), x)
+    
+    assert result.shape == original_shape
+    assert result.shape == (2, 3, 16)
+
+
+def test_modify_activations_return_format_matches_input_tuple():
+    """Verify return format matches input format for tuple output."""
+    sae = TopKSae(n_latents=8, n_inputs=16, k=4)
+    sae.hook_type = HookType.FORWARD
+    
+    output = (torch.randn(2, 16), torch.randn(2, 16))
+    result = sae.modify_activations(None, (), output)
+    
+    assert isinstance(result, tuple)
+    assert len(result) == 2
+    assert result[0].shape == (2, 16)
+
+
+def test_modify_activations_return_format_matches_input_list():
+    """Verify return format matches input format for list output."""
+    sae = TopKSae(n_latents=8, n_inputs=16, k=4)
+    sae.hook_type = HookType.FORWARD
+    
+    output = [torch.randn(2, 16), torch.randn(2, 16)]
+    result = sae.modify_activations(None, (), output)
+    
+    assert isinstance(result, list)
+    assert len(result) == 2
+    assert result[0].shape == (2, 16)
+
+
+def test_modify_activations_pre_forward_3d_reshaping():
+    """Verify PRE_FORWARD hook correctly handles 3D inputs."""
+    sae = TopKSae(n_latents=8, n_inputs=16, k=4)
+    sae.hook_type = HookType.PRE_FORWARD
+    
+    x = torch.randn(2, 3, 16)
+    original_shape = x.shape
+    
+    result = sae.modify_activations(None, (x,), None)
+    
+    assert isinstance(result, tuple)
+    assert result[0].shape == original_shape
+    assert result[0].shape == (2, 3, 16)
 

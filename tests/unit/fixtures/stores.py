@@ -52,6 +52,8 @@ def create_mock_store() -> Mock:
     mock_store.put_run_metadata.return_value = "runs/test_run/meta.json"
     mock_store.get_run_metadata.return_value = {}
     mock_store.put_detector_metadata.return_value = "runs/test_run/batch_0"
+    if hasattr(mock_store, "put_run_detector_metadata"):
+        mock_store.put_run_detector_metadata.return_value = "runs/test_run/detectors"
     mock_store.get_detector_metadata.return_value = ({}, {})
     mock_store.get_detector_metadata_by_layer_by_key.return_value = None
     mock_store.delete_run.return_value = None

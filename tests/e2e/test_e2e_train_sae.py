@@ -138,9 +138,12 @@ def test_e2e_train_sae_workflow(temp_dirs):
         verbose=False,  # Reduce noise in tests
     )
     
-    history = sae.train(store, RUN_ID, LAYER_SIGNATURE, config)
+    result = sae.train(store, RUN_ID, LAYER_SIGNATURE, config)
     
     # Verify training completed
+    assert "history" in result
+    assert "training_run_id" in result
+    history = result["history"]
     assert "loss" in history
     assert "recon_mse" in history
     assert "l1" in history

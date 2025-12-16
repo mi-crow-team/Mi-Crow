@@ -88,3 +88,16 @@ outputs
 /playground/store/
 /tests/unit/store
 /tests/store
+
+# experiments
+.llm_context/
+results/
+store/
+
+# frontend
+src/frontend/node_modules/
+src/frontend/dist/
+src/frontend/build/
+src/frontend/.next/
+
+amber_server

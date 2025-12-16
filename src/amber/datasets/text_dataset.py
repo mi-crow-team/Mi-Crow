@@ -65,7 +65,7 @@ class TextDataset(BaseDataset):
         if not text_field or not isinstance(text_field, str) or not text_field.strip():
             raise ValueError(f"text_field must be a non-empty string, got: {text_field!r}")
 
-    def _extract_text_from_row(self, row: Dict[str, Any]) -> str:
+    def _extract_text_from_row(self, row: Dict[str, Any]) -> Optional[str]:
         """Extract text from a dataset row.
 
         Args:
@@ -77,8 +77,11 @@ class TextDataset(BaseDataset):
         Raises:
             ValueError: If text field is not found in row
         """
-        text = row.get(self._text_field) or row.get("text")
-        if text is None:
+        if self._text_field in row:
+            text = row[self._text_field]
+        elif "text" in row:
+            text = row["text"]
+        else:
             raise ValueError(
                 f"Text field '{self._text_field}' or 'text' not found in dataset row. "
                 f"Available fields: {list(row.keys())}"
@@ -96,7 +99,7 @@ class TextDataset(BaseDataset):
             raise NotImplementedError("len() not supported for ITERABLE_ONLY datasets")
         return self._ds.num_rows
 
-    def __getitem__(self, idx: IndexLike) -> Union[str, List[str]]:
+    def __getitem__(self, idx: IndexLike) -> Union[Optional[str], List[Optional[str]]]:
         """
         Get text item(s) by index.
 
@@ -146,7 +149,7 @@ class TextDataset(BaseDataset):
 
         raise TypeError(f"Invalid index type: {type(idx)}")
 
-    def iter_items(self) -> Iterator[str]:
+    def iter_items(self) -> Iterator[Optional[str]]:
         """
         Iterate over text items one by one.
 
@@ -159,7 +162,7 @@ class TextDataset(BaseDataset):
         for row in self._ds:
             yield self._extract_text_from_row(row)
 
-    def iter_batches(self, batch_size: int) -> Iterator[List[str]]:
+    def iter_batches(self, batch_size: int) -> Iterator[List[Optional[str]]]:
         """
         Iterate over text items in batches.
 
@@ -188,7 +191,7 @@ class TextDataset(BaseDataset):
             for batch in self._ds.iter(batch_size=batch_size):
                 yield list(batch["text"])
 
-    def extract_texts_from_batch(self, batch: List[str]) -> List[str]:
+    def extract_texts_from_batch(self, batch: List[Optional[str]]) -> List[Optional[str]]:
         """Extract text strings from a batch.
 
         For TextDataset, batch items are already strings, so return as-is.
@@ -201,7 +204,7 @@ class TextDataset(BaseDataset):
         """
         return batch
 
-    def get_all_texts(self) -> List[str]:
+    def get_all_texts(self) -> List[Optional[str]]:
         """Get all texts from the dataset.
 
         Returns:
@@ -226,7 +229,10 @@ class TextDataset(BaseDataset):
         text_field: str = "text",
         filters: Optional[Dict[str, Any]] = None,
         limit: Optional[int] = None,
+        stratify_by: Optional[str] = None,
+        stratify_seed: Optional[int] = None,
         streaming: Optional[bool] = None,
+        drop_na: bool = False,
         **kwargs,
     ) -> "TextDataset":
         """
@@ -241,7 +247,10 @@ class TextDataset(BaseDataset):
             text_field: Name of the column containing text
             filters: Optional filters to apply (dict of column: value)
             limit: Optional limit on number of rows
+            stratify_by: Optional column used for stratified sampling (non-streaming only)
+            stratify_seed: Optional RNG seed for deterministic stratification
             streaming: Optional override for streaming
+            drop_na: Whether to drop rows with None/empty text
             **kwargs: Additional arguments for load_dataset
 
         Returns:
@@ -253,6 +262,11 @@ class TextDataset(BaseDataset):
         """
         use_streaming = streaming if streaming is not None else (loading_strategy == LoadingStrategy.ITERABLE_ONLY)
 
+        if (stratify_by or drop_na) and use_streaming:
+            raise NotImplementedError(
+                "Stratification and drop_na are not supported for streaming datasets. Use MEMORY or DYNAMIC_LOAD."
+            )
+
         try:
             ds = load_dataset(
                 path=repo_id,
@@ -262,18 +276,21 @@ class TextDataset(BaseDataset):
                 **kwargs,
             )
 
-            if not use_streaming:
-                if filters:
-
-                    def _pred(example):
-                        return all(example.get(k) == v for k, v in filters.items())
-
-                    ds = ds.filter(_pred)
-
-                if limit is not None:
-                    if limit <= 0:
-                        raise ValueError(f"limit must be > 0, got: {limit}")
-                    ds = ds.select(range(min(limit, len(ds))))
+            if use_streaming:
+                if filters or limit:
+                    raise NotImplementedError(
+                        "filters and limit are not supported when streaming datasets. Choose MEMORY or DYNAMIC_LOAD."
+                    )
+            else:
+                drop_na_columns = [text_field] if drop_na else None
+                ds = cls._postprocess_non_streaming_dataset(
+                    ds,
+                    filters=filters,
+                    limit=limit,
+                    stratify_by=stratify_by,
+                    stratify_seed=stratify_seed,
+                    drop_na_columns=drop_na_columns,
+                )
         except Exception as e:
             raise RuntimeError(
                 f"Failed to load text dataset from HuggingFace Hub: "
@@ -292,6 +309,9 @@ class TextDataset(BaseDataset):
         loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
         text_field: str = "text",
         delimiter: str = ",",
+        stratify_by: Optional[str] = None,
+        stratify_seed: Optional[int] = None,
+        drop_na: bool = False,
         **kwargs,
     ) -> "TextDataset":
         """
@@ -303,6 +323,9 @@ class TextDataset(BaseDataset):
             loading_strategy: Loading strategy
             text_field: Name of the column containing text
             delimiter: CSV delimiter (default: comma)
+            stratify_by: Optional column to use for stratified sampling
+            stratify_seed: Optional RNG seed for stratified sampling
+            drop_na: Whether to drop rows with None/empty text
             **kwargs: Additional arguments for load_dataset
 
         Returns:
@@ -312,12 +335,16 @@ class TextDataset(BaseDataset):
             FileNotFoundError: If CSV file doesn't exist
             RuntimeError: If dataset loading fails
         """
+        drop_na_columns = [text_field] if drop_na else None
         dataset = super().from_csv(
             source,
             store=store,
             loading_strategy=loading_strategy,
             text_field=text_field,
             delimiter=delimiter,
+            stratify_by=stratify_by,
+            stratify_seed=stratify_seed,
+            drop_na_columns=drop_na_columns,
             **kwargs,
         )
         return cls(
@@ -335,6 +362,9 @@ class TextDataset(BaseDataset):
         *,
         loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
         text_field: str = "text",
+        stratify_by: Optional[str] = None,
+        stratify_seed: Optional[int] = None,
+        drop_na: bool = False,
         **kwargs,
     ) -> "TextDataset":
         """
@@ -345,6 +375,9 @@ class TextDataset(BaseDataset):
             store: Store instance
             loading_strategy: Loading strategy
             text_field: Name of the field containing text
+            stratify_by: Optional column to use for stratified sampling
+            stratify_seed: Optional RNG seed for stratified sampling
+            drop_na: Whether to drop rows with None/empty text
             **kwargs: Additional arguments for load_dataset
 
         Returns:
@@ -354,11 +387,15 @@ class TextDataset(BaseDataset):
             FileNotFoundError: If JSON file doesn't exist
             RuntimeError: If dataset loading fails
         """
+        drop_na_columns = [text_field] if drop_na else None
         dataset = super().from_json(
             source,
             store=store,
             loading_strategy=loading_strategy,
             text_field=text_field,
+            stratify_by=stratify_by,
+            stratify_seed=stratify_seed,
+            drop_na_columns=drop_na_columns,
             **kwargs,
         )
         # Re-initialize with text_field

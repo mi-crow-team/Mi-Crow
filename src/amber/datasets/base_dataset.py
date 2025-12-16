@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import math
 import random
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from pathlib import Path
-from typing import Any, Iterator, List, Optional, Union
+from typing import Any, Dict, Iterator, List, Optional, Union
 
 from datasets import Dataset, IterableDataset, load_dataset, load_from_disk
 
@@ -21,7 +23,7 @@ class BaseDataset(ABC):
     - DYNAMIC_LOAD: Save to disk, read dynamically via memory-mapped Arrow files
       (supports len/getitem, lower memory usage)
     - ITERABLE_ONLY: True streaming mode using IterableDataset
-      (lowest memory, no len/getitem support)
+      (lowest memory, no len/getitem support, no stratification and limit support)
     """
 
     def __init__(
@@ -123,6 +125,191 @@ class BaseDataset(ABC):
                 raise RuntimeError(f"Failed to process dataset at {self._dataset_dir}. Error: {e}") from e
         else:
             return ds
+
+    @classmethod
+    def _postprocess_non_streaming_dataset(
+        cls,
+        ds: Dataset,
+        *,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: Optional[int] = None,
+        stratify_by: Optional[str] = None,
+        stratify_seed: Optional[int] = None,
+        drop_na_columns: Optional[List[str]] = None,
+    ) -> Dataset:
+        """Apply filters, stratified sampling, and limits to an in-memory dataset."""
+
+        if drop_na_columns:
+            ds = cls._drop_na(ds, drop_na_columns)
+
+        if filters:
+            ds = cls._apply_filters(ds, filters)
+
+        limit_applied = False
+        if stratify_by:
+            sample_size = limit if limit is not None else len(ds)
+            if sample_size is not None and sample_size <= 0:
+                raise ValueError(f"limit must be > 0 when stratifying, got: {sample_size}")
+            ds = cls._stratified_sample(
+                ds,
+                stratify_by=stratify_by,
+                sample_size=sample_size,
+                seed=stratify_seed,
+            )
+            limit_applied = True
+
+        if limit is not None and not limit_applied:
+            if limit <= 0:
+                raise ValueError(f"limit must be > 0, got: {limit}")
+            ds = ds.select(range(min(limit, len(ds))))
+
+        return ds
+
+    @staticmethod
+    def _drop_na(ds: Dataset, columns: List[str]) -> Dataset:
+        """Drop rows where any of the specified columns are None or empty string."""
+
+        def _is_valid(example: Dict[str, Any]) -> bool:
+            for col in columns:
+                val = example.get(col)
+                if val is None:
+                    return False
+                if isinstance(val, str) and not val.strip():
+                    return False
+            return True
+
+        return ds.filter(_is_valid)
+
+    @staticmethod
+    def _apply_filters(ds: Dataset, filters: Dict[str, Any]) -> Dataset:
+        """Apply exact-match filters to a Dataset."""
+
+        def _predicate(example: Dict[str, Any]) -> bool:
+            return all(example.get(key) == value for key, value in filters.items())
+
+        return ds.filter(_predicate)
+
+    @staticmethod
+    def _stratified_sample(  # noqa: C901
+        ds: Dataset,
+        *,
+        stratify_by: str,
+        sample_size: Optional[int],
+        seed: Optional[int],
+    ) -> Dataset:
+        """Return a stratified sample of the dataset with the requested size."""
+
+        if stratify_by not in ds.column_names:
+            raise ValueError(f"Column '{stratify_by}' not found in dataset columns: {ds.column_names}")
+
+        total_rows = len(ds)
+        if total_rows == 0:
+            return ds
+
+        if sample_size is None:
+            sample_size = total_rows
+
+        sample_size = min(sample_size, total_rows)
+        if sample_size <= 0:
+            raise ValueError("sample_size must be greater than 0 for stratification")
+
+        column_values = ds[stratify_by]
+        label_to_indices: Dict[Any, List[int]] = defaultdict(list)
+        for idx, label in enumerate(column_values):
+            label_to_indices[label].append(idx)
+
+        label_counts = {label: len(indices) for label, indices in label_to_indices.items()}
+        allocations: Dict[Any, int] = {}
+        fractional_parts: List[tuple[float, int, Any]] = []
+
+        allocated_total = 0
+        for order, (label, count) in enumerate(label_counts.items()):
+            exact_allocation = (count / total_rows) * sample_size
+            base_allocation = min(count, int(math.floor(exact_allocation)))
+            allocations[label] = base_allocation
+            allocated_total += base_allocation
+            fractional_parts.append((exact_allocation - base_allocation, order, label))
+
+        remaining = sample_size - allocated_total
+        fractional_parts.sort(key=lambda item: (-item[0], item[1]))
+        for _, _, label in fractional_parts:
+            if remaining <= 0:
+                break
+            available = label_counts[label] - allocations[label]
+            if available <= 0:
+                continue
+            take = min(available, remaining)
+            allocations[label] += take
+            remaining -= take
+
+        rng = random.Random(seed)
+        selected_indices: List[int] = []
+        for label, count in allocations.items():
+            if count <= 0:
+                continue
+            indices = label_to_indices[label]
+            if count >= len(indices):
+                chosen = list(indices)
+            else:
+                chosen = rng.sample(indices, count)
+            selected_indices.extend(chosen)
+
+        rng.shuffle(selected_indices)
+        return ds.select(selected_indices)
+
+    @staticmethod
+    def _load_csv_source(
+        source: Union[str, Path],
+        *,
+        delimiter: str,
+        streaming: bool,
+        **kwargs,
+    ) -> Dataset | IterableDataset:
+        """Load a CSV dataset from disk using HuggingFace datasets."""
+
+        p = Path(source)
+        if not p.exists():
+            raise FileNotFoundError(f"CSV file not found: {source}")
+        if not p.is_file():
+            raise ValueError(f"Source must be a file, got: {source}")
+
+        try:
+            return load_dataset(
+                "csv",
+                data_files=str(p),
+                split="train",
+                delimiter=delimiter,
+                streaming=streaming,
+                **kwargs,
+            )
+        except Exception as e:
+            raise RuntimeError(f"Failed to load CSV dataset from {source}. Error: {e}") from e
+
+    @staticmethod
+    def _load_json_source(
+        source: Union[str, Path],
+        *,
+        streaming: bool,
+        **kwargs,
+    ) -> Dataset | IterableDataset:
+        """Load a JSON/JSONL dataset from disk using HuggingFace datasets."""
+
+        p = Path(source)
+        if not p.exists():
+            raise FileNotFoundError(f"JSON file not found: {source}")
+        if not p.is_file():
+            raise ValueError(f"Source must be a file, got: {source}")
+
+        try:
+            return load_dataset(
+                "json",
+                data_files=str(p),
+                split="train",
+                streaming=streaming,
+                **kwargs,
+            )
+        except Exception as e:
+            raise RuntimeError(f"Failed to load JSON dataset from {source}. Error: {e}") from e
 
     def get_batch(self, start: int, batch_size: int) -> List[Any]:
         """
@@ -263,6 +450,10 @@ class BaseDataset(ABC):
         loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
         revision: Optional[str] = None,
         streaming: Optional[bool] = None,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: Optional[int] = None,
+        stratify_by: Optional[str] = None,
+        stratify_seed: Optional[int] = None,
         **kwargs,
     ) -> "BaseDataset":
         """
@@ -275,6 +466,10 @@ class BaseDataset(ABC):
             loading_strategy: Loading strategy (MEMORY, DYNAMIC_LOAD, or ITERABLE_ONLY)
             revision: Optional git revision/branch/tag
             streaming: Optional override for streaming (if None, uses loading_strategy)
+            filters: Optional dict of column->value pairs used for exact-match filtering
+            limit: Optional maximum number of rows to keep (applied after filtering/stratification)
+            stratify_by: Optional column to use for stratified sampling (non-streaming only)
+            stratify_seed: Optional RNG seed for deterministic stratification
             **kwargs: Additional arguments passed to load_dataset
 
         Returns:
@@ -291,8 +486,10 @@ class BaseDataset(ABC):
             raise ValueError("store cannot be None")
 
         # Determine if we should use streaming for HuggingFace load_dataset
-        # Only ITERABLE_ONLY needs streaming=True for load_dataset
         use_streaming = streaming if streaming is not None else (loading_strategy == LoadingStrategy.ITERABLE_ONLY)
+
+        if stratify_by and loading_strategy == LoadingStrategy.ITERABLE_ONLY:
+            raise NotImplementedError("Stratification is not supported for ITERABLE_ONLY datasets.")
 
         try:
             ds = load_dataset(
@@ -308,6 +505,21 @@ class BaseDataset(ABC):
                 f"split={split!r}, revision={revision!r}. Error: {e}"
             ) from e
 
+        if use_streaming:
+            if filters or limit or stratify_by:
+                raise NotImplementedError(
+                    "filters, limit, and stratification are not supported when streaming datasets. "
+                    "Choose MEMORY or DYNAMIC_LOAD loading strategy instead."
+                )
+        else:
+            ds = cls._postprocess_non_streaming_dataset(
+                ds,
+                filters=filters,
+                limit=limit,
+                stratify_by=stratify_by,
+                stratify_seed=stratify_seed,
+            )
+
         return cls(ds, store=store, loading_strategy=loading_strategy)
 
     @classmethod
@@ -319,6 +531,9 @@ class BaseDataset(ABC):
         loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
         text_field: str = "text",
         delimiter: str = ",",
+        stratify_by: Optional[str] = None,
+        stratify_seed: Optional[int] = None,
+        drop_na_columns: Optional[List[str]] = None,
         **kwargs,
     ) -> "BaseDataset":
         """
@@ -330,6 +545,9 @@ class BaseDataset(ABC):
             loading_strategy: Loading strategy
             text_field: Name of the column containing text
             delimiter: CSV delimiter (default: comma)
+            stratify_by: Optional column used for stratified sampling (non-streaming only)
+            stratify_seed: Optional RNG seed for stratified sampling
+            drop_na_columns: Optional list of columns to check for None/empty values
             **kwargs: Additional arguments passed to load_dataset
 
         Returns:
@@ -343,33 +561,24 @@ class BaseDataset(ABC):
         if store is None:
             raise ValueError("store cannot be None")
 
-        p = Path(source)
-        if not p.exists():
-            raise FileNotFoundError(f"CSV file not found: {source}")
+        use_streaming = loading_strategy == LoadingStrategy.ITERABLE_ONLY
+        if (stratify_by or drop_na_columns) and use_streaming:
+            raise NotImplementedError("Stratification and drop_na are not supported for ITERABLE_ONLY datasets.")
 
-        if not p.is_file():
-            raise ValueError(f"Source must be a file, got: {source}")
+        ds = cls._load_csv_source(
+            source,
+            delimiter=delimiter,
+            streaming=use_streaming,
+            **kwargs,
+        )
 
-        try:
-            if loading_strategy == LoadingStrategy.ITERABLE_ONLY:
-                ds = load_dataset(
-                    "csv",
-                    data_files=str(p),
-                    split="train",
-                    delimiter=delimiter,
-                    streaming=True,
-                    **kwargs,
-                )
-            else:
-                ds = load_dataset(
-                    "csv",
-                    data_files=str(p),
-                    split="train",
-                    delimiter=delimiter,
-                    **kwargs,
-                )
-        except Exception as e:
-            raise RuntimeError(f"Failed to load CSV dataset from {source}. Error: {e}") from e
+        if not use_streaming and (stratify_by or drop_na_columns):
+            ds = cls._postprocess_non_streaming_dataset(
+                ds,
+                stratify_by=stratify_by,
+                stratify_seed=stratify_seed,
+                drop_na_columns=drop_na_columns,
+            )
 
         return cls(ds, store=store, loading_strategy=loading_strategy)
 
@@ -381,6 +590,9 @@ class BaseDataset(ABC):
         *,
         loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
         text_field: str = "text",
+        stratify_by: Optional[str] = None,
+        stratify_seed: Optional[int] = None,
+        drop_na_columns: Optional[List[str]] = None,
         **kwargs,
     ) -> "BaseDataset":
         """
@@ -391,6 +603,9 @@ class BaseDataset(ABC):
             store: Store instance
             loading_strategy: Loading strategy
             text_field: Name of the field containing text (for JSON objects)
+            stratify_by: Optional column used for stratified sampling (non-streaming only)
+            stratify_seed: Optional RNG seed for stratified sampling
+            drop_na_columns: Optional list of columns to check for None/empty values
             **kwargs: Additional arguments passed to load_dataset
 
         Returns:
@@ -404,30 +619,22 @@ class BaseDataset(ABC):
         if store is None:
             raise ValueError("store cannot be None")
 
-        p = Path(source)
-        if not p.exists():
-            raise FileNotFoundError(f"JSON file not found: {source}")
+        use_streaming = loading_strategy == LoadingStrategy.ITERABLE_ONLY
+        if (stratify_by or drop_na_columns) and use_streaming:
+            raise NotImplementedError("Stratification and drop_na are not supported for ITERABLE_ONLY datasets.")
 
-        if not p.is_file():
-            raise ValueError(f"Source must be a file, got: {source}")
+        ds = cls._load_json_source(
+            source,
+            streaming=use_streaming,
+            **kwargs,
+        )
 
-        try:
-            if loading_strategy == LoadingStrategy.ITERABLE_ONLY:
-                ds = load_dataset(
-                    "json",
-                    data_files=str(p),
-                    split="train",
-                    streaming=True,
-                    **kwargs,
-                )
-            else:
-                ds = load_dataset(
-                    "json",
-                    data_files=str(p),
-                    split="train",
-                    **kwargs,
-                )
-        except Exception as e:
-            raise RuntimeError(f"Failed to load JSON dataset from {source}. Error: {e}") from e
+        if not use_streaming and (stratify_by or drop_na_columns):
+            ds = cls._postprocess_non_streaming_dataset(
+                ds,
+                stratify_by=stratify_by,
+                stratify_seed=stratify_seed,
+                drop_na_columns=drop_na_columns,
+            )
 
         return cls(ds, store=store, loading_strategy=loading_strategy)

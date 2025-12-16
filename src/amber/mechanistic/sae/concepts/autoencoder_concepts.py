@@ -39,8 +39,7 @@ class AutoencoderConcepts:
 
     def enable_text_tracking(self):
         """Enable text tracking using context parameters."""
-        if not (self.context.text_tracking_enabled and
-                self.context.lm is not None):
+        if self.context.lm is None:
             raise ValueError("LanguageModel must be set in context to enable tracking")
 
         # Store tracking parameters
@@ -95,17 +94,6 @@ class AutoencoderConcepts:
             llm_provider=llm_provider
         )
 
-    def manipulate_concept(
-            self,
-            neuron_idx: int,
-            multiplier: float | None = None,
-            bias: float | None = None
-    ):
-        if self.dictionary is None:
-            logger.warning("No dictionary was created yet")
-        self.multiplication.data[neuron_idx] = multiplier
-        self.bias.data[neuron_idx] = bias
-
     def _ensure_heaps(self, n_neurons: int) -> None:
         """Ensure heaps are initialized for the given number of neurons."""
         if self._top_texts_heaps is None:
@@ -122,7 +110,7 @@ class AutoencoderConcepts:
 
             # Use the raw tokenizer (not the wrapper) to encode and decode
             tokenizer = self.context.lm.tokenizer
-            
+
             # Tokenize the text to get token IDs
             tokens = tokenizer.encode(text, add_special_tokens=False)
             if 0 <= token_idx < len(tokens):
@@ -183,14 +171,19 @@ class AutoencoderConcepts:
         # This ensures we only track the best activation for each text, not every token position
         for j in range(n_neurons):
             heap = self._top_texts_heaps[j]
-            
+
             # For each text in the batch, find the max activation and its token position
+            texts_processed = 0
+            texts_added = 0
+            texts_updated = 0
+            texts_skipped_duplicate = 0
             for batch_idx in range(original_B):
                 if batch_idx >= len(texts):
                     continue
-                
+
                 text = texts[batch_idx]
-                
+                texts_processed += 1
+
                 # Get activations for this text (all token positions)
                 if original_shape is not None and len(original_shape) == 3:
                     # 3D case: [B, T, D] -> get slice for this batch
@@ -200,9 +193,9 @@ class AutoencoderConcepts:
                     text_token_indices = token_indices[start_idx:end_idx]  # [T]
                 else:
                     # 2D case: [B, D] -> single token
-                    text_activations = latents[batch_idx:batch_idx+1, j]  # [1]
-                    text_token_indices = token_indices[batch_idx:batch_idx+1]  # [1]
-                
+                    text_activations = latents[batch_idx:batch_idx + 1, j]  # [1]
+                    text_token_indices = token_indices[batch_idx:batch_idx + 1]  # [1]
+
                 # Find the maximum activation (or minimum if tracking negative)
                 if self._text_tracking_negative:
                     # For negative tracking, find the most negative (minimum) value
@@ -214,21 +207,23 @@ class AutoencoderConcepts:
                     max_idx = torch.argmax(text_activations)
                     max_score = float(text_activations[max_idx].item())
                     adj = max_score
-                
+
                 # Skip if score is zero (no activation)
                 if max_score == 0.0:
                     continue
-                
+
                 token_idx = int(text_token_indices[max_idx].item())
-                
+
                 # Check if we already have this text in the heap
                 # If so, only update if this activation is better
                 existing_entry = None
+                heap_texts = []
                 for heap_idx, (heap_adj, (heap_score, heap_text, heap_token_idx)) in enumerate(heap):
+                    heap_texts.append(heap_text[:50] if len(heap_text) > 50 else heap_text)
                     if heap_text == text:
                         existing_entry = (heap_idx, heap_adj, heap_score, heap_token_idx)
                         break
-                
+
                 if existing_entry is not None:
                     # Update existing entry if this activation is better
                     heap_idx, heap_adj, heap_score, heap_token_idx = existing_entry
@@ -236,14 +231,19 @@ class AutoencoderConcepts:
                         # Replace with better activation
                         heap[heap_idx] = (adj, (max_score, text, token_idx))
                         heapq.heapify(heap)  # Re-heapify after modification
+                        texts_updated += 1
+                    else:
+                        texts_skipped_duplicate += 1
                 else:
                     # New text, add to heap
                     if len(heap) < self._text_tracking_k:
                         heapq.heappush(heap, (adj, (max_score, text, token_idx)))
+                        texts_added += 1
                     else:
                         # Compare with smallest adjusted score; replace if better
                         if adj > heap[0][0]:
                             heapq.heapreplace(heap, (adj, (max_score, text, token_idx)))
+                            texts_added += 1
 
     def get_top_texts_for_neuron(self, neuron_idx: int, top_m: int | None = None) -> list[NeuronText]:
         """Get top texts for a specific neuron."""

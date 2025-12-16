@@ -3,13 +3,16 @@ from __future__ import annotations
 import abc
 import uuid
 from enum import Enum
-from typing import Callable, TypeAlias, Sequence
+from typing import Callable, TypeAlias, Sequence, Optional, TYPE_CHECKING
 
 import torch
 from torch import nn, Tensor
 from torch.types import _TensorOrTensors
 
 from amber.utils import get_logger
+
+if TYPE_CHECKING:
+    from amber.language_model.context import LanguageModelContext
 
 logger = get_logger(__name__)
 
@@ -55,6 +58,7 @@ class Hook(abc.ABC):
         self.id = hook_id if hook_id is not None else str(uuid.uuid4())
         self._enabled = True
         self._torch_hook_handle = None
+        self._context: Optional["LanguageModelContext"] = None
 
     def _normalize_hook_type(self, hook_type: HookType | str) -> HookType:
         """Normalize hook_type to HookType enum.
@@ -139,6 +143,19 @@ class Hook(abc.ABC):
     def disable(self) -> None:
         """Disable this hook."""
         self._enabled = False
+
+    @property
+    def context(self) -> Optional["LanguageModelContext"]:
+        """Get the LanguageModelContext associated with this hook."""
+        return self._context
+
+    def set_context(self, context: "LanguageModelContext") -> None:
+        """Set the LanguageModelContext for this hook.
+        
+        Args:
+            context: The LanguageModelContext instance
+        """
+        self._context = context
 
     def _is_both_controller_and_detector(self) -> bool:
         """

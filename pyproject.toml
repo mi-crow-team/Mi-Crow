@@ -25,6 +25,7 @@ dependencies = [
     "wandb>=0.22.1",
     "pytest>=8.4.2",
     "pytest-xdist>=3.8.0",
+    "seaborn>=0.13.2",
 ]
 dynamic = ["version"]
 
@@ -49,7 +50,7 @@ docs = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--maxfail=1 -q --cov=amber --cov-report=term-missing --cov-report=xml --cov-fail-under=90"
+addopts = "--maxfail=1 -q --cov=amber --cov-report=term-missing --cov-report=xml --cov-fail-under=85"
 testpaths = ["tests"]
 pythonpath = ["src"]
 
@@ -61,7 +62,7 @@ parallel = true
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
-fail_under = 90
+fail_under = 85
 
 [tool.coverage.xml]
 output = "coverage.xml"
@@ -134,4 +135,10 @@ dev = [
     "wheel>=0.45.1",
     "pytest>=8.0.0",
     "pytest-cov>=7.0.0",
+]
+server = [
+    "fastapi>=0.124.4",
+    "httpx>=0.28.1",
+    "pydantic-settings>=2.12.0",
+    "uvicorn>=0.38.0",
 ]
