@@ -422,6 +422,147 @@ class TestInferenceEngine:
 
         mock_language_model.clear_detectors.assert_called_once()
 
+    def test_extract_dataset_info_happy_and_fallback(self, mock_language_model):
+        """_extract_dataset_info should return dataset metadata or a safe fallback."""
+        engine = InferenceEngine(mock_language_model)
+
+        class GoodDataset:
+            def __init__(self):
+                self.dataset_dir = "/tmp/ds"
+
+            def __len__(self):
+                return 5
+
+        class BadDataset:
+            dataset_dir = "/tmp/bad"
+
+            def __len__(self):
+                raise RuntimeError("boom")
+
+        good = GoodDataset()
+        bad = BadDataset()
+
+        info_good = engine._extract_dataset_info(good)
+        assert info_good == {"dataset_dir": "/tmp/ds", "length": 5}
+
+        info_bad = engine._extract_dataset_info(bad)
+        assert info_bad == {"dataset_dir": "", "length": -1}
+
+    def test_prepare_run_metadata_includes_dataset_and_options(self, mock_language_model):
+        """_prepare_run_metadata should include dataset info and options when provided."""
+        engine = InferenceEngine(mock_language_model)
+
+        class DatasetStub:
+            def __init__(self):
+                self.dataset_dir = "/ds"
+
+            def __len__(self):
+                return 10
+
+        dataset = DatasetStub()
+        options = {"batch_size": 4, "max_length": 32}
+
+        run_name, meta = engine._prepare_run_metadata(dataset=dataset, run_name="run-1", options=options)
+
+        assert run_name == "run-1"
+        assert meta["run_name"] == "run-1"
+        assert "model" in meta
+        assert meta["options"] == options
+        assert meta["dataset"] == {"dataset_dir": "/ds", "length": 10}
+
+        # When run_name is None, a non-empty name should be generated
+        auto_name, auto_meta = engine._prepare_run_metadata(dataset=None, run_name=None, options=None)
+        assert isinstance(auto_name, str) and auto_name
+        assert auto_meta["run_name"] == auto_name
+
+    def test_save_run_metadata_handles_store_errors(self, mock_language_model):
+        """_save_run_metadata should swallow store errors and log when verbose=True."""
+        engine = InferenceEngine(mock_language_model)
+
+        class FailingStore:
+            def put_run_metadata(self, run_name, meta):
+                raise OSError("disk full")
+
+        store = FailingStore()
+        meta = {"run_name": "x"}
+
+        with patch("amber.language_model.inference.logger") as mock_logger:
+            # Should not raise, even though the store fails
+            engine._save_run_metadata(store, "x", meta, verbose=True)
+
+        assert mock_logger.warning.called
+
+    def test_infer_texts_with_run_name_and_no_store_raises(self, mock_language_model):
+        """infer_texts should require a store when run_name is provided."""
+        engine = InferenceEngine(mock_language_model)
+        mock_language_model.store = None
+
+        with pytest.raises(ValueError, match="Store must be provided to save metadata"):
+            engine.infer_texts(["text"], run_name="run-1")
+
+    def test_infer_dataset_requires_model_and_store(self, mock_language_model, temp_store):
+        """infer_dataset should validate that model and store are present."""
+        engine = InferenceEngine(mock_language_model)
+
+        class DatasetStub:
+            def iter_batches(self, batch_size):
+                yield ["x"]
+
+            def extract_texts_from_batch(self, batch):
+                return batch
+
+        ds = DatasetStub()
+
+        # Missing model
+        mock_language_model.context.model = None
+        mock_language_model.store = temp_store
+        with pytest.raises(ValueError, match="Model must be initialized before running"):
+            engine.infer_dataset(ds, run_name="r")
+
+        # Missing store
+        mock_language_model.context.model = Mock()
+        mock_language_model.store = None
+        with pytest.raises(ValueError, match="Store must be provided or set on the language model"):
+            engine.infer_dataset(ds, run_name="r")
+
+    def test_infer_dataset_skips_empty_batches(self, mock_language_model, temp_store):
+        """infer_dataset should gracefully skip empty batches from the dataset."""
+        engine = InferenceEngine(mock_language_model)
+        mock_language_model.store = temp_store
+
+        class DatasetWithEmpty:
+            dataset_dir = "ds"
+
+            def __len__(self):
+                return 2
+
+            def iter_batches(self, batch_size):
+                yield []  # empty batch
+                yield ["a", "b"]
+
+            def extract_texts_from_batch(self, batch):
+                return batch
+
+        ds = DatasetWithEmpty()
+
+        mock_enc = {"input_ids": torch.tensor([[1, 2]])}
+        mock_output = Mock()
+
+        mock_language_model.tokenize = Mock(return_value=mock_enc)
+        mock_language_model.context.model = Mock(return_value=mock_output)
+        mock_language_model.context.model.eval = Mock()
+        mock_language_model.layers.get_controllers = Mock(return_value=[])
+        mock_language_model.save_detector_metadata = Mock()
+
+        with patch("amber.language_model.inference.get_device_from_model", return_value=torch.device("cpu")):
+            with patch("amber.language_model.inference.move_tensors_to_device", return_value=mock_enc):
+                with patch("torch.inference_mode"):
+                    run_name = engine.infer_dataset(ds, run_name="run-empty", batch_size=2)
+
+        assert run_name == "run-empty"
+        # Only one non-empty batch should be processed
+        mock_language_model.save_detector_metadata.assert_called_once()
+
     def test_infer_texts_stop_after_layer_changes_output_shape(self, temp_store):
         """infer_texts with stop_after_layer should return an intermediate layer output."""
         from tests.unit.fixtures.language_models import create_language_model_from_mock
