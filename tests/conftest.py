@@ -7,6 +7,12 @@ def pytest_addoption(parser):
         help="Run only unit tests (from tests/unit/)",
     )
     parser.addoption(
+        "--integration",
+        action="store_true",
+        default=False,
+        help="Run only integration tests (from tests/integration/)",
+    )
+    parser.addoption(
         "--e2e",
         action="store_true",
         default=False,
@@ -29,7 +35,23 @@ def pytest_collection_modifyitems(config, items):
         selected = []
         deselected = []
         for item in items:
-            if "tests/unit/" in str(item.fspath):
+            # item.path is already a Path object
+            # Convert to string and normalize separators for checking
+            path_str = str(item.path).replace("\\", "/")
+            if "/tests/unit/" in path_str:
+                selected.append(item)
+            else:
+                deselected.append(item)
+        items[:] = selected
+        config.hook.pytest_deselected(items=deselected)
+    elif config.getoption("--integration"):
+        selected = []
+        deselected = []
+        for item in items:
+            # item.path is already a Path object
+            # Convert to string and normalize separators for checking
+            path_str = str(item.path).replace("\\", "/")
+            if "/tests/integration/" in path_str:
                 selected.append(item)
             else:
                 deselected.append(item)
@@ -39,7 +61,10 @@ def pytest_collection_modifyitems(config, items):
         selected = []
         deselected = []
         for item in items:
-            if "tests/e2e/" in str(item.fspath):
+            # item.path is already a Path object
+            # Convert to string and normalize separators for checking
+            path_str = str(item.path).replace("\\", "/")
+            if "/tests/e2e/" in path_str:
                 selected.append(item)
             else:
                 deselected.append(item)

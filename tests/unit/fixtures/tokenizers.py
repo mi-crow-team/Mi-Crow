@@ -21,6 +21,9 @@ class MockTokenizer(PreTrainedTokenizerBase):
         if key in self._SPECIAL_ID_NAMES:
             object.__setattr__(self, key, value)
             return
+        if key == "all_special_ids":
+            object.__setattr__(self, "_all_special_ids", value)
+            return
         super().__setattr__(key, value)
 
     def __init__(
@@ -112,6 +115,18 @@ class MockTokenizer(PreTrainedTokenizerBase):
         import types
         prop = property(lambda self: [pad_token, eos_token, bos_token, unk_token])
         type(self).all_special_tokens = prop
+        
+        # Initialize all_special_ids with default values
+        object.__setattr__(self, '_all_special_ids', [0, 1, 2, 3])
+        
+        # Add property for all_special_ids
+        def _all_special_ids_getter(self):
+            return getattr(self, '_all_special_ids', [0, 1, 2, 3])
+        
+        def _all_special_ids_setter(self, value):
+            object.__setattr__(self, '_all_special_ids', value)
+        
+        type(self).all_special_ids = property(_all_special_ids_getter, _all_special_ids_setter)
 
     def _tokenize(self, text: str) -> List[str]:
         """Simple tokenization by splitting on spaces."""

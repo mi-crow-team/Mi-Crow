@@ -264,3 +264,170 @@ class TestHookIsBothControllerAndDetector:
         assert 'Detector' in mro_names
         assert dual_hook._is_both_controller_and_detector() is True
 
+
+class TestHookContext:
+    """Tests for Hook context management."""
+
+    def test_context_property_returns_none_initially(self):
+        """Test that context property returns None initially."""
+        hook = ConcreteHook()
+        assert hook.context is None
+
+    def test_set_context_sets_context(self):
+        """Test that set_context sets the context."""
+        hook = ConcreteHook()
+        mock_context = Mock()
+        
+        hook.set_context(mock_context)
+        
+        assert hook.context == mock_context
+
+    def test_set_context_updates_context_property(self):
+        """Test that set_context updates context property."""
+        hook = ConcreteHook()
+        mock_context1 = Mock()
+        mock_context2 = Mock()
+        
+        hook.set_context(mock_context1)
+        assert hook.context == mock_context1
+        
+        hook.set_context(mock_context2)
+        assert hook.context == mock_context2
+
+
+class TestHookPreForwardWrapper:
+    """Tests for pre-forward hook wrapper functionality."""
+
+    def test_pre_forward_wrapper_returns_none_when_disabled(self):
+        """Test that pre-forward wrapper returns None when hook is disabled."""
+        hook = ConcreteHook(hook_type=HookType.PRE_FORWARD)
+        hook.disable()
+        torch_hook = hook.get_torch_hook()
+        
+        module = Mock()
+        input_tuple = (Mock(),)
+        
+        result = torch_hook(module, input_tuple)
+        
+        assert result is None
+
+    def test_pre_forward_wrapper_returns_modified_input(self):
+        """Test that pre-forward wrapper can return modified input."""
+        class ModifyingHook(ConcreteHook):
+            def _hook_fn(self, module, input, output):
+                modified = list(input)
+                if len(modified) > 0:
+                    modified[0] = Mock()
+                return tuple(modified)
+        
+        hook = ModifyingHook(hook_type=HookType.PRE_FORWARD)
+        torch_hook = hook.get_torch_hook()
+        
+        module = Mock()
+        input_tuple = (Mock(),)
+        
+        result = torch_hook(module, input_tuple)
+        
+        assert result is not None
+        assert isinstance(result, tuple)
+
+    def test_pre_forward_wrapper_handles_exceptions(self, caplog):
+        """Test that pre-forward wrapper handles exceptions gracefully."""
+        class FailingHook(ConcreteHook):
+            def _hook_fn(self, module, input, output):
+                raise ValueError("Test error")
+        
+        hook = FailingHook(hook_type=HookType.PRE_FORWARD)
+        torch_hook = hook.get_torch_hook()
+        
+        module = Mock()
+        input_tuple = (Mock(),)
+        
+        result = torch_hook(module, input_tuple)
+        
+        assert result is None
+        assert "raised exception" in caplog.text.lower()
+
+
+class TestHookForwardWrapper:
+    """Tests for forward hook wrapper functionality."""
+
+    def test_forward_wrapper_returns_none_when_disabled(self):
+        """Test that forward wrapper returns None when hook is disabled."""
+        hook = ConcreteHook(hook_type=HookType.FORWARD)
+        hook.disable()
+        torch_hook = hook.get_torch_hook()
+        
+        module = Mock()
+        input_tuple = (Mock(),)
+        output = Mock()
+        
+        result = torch_hook(module, input_tuple, output)
+        
+        assert result is None
+
+    def test_forward_wrapper_always_returns_none(self):
+        """Test that forward wrapper always returns None (PyTorch limitation)."""
+        hook = ConcreteHook(hook_type=HookType.FORWARD)
+        torch_hook = hook.get_torch_hook()
+        
+        module = Mock()
+        input_tuple = (Mock(),)
+        output = Mock()
+        
+        result = torch_hook(module, input_tuple, output)
+        
+        assert result is None
+
+    def test_forward_wrapper_handles_exceptions(self, caplog):
+        """Test that forward wrapper handles exceptions gracefully."""
+        class FailingHook(ConcreteHook):
+            def _hook_fn(self, module, input, output):
+                raise ValueError("Test error")
+        
+        hook = FailingHook(hook_type=HookType.FORWARD)
+        torch_hook = hook.get_torch_hook()
+        
+        module = Mock()
+        input_tuple = (Mock(),)
+        output = Mock()
+        
+        result = torch_hook(module, input_tuple, output)
+        
+        assert result is None
+        assert "raised exception" in caplog.text.lower()
+
+
+class TestHookGetTorchHook:
+    """Tests for get_torch_hook method."""
+
+    def test_get_torch_hook_returns_callable(self):
+        """Test that get_torch_hook returns a callable."""
+        hook = ConcreteHook()
+        torch_hook = hook.get_torch_hook()
+        
+        assert callable(torch_hook)
+
+    def test_get_torch_hook_forward_returns_forward_wrapper(self):
+        """Test that get_torch_hook returns forward wrapper for FORWARD type."""
+        hook = ConcreteHook(hook_type=HookType.FORWARD)
+        torch_hook = hook.get_torch_hook()
+        
+        module = Mock()
+        input_tuple = (Mock(),)
+        output = Mock()
+        
+        result = torch_hook(module, input_tuple, output)
+        assert result is None
+
+    def test_get_torch_hook_pre_forward_returns_pre_forward_wrapper(self):
+        """Test that get_torch_hook returns pre-forward wrapper for PRE_FORWARD type."""
+        hook = ConcreteHook(hook_type=HookType.PRE_FORWARD)
+        torch_hook = hook.get_torch_hook()
+        
+        module = Mock()
+        input_tuple = (Mock(),)
+        
+        result = torch_hook(module, input_tuple)
+        assert result is None or isinstance(result, tuple)
+

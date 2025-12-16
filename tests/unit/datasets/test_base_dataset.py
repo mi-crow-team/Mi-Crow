@@ -1,6 +1,7 @@
 """Tests for BaseDataset abstract class."""
 
 import tempfile
+from collections import defaultdict
 from pathlib import Path
 from unittest.mock import patch
 
@@ -364,3 +365,200 @@ class TestBaseDatasetFactoryMethods:
         with tempfile.TemporaryDirectory() as tmpdir:
             with pytest.raises(ValueError, match="Source must be a file"):
                 ConcreteBaseDataset.from_json(tmpdir, temp_store)
+
+
+class TestBaseDatasetPostProcessing:
+    """Tests for BaseDataset post-processing methods."""
+
+    def test_drop_na(self):
+        """Test _drop_na method."""
+        data = {
+            "text": ["a", "b", None, "d", "", "  "],
+            "label": [1, None, 3, 4, 5, 6],
+            "other": ["x", "y", "z", "w", "v", "u"],
+        }
+        ds = Dataset.from_dict(data)
+
+        cleaned_ds = BaseDataset._drop_na(ds, ["text"])
+        assert len(cleaned_ds) == 3
+        assert cleaned_ds["text"] == ["a", "b", "d"]
+
+        cleaned_ds_label = BaseDataset._drop_na(ds, ["label"])
+        assert len(cleaned_ds_label) == 5
+        assert cleaned_ds_label["label"] == [1, 3, 4, 5, 6]
+
+        cleaned_ds_both = BaseDataset._drop_na(ds, ["text", "label"])
+        assert len(cleaned_ds_both) == 2
+        assert cleaned_ds_both["text"] == ["a", "d"]
+
+    def test_stratified_sample(self):
+        """Test _stratified_sample method."""
+        data = {
+            "text": ["a"] * 10 + ["b"] * 20 + ["c"] * 5,
+            "label": ["A"] * 10 + ["B"] * 20 + ["C"] * 5,
+        }
+        ds = Dataset.from_dict(data)
+        sampled_ds = BaseDataset._stratified_sample(ds, stratify_by="label", sample_size=10, seed=42)
+        assert len(sampled_ds) == 10
+
+        counts = defaultdict(int)
+        for item in sampled_ds:
+            counts[item["label"]] += 1
+
+        assert 2 <= counts["A"] <= 4
+        assert 5 <= counts["B"] <= 7
+        assert 1 <= counts["C"] <= 2
+
+    def test_stratified_sample_with_limit_larger_than_dataset(self):
+        """Test stratified sample when limit > dataset size."""
+        data = {"label": ["A", "B", "A"]}
+        ds = Dataset.from_dict(data)
+        sampled_ds = BaseDataset._stratified_sample(ds, stratify_by="label", sample_size=100, seed=42)
+        assert len(sampled_ds) == 3
+        assert sorted(sampled_ds["label"]) == ["A", "A", "B"]
+
+    def test_postprocess_non_streaming_dataset_integration(self):
+        """Test full post-processing pipeline."""
+        data = {
+            "text": ["a", "b", None, "d", "e", "f"],
+            "label": ["A", "B", "A", "B", "A", "B"],
+        }
+        ds = Dataset.from_dict(data)
+        processed_ds = BaseDataset._postprocess_non_streaming_dataset(
+            ds,
+            filters={"label": "B"},
+            limit=2,
+            stratify_by="label",
+            stratify_seed=42,
+            drop_na_columns=["text"],
+        )
+
+        assert len(processed_ds) == 2
+        assert all(item["label"] == "B" for item in processed_ds)
+        assert all(item["text"] is not None for item in processed_ds)
+
+    def test_postprocess_non_streaming_dataset_invalid_limit_raises(self):
+        """limit must be > 0 both with and without stratification."""
+        data = {
+            "text": ["a", "b", "c"],
+            "label": ["A", "B", "A"],
+        }
+        ds = Dataset.from_dict(data)
+
+        # No stratification: limit <= 0 should raise
+        with pytest.raises(ValueError, match="limit must be > 0"):
+            BaseDataset._postprocess_non_streaming_dataset(ds, limit=0)
+
+        # With stratification: sample_size (derived from limit) must be > 0
+        with pytest.raises(ValueError, match="limit must be > 0 when stratifying"):
+            BaseDataset._postprocess_non_streaming_dataset(
+                ds,
+                limit=0,
+                stratify_by="label",
+            )
+
+    def test_stratified_sample_invalid_column_and_sample_size_raises(self):
+        """_stratified_sample should validate column name and sample_size."""
+        data = {
+            "text": ["a", "b", "c"],
+            "label": ["A", "B", "A"],
+        }
+        ds = Dataset.from_dict(data)
+
+        # Invalid stratify_by column
+        with pytest.raises(ValueError, match="Column 'missing' not found"):
+            BaseDataset._stratified_sample(ds, stratify_by="missing", sample_size=2, seed=42)
+
+        # Non‑positive sample_size
+        with pytest.raises(ValueError, match="sample_size must be greater than 0"):
+            BaseDataset._stratified_sample(ds, stratify_by="label", sample_size=0, seed=42)
+
+    def test_from_csv_with_drop_na_and_stratify(self, temp_store):
+        """Test from_csv with drop_na and stratification."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+            f.write("text,label\n")
+            f.write("a,A\n")
+            f.write("b,B\n")
+            f.write(",A\n")  # Empty text
+            f.write("d,B\n")
+            f.write("e,A\n")
+            csv_path = f.name
+
+        try:
+            dataset = ConcreteBaseDataset.from_csv(
+                csv_path, temp_store, drop_na_columns=["text"], stratify_by="label", stratify_seed=42
+            )
+            assert len(dataset) == 4
+            texts = dataset.get_all_texts()
+            assert "a" in texts
+            assert "b" in texts
+            assert "d" in texts
+            assert "e" in texts
+            assert "" not in texts
+        finally:
+            Path(csv_path).unlink()
+
+
+class TestBaseDatasetSourceLoaders:
+    """Tests for BaseDataset source loading methods (_load_csv_source, _load_json_source)."""
+
+    def test_load_csv_source_streaming(self):
+        """Test loading CSV in streaming mode."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+            f.write("text\n")
+            f.write("a\n")
+            f.write("b\n")
+            csv_path = f.name
+
+        try:
+            ds = BaseDataset._load_csv_source(csv_path, delimiter=",", streaming=True)
+            assert isinstance(ds, IterableDataset)
+            items = list(ds)
+            assert len(items) == 2
+            assert items[0]["text"] == "a"
+        finally:
+            Path(csv_path).unlink()
+
+    def test_load_csv_source_malformed_raises_runtime_error(self):
+        """Test that malformed CSV raises RuntimeError."""
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+            f.write("text\n")
+            csv_path = f.name
+
+        try:
+            with patch("amber.datasets.base_dataset.load_dataset") as mock_load:
+                mock_load.side_effect = Exception("CSV Parse Error")
+                with pytest.raises(RuntimeError, match="Failed to load CSV dataset"):
+                    BaseDataset._load_csv_source(csv_path, delimiter=",", streaming=False)
+        finally:
+            Path(csv_path).unlink()
+
+    def test_load_json_source_streaming(self):
+        """Test loading JSON in streaming mode."""
+        import json
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump([{"text": "a"}, {"text": "b"}], f)
+            json_path = f.name
+
+        try:
+            ds = BaseDataset._load_json_source(json_path, streaming=True)
+            assert isinstance(ds, IterableDataset)
+            items = list(ds)
+            assert len(items) == 2
+            assert items[0]["text"] == "a"
+        finally:
+            Path(json_path).unlink()
+
+    def test_load_json_source_malformed_raises_runtime_error(self):
+        """Test that malformed JSON raises RuntimeError."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            f.write("{invalid_json")
+            json_path = f.name
+
+        try:
+            with pytest.raises(RuntimeError, match="Failed to load JSON dataset"):
+                BaseDataset._load_json_source(json_path, streaming=False)
+        finally:
+            Path(json_path).unlink()

@@ -7,7 +7,7 @@ from torch import nn
 
 from amber.hooks.controller import Controller
 from amber.hooks.detector import Detector
-from amber.hooks.hook import HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
+from amber.hooks.hook import Hook, HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
 from amber.mechanistic.sae.autoencoder_context import AutoencoderContext
 from amber.mechanistic.sae.concepts.autoencoder_concepts import AutoencoderConcepts
 from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary
@@ -40,14 +40,14 @@ class Sae(Controller, Detector, abc.ABC):
         Controller.__init__(self, hook_type=HookType.FORWARD, hook_id=hook_id)
         Detector.__init__(self, hook_type=HookType.FORWARD, hook_id=hook_id, store=store)
 
-        self.context = AutoencoderContext(
+        self._autoencoder_context = AutoencoderContext(
             autoencoder=self,
             n_latents=n_latents,
             n_inputs=n_inputs
         )
-        self.context.device = device
+        self._autoencoder_context.device = device
         self.sae_engine: OvercompleteSAE = self._initialize_sae_engine()
-        self.concepts = AutoencoderConcepts(self.context)
+        self.concepts = AutoencoderConcepts(self._autoencoder_context)
 
         # Text tracking flag
         self._text_tracking_enabled: bool = False
@@ -55,18 +55,39 @@ class Sae(Controller, Detector, abc.ABC):
         # Training component
         self.trainer = SaeTrainer(self)
 
+    @property
+    def context(self) -> AutoencoderContext:
+        """Get the AutoencoderContext associated with this SAE."""
+        return self._autoencoder_context
+
+    @context.setter
+    def context(self, value: AutoencoderContext) -> None:
+        """Set the AutoencoderContext for this SAE."""
+        self._autoencoder_context = value
+
+    def set_context(self, context: "LanguageModelContext") -> None:
+        """Set the LanguageModelContext for this hook and sync to AutoencoderContext.
+        
+        When the hook is registered, this method is called with the LanguageModelContext.
+        It automatically syncs relevant values to the AutoencoderContext.
+        
+        Args:
+            context: The LanguageModelContext instance from the LanguageModel
+        """
+        Hook.set_context(self, context)
+        self._context = context
+        if context is not None:
+            self._autoencoder_context.lm = context.language_model
+            if context.model_id is not None:
+                self._autoencoder_context.model_id = context.model_id
+            if context.store is not None and self._autoencoder_context.store is None:
+                self._autoencoder_context.store = context.store
+            if self.layer_signature is not None:
+                self._autoencoder_context.lm_layer_signature = self.layer_signature
+
     @abc.abstractmethod
     def _initialize_sae_engine(self) -> OvercompleteSAE:
         raise NotImplementedError("Initialize SAE engine not implemented.")
-
-    @abc.abstractmethod
-    def modify_activations(
-            self,
-            module: nn.Module,
-            inputs: torch.Tensor | None,
-            output: torch.Tensor | None
-    ) -> torch.Tensor | None:
-        raise NotImplementedError("Modify activations method not implemented.")
 
     @abc.abstractmethod
     def encode(self, x: torch.Tensor) -> torch.Tensor:
@@ -92,6 +113,7 @@ class Sae(Controller, Detector, abc.ABC):
     def attach_dictionary(self, concept_dictionary: ConceptDictionary):
         self.concepts.dictionary = concept_dictionary
 
+    @abc.abstractmethod
     def process_activations(
             self,
             module: torch.nn.Module,
@@ -110,64 +132,16 @@ class Sae(Controller, Detector, abc.ABC):
             input: Tuple of input tensors to the module
             output: Output tensor(s) from the module
         """
-        # Extract tensor from input/output based on hook type
-        if self.hook_type == HookType.FORWARD:
-            tensor = output
-        else:
-            tensor = input[0] if len(input) > 0 else None
+        raise NotImplementedError("process_activations method not implemented.")
 
-        if tensor is None or not isinstance(tensor, torch.Tensor):
-            return
-
-        original_shape = tensor.shape
-
-        # Flatten to 2D if needed: (batch, seq_len, hidden) -> (batch * seq_len, hidden)
-        needs_reshape = len(original_shape) > 2
-        if needs_reshape:
-            tensor_flat = tensor.reshape(-1, original_shape[-1])
-        else:
-            tensor_flat = tensor
-
-        # Encode to get latents (neuron activations)
-        latents = self.encode(tensor_flat)
-        latents_cpu = latents.detach().cpu()
-
-        # Save full neuron activations tensor to tensor_metadata for backward compatibility
-        if needs_reshape:
-            batch_size, seq_len = original_shape[:2]
-            latents_reshaped = latents_cpu.reshape(batch_size, seq_len, -1)
-            self.tensor_metadata['neurons'] = latents_reshaped
-        else:
-            self.tensor_metadata['neurons'] = latents_cpu
-
-        # Process each item in the batch individually
-        # latents_cpu shape: [batch*seq, n_latents] or [batch, n_latents]
-        batch_items = []
-        n_items = latents_cpu.shape[0]
-
-        for item_idx in range(n_items):
-            item_latents = latents_cpu[item_idx]  # [n_latents]
-            
-            # Find nonzero indices for this item
-            nonzero_mask = item_latents != 0
-            nonzero_indices = torch.nonzero(nonzero_mask, as_tuple=False).flatten().tolist()
-            
-            # Create map of nonzero indices to activations
-            activations_map = {
-                int(idx): float(item_latents[idx].item())
-                for idx in nonzero_indices
-            }
-            
-            # Create item metadata
-            item_metadata = {
-                "nonzero_indices": nonzero_indices,
-                "activations": activations_map
-            }
-            
-            batch_items.append(item_metadata)
-
-        # Save batch items metadata
-        self.metadata['batch_items'] = batch_items
+    @abc.abstractmethod
+    def modify_activations(
+            self,
+            module: nn.Module,
+            inputs: torch.Tensor | None,
+            output: torch.Tensor | None
+    ) -> torch.Tensor | None:
+        raise NotImplementedError("modify_activations method not implemented.")
 
     @staticmethod
     def _apply_activation_fn(

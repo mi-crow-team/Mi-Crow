@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from pathlib import Path
-from typing import Sequence, Any, Dict, List, TYPE_CHECKING
+from typing import Sequence, Any, Dict, List, TYPE_CHECKING, Set
 
 import torch
 from torch import nn, Tensor
@@ -22,6 +22,42 @@ if TYPE_CHECKING:
     from amber.mechanistic.sae.concepts.input_tracker import InputTracker
 
 logger = get_logger(__name__)
+
+
+def _extract_special_token_ids(tokenizer: PreTrainedTokenizerBase) -> Set[int]:
+    """
+    Extract special token IDs from a tokenizer.
+    
+    Handles cases where token_id attributes may be lists (e.g., eos_token_id: [4, 2]).
+    
+    Args:
+        tokenizer: HuggingFace tokenizer
+        
+    Returns:
+        Set of special token IDs
+    """
+    special_ids = set()
+    
+    def add_token_id(token_id):
+        if token_id is None:
+            return
+        if isinstance(token_id, list):
+            special_ids.update(token_id)
+        else:
+            special_ids.add(token_id)
+    
+    token_id_attrs = ['pad_token_id', 'eos_token_id', 'bos_token_id', 'unk_token_id', 
+                     'cls_token_id', 'sep_token_id', 'mask_token_id']
+    for attr in token_id_attrs:
+        token_id = getattr(tokenizer, attr, None)
+        add_token_id(token_id)
+    
+    if hasattr(tokenizer, 'all_special_ids'):
+        all_special_ids = tokenizer.all_special_ids
+        if all_special_ids and isinstance(all_special_ids, (list, tuple, set)):
+            special_ids.update(all_special_ids)
+    
+    return special_ids
 
 
 class LanguageModel:
@@ -57,11 +93,13 @@ class LanguageModel:
         self.context.tokenizer = tokenizer
         self.context.model_id = initialize_model_id(model, model_id)
         self.context.store = store
+        self.context.special_token_ids = _extract_special_token_ids(tokenizer)
 
         self.layers = LanguageModelLayers(self.context)
         self.lm_tokenizer = LanguageModelTokenizer(self.context)
         self.activations = LanguageModelActivations(self.context)
-        self._inference_engine = InferenceEngine(self)
+        self.inference = InferenceEngine(self)
+        self._inference_engine = self.inference
 
         self._input_tracker: "InputTracker | None" = None
 
@@ -84,6 +122,11 @@ class LanguageModel:
     def store(self) -> Store:
         """Get the store instance."""
         return self.context.store
+
+    @store.setter
+    def store(self, value: Store) -> None:
+        """Set the store instance."""
+        self.context.store = value
 
     def tokenize(self, texts: Sequence[str], **kwargs: Any):
         """
@@ -204,13 +247,35 @@ class LanguageModel:
 
         return detectors_metadata, detectors_tensor_metadata
 
-    def save_detector_metadata(self, run_name: str, batch_idx: int) -> str:
+    def clear_detectors(self) -> None:
+        """
+        Clear all accumulated metadata for registered detectors.
+
+        This is useful when running multiple independent inference runs
+        (e.g. separate `infer_texts` / `infer_dataset` calls) and you want
+        to ensure that detector state does not leak between runs.
+        """
+        detectors = self.layers.get_detectors()
+        for detector in detectors:
+            # Clear generic accumulated metadata
+            detector.metadata.clear()
+            detector.tensor_metadata.clear()
+
+            # Allow detector implementations to provide more specialized
+            # clearing logic (e.g. ModelInputDetector, ModelOutputDetector).
+            clear_captured = getattr(detector, "clear_captured", None)
+            if callable(clear_captured):
+                clear_captured()
+
+    def save_detector_metadata(self, run_name: str, batch_idx: int | None, unified: bool = False) -> str:
         """
         Save detector metadata to store.
         
         Args:
             run_name: Name of the run
-            batch_idx: Batch index
+            batch_idx: Batch index. Ignored when ``unified`` is True.
+            unified: If True, save metadata in a single detectors directory
+                for the whole run instead of per‑batch directories.
             
         Returns:
             Path where metadata was saved
@@ -221,6 +286,10 @@ class LanguageModel:
         if self.store is None:
             raise ValueError("Store must be provided or set on the language model")
         detectors_metadata, detectors_tensor_metadata = self.get_all_detector_metadata()
+        if unified:
+            return self.store.put_run_detector_metadata(run_name, detectors_metadata, detectors_tensor_metadata)
+        if batch_idx is None:
+            raise ValueError("batch_idx must be provided when unified is False")
         return self.store.put_detector_metadata(run_name, batch_idx, detectors_metadata, detectors_tensor_metadata)
 
     def _ensure_input_tracker(self) -> "InputTracker":

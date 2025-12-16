@@ -8,7 +8,7 @@ import torch
 from amber.hooks.detector import Detector
 from amber.hooks.controller import Controller
 from amber.hooks.hook import HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
-from amber.hooks.implementations.activation_saver import LayerActivationDetector
+from amber.hooks.implementations.layer_activation_detector import LayerActivationDetector
 from amber.hooks.implementations.function_controller import FunctionController
 from amber.store.store import Store
 

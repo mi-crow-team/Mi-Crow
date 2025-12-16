@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Any, TYPE_CHECKING, List
+from typing import Optional, Dict, Any, TYPE_CHECKING, List, Set
 
 if TYPE_CHECKING:
     from amber.language_model.language_model import LanguageModel
@@ -27,6 +27,7 @@ class LanguageModelContext:
     model: Optional["nn.Module"] = None
     tokenizer: Optional["PreTrainedTokenizerBase"] = None
     store: Optional["Store"] = None
+    special_token_ids: Optional[Set[int]] = None
 
     _hook_registry: Dict[str | int, Dict[str, List[tuple["Hook", Any]]]] = field(default_factory=dict)
     _hook_id_map: Dict[str, tuple[str | int, str, "Hook"]] = field(default_factory=dict)
