@@ -7,9 +7,7 @@ from typing import Dict, Any, List, Iterator
 import torch
 
 
-# Type aliases for better readability
 TensorMetadata = Dict[str, Dict[str, torch.Tensor]]
-"""Type alias for tensor metadata structure: layer_signature -> tensor_key -> tensor"""
 
 
 class Store(abc.ABC):
@@ -130,7 +128,6 @@ class Store(abc.ABC):
     def delete_run(self, run_id: str) -> None:
         raise NotImplementedError
 
-    # --- Run metadata (optional helpers) ---
     @abc.abstractmethod
     def put_run_metadata(self, run_id: str, meta: Dict[str, Any]) -> str:
         """Persist metadata for a run (e.g., dataset/model identifiers).
@@ -238,5 +235,42 @@ class Store(abc.ABC):
             ValueError: If parameters are invalid
             FileNotFoundError: If the tensor doesn't exist
             OSError: If tensor file exists but cannot be loaded
+        """
+        raise NotImplementedError
+
+    # --- Unified detector metadata for whole runs ---
+    @abc.abstractmethod
+    def put_run_detector_metadata(
+            self,
+            run_id: str,
+            metadata: Dict[str, Any],
+            tensor_metadata: TensorMetadata,
+    ) -> str:
+        """
+        Save detector metadata for a whole run in a unified location.
+
+        This differs from ``put_detector_metadata`` which organises data
+        per-batch under ``runs/{run_id}/batch_{batch_index}``.
+
+        ``put_run_detector_metadata`` instead stores everything under
+        ``runs/{run_id}/detectors``. Implementations are expected to
+        support being called multiple times for the same ``run_id`` and
+        append / aggregate new metadata rather than overwrite it.
+
+        Args:
+            run_id: Run identifier
+            metadata: JSON-serialisable metadata dictionary aggregated
+                from all detectors for the current chunk / batch.
+            tensor_metadata: Dictionary mapping layer_signature to dict
+                of tensor_key -> tensor (from all detectors).
+
+        Returns:
+            String path/key where metadata was stored
+            (e.g. ``runs/{run_id}/detectors``).
+
+        Raises:
+            ValueError: If parameters are invalid or metadata is not
+                JSON‑serialisable.
+            OSError: If file system operations fail.
         """
         raise NotImplementedError
