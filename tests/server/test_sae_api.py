@@ -49,13 +49,50 @@ class DummyModel(nn.Module):
         self.param = nn.Parameter(torch.zeros(1))
 
     def forward(self, input_ids=None, attention_mask=None, **kwargs):
+        """
+        Minimal forward pass that also simulates execution of registered
+        activation hooks so that the activation extraction + training flow
+        in tests closely mirrors the real system.
+
+        The real models integrate with Amber's hook system; in tests we
+        emulate this by manually calling `process_activations` on any
+        registered detectors.
+        """
         if input_ids is None:
-            return torch.zeros((1, 1))
-        return input_ids.float()
+            outputs = torch.zeros((1, 1))
+        else:
+            outputs = input_ids.float()
+
+        # Simulate hook invocation for any registered layer detectors so
+        # that `ActivationExtractor` can collect activations and persist
+        # batches to the `LocalStore`.
+        layers = getattr(self, "layers", None)
+        if layers is not None:
+            for hooks in getattr(layers, "_registry", {}).values():
+                for _, hook in hooks:
+                    process = getattr(hook, "process_activations", None)
+                    if callable(process):
+                        # Match the signature expected by LayerActivationDetector
+                        process(self, (input_ids,), outputs)
+
+        return outputs
 
     def generate(self, input_ids=None, attention_mask=None, **kwargs):
         tail = torch.tensor([[999]], device=input_ids.device)
-        return torch.cat([input_ids, tail], dim=1)
+        outputs = torch.cat([input_ids, tail], dim=1)
+
+        # Mirror the forward-path behaviour: invoke any registered hooks so that
+        # SAE hooks can capture activations during generation, which is what the
+        # inference service uses.
+        layers = getattr(self, "layers", None)
+        if layers is not None:
+            for hooks in getattr(layers, "_registry", {}).values():
+                for _, hook in hooks:
+                    process = getattr(hook, "process_activations", None)
+                    if callable(process):
+                        process(self, (input_ids,), outputs)
+
+        return outputs
 
 
 class DummyInference:
@@ -92,6 +129,34 @@ class DummyLanguageModel:
         self.model = DummyModel()
         self.tokenizer = DummyTokenizer()
         self.layers = DummyLayers()
+        # Expose layers on the model so that the dummy forward pass can
+        # find and invoke any registered hooks. This mirrors how the real
+        # language model wires hooks into underlying PyTorch modules.
+        self.model.layers = self.layers
+        self._input_tracker = None
+
+    def _ensure_input_tracker(self):
+        """
+        Minimal stand-in for the real LanguageModel._ensure_input_tracker.
+
+        Tests only require that this exists and returns an object with an
+        .enable() method so that SAE text tracking can be toggled without
+        touching the full tracking pipeline.
+        """
+
+        class _DummyTracker:
+            def __init__(self):
+                self.enabled = False
+
+            def enable(self):
+                self.enabled = True
+
+            def disable(self):
+                self.enabled = False
+
+        if self._input_tracker is None:
+            self._input_tracker = _DummyTracker()
+        return self._input_tracker
         self.inference = DummyInference()
         self.model_id = "dummy-model"
 
@@ -126,6 +191,10 @@ class DummySae(Sae):
         return DummySae(n_latents=int(payload.get("n_latents", 4)), n_inputs=int(payload.get("n_inputs", 4)))
 
     def process_activations(self, module, input, output):
+        # For tests we just record a simple activations tensor so that the SAE
+        # inference pipeline can compute top neurons without depending on real
+        # model behaviour.
+        self.tensor_metadata["activations"] = torch.ones((1, self.context.n_latents))
         return None
 
     def modify_activations(self, module, inputs: torch.Tensor | None, output: torch.Tensor | None):
@@ -279,7 +348,9 @@ def test_sae_flow(client: TestClient, tmp_path: Path):
             "inputs": [InferenceInput(prompt="hi").model_dump()],
         },
     )
-    assert infer_resp.status_code == 200
+    # Include response body on failure to aid debugging when this high-level
+    # integration flow breaks.
+    assert infer_resp.status_code == 200, infer_resp.text
     infer_json = infer_resp.json()
     assert len(infer_json["outputs"]) == 1
     assert infer_json["sae_id"] == sae_id

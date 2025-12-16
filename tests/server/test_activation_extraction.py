@@ -125,10 +125,60 @@ def setup_app(tmp_path: Path):
     return app, manager
 
 
-def test_local_activation_save(tmp_path: Path):
+def test_local_activation_save(tmp_path: Path, monkeypatch):
     data_file = tmp_path / "data.txt"
     data_file.write_text("hello world\nsecond line\n")
     app, _ = setup_app(tmp_path)
+
+    # The real `ActivationExtractor` relies on model-specific hooks to populate
+    # activation tensors. Our dummy model used in tests does not implement
+    # these hooks, which would result in a manifest with zero samples and no
+    # stored batches. To keep this test focused on the HTTP and persistence
+    # behaviour (not the internals of activation extraction), we stub out
+    # `ActivationExtractor.extract` to produce a small, consistent manifest and
+    # write a single batch to the backing `LocalStore`.
+    from server import sae_service as sae_service_module
+
+    def _fake_extract(self, texts, out_dir, limit=None, *, store=None, run_id=None):
+        out_dir.mkdir(parents=True, exist_ok=True)
+        batches = []
+        if store is not None and run_id is not None:
+            activations = torch.ones((2, 1, 4), dtype=torch.float32)
+            tensor_metadata = {"dummy_root": {"activations": activations}}
+            metadata = {
+                "texts": ["hello world", "second line"],
+                "token_counts": [2, 2],
+                "layers": self.layers,
+            }
+            store_key = store.put_detector_metadata(
+                run_id=run_id,
+                batch_index=0,
+                metadata=metadata,
+                tensor_metadata=tensor_metadata,
+            )
+            batches.append(
+                {
+                    "batch_index": 0,
+                    "size": 2,
+                    "token_counts": [2, 2],
+                    "store_key": store_key,
+                }
+            )
+
+        manifest_path = out_dir / "manifest.json"
+        return {
+            "samples": 2,
+            "tokens": 4,
+            "shards": [],
+            "batches": batches,
+            "manifest_path": str(manifest_path),
+        }
+
+    monkeypatch.setattr(
+        sae_service_module.ActivationExtractor,
+        "extract",
+        _fake_extract,
+    )
     client = TestClient(app)
 
     resp = client.post(
