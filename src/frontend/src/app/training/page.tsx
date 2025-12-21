@@ -57,6 +57,11 @@ export default function TrainingPage() {
   const [selectedSae, setSelectedSae] = useState<SaeRunInfo | null>(null);
   const [isLoadingLayerSize, setIsLoadingLayerSize] = useState(false);
 
+  const selectedRun = useMemo(
+    () => runs?.runs?.find((r) => r.run_id === activationRun),
+    [runs, activationRun]
+  );
+
   useEffect(() => {
     if (runs?.runs?.length && !activationRun) {
       const first = runs.runs[0];
@@ -78,11 +83,6 @@ export default function TrainingPage() {
       if (polling) clearInterval(polling);
     };
   }, [polling]);
-
-  const selectedRun = useMemo(
-    () => runs?.runs?.find((r) => r.run_id === activationRun),
-    [runs, activationRun]
-  );
 
   // Fetch layer size when activation run and layer are selected
   useEffect(() => {
