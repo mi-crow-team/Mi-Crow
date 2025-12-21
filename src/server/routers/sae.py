@@ -7,6 +7,7 @@ from server.model_manager import ModelManager
 from server.sae_service import SAEService
 from server.schemas import (
     ConceptListResponse,
+    ConceptDictionaryResponse,
     ConceptLoadRequest,
     ConceptLoadResponse,
     ConceptManipulationRequest,
@@ -25,6 +26,7 @@ from server.schemas import (
     TrainSAERequest,
     TrainSAEResponse,
     TrainStatusResponse,
+    LayerSizeInfo,
 )
 
 router = APIRouter(prefix="/sae", tags=["sae"])
@@ -97,6 +99,19 @@ def cancel_train(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
 
+@router.get("/train/layer-size", response_model=LayerSizeInfo)
+def get_layer_size(
+    activations_path: str = Query(...),
+    layer: str = Query(...),
+    service: SAEService = Depends(get_sae_service),
+) -> LayerSizeInfo:
+    try:
+        result = service.get_layer_size(activations_path, layer)
+        return LayerSizeInfo(**result)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
 @router.post("/load", response_model=LoadSAEResponse)
 def load_sae(
     payload: LoadSAERequest,
@@ -114,6 +129,18 @@ def list_saes(
     service: SAEService = Depends(get_sae_service),
 ) -> SaeRunListResponse:
     return service.list_sae_runs(model_id)
+
+
+@router.get("/saes/{sae_id}/metadata")
+def get_sae_metadata(
+    model_id: str = Query(...),
+    sae_id: str = ...,
+    service: SAEService = Depends(get_sae_service),
+) -> dict:
+    try:
+        return service.get_sae_metadata(model_id, sae_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
 
 @router.delete("/saes/{sae_id}")
@@ -150,6 +177,18 @@ def list_concepts(
     service: SAEService = Depends(get_sae_service),
 ) -> ConceptListResponse:
     return service.list_concepts(model_id, sae_id)
+
+
+@router.get("/concepts/dictionary", response_model=ConceptDictionaryResponse)
+def get_concept_dictionary(
+    model_id: str = Query(...),
+    sae_id: str | None = Query(None),
+    service: SAEService = Depends(get_sae_service),
+) -> ConceptDictionaryResponse:
+    try:
+        return service.get_concept_dictionary(model_id, sae_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
 
 @router.get("/concepts/configs", response_model=ConceptConfigListResponse)

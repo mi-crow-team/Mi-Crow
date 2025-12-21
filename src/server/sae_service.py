@@ -18,6 +18,7 @@ from server.job_manager import JobManager
 from server.model_manager import ModelManager
 from amber.store.local_store import LocalStore
 from amber.mechanistic.sae.modules.topk_sae import TopKSae
+from amber.mechanistic.sae.modules.l1_sae import L1Sae
 from amber.mechanistic.sae.sae import Sae
 from amber.mechanistic.sae.sae_trainer import SaeTrainingConfig
 from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary
@@ -63,6 +64,7 @@ class SAEService:
         self._concept_configs: Dict[str, Path] = {}
         self._sae_classes: Dict[str, Type[Sae]] = {
             "TopKSae": TopKSae,
+            "L1Sae": L1Sae,
         }
 
     def _generate_id(self) -> str:
@@ -207,8 +209,12 @@ class SAEService:
         sae_kwargs = dict(payload.sae_kwargs)
         sae_kwargs.pop("n_latents", None)
         sae_kwargs.pop("n_inputs", None)
-        if sae_class == "TopKSae" and "k" not in sae_kwargs:
-            sae_kwargs["k"] = max(1, min(n_latents, 16))
+        if sae_class == "TopKSae":
+            if "k" not in sae_kwargs:
+                raise ValueError("TopKSae requires 'k' parameter in sae_kwargs")
+        elif sae_class == "L1Sae":
+            # L1Sae doesn't require any special kwargs for now
+            pass
         idempotency_key = f"{payload.model_id}:{activations_path}:{payload.hyperparams}:{layer}:{sae_class}"
 
         def _run():
@@ -403,6 +409,16 @@ class SAEService:
                 )
         return SaeRunListResponse(model_id=model_id, saes=saes)
 
+    def get_sae_metadata(self, model_id: str, sae_id: str) -> Dict[str, Any]:
+        root = self._settings.artifact_base_path / "sae" / model_id / sae_id
+        metadata_path = root / "metadata.json"
+        if not metadata_path.exists():
+            raise ValueError(f"Metadata not found for SAE {sae_id}")
+        try:
+            return json.loads(metadata_path.read_text())
+        except Exception as e:
+            raise ValueError(f"Failed to read metadata: {e}") from e
+
     def infer(self, manager: ModelManager, payload: SAEInferenceRequest) -> SAEInferenceResponse:
         lm = manager.get_model(payload.model_id)
         sae_path = self._resolve_sae_path(payload.sae_id, payload.sae_path)
@@ -542,6 +558,19 @@ class SAEService:
             concepts.append(item.name)
         return ConceptListResponse(base_path=str(folder), concepts=sorted(concepts))
 
+    def get_concept_dictionary(self, model_id: str, sae_id: str | None = None) -> "ConceptDictionaryResponse":
+        from server.schemas import ConceptDictionaryResponse
+        folder = concepts_dir(self._settings.artifact_base_path, model_id, sae_id)
+        concepts_path = folder / "concepts.json"
+        if not concepts_path.exists():
+            raise ValueError(f"Concepts file not found at {concepts_path}")
+        with concepts_path.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+        return ConceptDictionaryResponse(
+            n_size=data.get("n_size", 0),
+            concepts=data.get("concepts", {})
+        )
+
     def list_concept_configs(self, model_id: str, sae_id: str | None = None) -> ConceptConfigListResponse:
         folder = concepts_dir(self._settings.artifact_base_path, model_id, sae_id)
         configs: List[ConceptConfigInfo] = []
@@ -655,3 +684,23 @@ class SAEService:
         )
         self._concept_configs[sae_id] = config_path
         return ConceptManipulationResponse(concept_config_path=str(config_path), sae_id=sae_id)
+
+    def get_layer_size(self, activations_path: str, layer: str) -> Dict[str, Any]:
+        """Get the hidden dimension (size) of a layer from an activation run."""
+        from server.schemas import LayerSizeInfo
+        activations_path_obj = Path(activations_path)
+        if not activations_path_obj.exists():
+            raise ValueError(f"activations_path '{activations_path}' does not exist")
+        manifest = json.loads(activations_path_obj.read_text())
+        store_path = Path(manifest.get("store_path", activations_path_obj.parent))
+        run_id = manifest.get("run_id") or activations_path_obj.parent.name
+        store = LocalStore(base_path=store_path)
+        batch_indices = [b.get("batch_index") for b in manifest.get("batches", []) if "batch_index" in b]
+        if not batch_indices:
+            batch_indices = store.list_run_batches(run_id)
+        if not batch_indices:
+            raise ValueError("no activation batches found")
+        first_batch = batch_indices[0]
+        activations = store.get_detector_metadata_by_layer_by_key(run_id, first_batch, layer, "activations")
+        hidden_dim = activations.shape[-1]
+        return {"layer": layer, "hidden_dim": int(hidden_dim)}
