@@ -9,7 +9,7 @@ import { Button, Card, Input, Label, SectionTitle } from "@/components/ui";
 
 export default function Page() {
   const { data, mutate, error, isLoading } = useSWR<StoreInfo>("/store/info", api.storeInfo);
-  const { data: health, mutate: refreshHealth } = useSWR<any>("/health/metrics", api.health);
+  const { data: health, mutate: refreshHealth } = useSWR<Record<string, unknown>>("/health/metrics", api.health);
   const [pendingPath, setPendingPath] = useState<string>("");
   const storePath = pendingPath || data?.artifact_base_path || "";
 
@@ -19,7 +19,7 @@ export default function Page() {
       const updated = await api.setStorePath(storePath);
       setPendingPath("");
       mutate(updated, false);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Failed to update store path", e);
     }
   };

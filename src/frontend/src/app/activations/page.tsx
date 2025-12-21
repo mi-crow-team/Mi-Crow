@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { api } from "@/lib/api";
+import type { SaveActivationsRequest } from "@/lib/api/types";
 import { ActivationRunInfo, LayerInfo, StoreInfo } from "@/lib/types";
 import { useModelLoader } from "@/lib/useModelLoader";
 import { Button, Input, Label, Modal, Row, Spinner } from "@/components/ui";
@@ -78,12 +79,12 @@ export default function ActivationsPage() {
         typeof window !== "undefined"
           ? `${selectedModel}-${Math.random().toString(36).slice(2, 10)}`
           : `${selectedModel}-pending`;
-      const payload =
+      const payload: SaveActivationsRequest =
         datasetMode === "hf"
           ? {
             model_id: selectedModel,
             layers: layerSel,
-            dataset: { type: "hf", name: hfName, split: hfSplit, text_field: hfField },
+            dataset: { type: "hf" as const, name: hfName, split: hfSplit, text_field: hfField },
             batch_size: batchSize,
             shard_size: shardSize,
             sample_limit: sampleLimit,
@@ -92,7 +93,7 @@ export default function ActivationsPage() {
           : {
             model_id: selectedModel,
             layers: layerSel,
-            dataset: { type: "local", paths: paths.split(",").map((p) => p.trim()) },
+            dataset: { type: "local" as const, paths: paths.split(",").map((p) => p.trim()) },
             batch_size: batchSize,
             shard_size: shardSize,
             sample_limit: sampleLimit,
@@ -122,7 +123,7 @@ export default function ActivationsPage() {
         },
         false
       );
-      const res: any = await api.saveActivations(payload);
+      const res = await api.saveActivations(payload);
       setStatus(`Saved. run_id=${res.run_id}, samples=${res.samples}, tokens=${res.tokens}`);
       // Update the optimistic run with final stats and mark as done.
       refreshRuns(
@@ -150,8 +151,9 @@ export default function ActivationsPage() {
       );
       // Finally, revalidate from the server to ensure everything is in sync.
       refreshRuns();
-    } catch (e: any) {
-      setStatus(`Error: ${e.message}`);
+    } catch (e: unknown) {
+      const error = e instanceof Error ? e.message : String(e);
+      setStatus(`Error: ${error}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -232,8 +234,9 @@ export default function ActivationsPage() {
                 try {
                   await loadModel();
                   setStatus("Model loaded");
-                } catch (e: any) {
-                  setStatus(`Error loading model: ${e.message}`);
+                } catch (e: unknown) {
+                  const error = e instanceof Error ? e.message : String(e);
+                  setStatus(`Error loading model: ${error}`);
                 }
               }}
               disabled={!selectedModel || modelLoaded || isLoadingModel}

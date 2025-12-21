@@ -11,12 +11,18 @@ import {
   InferenceHistoryEntry,
   ConceptConfigInfo,
 } from "@/lib/types";
+import type { ConceptManipulationResponse, ConceptPreviewResponse } from "@/lib/api/types";
 import { useModelLoader } from "@/lib/useModelLoader";
+import { useInferenceState } from "@/hooks/useInferenceState";
+import { useInferenceHistory } from "@/hooks/useInferenceHistory";
+import { useConceptManipulation } from "@/hooks/useConceptManipulation";
 import { Button, Card, Input, Label, Row, SectionTitle, TextArea, Spinner } from "@/components/ui";
 import { StepCard, StepLayout } from "@/components/StepLayout";
 import { InferenceSidebar } from "@/components/InferenceSidebar";
 import { InferenceRunCard } from "@/components/InferenceRunCard";
 import { ConceptManipulator } from "@/components/ConceptManipulator";
+import { InferenceForm } from "@/components/InferenceForm";
+import { InferenceConfig } from "@/components/InferenceConfig";
 
 type Prompt = { prompt: string };
 
@@ -40,8 +46,6 @@ type InferenceRun = {
   top_texts_path?: string;
 };
 
-const HISTORY_STORAGE_KEY = "inference_history";
-const MAX_HISTORY_ENTRIES = 100;
 
 export default function InferencePage() {
   const { models, modelId, setModelId, modelLoaded, setModelLoaded, loadModel, isLoading: isLoadingModel } = useModelLoader();
@@ -49,31 +53,29 @@ export default function InferencePage() {
     modelId ? `/sae/saes?model_id=${modelId}` : null,
     () => api.listSaes(modelId)
   );
-  const [saeId, setSaeId] = useState("");
-  const [layer, setLayer] = useState("");
-  const [prompts, setPrompts] = useState<Prompt[]>([{ prompt: "Hello world" }]);
-  const [topK, setTopK] = useState(5);
-  const [saveTopTexts, setSaveTopTexts] = useState(false);
-  const [trackTexts, setTrackTexts] = useState(false);
-  const [returnTokenLatents, setReturnTokenLatents] = useState(false);
-  const [conceptConfigPath, setConceptConfigPath] = useState("");
   const [status, setStatus] = useState("");
   const [isRunning, setIsRunning] = useState(false);
-
-  // Feature toggles
-  const [loadConcepts, setLoadConcepts] = useState(false);
-  const [conceptEdits, setConceptEdits] = useState<Record<string, number>>({});
-  const [conceptBias, setConceptBias] = useState<Record<string, number>>({});
-  const [conceptPreview, setConceptPreview] = useState<string>("");
-  const [conceptSaveResult, setConceptSaveResult] = useState<string>("");
-
-  // Multiple runs
   const [runs, setRuns] = useState<InferenceRun[]>([]);
   const [runCounter, setRunCounter] = useState(1);
 
-  // History
-  const [history, setHistory] = useState<InferenceHistoryEntry[]>([]);
-  const [selectedHistoryEntry, setSelectedHistoryEntry] = useState<InferenceHistoryEntry | null>(null);
+  // Use custom hooks for state management
+  const inferenceState = useInferenceState(saes);
+  const { history, selectedHistoryEntry, setSelectedHistoryEntry, saveToHistory, clearHistory } = useInferenceHistory();
+  const conceptManipulation = useConceptManipulation();
+  
+  // Destructure inference state for easier access
+  const {
+    saeId, setSaeId, layer, prompts, setPrompts, topK, setTopK,
+    saveTopTexts, setSaveTopTexts, trackTexts, setTrackTexts,
+    returnTokenLatents, setReturnTokenLatents, conceptConfigPath, setConceptConfigPath,
+    loadConcepts, setLoadConcepts
+  } = inferenceState;
+  
+  // Destructure concept manipulation
+  const {
+    conceptEdits, setConceptEdits, conceptBias, setConceptBias,
+    conceptPreview, conceptSaveResult, previewConcept, saveConceptConfig, clearConceptManipulation
+  } = conceptManipulation;
 
   // Concept configs
   const { data: configs, mutate: refreshConfigs } = useSWR<{ configs: ConceptConfigInfo[] }>(
@@ -81,38 +83,10 @@ export default function InferencePage() {
     () => api.listConceptConfigs(modelId, saeId)
   );
 
-  // Load history from localStorage on mount
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(HISTORY_STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setHistory(Array.isArray(parsed) ? parsed : []);
-      }
-    } catch (e) {
-      console.error("Failed to load history:", e);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (saes?.saes?.length && !saeId) {
-      const first = saes.saes[0];
-      setSaeId(first.sae_id);
-    }
-  }, [saes, saeId]);
-
   // Auto-set layer from selected SAE
   const currentSae = useMemo(() => {
     return saes?.saes?.find((s) => s.sae_id === saeId);
   }, [saes, saeId]);
-
-  useEffect(() => {
-    if (currentSae?.layer) {
-      setLayer(currentSae.layer);
-    } else {
-      setLayer("");
-    }
-  }, [currentSae]);
 
   const loadSelectedModel = async () => {
     if (!modelId) return;
@@ -120,21 +94,13 @@ export default function InferencePage() {
     try {
       await loadModel();
       setStatus("Model loaded");
-    } catch (e: any) {
-      setStatus(`Error loading model: ${(e as any).message}`);
+    } catch (e: unknown) {
+      const error = e instanceof Error ? e.message : String(e);
+      setStatus(`Error loading model: ${error}`);
       setModelLoaded(false);
     }
   };
 
-  const saveToHistory = (entry: InferenceHistoryEntry) => {
-    try {
-      const newHistory = [entry, ...history].slice(0, MAX_HISTORY_ENTRIES);
-      setHistory(newHistory);
-      localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(newHistory));
-    } catch (e) {
-      console.error("Failed to save history:", e);
-    }
-  };
 
   const run = async () => {
     if (!modelId || !saeId || !modelLoaded) return;
@@ -213,8 +179,9 @@ export default function InferencePage() {
       saveToHistory(historyEntry);
 
       setStatus("Done");
-    } catch (e: any) {
-      setStatus(`Error: ${e.message}`);
+    } catch (e: unknown) {
+      const error = e instanceof Error ? e.message : String(e);
+      setStatus(`Error: ${error}`);
       // Save failed run to history
       const failedEntry: InferenceHistoryEntry = {
         id: `run-${Date.now()}-${runCounter}`,
@@ -227,7 +194,7 @@ export default function InferencePage() {
         top_neurons: [],
         token_latents: [],
         status: "failed",
-        error: e.message,
+        error: e instanceof Error ? e.message : String(e),
         settings: {
           saveTopTexts,
           trackTexts,
@@ -245,34 +212,15 @@ export default function InferencePage() {
 
   const handleConceptPreview = async () => {
     if (!modelId || !saeId || !modelLoaded) return;
-    try {
-      const res = await api.previewConcept({
-        model_id: modelId,
-        sae_id: saeId,
-        edits: conceptEdits,
-        bias: conceptBias,
-      });
-      setConceptPreview(JSON.stringify(res, null, 2));
-    } catch (e: any) {
-      setConceptPreview(`Error: ${e.message}`);
-    }
+    await previewConcept(modelId, saeId);
   };
 
   const handleConceptSaveConfig = async () => {
     if (!modelId || !saeId || !modelLoaded) return;
-    try {
-      const res: any = await api.manipulateConcept({
-        model_id: modelId,
-        sae_id: saeId,
-        edits: conceptEdits,
-        bias: conceptBias,
-      });
-      setConceptSaveResult(`Saved config at ${res.concept_config_path}`);
-      setConceptConfigPath(res.concept_config_path);
+    await saveConceptConfig(modelId, saeId, (path) => {
+      setConceptConfigPath(path);
       refreshConfigs();
-    } catch (e: any) {
-      setConceptSaveResult(`Error: ${e.message}`);
-    }
+    });
   };
 
   const sidebar = (
@@ -343,83 +291,12 @@ export default function InferencePage() {
         title="Configure inference"
         description="Select SAE, layer, and set up prompts and options for inference."
       >
-        <div className={!modelLoaded ? "opacity-50 pointer-events-none space-y-4" : "space-y-4"}>
-          <Row>
-            <div className="space-y-1">
-              <Label>SAE</Label>
-              <select
-                className="input"
-                value={saeId}
-                onChange={(e) => setSaeId(e.target.value)}
-                disabled={!modelLoaded}
-              >
-                {saes?.saes?.map((s) => (
-                  <option key={s.sae_id} value={s.sae_id}>
-                    {s.sae_id}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-1">
-              <Label>Layer</Label>
-              <Input
-                value={layer}
-                disabled
-                readOnly
-                className="bg-slate-50 cursor-not-allowed"
-              />
-              {!currentSae?.layer && (
-                <p className="text-xs text-slate-500">Layer will be set from selected SAE</p>
-              )}
-            </div>
-          </Row>
-
-          <Row>
-            <div className="space-y-1">
-              <Label>Top-K neurons</Label>
-              <Input type="number" value={topK} onChange={(e) => setTopK(Number(e.target.value))} min={1} />
-            </div>
-            {loadConcepts && (
-              <div className="space-y-1">
-                <Label>Concept config path (optional)</Label>
-                <Input value={conceptConfigPath} onChange={(e) => setConceptConfigPath(e.target.value)} />
-              </div>
-            )}
-          </Row>
-
-          <div className="space-y-2">
-            <Label>Options</Label>
-            <div className="flex gap-4 text-sm">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={saveTopTexts}
-                  onChange={(e) => setSaveTopTexts(e.target.checked)}
-                  className="rounded border-slate-300 text-amber-600 focus:ring-amber-500"
-                />
-                Save top texts
-              </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={trackTexts}
-                  onChange={(e) => setTrackTexts(e.target.checked)}
-                  className="rounded border-slate-300 text-amber-600 focus:ring-amber-500"
-                />
-                Track texts
-              </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={returnTokenLatents}
-                  onChange={(e) => setReturnTokenLatents(e.target.checked)}
-                  className="rounded border-slate-300 text-amber-600 focus:ring-amber-500"
-                />
-                Return token latents
-              </label>
-            </div>
-          </div>
-        </div>
+        <InferenceConfig
+          {...inferenceState}
+          saes={saes}
+          currentSae={currentSae}
+          disabled={!modelLoaded}
+        />
       </StepCard>
 
       {loadConcepts && modelId && saeId && modelLoaded && (
@@ -472,43 +349,12 @@ export default function InferencePage() {
         title="Set prompts and run"
         description="Enter prompts to run inference on and execute the inference."
       >
-        <div className={!modelLoaded ? "opacity-50 pointer-events-none space-y-4" : "space-y-4"}>
-          <div className="space-y-2">
-            <Label>Prompts</Label>
-            {prompts.map((p, idx) => (
-              <div key={idx} className="flex gap-2">
-                <TextArea
-                  value={p.prompt}
-                  onChange={(e) => {
-                    const next = [...prompts];
-                    next[idx] = { prompt: e.target.value };
-                    setPrompts(next);
-                  }}
-                />
-                <Button
-                  variant="ghost"
-                  onClick={() => setPrompts(prompts.filter((_, i) => i !== idx))}
-                  disabled={prompts.length === 1}
-                >
-                  Remove
-                </Button>
-              </div>
-            ))}
-            <Button variant="ghost" onClick={() => setPrompts([...prompts, { prompt: "" }])}>
-              Add prompt
-            </Button>
-          </div>
-
-          <Button onClick={run} disabled={!modelLoaded || isRunning}>
-            {isRunning ? (
-              <span className="flex items-center gap-2">
-                <Spinner /> Running inference...
-              </span>
-            ) : (
-              "Run inference"
-            )}
-          </Button>
-        </div>
+        <InferenceForm
+          {...inferenceState}
+          disabled={!modelLoaded}
+          onRun={run}
+          isRunning={isRunning}
+        />
       </StepCard>
     </>
   );

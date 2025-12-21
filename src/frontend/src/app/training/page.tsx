@@ -5,12 +5,12 @@ import useSWR from "swr";
 import { api } from "@/lib/api";
 import { ActivationRunInfo, SaeRunInfo, TrainJobStatus } from "@/lib/types";
 import { useModelLoader } from "@/lib/useModelLoader";
+import { useTrainingState, type LatentMode } from "@/hooks/useTrainingState";
+import { useTrainingJob } from "@/hooks/useTrainingJob";
 import { Button, Card, Input, Label, Row, SectionTitle, Spinner } from "@/components/ui";
 import { StepCard, StepLayout } from "@/components/StepLayout";
 import { RunHistorySidebar } from "@/components/RunHistorySidebar";
 import { TrainingModal } from "@/components/TrainingModal";
-
-type LatentMode = "n_latents" | "expansion_factor";
 
 export default function TrainingPage() {
   const { models, modelId, setModelId, modelLoaded, setModelLoaded, loadModel, isLoading: isLoadingModel } = useModelLoader();
@@ -24,65 +24,28 @@ export default function TrainingPage() {
   );
   const { data: saeClasses } = useSWR<Record<string, string>>("/sae/classes", api.saeClasses);
 
-  const [activationRun, setActivationRun] = useState("");
-  const [layer, setLayer] = useState("");
-  const [saeClass, setSaeClass] = useState("TopKSae");
-  const [latentMode, setLatentMode] = useState<LatentMode>("n_latents");
-  const [nLatents, setNLatents] = useState<number | undefined>();
-  const [expansionFactor, setExpansionFactor] = useState<number | undefined>(1.0);
-  const [hiddenDim, setHiddenDim] = useState<number | undefined>();
-  const [showAdvanced, setShowAdvanced] = useState(false);
-
-  // Basic training config
-  const [epochs, setEpochs] = useState(1);
-  const [batchSize, setBatchSize] = useState(256);
-
-  // Advanced training config (SaeTrainingConfig)
-  const [lr, setLr] = useState(1e-3);
-  const [l1Lambda, setL1Lambda] = useState(0.0);
-  const [maxBatchesPerEpoch, setMaxBatchesPerEpoch] = useState<number | undefined>();
-  const [verbose, setVerbose] = useState(false);
-  const [useAmp, setUseAmp] = useState(true);
-  const [gradAccumSteps, setGradAccumSteps] = useState(1);
-  const [clipGrad, setClipGrad] = useState(1.0);
-  const [monitoring, setMonitoring] = useState(1);
-  const [memoryEfficient, setMemoryEfficient] = useState(false);
-
-  // SAE kwargs
-  const [saeK, setSaeK] = useState<number | undefined>();
-
-  const [jobId, setJobId] = useState<string>("");
-  const [status, setStatus] = useState<TrainJobStatus | null>(null);
-  const [polling, setPolling] = useState<NodeJS.Timeout | null>(null);
+  const trainingState = useTrainingState(runs, modelLoaded);
+  const trainingJob = useTrainingJob();
   const [selectedSae, setSelectedSae] = useState<SaeRunInfo | null>(null);
   const [isLoadingLayerSize, setIsLoadingLayerSize] = useState(false);
+
+  // Destructure for easier access
+  const {
+    activationRun, setActivationRun, layer, setLayer, saeClass, setSaeClass,
+    latentMode, setLatentMode, nLatents, expansionFactor,
+    hiddenDim, showAdvanced, setShowAdvanced, epochs, setEpochs, batchSize, setBatchSize,
+    lr, setLr, l1Lambda, setL1Lambda, maxBatchesPerEpoch, setMaxBatchesPerEpoch,
+    verbose, setVerbose, useAmp, setUseAmp, gradAccumSteps, setGradAccumSteps,
+    clipGrad, setClipGrad, monitoring, setMonitoring, memoryEfficient, setMemoryEfficient,
+    saeK, setSaeK, setNLatents, setExpansionFactor, setHiddenDim
+  } = trainingState;
+
+  const { jobId, status, setJobId, setStatus, checkStatus, startPolling, cancel } = trainingJob;
 
   const selectedRun = useMemo(
     () => runs?.runs?.find((r) => r.run_id === activationRun),
     [runs, activationRun]
   );
-
-  useEffect(() => {
-    if (runs?.runs?.length && !activationRun) {
-      const first = runs.runs[0];
-      setActivationRun(first.run_id);
-    }
-  }, [runs, activationRun]);
-
-  // Auto-set layer from selected activation run
-  useEffect(() => {
-    if (selectedRun?.layers?.length) {
-      setLayer(selectedRun.layers[0]);
-    } else {
-      setLayer("");
-    }
-  }, [selectedRun]);
-
-  useEffect(() => {
-    return () => {
-      if (polling) clearInterval(polling);
-    };
-  }, [polling]);
 
   // Fetch layer size when activation run and layer are selected
   useEffect(() => {
@@ -124,9 +87,9 @@ export default function TrainingPage() {
   }, [nLatents, hiddenDim, latentMode]);
 
   const launch = async () => {
-    if (!modelId || !activationRun || !layer || !modelLoaded) return;
+    if (!modelId || !activationRun || !layer || !modelLoaded || !selectedRun?.manifest_path) return;
     try {
-      const hyperparams: Record<string, any> = {
+      const hyperparams: Record<string, unknown> = {
         epochs,
         batch_size: batchSize,
         lr,
@@ -142,14 +105,14 @@ export default function TrainingPage() {
         hyperparams.max_batches_per_epoch = maxBatchesPerEpoch;
       }
 
-      const sae_kwargs: Record<string, any> = {};
+      const sae_kwargs: Record<string, unknown> = {};
       if (saeK !== undefined) {
         sae_kwargs.k = saeK;
       }
 
       const payload = {
         model_id: modelId,
-        activations_path: selectedRun?.manifest_path,
+        activations_path: selectedRun.manifest_path,
         layer,
         sae_class: saeClass,
         n_latents: nLatents,
@@ -160,29 +123,20 @@ export default function TrainingPage() {
       };
       const res = await api.train(payload);
       setJobId(res.job_id);
-      setStatus({ job_id: res.job_id, status: res.status } as TrainJobStatus);
-      if (polling) clearInterval(polling);
-      const t = setInterval(checkStatus, 2500);
-      setPolling(t);
-    } catch (e: any) {
-      setStatus({ job_id: "", status: "error", error: e.message } as TrainJobStatus);
+      setStatus({ job_id: res.job_id, status: res.status } as typeof status);
+      startPolling();
+    } catch (e: unknown) {
+      const error = e instanceof Error ? e.message : String(e);
+      setStatus({ job_id: "", status: "error", error } as TrainJobStatus);
     }
   };
 
-  const checkStatus = async () => {
-    if (!jobId) return;
-    const res = await api.trainStatus(jobId);
-    setStatus(res);
-    if (["completed", "failed", "timed_out", "cancelled"].includes(res.status)) {
-      if (polling) clearInterval(polling);
+  // Wrapper to refresh SAEs when job completes
+  const checkStatusWithRefresh = async () => {
+    const finished = await checkStatus();
+    if (finished) {
       refreshSaes();
     }
-  };
-
-  const cancel = async () => {
-    if (!jobId) return;
-    const res = await api.cancelTrain(jobId);
-    setStatus(res);
   };
 
   const steps = (

@@ -54,8 +54,9 @@ export function ConceptManipulator({
       }
       conceptList.sort((a, b) => a.neuron_index - b.neuron_index);
       setConcepts(conceptList);
-    } catch (e: any) {
-      setError(`Failed to load concepts: ${e.message}`);
+    } catch (e: unknown) {
+      const error = e instanceof Error ? e.message : String(e);
+      setError(`Failed to load concepts: ${error}`);
       setConcepts([]);
     } finally {
       setLoading(false);

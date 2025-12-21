@@ -17,11 +17,14 @@ from amber.store.local_store import LocalStore
 
 from server.config import Settings
 from server.dependencies import (
+    get_activation_service,
+    get_concept_service,
     get_hook_factory,
     get_inference_service,
     get_job_manager,
     get_model_manager,
     get_sae_service,
+    get_sae_training_service,
     get_settings,
 )
 from server.inference_service import InferenceService
@@ -138,6 +141,8 @@ class DummyLanguageModel:
         # language model wires hooks into underlying PyTorch modules.
         self.model.layers = self.layers
         self._input_tracker = None
+        self.inference = DummyInference()
+        self.model_id = "dummy-model"
 
     def _ensure_input_tracker(self):
         """
@@ -161,8 +166,6 @@ class DummyLanguageModel:
         if self._input_tracker is None:
             self._input_tracker = _DummyTracker()
         return self._input_tracker
-        self.inference = DummyInference()
-        self.model_id = "dummy-model"
 
 
 class DummySae(Sae):
@@ -245,17 +248,46 @@ def setup_app(tmp_path: Path):
     get_model_manager.cache_clear()
     get_inference_service.cache_clear()
     get_job_manager.cache_clear()
+    get_activation_service.cache_clear()
+    get_sae_training_service.cache_clear()
+    get_concept_service.cache_clear()
     get_sae_service.cache_clear()
     settings = Settings(artifact_base_path=tmp_path)
     app = create_app()
     fake_manager = FakeModelManager()
     hook_factory = get_hook_factory()
     inference_service = InferenceService(hook_factory=hook_factory)
-    sae_service = SAEService(settings=settings, inference_service=inference_service, job_manager=get_job_manager())
-    sae_service._sae_classes["DummySae"] = DummySae
+    job_manager = get_job_manager()
+    
+    # Create the new services
+    from server.services.activation_service import ActivationService
+    from server.services.sae_training_service import SAETrainingService
+    from server.services.concept_service import ConceptService
+    
+    activation_service = ActivationService(settings=settings)
+    training_service = SAETrainingService(settings=settings, job_manager=job_manager)
+    concept_service = ConceptService(settings=settings)
+    
+    # Create SAE service with all dependencies
+    sae_service = SAEService(
+        settings=settings,
+        inference_service=inference_service,
+        job_manager=job_manager,
+        activation_service=activation_service,
+        training_service=training_service,
+        concept_service=concept_service,
+    )
+    sae_service._sae_registry_class.register("DummySae", DummySae)
+    # Also register in training service
+    training_service._sae_registry_class.register("DummySae", DummySae)
+    concept_service._sae_registry.register("DummySae", DummySae)
+    
     app.dependency_overrides[get_settings] = lambda: settings
     app.dependency_overrides[get_model_manager] = lambda: fake_manager
     app.dependency_overrides[get_inference_service] = lambda: inference_service
+    app.dependency_overrides[get_activation_service] = lambda: activation_service
+    app.dependency_overrides[get_sae_training_service] = lambda: training_service
+    app.dependency_overrides[get_concept_service] = lambda: concept_service
     app.dependency_overrides[get_sae_service] = lambda: sae_service
     return app, fake_manager, settings
 

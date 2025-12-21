@@ -6,7 +6,8 @@ from typing import Dict, List
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
-from server.config import Settings, save_artifact_path
+from server.config import Settings
+from server.config.storage import get_config_manager
 from server.dependencies import get_sae_service, get_settings
 from server.sae_service import SAEService
 from server.schemas import ActivationRunInfo
@@ -79,7 +80,8 @@ def set_store_path(
     settings.artifact_base_path = new_path
 
     # Save the path to config file for persistence
-    save_artifact_path(new_path)
+    config_manager = get_config_manager()
+    config_manager.save_artifact_path(new_path)
 
     activation_datasets = _gather_activation_datasets(settings, service)
     return StoreInfo(

@@ -15,11 +15,14 @@ from torch import nn
 
 from server.config import Settings
 from server.dependencies import (
+    get_activation_service,
+    get_concept_service,
     get_hook_factory,
     get_inference_service,
     get_job_manager,
     get_model_manager,
     get_sae_service,
+    get_sae_training_service,
     get_settings,
 )
 from server.inference_service import InferenceService
@@ -116,16 +119,42 @@ def setup_app(tmp_path: Path):
     get_model_manager.cache_clear()
     get_inference_service.cache_clear()
     get_job_manager.cache_clear()
+    get_activation_service.cache_clear()
+    get_sae_training_service.cache_clear()
+    get_concept_service.cache_clear()
     get_sae_service.cache_clear()
     settings = Settings(artifact_base_path=tmp_path)
     app = create_app()
     manager = FakeModelManager()
     hook_factory = get_hook_factory()
     inference_service = InferenceService(hook_factory=hook_factory)
-    sae_service = SAEService(settings=settings, inference_service=inference_service, job_manager=get_job_manager())
+    job_manager = get_job_manager()
+    
+    # Create the new services
+    from server.services.activation_service import ActivationService
+    from server.services.sae_training_service import SAETrainingService
+    from server.services.concept_service import ConceptService
+    
+    activation_service = ActivationService(settings=settings)
+    training_service = SAETrainingService(settings=settings, job_manager=job_manager)
+    concept_service = ConceptService(settings=settings)
+    
+    # Create SAE service with all dependencies
+    sae_service = SAEService(
+        settings=settings,
+        inference_service=inference_service,
+        job_manager=job_manager,
+        activation_service=activation_service,
+        training_service=training_service,
+        concept_service=concept_service,
+    )
+    
     app.dependency_overrides[get_settings] = lambda: settings
     app.dependency_overrides[get_model_manager] = lambda: manager
     app.dependency_overrides[get_inference_service] = lambda: inference_service
+    app.dependency_overrides[get_activation_service] = lambda: activation_service
+    app.dependency_overrides[get_sae_training_service] = lambda: training_service
+    app.dependency_overrides[get_concept_service] = lambda: concept_service
     app.dependency_overrides[get_sae_service] = lambda: sae_service
     return app, manager
 
@@ -142,7 +171,7 @@ def test_local_activation_save(tmp_path: Path, monkeypatch):
     # behaviour (not the internals of activation extraction), we stub out
     # `ActivationExtractor.extract` to produce a small, consistent manifest and
     # write a single batch to the backing `LocalStore`.
-    from server import sae_service as sae_service_module
+    from server.activation_extractor import ActivationExtractor
 
     def _fake_extract(self, texts, out_dir, limit=None, *, store=None, run_id=None):
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -180,7 +209,7 @@ def test_local_activation_save(tmp_path: Path, monkeypatch):
         }
 
     monkeypatch.setattr(
-        sae_service_module.ActivationExtractor,
+        ActivationExtractor,
         "extract",
         _fake_extract,
     )
