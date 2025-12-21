@@ -172,11 +172,21 @@ def test_e2e_sae_attachment_and_text_tracking(trained_sae_setup):
         "Children laugh and play with friends.",
     ]
     
-    # Run inference in batches
     batch_size = 4
     for i in range(0, len(test_texts), batch_size):
         batch_texts = test_texts[i:i + batch_size]
-        model.forwards(batch_texts)
+        model.inference.infer_texts(
+            batch_texts,
+            run_name=None,
+            batch_size=None,
+            tok_kwargs={
+                "max_length": 64,
+                "padding": True,
+                "truncation": True,
+                "add_special_tokens": True
+            },
+            autocast=False,
+        )
     
     print(f"✅ Processed {len(test_texts)} texts")
     

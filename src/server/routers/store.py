@@ -6,7 +6,7 @@ from typing import Dict, List
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
-from server.config import Settings
+from server.config import Settings, save_artifact_path
 from server.dependencies import get_sae_service, get_settings
 from server.sae_service import SAEService
 from server.schemas import ActivationRunInfo
@@ -72,16 +72,26 @@ def set_store_path(
     Update the artifact base path used for activations, SAEs and concepts.
 
     This only affects new runs; existing data will continue to live at the old path.
+    The path is persisted to a config file and will be loaded on server restart.
     """
     new_path = Path(payload.artifact_base_path).expanduser()
     new_path.mkdir(parents=True, exist_ok=True)
     settings.artifact_base_path = new_path
+
+    # Save the path to config file for persistence
+    save_artifact_path(new_path)
 
     activation_datasets = _gather_activation_datasets(settings, service)
     return StoreInfo(
         artifact_base_path=str(settings.artifact_base_path),
         activation_datasets=activation_datasets,
     )
+
+
+
+
+
+
 
 
 
