@@ -11,13 +11,14 @@ from amber.hooks.detector import Detector
 from amber.hooks.hook import HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT, HookType
 from amber.store.store import Store
 from amber.utils import get_logger
+from experiments.predictors.predictor import Predictor
 
 from .lpm_context import LPMContext
 
 logger = get_logger(__name__)
 
 
-class LPM(Detector):
+class LPM(Detector, Predictor):
     """
     Latent Prototype Moderator (LPM) Detector.
 
@@ -32,10 +33,27 @@ class LPM(Detector):
         distance_metric: Literal["euclidean", "mahalanobis"] = "euclidean",
         hook_id: str | None = None,
         device: str = "cpu",
+        positive_label: str = "harmful",
     ):
-        super().__init__(hook_type=HookType.FORWARD, hook_id=hook_id, layer_signature=layer_signature)
-        self.context = LPMContext(layer_signature=layer_signature, distance_metric=distance_metric, device=device)
+        Detector.__init__(self, hook_type=HookType.FORWARD, hook_id=hook_id, layer_signature=layer_signature)
+        Predictor.__init__(
+            self,
+            model_id=f"lpm_{distance_metric}_{layer_signature}",
+            config={
+                "layer_signature": layer_signature,
+                "distance_metric": distance_metric,
+                "device": device,
+                "positive_label": positive_label,
+            },
+        )
+        self.lpm_context = LPMContext(layer_signature=layer_signature, distance_metric=distance_metric, device=device)
         self.aggregation_strategy = "last_token"  # Currently only last_token is supported
+        self.positive_label = positive_label
+        self._seen_samples = 0
+
+    def clear_predictions(self) -> None:
+        super().clear_predictions()
+        self._seen_samples = 0
 
     def fit(  # noqa: C901
         self,
@@ -57,7 +75,7 @@ class LPM(Detector):
             batch_size: Batch size for processing.
             max_samples: Limit number of samples to use.
         """
-        logger.info(f"Starting LPM fit (metric={self.context.distance_metric})...")
+        logger.info(f"Starting LPM fit (metric={self.lpm_context.distance_metric})...")
 
         # 1. Collect activations and labels
         # We need to load all relevant activations to compute means and covariance efficiently.
@@ -89,8 +107,8 @@ class LPM(Detector):
                 # Try common keys
                 if "activations" in batch_data:
                     acts = batch_data["activations"]
-                elif self.context.layer_signature in batch_data:
-                    acts = batch_data[self.context.layer_signature]
+                elif self.lpm_context.layer_signature in batch_data:
+                    acts = batch_data[self.lpm_context.layer_signature]
                 else:
                     # Fallback: take first tensor value
                     acts = next((v for v in batch_data.values() if isinstance(v, torch.Tensor)), None)
@@ -135,10 +153,10 @@ class LPM(Detector):
                 if label not in activations_by_class:
                     activations_by_class[label] = []
 
-                vec = acts[i].to(self.context.device)
+                vec = acts[i].to(self.lpm_context.device)
                 activations_by_class[label].append(vec)
 
-                if self.context.distance_metric == "mahalanobis":
+                if self.lpm_context.distance_metric == "mahalanobis":
                     all_activations.append(vec)
 
             current_idx += batch_len
@@ -151,11 +169,11 @@ class LPM(Detector):
                 continue
             stacked = torch.stack(vectors)
             prototype = torch.mean(stacked, dim=0)
-            self.context.prototypes[label] = prototype
+            self.lpm_context.prototypes[label] = prototype
             logger.info(f"  Class '{label}': {len(vectors)} samples")
 
         # 3. Calculate Covariance (if Mahalanobis)
-        if self.context.distance_metric == "mahalanobis":
+        if self.lpm_context.distance_metric == "mahalanobis":
             logger.info("Calculating precision matrix (inverse covariance)...")
             if not all_activations:
                 raise ValueError("No activations found for covariance calculation")
@@ -175,7 +193,7 @@ class LPM(Detector):
 
             X_centered_list = []
             for label, vectors in activations_by_class.items():
-                mu = self.context.prototypes[label]
+                mu = self.lpm_context.prototypes[label]
                 vecs = torch.stack(vectors)
                 X_centered_list.append(vecs - mu)
 
@@ -195,7 +213,7 @@ class LPM(Detector):
             # Inverse
             try:
                 precision = torch.linalg.inv(cov)
-                self.context.precision_matrix = precision
+                self.lpm_context.precision_matrix = precision
             except RuntimeError as e:
                 logger.error(f"Failed to invert covariance matrix: {e}")
                 raise
@@ -235,26 +253,37 @@ class LPM(Detector):
         else:
             return
 
-        vectors = vectors.to(self.context.device)
+        vectors = vectors.to(self.lpm_context.device)
 
         # Calculate distances
         results = self._calculate_distances(vectors)
 
-        # Save to metadata
-        # We accumulate results in self.metadata
-        # Structure: list of dicts per batch? Or just append?
-        # Detector.metadata is Dict[str, Any].
-
-        if "predictions" not in self.metadata:
-            self.metadata["predictions"] = []
-
-        # Convert to python objects for metadata
-        batch_results = []
+        # Convert to python objects for Predictor accumulation.
+        batch_results: List[Dict[str, Any]] = []
         for i in range(vectors.shape[0]):
-            res = {k: v[i].item() if isinstance(v[i], torch.Tensor) else v[i] for k, v in results.items()}
+            predicted_class = results["predicted_class"][i]
+            predicted_label = 1 if str(predicted_class).lower() == str(self.positive_label).lower() else 0
+
+            res: Dict[str, Any] = {
+                "sample_index": self._seen_samples + i,
+                "predicted_label": predicted_label,
+                "predicted_class": predicted_class,
+            }
+
+            for k, v in results.items():
+                if k == "predicted_class":
+                    continue
+                res[k] = v[i].item() if isinstance(v[i], torch.Tensor) else v[i]
+
             batch_results.append(res)
 
-        self.metadata["predictions"].extend(batch_results)
+        self._seen_samples += len(batch_results)
+
+        # Keep detector metadata lightweight: overwrite per-batch for debugging/compatibility.
+        self.metadata["predictions"] = batch_results
+
+        # Standardized accumulation for final save.
+        self.add_predictions(batch_results)
 
     def _calculate_distances(self, vectors: torch.Tensor) -> Dict[str, Any]:
         """
@@ -263,19 +292,19 @@ class LPM(Detector):
         """
         distances = {}
 
-        for label, prototype in self.context.prototypes.items():
+        for label, prototype in self.lpm_context.prototypes.items():
             prototype = prototype.to(vectors.device)
             diff = vectors - prototype  # [batch, hidden]
 
-            if self.context.distance_metric == "euclidean":
+            if self.lpm_context.distance_metric == "euclidean":
                 # L2 norm
                 dist = torch.norm(diff, p=2, dim=1)  # [batch]
 
-            elif self.context.distance_metric == "mahalanobis":
-                if self.context.precision_matrix is None:
+            elif self.lpm_context.distance_metric == "mahalanobis":
+                if self.lpm_context.precision_matrix is None:
                     raise RuntimeError("Precision matrix not initialized for Mahalanobis distance")
 
-                P = self.context.precision_matrix.to(vectors.device)
+                P = self.lpm_context.precision_matrix.to(vectors.device)
                 # d = sqrt( (x-mu)^T P (x-mu) )
                 # Batch wise: diag( diff @ P @ diff.T )
                 # Optimized: sum( (diff @ P) * diff, dim=1 )
@@ -292,16 +321,19 @@ class LPM(Detector):
         dist_stack = torch.stack([distances[label] for label in labels], dim=1)
 
         min_indices = torch.argmin(dist_stack, dim=1)
-        predicted_labels = [labels[idx] for idx in min_indices]
+        predicted_classes = [labels[idx] for idx in min_indices]
 
         # Prepare output
         output = {
-            "predicted_label": predicted_labels,
+            "predicted_class": predicted_classes,
         }
         for label in labels:
             output[f"distance_{label}"] = distances[label]
 
         return output
+
+    def get_config(self) -> Dict[str, Any]:
+        return dict(self.config)
 
     def save(self, path: Union[str, Path]):
         """Save LPM model."""
@@ -309,12 +341,12 @@ class LPM(Detector):
         path.parent.mkdir(parents=True, exist_ok=True)
 
         state = {
-            "prototypes": self.context.prototypes,
-            "precision_matrix": self.context.precision_matrix,
+            "prototypes": self.lpm_context.prototypes,
+            "precision_matrix": self.lpm_context.precision_matrix,
             "config": {
-                "layer_signature": self.context.layer_signature,
-                "distance_metric": self.context.distance_metric,
-                "model_id": self.context.model_id,
+                "layer_signature": self.lpm_context.layer_signature,
+                "distance_metric": self.lpm_context.distance_metric,
+                "model_id": self.lpm_context.model_id,
                 "aggregation_strategy": self.aggregation_strategy,
             },
         }
@@ -329,13 +361,13 @@ class LPM(Detector):
 
         config = state["config"]
         lpm = cls(layer_signature=config["layer_signature"], distance_metric=config["distance_metric"], device=device)
-        lpm.context.model_id = config.get("model_id")
+        lpm.lpm_context.model_id = config.get("model_id")
         lpm.aggregation_strategy = config.get("aggregation_strategy", "last_token")
 
-        lpm.context.prototypes = state["prototypes"]
-        lpm.context.precision_matrix = state["precision_matrix"]
+        lpm.lpm_context.prototypes = state["prototypes"]
+        lpm.lpm_context.precision_matrix = state["precision_matrix"]
 
         # Move to device
-        lpm.context.to(device)
+        lpm.lpm_context.to(device)
 
         return lpm
