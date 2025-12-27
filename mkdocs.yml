@@ -49,4 +49,10 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - API Reference: api.md
+  - API Reference:
+    - api/index.md
+    - Language Model: api/language_model.md
+    - SAE: api/sae.md
+    - Datasets: api/datasets.md
+    - Store: api/store.md
+    - Hooks: api/hooks.md

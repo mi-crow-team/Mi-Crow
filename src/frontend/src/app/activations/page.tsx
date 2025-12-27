@@ -3,16 +3,17 @@
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { api } from "@/lib/api";
+import type { SaveActivationsRequest } from "@/lib/api/types";
 import { ActivationRunInfo, LayerInfo, StoreInfo } from "@/lib/types";
 import { useModelLoader } from "@/lib/useModelLoader";
-import { Button, Input, Label, Modal, Row } from "@/components/ui";
+import { Button, Input, Label, Modal, Row, Spinner } from "@/components/ui";
 import { StepCard, StepLayout } from "@/components/StepLayout";
 import { RunHistorySidebar } from "@/components/RunHistorySidebar";
 
 type DatasetMode = "hf" | "local";
 
 export default function ActivationsPage() {
-  const { models, modelId: selectedModel, setModelId: setSelectedModel, modelLoaded, setModelLoaded, loadModel } =
+  const { models, modelId: selectedModel, setModelId: setSelectedModel, modelLoaded, setModelLoaded, loadModel, isLoading: isLoadingModel } =
     useModelLoader();
   const { data: layers } = useSWR<LayerInfo[]>(
     selectedModel && modelLoaded ? `/models/${selectedModel}/layers` : null,
@@ -78,12 +79,12 @@ export default function ActivationsPage() {
         typeof window !== "undefined"
           ? `${selectedModel}-${Math.random().toString(36).slice(2, 10)}`
           : `${selectedModel}-pending`;
-      const payload =
+      const payload: SaveActivationsRequest =
         datasetMode === "hf"
           ? {
             model_id: selectedModel,
             layers: layerSel,
-            dataset: { type: "hf", name: hfName, split: hfSplit, text_field: hfField },
+            dataset: { type: "hf" as const, name: hfName, split: hfSplit, text_field: hfField },
             batch_size: batchSize,
             shard_size: shardSize,
             sample_limit: sampleLimit,
@@ -92,7 +93,7 @@ export default function ActivationsPage() {
           : {
             model_id: selectedModel,
             layers: layerSel,
-            dataset: { type: "local", paths: paths.split(",").map((p) => p.trim()) },
+            dataset: { type: "local" as const, paths: paths.split(",").map((p) => p.trim()) },
             batch_size: batchSize,
             shard_size: shardSize,
             sample_limit: sampleLimit,
@@ -122,7 +123,7 @@ export default function ActivationsPage() {
         },
         false
       );
-      const res: any = await api.saveActivations(payload);
+      const res = await api.saveActivations(payload);
       setStatus(`Saved. run_id=${res.run_id}, samples=${res.samples}, tokens=${res.tokens}`);
       // Update the optimistic run with final stats and mark as done.
       refreshRuns(
@@ -150,8 +151,9 @@ export default function ActivationsPage() {
       );
       // Finally, revalidate from the server to ensure everything is in sync.
       refreshRuns();
-    } catch (e: any) {
-      setStatus(`Error: ${e.message}`);
+    } catch (e: unknown) {
+      const error = e instanceof Error ? e.message : String(e);
+      setStatus(`Error: ${error}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -232,13 +234,22 @@ export default function ActivationsPage() {
                 try {
                   await loadModel();
                   setStatus("Model loaded");
-                } catch (e: any) {
-                  setStatus(`Error loading model: ${e.message}`);
+                } catch (e: unknown) {
+                  const error = e instanceof Error ? e.message : String(e);
+                  setStatus(`Error loading model: ${error}`);
                 }
               }}
-              disabled={!selectedModel || modelLoaded}
+              disabled={!selectedModel || modelLoaded || isLoadingModel}
             >
-              {modelLoaded ? "Model loaded" : "Load model"}
+              {isLoadingModel ? (
+                <span className="flex items-center gap-2">
+                  <Spinner /> Loading...
+                </span>
+              ) : modelLoaded ? (
+                "Model loaded"
+              ) : (
+                "Load model"
+              )}
             </Button>
           </div>
         </div>
@@ -399,8 +410,14 @@ export default function ActivationsPage() {
           </Row>
 
           <div className="flex items-center justify-between">
-          <Button onClick={submit} disabled={!modelLoaded || isSubmitting}>
-              Save activations
+            <Button onClick={submit} disabled={!modelLoaded || isSubmitting}>
+              {isSubmitting ? (
+                <span className="flex items-center gap-2">
+                  <Spinner /> Saving activations...
+                </span>
+              ) : (
+                "Save activations"
+              )}
             </Button>
             {status && <p className="text-sm text-slate-300">{status}</p>}
           </div>
@@ -420,6 +437,8 @@ export default function ActivationsPage() {
           r.created_at && !Number.isNaN(Date.parse(r.created_at))
             ? new Date(r.created_at).toLocaleString()
             : "-";
+        const status = isInProgress ? "in progress" : r.status ?? "done";
+        const isCompleted = status === "done" || status === "completed";
         return (
           <button
             type="button"
@@ -429,28 +448,40 @@ export default function ActivationsPage() {
             }}
             className="w-full text-left"
           >
-            <div className="space-y-1 text-xs">
-              <div className="font-semibold text-amber-600 truncate" title={r.run_id}>
+            <div className="flex items-center justify-between mb-1">
+              <div className="font-semibold text-slate-900 truncate" title={r.run_id}>
                 {r.run_id}
               </div>
-              <div className="text-slate-400">started: {startedAt}</div>
-              <div className="text-slate-400">
-                status: {isInProgress ? "in progress" : r.status ?? "done"}
+              <span
+                className={`px-2 py-0.5 rounded text-xs font-medium ${
+                  isCompleted
+                    ? "bg-green-100 text-green-700"
+                    : "bg-amber-100 text-amber-700"
+                }`}
+              >
+                {isCompleted ? "✓ Done" : "⏳ In Progress"}
+              </span>
+            </div>
+            <div className="space-y-1 text-xs">
+              <div className="text-slate-700">
+                <span className="text-slate-600">Started:</span> <span className="text-slate-900">{startedAt}</span>
               </div>
-              <div className="text-slate-400">
-                layers: {r.layers?.length ? r.layers.join(", ") : "-"}
+              <div className="text-slate-700">
+                <span className="text-slate-600">Layers:</span> <span className="text-slate-900">{r.layers?.length ? r.layers.join(", ") : "-"}</span>
               </div>
-              <div className="text-slate-400">
-                samples: {r.samples ?? "-"} | tokens: {r.tokens ?? "-"}
+              <div className="text-slate-700">
+                <span className="text-slate-600">Samples:</span> <span className="text-slate-900">{r.samples ?? "-"}</span> | <span className="text-slate-600">Tokens:</span> <span className="text-slate-900">{r.tokens ?? "-"}</span>
               </div>
               {r.dataset && (
-                <div className="text-slate-500">
-                  dataset:{" "}
-                  {r.dataset.type === "hf"
-                    ? r.dataset.name ?? "hf"
-                    : r.dataset.type === "local"
-                    ? "local files"
-                    : r.dataset.type ?? "unknown"}
+                <div className="text-slate-700">
+                  <span className="text-slate-600">Dataset:</span>{" "}
+                  <span className="text-slate-900">
+                    {r.dataset.type === "hf"
+                      ? r.dataset.name ?? "hf"
+                      : r.dataset.type === "local"
+                      ? "local files"
+                      : r.dataset.type ?? "unknown"}
+                  </span>
                 </div>
               )}
             </div>
@@ -470,55 +501,109 @@ export default function ActivationsPage() {
       />
       {isModalOpen && selectedRun && (
         <Modal
-          title={`Activation run ${selectedRun.run_id}`}
+          title={`Activation Run - ${selectedRun.run_id}`}
           onClose={() => {
             setIsModalOpen(false);
             setSelectedRun(null);
           }}
         >
-          <div className="space-y-1">
-            <div>
-              <span className="font-semibold text-slate-300">Model:</span>{" "}
-              <span className="text-slate-200">{selectedRun.model_id}</span>
-            </div>
-            <div>
-              <span className="font-semibold text-slate-300">Status:</span>{" "}
-              <span className="text-slate-200">{selectedRun.status ?? (selectedRun.samples ? "done" : "in progress")}</span>
-            </div>
-            <div>
-              <span className="font-semibold text-slate-300">Layers:</span>{" "}
-              <span className="text-slate-200">{selectedRun.layers?.length ? selectedRun.layers.join(", ") : "-"}</span>
-            </div>
-            <div>
-              <span className="font-semibold text-slate-300">Samples / tokens:</span>{" "}
-              <span className="text-slate-200">
-                {selectedRun.samples ?? "-"} samples, {selectedRun.tokens ?? "-"} tokens
+          <div className="space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+              <h3 className="font-semibold text-slate-900">Basic Information</h3>
+              <span
+                className={`px-2 py-1 rounded text-xs font-medium ${
+                  selectedRun.status === "done" || selectedRun.status === "completed" || selectedRun.samples
+                    ? "bg-green-100 text-green-700 border border-green-300"
+                    : "bg-amber-100 text-amber-700 border border-amber-300"
+                }`}
+              >
+                {selectedRun.status === "done" || selectedRun.status === "completed" || selectedRun.samples
+                  ? "✓ Completed"
+                  : "⏳ In Progress"}
               </span>
             </div>
-            <div>
-              <span className="font-semibold text-slate-300">Dataset:</span>{" "}
-              <span className="text-slate-200">
-                {selectedRun.dataset?.type === "hf"
-                  ? `${selectedRun.dataset.name ?? "hf"} (${selectedRun.dataset.split ?? "train"}, field=${
-                      selectedRun.dataset.text_field ?? "text"
-                    })`
-                  : selectedRun.dataset?.type === "local"
-                  ? Array.isArray(selectedRun.dataset.paths)
-                    ? selectedRun.dataset.paths.join(", ")
-                    : "local files"
-                  : "-"}
-              </span>
+            <div className="space-y-2">
+              <div className="space-y-1 text-sm">
+                <div>
+                  <span className="text-slate-600">Model:</span> <span className="text-slate-900 font-mono">{selectedRun.model_id}</span>
+                </div>
+                <div>
+                  <span className="text-slate-600">Run ID:</span> <span className="text-slate-900 font-mono">{selectedRun.run_id}</span>
+                </div>
+                {selectedRun.created_at && (
+                  <div>
+                    <span className="text-slate-600">Created:</span>{" "}
+                    <span className="text-slate-900">
+                      {new Date(selectedRun.created_at).toLocaleString()}
+                    </span>
+                  </div>
+                )}
+                <div>
+                  <span className="text-slate-600">Layers:</span>{" "}
+                  <span className="text-slate-900">
+                    {selectedRun.layers?.length ? selectedRun.layers.join(", ") : "-"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-600">Samples:</span> <span className="text-slate-900">{selectedRun.samples ?? "-"}</span> |{" "}
+                  <span className="text-slate-600">Tokens:</span> <span className="text-slate-900">{selectedRun.tokens ?? "-"}</span>
+                </div>
+              </div>
             </div>
-            {selectedRun.manifest_path && (
-              <div className="text-slate-400">
-                <span className="font-semibold text-slate-300">Manifest path:</span>{" "}
-                <span className="break-all text-slate-400">{selectedRun.manifest_path}</span>
+
+            {selectedRun.dataset && (
+              <div className="space-y-2">
+                <h3 className="font-semibold text-slate-900">Dataset</h3>
+                <div className="space-y-1 text-sm">
+                  <div>
+                    <span className="text-slate-600">Type:</span>{" "}
+                    <span className="text-slate-900">{selectedRun.dataset.type ?? "unknown"}</span>
+                  </div>
+                  {selectedRun.dataset.type === "hf" && (
+                    <>
+                      <div>
+                        <span className="text-slate-600">Name:</span>{" "}
+                        <span className="text-slate-900">{selectedRun.dataset.name ?? "-"}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-600">Split:</span>{" "}
+                        <span className="text-slate-900">{selectedRun.dataset.split ?? "-"}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-600">Text field:</span>{" "}
+                        <span className="text-slate-900">{selectedRun.dataset.text_field ?? "-"}</span>
+                      </div>
+                    </>
+                  )}
+                  {selectedRun.dataset.type === "local" && (
+                    <div>
+                      <span className="text-slate-600">Paths:</span>
+                      <div className="mt-1 space-y-1">
+                        {Array.isArray(selectedRun.dataset.paths) ? (
+                          selectedRun.dataset.paths.map((path: string, idx: number) => (
+                            <div key={idx} className="text-slate-900 bg-slate-50 border border-slate-200 p-2 rounded text-xs font-mono break-all">
+                              {path}
+                            </div>
+                          ))
+                        ) : (
+                          <span className="text-slate-900">-</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
-            {selectedRun.created_at && (
-              <div>
-                <span className="font-semibold text-slate-300">Created at:</span>{" "}
-                <span className="text-slate-200">{selectedRun.created_at}</span>
+
+            {selectedRun.manifest_path && (
+              <div className="space-y-2">
+                <h3 className="font-semibold text-slate-900">Manifest</h3>
+                <div className="text-sm">
+                  <span className="text-slate-600">Manifest Path:</span>
+                  <div className="text-slate-900 font-mono text-xs mt-1 break-all bg-slate-50 border border-slate-200 p-2 rounded">
+                    {selectedRun.manifest_path}
+                  </div>
+                </div>
               </div>
             )}
           </div>

@@ -7,6 +7,7 @@ from torch import nn
 from amber.datasets import BaseDataset
 from amber.hooks import HookType
 from amber.hooks.implementations.layer_activation_detector import LayerActivationDetector
+from amber.hooks.implementations.model_input_detector import ModelInputDetector
 from amber.store.store import Store
 from amber.utils import get_logger
 from amber.language_model.utils import get_device_from_model
@@ -57,6 +58,36 @@ class LanguageModelActivations:
             self.context.language_model.layers.unregister_hook(hook_id)
         except (KeyError, ValueError, RuntimeError):
             pass
+
+    def _setup_attention_mask_detector(self, run_name: str) -> tuple[ModelInputDetector, str]:
+        """
+        Create and register an attention mask detector.
+
+        Args:
+            run_name: Run name for hook ID
+
+        Returns:
+            Tuple of (detector, hook_id)
+        """
+        attention_mask_layer_sig = "attention_masks"
+        root_model = self.context.model
+        
+        # Add layer signature to registry for root model
+        if attention_mask_layer_sig not in self.context.language_model.layers.name_to_layer:
+            self.context.language_model.layers.name_to_layer[attention_mask_layer_sig] = root_model
+        
+        detector = ModelInputDetector(
+            layer_signature=attention_mask_layer_sig,
+            hook_id=f"attention_mask_detector_{run_name}",
+            save_input_ids=False,
+            save_attention_mask=True,
+        )
+        
+        hook_id = self.context.language_model.layers.register_hook(
+            attention_mask_layer_sig, detector, HookType.PRE_FORWARD
+        )
+        
+        return detector, hook_id
 
     def _normalize_layer_signatures(
         self, layer_signatures: str | int | list[str | int] | None
@@ -236,6 +267,7 @@ class LanguageModelActivations:
         free_cuda_cache_every: int | None = 0,
         verbose: bool = False,
         save_in_batches: bool = True,
+        save_attention_mask: bool = False,
     ) -> str:
         """
         Save activations from a dataset.
@@ -251,6 +283,7 @@ class LanguageModelActivations:
             autocast_dtype: Optional dtype for autocast
             free_cuda_cache_every: Clear CUDA cache every N batches (0 or None to disable)
             verbose: Whether to log progress
+            save_attention_mask: Whether to also save attention masks (automatically attaches ModelInputDetector)
 
         Returns:
             Run name used for saving
@@ -295,6 +328,11 @@ class LanguageModelActivations:
             _, hook_id = self._setup_detector(sig, f"save_{run_name}_{sig}")
             hook_ids.append(hook_id)
 
+        # Setup attention mask detector if requested
+        attention_mask_hook_id: str | None = None
+        if save_attention_mask:
+            _, attention_mask_hook_id = self._setup_attention_mask_detector(run_name)
+
         batch_counter = 0
 
         try:
@@ -317,6 +355,8 @@ class LanguageModelActivations:
         finally:
             for hook_id in hook_ids:
                 self._cleanup_detector(hook_id)
+            if attention_mask_hook_id is not None:
+                self._cleanup_detector(attention_mask_hook_id)
             if verbose:
                 logger.info(f"Completed save_activations_dataset: run={run_name}, batches_saved={batch_counter}")
         
@@ -336,6 +376,7 @@ class LanguageModelActivations:
         free_cuda_cache_every: int | None = 0,
         verbose: bool = False,
         save_in_batches: bool = True,
+        save_attention_mask: bool = False,
     ) -> str:
         """
         Save activations from a list of texts.
@@ -351,6 +392,7 @@ class LanguageModelActivations:
             autocast_dtype: Optional dtype for autocast
             free_cuda_cache_every: Clear CUDA cache every N batches (0 or None to disable)
             verbose: Whether to log progress
+            save_attention_mask: Whether to also save attention masks (automatically attaches ModelInputDetector)
 
         Returns:
             Run name used for saving
@@ -400,6 +442,11 @@ class LanguageModelActivations:
             _, hook_id = self._setup_detector(sig, f"save_{run_name}_{sig}")
             hook_ids.append(hook_id)
 
+        # Setup attention mask detector if requested
+        attention_mask_hook_id: str | None = None
+        if save_attention_mask:
+            _, attention_mask_hook_id = self._setup_attention_mask_detector(run_name)
+
         batch_counter = 0
 
         try:
@@ -424,6 +471,8 @@ class LanguageModelActivations:
         finally:
             for hook_id in hook_ids:
                 self._cleanup_detector(hook_id)
+            if attention_mask_hook_id is not None:
+                self._cleanup_detector(attention_mask_hook_id)
             if verbose:
                 logger.info(f"Completed save_activations: run={run_name}, batches_saved={batch_counter}")
         

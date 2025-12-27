@@ -46,7 +46,7 @@ This directory contains end-to-end tests that validate complete workflows in the
 
 ### 3. `test_e2e_activation_control.py`
 
-**Based on:** `examples/03_load_and_manipulate_concepts.ipynb`
+**Based on:** `examples/03_load_concepts.ipynb`
 
 **Tests activation control with custom controllers:**
 
@@ -81,6 +81,26 @@ This directory contains end-to-end tests that validate complete workflows in the
 
 ---
 
+### 4. `test_e2e_save_inputs_and_outputs.py`
+
+**Based on:** `examples/04_save_inputs_and_outputs.ipynb`
+
+**Tests saving model inputs and outputs:**
+- ✅ Load a language model
+- ✅ Attach ModelInputDetector and ModelOutputDetector
+- ✅ Run inference and capture inputs/outputs
+- ✅ Inspect captured data
+- ✅ Save to store and verify saved data
+
+**Key validation:**
+- ModelInputDetector captures input_ids correctly
+- ModelOutputDetector captures output_logits correctly
+- Data can be decoded and verified
+- Saved data matches captured data
+- Both detectors work independently
+
+---
+
 ## Running the Tests
 
 ### Run all e2e tests:
@@ -101,9 +121,9 @@ pytest tests/e2e/ -v -s
 ## Test Characteristics
 
 - **Isolated:** Each test uses temporary directories and cleans up after itself
-- **Realistic:** Tests use actual models (sshleifer/tiny-gpt2) and real workflows
+- **Realistic:** Tests use actual models (sshleifer/tiny-gpt2, speakleash/Bielik-1.5B-v3.0-Instruct) and real workflows
 - **Fast:** Uses small datasets and quick training configs for rapid validation
-- **Comprehensive:** Covers the three main workflows: training, tracking, and control
+- **Comprehensive:** Covers all main workflows: training, tracking, control, and input/output saving
 
 ## Requirements
 
@@ -151,6 +171,7 @@ Approximate run times on CPU:
 - `test_e2e_train_sae.py`: ~3-4 seconds
 - `test_e2e_attach_sae_and_track_texts.py`: ~3-4 seconds  
 - `test_e2e_activation_control.py`: ~2-3 seconds (3 tests)
+- `test_e2e_save_inputs_and_outputs.py`: ~2-3 seconds
 
 Total: ~10-12 seconds for all tests
 
