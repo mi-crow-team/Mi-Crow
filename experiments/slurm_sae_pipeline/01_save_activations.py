@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-SLURM script to save activations from Bielik 4.5B Instruct model.
+SLURM script to save activations from Bielik 1.5B Instruct model.
 
 This script:
-- Loads the Bielik 4.5B Instruct model
+- Loads the Bielik 1.5B Instruct model
 - Loads a dataset from HuggingFace
 - Saves activations from a specified layer
 - Stores run ID for use in training script
@@ -34,7 +34,7 @@ logging.basicConfig(
 logger = get_logger(__name__)
 
 # Model configuration
-MODEL_ID = os.getenv("MODEL_ID", "speakleash/Bielik-4.5B-Instruct")  # Bielik 4.5B Instruct
+MODEL_ID = os.getenv("MODEL_ID", "speakleash/Bielik-1.5B-v3.0-Instruct")  # Bielik 1.5B Instruct
 
 # Dataset configuration
 HF_DATASET = os.getenv("HF_DATASET", "roneneldan/TinyStories")
@@ -45,10 +45,12 @@ MAX_LENGTH = int(os.getenv("MAX_LENGTH", "128"))
 BATCH_SIZE_SAVE = int(os.getenv("BATCH_SIZE_SAVE", "16"))
 
 # Layer configuration - adjust layer number based on model architecture
-# For Bielik 4.5B, adjust the layer number (e.g., middle layer)
-# Format: llamaforcausallm_model_layers_{LAYER_NUM}_post_attention_layernorm
-LAYER_NUM = int(os.getenv("LAYER_NUM", "24"))  # Middle layer for larger model
-LAYER_SIGNATURE = f"llamaforcausallm_model_layers_{LAYER_NUM}_post_attention_layernorm"
+# Default: llamaforcausallm_model_layers_16_post_attention_layernorm (middle layer for 32-layer model)
+# You can set LAYER_SIGNATURE directly or use LAYER_NUM to construct it
+LAYER_SIGNATURE = os.getenv("LAYER_SIGNATURE", None)
+if LAYER_SIGNATURE is None:
+    LAYER_NUM = int(os.getenv("LAYER_NUM", "16"))  # Middle layer for 32-layer model
+    LAYER_SIGNATURE = f"llamaforcausallm_model_layers_{LAYER_NUM}_post_attention_layernorm"
 
 # Storage configuration - use SLURM environment variables if available
 STORE_DIR = Path(os.getenv("STORE_DIR", os.getenv("SCRATCH", str(Path(__file__).parent / "store"))))

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SLURM script to train SAE on saved activations from Bielik 4.5B Instruct model.
+SLURM script to train SAE on saved activations from Bielik 1.5B Instruct model.
 
 This script:
 - Loads saved activations from the activation saving script
@@ -26,7 +26,7 @@ from amber.utils import get_logger
 logger = get_logger(__name__)
 
 # Model configuration
-MODEL_ID = os.getenv("MODEL_ID", "speakleash/Bielik-4.5B-Instruct")  # Bielik 4.5B Instruct
+MODEL_ID = os.getenv("MODEL_ID", "speakleash/Bielik-1.5B-v3.0-Instruct")  # Bielik 1.5B Instruct
 
 # Storage configuration - use SLURM environment variables if available
 STORE_DIR = Path(os.getenv("STORE_DIR", os.getenv("SCRATCH", str(Path(__file__).parent / "store"))))

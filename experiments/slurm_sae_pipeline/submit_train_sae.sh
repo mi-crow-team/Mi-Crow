@@ -21,7 +21,7 @@
 
 # Set environment variables
 export STORE_DIR=${SCRATCH:-./store}/sae_store
-export MODEL_ID="speakleash/Bielik-4.5B-Instruct"  # Adjust if needed
+export MODEL_ID="speakleash/Bielik-1.5B-v3.0-Instruct"
 export EPOCHS=20
 export BATCH_SIZE_TRAIN=64
 export N_LATENTS_MULTIPLIER=8

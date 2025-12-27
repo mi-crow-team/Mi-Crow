@@ -1,6 +1,6 @@
-# SLURM SAE Pipeline for Bielik 4.5B Instruct
+# SLURM SAE Pipeline for Bielik 1.5B Instruct
 
-This directory contains scripts for running the full SAE (Sparse Autoencoder) training pipeline on SLURM clusters using the Bielik 4.5B Instruct model.
+This directory contains scripts for running the full SAE (Sparse Autoencoder) training pipeline on SLURM clusters using the Bielik 1.5B Instruct model.
 
 ## Structure
 
@@ -20,12 +20,13 @@ slurm_sae_pipeline/
 - PyTorch with CUDA support (for GPU clusters)
 - Required packages: `amber`, `torch`, `transformers`, `datasets`
 - Access to SLURM cluster with GPU nodes
+- **HuggingFace Access**: The Bielik 1.5B-v3.0-Instruct model is publicly available. You may need to authenticate with HuggingFace: `huggingface-cli login` or set `HF_TOKEN` environment variable
 
 ## Configuration
 
 ### Model
-- **Model**: `speakleash/Bielik-4.5B-Instruct`
-- **Layer**: Defaults to layer 24 (middle layer), configurable via `LAYER_NUM` environment variable
+- **Model**: `speakleash/Bielik-1.5B-v3.0-Instruct`
+- **Layer**: Defaults to layer 16 (middle layer for 32-layer model), configurable via `LAYER_NUM` environment variable
 
 ### Layer Selection for SAE Training
 
@@ -47,7 +48,7 @@ The scripts extract activations from the **`post_attention_layernorm`** layer, a
 
 #### Recommended Layer Position: Middle Layers
 
-The default layer number is **24**, which assumes Bielik 4.5B has approximately 48 transformer layers. This represents a middle layer position.
+The default layer number is **16**, which is the middle layer for Bielik 1.5B's 32 transformer layers. This represents a middle layer position.
 
 **Why middle layers?**
 
@@ -61,14 +62,14 @@ The default layer number is **24**, which assumes Bielik 4.5B has approximately 
    - Specific semantic concepts (interpretable features)
    - Feature diversity (not too specialized)
 
-3. **Empirical Evidence**: Our experiments with Bielik 1.5B (32 layers) used layer 16 (middle), which produced interpretable features. For Bielik 4.5B, we scale proportionally.
+3. **Empirical Evidence**: Our experiments with Bielik 1.5B (32 layers) use layer 16 (middle), which produces interpretable features.
 
 **How to determine the correct layer number:**
 
 1. **Check model configuration**: The number of layers can be found in the model's config:
    ```python
    from transformers import AutoConfig
-   config = AutoConfig.from_pretrained("speakleash/Bielik-4.5B-Instruct")
+   config = AutoConfig.from_pretrained("speakleash/Bielik-1.5B-v3.0-Instruct")
    num_layers = config.num_hidden_layers  # or config.num_layers
    middle_layer = num_layers // 2
    ```
@@ -82,9 +83,9 @@ The default layer number is **24**, which assumes Bielik 4.5B has approximately 
 3. **Discover available layers manually**: Run the activation script once and it will print available layers if the specified layer is not found. Look for layers matching the pattern `*_layers_{N}_post_attention_layernorm`.
 
 3. **Common configurations**:
-   - **32 layers** (like Bielik 1.5B): Use layer **16**
+   - **32 layers** (Bielik 1.5B): Use layer **16** (default)
    - **40 layers**: Use layer **20**
-   - **48 layers**: Use layer **24** (default)
+   - **48 layers**: Use layer **24**
    - **56 layers**: Use layer **28**
 
 **Alternative layer positions:**
@@ -98,7 +99,7 @@ The default layer number is **24**, which assumes Bielik 4.5B has approximately 
 Both scripts support the following environment variables:
 
 #### Common Variables
-- `MODEL_ID`: HuggingFace model ID (default: `speakleash/Bielik-4.5B-Instruct`)
+- `MODEL_ID`: HuggingFace model ID (default: `speakleash/Bielik-1.5B-v3.0-Instruct`)
 - `STORE_DIR`: Directory to store activations and models (default: `./store` or `$SCRATCH` if available)
 - `DEVICE`: Device to use (`cuda` or `cpu`, default: auto-detect)
 
@@ -109,7 +110,7 @@ Both scripts support the following environment variables:
 - `DATA_LIMIT`: Number of samples to process (default: `10000`)
 - `MAX_LENGTH`: Maximum sequence length (default: `128`)
 - `BATCH_SIZE_SAVE`: Batch size for saving activations (default: `16`)
-- `LAYER_NUM`: Layer number to extract activations from (default: `24`)
+- `LAYER_NUM`: Layer number to extract activations from (default: `16`)
 
 #### SAE Training (02_train_sae.py)
 - `N_LATENTS_MULTIPLIER`: Overcompleteness factor (default: `4`)
@@ -136,7 +137,7 @@ python 01_save_activations.py
 ```
 
 This script will:
-- Load the Bielik 4.5B Instruct model
+- Load the Bielik 1.5B Instruct model
 - Load the specified dataset from HuggingFace
 - Extract activations from the specified layer
 - Save activations to the store directory
@@ -189,7 +190,7 @@ source /path/to/venv/bin/activate
 export STORE_DIR=$SCRATCH/sae_store
 export DATA_LIMIT=100000
 export BATCH_SIZE_SAVE=32
-export LAYER_NUM=24
+export LAYER_NUM=16
 export DEVICE=cuda
 
 # Run script
@@ -272,9 +273,23 @@ Install required packages:
 pip install torch transformers datasets amber
 ```
 
+### Model Access
+
+The Bielik 1.5B-v3.0-Instruct model is publicly available on HuggingFace. If you encounter authentication errors, you may need to authenticate:
+
+1. **Authenticate with HuggingFace** (if needed):
+   ```bash
+   huggingface-cli login
+   ```
+   Or set the token as an environment variable:
+   ```bash
+   export HF_TOKEN="your_token_here"
+   ```
+2. **Verify access**: Run `python discover_layers.py` to verify you can access the model
+
 ## Notes
 
-- **Layer Selection**: The default layer (24) assumes Bielik 4.5B has ~48 layers. If the model has a different number of layers, adjust `LAYER_NUM` to approximately half the total layer count. See the "Layer Selection for SAE Training" section above for detailed guidance.
+- **Layer Selection**: The default layer (16) is the middle layer for Bielik 1.5B's 32 layers. If using a different model, adjust `LAYER_NUM` to approximately half the total layer count. See the "Layer Selection for SAE Training" section above for detailed guidance.
 - For production use, increase `DATA_LIMIT` and training epochs
 - Monitor GPU memory usage and adjust batch sizes accordingly
 - Consider using mixed precision training (already enabled for CUDA devices)

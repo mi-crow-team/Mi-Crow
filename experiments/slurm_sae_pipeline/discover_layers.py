@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Helper script to discover the number of layers in Bielik 4.5B Instruct model
+Helper script to discover the number of layers in Bielik 1.5B Instruct model
 and suggest appropriate layer numbers for SAE training.
 
 Usage:
     python discover_layers.py
     # or with custom model:
-    MODEL_ID="speakleash/Bielik-4.5B-Instruct" python discover_layers.py
+    MODEL_ID="speakleash/Bielik-1.5B-v3.0-Instruct" python discover_layers.py
 """
 
 import os
@@ -15,7 +15,7 @@ from amber.language_model.language_model import LanguageModel
 from amber.store.local_store import LocalStore
 from pathlib import Path
 
-MODEL_ID = os.getenv("MODEL_ID", "speakleash/Bielik-4.5B-Instruct")
+MODEL_ID = os.getenv("MODEL_ID", "speakleash/Bielik-1.5B-v3.0-Instruct")
 STORE_DIR = Path(os.getenv("STORE_DIR", "./store"))
 
 

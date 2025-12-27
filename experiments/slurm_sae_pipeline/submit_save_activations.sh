@@ -21,10 +21,10 @@
 
 # Set environment variables
 export STORE_DIR=${SCRATCH:-./store}/sae_store
-export MODEL_ID="speakleash/Bielik-4.5B-Instruct"
+export MODEL_ID="speakleash/Bielik-1.5B-v3.0-Instruct"
 export DATA_LIMIT=100000
 export BATCH_SIZE_SAVE=32
-export LAYER_NUM=24
+export LAYER_NUM=16
 export DEVICE=cuda
 export HF_DATASET="roneneldan/TinyStories"
 export DATA_SPLIT="train"
