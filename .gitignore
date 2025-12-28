@@ -105,6 +105,8 @@ results/
 /experiments/*/store/
 /experiments/store/
 
+.local_results/
+
 # frontend
 src/frontend/node_modules/
 src/frontend/dist/
