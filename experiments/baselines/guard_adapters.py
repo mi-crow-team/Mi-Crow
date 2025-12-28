@@ -66,9 +66,19 @@ class BielikGuardAdapter(GuardAdapter):
     def _effective_max_length(self) -> int:
         tokenizer = getattr(self._pipe, "tokenizer", None)
         model = getattr(self._pipe, "model", None)
+        config = getattr(model, "config", None)
 
         tok_max = getattr(tokenizer, "model_max_length", None)
-        cfg_max = getattr(getattr(model, "config", None), "max_position_embeddings", None)
+        cfg_max = getattr(config, "max_position_embeddings", None)
+
+        # Some tokenizers use a very large sentinel to mean "no limit".
+        if isinstance(tok_max, int) and tok_max > 1_000_000:
+            tok_max = None
+
+        model_type = getattr(config, "model_type", "") or ""
+        if isinstance(cfg_max, int) and cfg_max > 0 and model_type in {"roberta", "xlm-roberta", "camembert"}:
+            # RoBERTa-family commonly has 514 position embeddings but supports 512-token inputs.
+            cfg_max = max(1, cfg_max - 2)
 
         candidates = [x for x in (tok_max, cfg_max) if isinstance(x, int) and x > 0]
         return min(candidates) if candidates else 512
