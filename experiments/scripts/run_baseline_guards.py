@@ -129,15 +129,29 @@ def main() -> int:
 
     logger.info("Loading dataset %s (%s/%s)", args.dataset, args.dataset_config, args.split)
     dataset_t0 = perf_counter()
-    dataset = ClassificationDataset.from_huggingface(
-        repo_id=args.dataset,
-        store=store,
-        name=args.dataset_config,
-        split=args.split,
-        text_field=args.text_field,
-        category_field=args.category_field,
-        limit=args.limit,
-    )
+    try:
+        dataset = ClassificationDataset.from_huggingface(
+            repo_id=args.dataset,
+            store=store,
+            name=args.dataset_config,
+            split=args.split,
+            text_field=args.text_field,
+            category_field=args.category_field,
+            limit=args.limit,
+        )
+    except RuntimeError as e:
+        msg = str(e)
+        if "gated dataset" in msg.lower() or "must be authenticated" in msg.lower():
+            logger.error(
+                "Failed to load gated dataset from HF Hub. Authenticate first (on the login node):\n"
+                "  uv run huggingface-cli login\n"
+                "or set env var for the job submission:\n"
+                "  HF_TOKEN=... sbatch slurm/run_baseline_guards_cpu.sh\n"
+                "Also ensure you have accepted the dataset access terms on the Hub for %s.",
+                args.dataset,
+            )
+            return 2
+        raise
     dataset_load_s = perf_counter() - dataset_t0
 
     ts = _timestamp()
