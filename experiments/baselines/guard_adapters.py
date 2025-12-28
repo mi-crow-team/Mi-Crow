@@ -154,6 +154,9 @@ class LlamaGuardAdapter(GuardAdapter):
                 {"role": "user", "content": text},
             ]
             try:
+                tmpl = self._tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+                #### DEBUG
+                logger.info("Chat template for LlamaGuard (first 100 chars): %s", tmpl[:100])
                 return self._tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
             except Exception:
                 pass
