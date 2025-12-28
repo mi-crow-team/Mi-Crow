@@ -1,3 +1,12 @@
+"""
+Docstring for experiments.scripts.run_baseline_guards
+
+Usage:
+Bielik: uv run python -m experiments.scripts.run_baseline_guards --run-bielik --limit 50 --device cpu
+LlamaGuard: uv run python -m experiments.scripts.run_baseline_guards --run-llama \
+    --llama-model <HF_ID_OR_PATH> --limit 50 --device cpu
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -99,7 +108,7 @@ def main() -> int:
     parser.add_argument("--category-field", type=str, default="prompt_harm_label")
     parser.add_argument("--limit", type=int, default=None)
 
-    parser.add_argument("--batch-size", type=int, default=8)
+    parser.add_argument("--batch-size", type=int, default=32)
 
     parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "cuda", "mps"])
 
@@ -108,7 +117,9 @@ def main() -> int:
     parser.add_argument("--bielik-threshold", type=float, default=0.5)
 
     parser.add_argument("--run-llama", action="store_true")
-    parser.add_argument("--llama-model", type=str, default=None, help="HF model id/path for LlamaGuard")
+    parser.add_argument(
+        "--llama-model", type=str, default="meta-llama/Llama-Guard-3-1B", help="HF model id/path for LlamaGuard"
+    )
 
     args = parser.parse_args()
 
