@@ -61,15 +61,31 @@ class BielikGuardAdapter(GuardAdapter):
             "text-classification",
             model=self.model_path,
             device=pipeline_device,
-            return_all_scores=True,
         )
+
+    def _effective_max_length(self) -> int:
+        tokenizer = getattr(self._pipe, "tokenizer", None)
+        model = getattr(self._pipe, "model", None)
+
+        tok_max = getattr(tokenizer, "model_max_length", None)
+        cfg_max = getattr(getattr(model, "config", None), "max_position_embeddings", None)
+
+        candidates = [x for x in (tok_max, cfg_max) if isinstance(x, int) and x > 0]
+        return min(candidates) if candidates else 512
 
     @property
     def adapter_id(self) -> str:
         return f"bielik_guard:{self.model_path}"
 
     def predict_batch(self, texts: List[str]) -> List[JsonDict]:
-        outputs = self._pipe(texts)
+        max_len = self._effective_max_length()
+        outputs = self._pipe(
+            texts,
+            truncation=True,
+            max_length=max_len,
+            padding=True,  # Pad to longest in batch
+            top_k=None,  # Return scores for all labels
+        )
         predictions: List[JsonDict] = []
 
         for text_scores in outputs:
@@ -136,6 +152,18 @@ class LlamaGuardAdapter(GuardAdapter):
 
         self.safe_token_id = self._tokenizer.convert_tokens_to_ids("safe")
         self.unsafe_token_id = self._tokenizer.convert_tokens_to_ids("unsafe")
+
+    def _effective_max_input_length(self, reserved_new_tokens: int = 0) -> int:
+        tok_max = getattr(self._tokenizer, "model_max_length", None)
+        cfg_max = getattr(getattr(self._model, "config", None), "max_position_embeddings", None)
+
+        candidates = [x for x in (tok_max, cfg_max) if isinstance(x, int) and x > 0]
+        # Default to something sane if config/tokenizer doesn't report a limit.
+        max_ctx = min(candidates) if candidates else 2048
+
+        # Ensure we leave room for generation (and at least 1 token of input).
+        max_inp = max(1, max_ctx - int(reserved_new_tokens))
+        return max_inp
 
     @property
     def adapter_id(self) -> str:
@@ -216,7 +244,8 @@ class LlamaGuardAdapter(GuardAdapter):
 
         for text in texts:
             prompt = self._build_prompt(text)
-            inputs = self._tokenizer(prompt, return_tensors="pt")
+            max_inp = self._effective_max_input_length(reserved_new_tokens=self.max_new_tokens)
+            inputs = self._tokenizer(prompt, return_tensors="pt", truncation=True, max_length=max_inp)
             if self.device in {"cuda", "mps"}:
                 inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
@@ -235,7 +264,12 @@ class LlamaGuardAdapter(GuardAdapter):
 
         for text in texts:
             full_prompt = self._build_official_prompt(text)
-            inputs = self._tokenizer(full_prompt, return_tensors="pt").to(self.device)
+            # Reserve a small budget for the short generation we do below.
+            reserved = 10
+            max_inp = self._effective_max_input_length(reserved_new_tokens=reserved)
+            inputs = self._tokenizer(full_prompt, return_tensors="pt", truncation=True, max_length=max_inp)
+            if self.device in {"cuda", "mps"}:
+                inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
             # 1. Get Logits for the NEXT token only
             outputs = self._model(inputs.input_ids)
@@ -252,7 +286,11 @@ class LlamaGuardAdapter(GuardAdapter):
 
             # 3. Generate the actual text to get the Threat Category (S1-S14)
             # We only generate if it's likely unsafe, or always if we need the S-code
-            gen_out = self._model.generate(**inputs, max_new_tokens=10, pad_token_id=self._tokenizer.eos_token_id)
+            gen_out = self._model.generate(
+                **inputs,
+                max_new_tokens=reserved,
+                pad_token_id=self._tokenizer.eos_token_id,
+            )
             generated_text = self._tokenizer.decode(
                 gen_out[0][inputs.input_ids.shape[1] :], skip_special_tokens=True
             ).strip()
