@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 import torch
+import torch.nn.functional as F
 
 from amber.utils import get_logger
 
@@ -45,8 +46,7 @@ class BielikGuardAdapter(GuardAdapter):
     threshold: float = 0.5
     device: str = "cpu"  # "cpu" | "cuda" | "mps"
 
-    safe_labels: Optional[List[str]] = None
-    unsafe_labels: Optional[List[str]] = None
+    categories = ["self-harm", "hate", "vulgar", "sex", "crime"]  # Categories used by Bielik-Guard-0.5B-v1.0
 
     def __post_init__(self) -> None:
         from transformers import pipeline
@@ -70,43 +70,26 @@ class BielikGuardAdapter(GuardAdapter):
 
     def predict_batch(self, texts: List[str]) -> List[JsonDict]:
         outputs = self._pipe(texts)
-
         predictions: List[JsonDict] = []
-        safe_labels = [s.lower() for s in (self.safe_labels or ["safe", "benign"])]
-        unsafe_labels = [s.lower() for s in (self.unsafe_labels or ["unsafe", "harmful", "toxic", "attack"])]
 
         for text_scores in outputs:
             scores_by_label = {item["label"]: float(item["score"]) for item in text_scores}
 
-            # Try to find explicit unsafe vs safe labels; otherwise fallback to max score.
-            score_safe = None
-            score_unsafe = None
-            for label, score in scores_by_label.items():
-                label_lower = label.lower()
-                if any(tok in label_lower for tok in safe_labels):
-                    score_safe = max(score_safe or 0.0, score)
-                if any(tok in label_lower for tok in unsafe_labels):
-                    score_unsafe = max(score_unsafe or 0.0, score)
+            # Identify ALL categories that exceed the threshold
+            triggered_categories = [cat for cat in self.categories if scores_by_label.get(cat, 0.0) >= self.threshold]
 
-            if score_unsafe is None and score_safe is None:
-                # Fallback: treat argmax label containing "safe" as safe, else unsafe.
-                best_label = max(scores_by_label.items(), key=lambda kv: kv[1])[0]
-                best_score = scores_by_label[best_label]
-                if "safe" in best_label.lower():
-                    score_safe = best_score
-                    score_unsafe = 1.0 - best_score
-                else:
-                    score_unsafe = best_score
-                    score_safe = 1.0 - best_score
+            # The overall unsafe score is the highest risk found
+            max_unsafe_score = max([scores_by_label.get(cat, 0.0) for cat in self.categories])
 
-            predicted_label = 1 if (score_unsafe or 0.0) >= self.threshold else 0
+            # The prompt is "unsafe" if at least one category triggered
+            is_unsafe = len(triggered_categories) > 0
 
             predictions.append(
                 {
-                    "predicted_label": predicted_label,
-                    "score_safe": float(score_safe) if score_safe is not None else None,
-                    "score_unsafe": float(score_unsafe) if score_unsafe is not None else None,
-                    "threat_category": None,
+                    "predicted_label": 1 if is_unsafe else 0,
+                    "score_safe": 1 - float(max_unsafe_score) if max_unsafe_score is not None else None,
+                    "score_unsafe": float(max_unsafe_score) if max_unsafe_score is not None else None,
+                    "threat_category": triggered_categories if is_unsafe else None,
                     "raw_output": None,
                     "extra_json": json.dumps(
                         {
@@ -135,6 +118,7 @@ class LlamaGuardAdapter(GuardAdapter):
     device: str = "cpu"  # "cpu" | "cuda" | "mps"
     max_new_tokens: int = 128
     temperature: float = 0.0
+    threshold: float = 0.5  # for score-based decision
 
     decision_tokens: Optional[List[str]] = None  # override if needed
 
@@ -149,6 +133,9 @@ class LlamaGuardAdapter(GuardAdapter):
             self._model = self._model.to(self.device)
 
         self._model.eval()
+
+        self.safe_token_id = self._tokenizer.convert_tokens_to_ids("safe")
+        self.unsafe_token_id = self._tokenizer.convert_tokens_to_ids("unsafe")
 
     @property
     def adapter_id(self) -> str:
@@ -172,6 +159,15 @@ class LlamaGuardAdapter(GuardAdapter):
                 pass
 
         return f"System: {system}\nUser: {text}\nAssistant:"
+
+    def _build_official_prompt(self, text: str) -> str:
+        # It is CRITICAL to use the model's own chat template.
+        # Llama Guard 3 expects the <BEGIN UNSAFE CONTENT CATEGORIES> tags.
+        messages = [{"role": "user", "content": text}]
+        prompt = self._tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+
+        # The trick: add the newline to bypass the model's tendency to start with whitespace
+        return prompt + "\n"
 
     def _parse(self, generated_text: str) -> JsonDict:
         # Normalize whitespace for parsing
@@ -227,5 +223,54 @@ class LlamaGuardAdapter(GuardAdapter):
             # Try to isolate the assistant part if prompt is echoed.
             parsed = self._parse(decoded)
             predictions.append(parsed)
+
+        return predictions
+
+    @torch.no_grad()
+    def predict_batch_with_scores(self, texts: List[str]) -> List[Dict[str, Any]]:
+        predictions = []
+
+        for text in texts:
+            full_prompt = self._build_official_prompt(text)
+            inputs = self._tokenizer(full_prompt, return_tensors="pt").to(self.device)
+
+            # 1. Get Logits for the NEXT token only
+            outputs = self._model(inputs.input_ids)
+            next_token_logits = outputs.logits[:, -1, :]
+            probs = F.softmax(next_token_logits, dim=-1)
+
+            # 2. Extract specific probabilities
+            # Probability = P(unsafe) / (P(safe) + P(unsafe))
+            p_safe = probs[0, self.safe_token_id].item()
+            p_unsafe = probs[0, self.unsafe_token_id].item()
+
+            # Normalized unsafe score
+            conf_score_unsafe = p_unsafe / (p_safe + p_unsafe + 1e-9)
+
+            # 3. Generate the actual text to get the Threat Category (S1-S14)
+            # We only generate if it's likely unsafe, or always if we need the S-code
+            gen_out = self._model.generate(**inputs, max_new_tokens=10, pad_token_id=self._tokenizer.eos_token_id)
+            generated_text = self._tokenizer.decode(
+                gen_out[0][inputs.input_ids.shape[1] :], skip_special_tokens=True
+            ).strip()
+
+            # Logic: Decision based on text OR threshold
+            is_flagged = "unsafe" in generated_text.lower() or conf_score_unsafe >= self.threshold
+
+            # Parse S-codes (e.g., "unsafe\nS1, S2")
+            categories = [cat.strip() for cat in generated_text.split("\n")[-1].split(",")] if is_flagged else []
+
+            predictions.append(
+                {
+                    "predicted_label": 1 if is_flagged else 0,
+                    "score_unsafe": conf_score_unsafe,
+                    "score_safe": 1.0 - conf_score_unsafe,
+                    "threat_category": categories if is_flagged else None,
+                    "raw_output": generated_text,
+                    "extra_json": json.dumps(
+                        {"logit_p_unsafe": p_unsafe, "logit_p_safe": p_safe, "threshold": self.threshold}
+                    ),
+                }
+            )
 
         return predictions
