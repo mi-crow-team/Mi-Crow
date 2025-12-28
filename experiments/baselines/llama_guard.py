@@ -9,6 +9,7 @@ def create_llama_guard(
     device: str = "cpu",
     max_new_tokens: int = 128,
     temperature: float = 0.0,
+    threshold: float = 0.5,
 ) -> GuardModel:
     """Convenience factory for LlamaGuard as a binary guard baseline.
 
@@ -20,5 +21,6 @@ def create_llama_guard(
         device=device,
         max_new_tokens=max_new_tokens,
         temperature=temperature,
+        threshold=threshold,
     )
     return GuardModel(adapter=adapter)
