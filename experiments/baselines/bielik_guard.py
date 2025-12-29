@@ -5,7 +5,7 @@ from experiments.baselines.guard_model import GuardModel
 
 
 def create_bielik_guard(
-    model_path: str = "speakleash/Bielik-Guard-0.5B-v1.0",
+    model_path: str = "speakleash/Bielik-Guard-0.1B-v1.0",
     threshold: float = 0.5,
     device: str = "cpu",
 ) -> GuardModel:
