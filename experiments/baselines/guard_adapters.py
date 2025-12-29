@@ -248,7 +248,7 @@ class LlamaGuardAdapter(GuardAdapter):
                 tmpl = self._tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
                 # Log the full template only once (for first call)
                 ### DEBUG
-                if self._true_batch_call_idx == 0:
+                if self._true_batch_call_idx == 1:
                     logger.info("LlamaGuard full chat template for model %s:", self.model_path)
                     logger.info(tmpl)
                 logger.info("Chat template for LlamaGuard (first 100 chars): %s", tmpl[:100])
