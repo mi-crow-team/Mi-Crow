@@ -39,6 +39,7 @@ export MKL_NUM_THREADS=${SLURM_CPUS_PER_TASK:-4}
 
 uv run python -m experiments.scripts.run_baseline_guards \
   --store "$STORE_DIR" \
-  --run-bielik \
+  --run-llama \
+  --llama-model "meta-llama/Llama-Guard-3-1B" \
   --device cpu \
   --batch-size "$BATCH_SIZE"
