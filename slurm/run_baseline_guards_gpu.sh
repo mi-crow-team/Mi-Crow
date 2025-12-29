@@ -1,0 +1,46 @@
+#!/bin/bash
+#SBATCH -A mi2lab-normal
+#SBATCH -p short
+#SBATCH -t 03:40:00
+#SBATCH -N 1
+#SBATCH -c 4
+#SBATCH --gres=gpu:1
+#SBATCH --mem=16G
+#SBATCH --job-name=baseline-guards-gpu
+#SBATCH --output=/mnt/evafs/groups/mi2lab/hkowalski/Mi-Crow/slurm-logs/%x-%j.out
+#SBATCH --error=/mnt/evafs/groups/mi2lab/hkowalski/Mi-Crow/slurm-logs/%x-%j.err
+#SBATCH --export=ALL
+
+set -euo pipefail
+
+REPO_DIR=${REPO_DIR:-"$PWD"}
+STORE_DIR=${STORE_DIR:-"$REPO_DIR/store"}
+LOG_DIR=${LOG_DIR:-"$REPO_DIR/slurm-logs"}
+
+mkdir -p "$LOG_DIR"
+cd "$REPO_DIR"
+
+echo "Node: $(hostname -s)"
+echo "PWD:  $(pwd)"
+
+# WildGuardMix is gated on HF Hub; authenticate via `huggingface-cli login` on the login node
+# or pass a token via environment variable: `HF_TOKEN=... sbatch ...`.
+if [[ -z "${HF_TOKEN:-}" ]] && [[ ! -f "${HF_HOME:-$HOME/.cache/huggingface}/token" ]]; then
+  echo "ERROR: HuggingFace auth missing (wildguardmix is gated)." >&2
+  echo "Run once:  uv run huggingface-cli login" >&2
+  echo "Or submit with: HF_TOKEN=... sbatch slurm/run_baseline_guards_cpu.sh" >&2
+  exit 2
+fi
+
+BATCH_SIZE=${BATCH_SIZE:-16}
+
+# Respect allocated cores for common CPU backends.
+export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-4}
+export MKL_NUM_THREADS=${SLURM_CPUS_PER_TASK:-4}
+
+uv run python -m experiments.scripts.run_baseline_guards \
+  --store "$STORE_DIR" \
+  --run-llama \
+  --llama-model "meta-llama/Llama-Guard-3-1B" \
+  --device "cuda" \
+  --batch-size "$BATCH_SIZE"
