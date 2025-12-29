@@ -179,6 +179,22 @@ class LlamaGuardAdapter(GuardAdapter):
 
         self._model.eval()
 
+        # Required for true batching: tokenizers for some Llama checkpoints ship without a pad token.
+        # When padding=True, Transformers will raise unless pad_token is set.
+        if self._tokenizer.pad_token is None:
+            # Use EOS as PAD (common practice for decoder-only LMs).
+            self._tokenizer.pad_token = self._tokenizer.eos_token
+            logger.warning(
+                "LlamaGuard tokenizer had no pad_token; setting pad_token=eos_token (%r).",
+                self._tokenizer.eos_token,
+            )
+
+        # Batched generation with decoder-only LMs is most reliable with left padding.
+        self._tokenizer.padding_side = "left"
+
+        if getattr(self._model.config, "pad_token_id", None) is None and self._tokenizer.pad_token_id is not None:
+            self._model.config.pad_token_id = self._tokenizer.pad_token_id
+
         self.safe_token_id = self._tokenizer.convert_tokens_to_ids("safe")
         self.unsafe_token_id = self._tokenizer.convert_tokens_to_ids("unsafe")
 
@@ -281,11 +297,15 @@ class LlamaGuardAdapter(GuardAdapter):
         Works with padded batches by using per-sample prompt lengths from attention_mask.
         """
 
-        prompt_lens = attention_mask.sum(dim=1).tolist()
+        prompt_lens = attention_mask.sum(dim=1).detach().cpu().tolist()
+        input_seq_len = int(input_ids.shape[1])
         decoded: List[str] = []
         for row_idx, prompt_len in enumerate(prompt_lens):
-            gen_part = output_ids[row_idx, int(prompt_len) :]
-            decoded.append(self._tokenizer.decode(gen_part, skip_special_tokens=True).strip())
+            # `generate` appends tokens after the padded input length (same for every row),
+            # regardless of padding side. This makes decoding robust.
+            gen_part = output_ids[row_idx, input_seq_len:]
+            gen_part_ids = gen_part.detach().cpu().tolist()
+            decoded.append(self._tokenizer.decode(gen_part_ids, skip_special_tokens=True).strip())
         return decoded
 
     def _true_batch_parse(self, generated_texts: List[str]) -> List[JsonDict]:
@@ -318,6 +338,9 @@ class LlamaGuardAdapter(GuardAdapter):
             max_length=max_inp,
         )
 
+        if self.device in {"cuda", "mps"}:
+            enc = {k: v.to(self.device) for k, v in enc.items()}
+
         attention_mask = enc.get("attention_mask")
         used_fallback_attention_mask = attention_mask is None
         if attention_mask is None:
@@ -326,7 +349,7 @@ class LlamaGuardAdapter(GuardAdapter):
             attention_mask = torch.ones_like(enc["input_ids"])
 
         if should_log:
-            prompt_lens = attention_mask.sum(dim=1).tolist()
+            prompt_lens = attention_mask.sum(dim=1).detach().cpu().tolist()
             logger.info(
                 "LlamaGuard true-batch[%d]: n=%d max_inp=%d max_new_tokens=%d device=%s",
                 self._true_batch_call_idx,
@@ -349,9 +372,6 @@ class LlamaGuardAdapter(GuardAdapter):
                 int(sorted(prompt_lens)[len(prompt_lens) // 2]) if prompt_lens else -1,
                 int(max(prompt_lens)) if prompt_lens else -1,
             )
-
-        if self.device in {"cuda", "mps"}:
-            enc = {k: v.to(self.device) for k, v in enc.items()}
 
         # Ensure pad_token_id is set for models/tokenizers that don't define it.
         pad_token_id = self._tokenizer.pad_token_id
