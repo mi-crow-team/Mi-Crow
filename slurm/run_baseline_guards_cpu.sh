@@ -9,6 +9,8 @@
 #SBATCH --output=/mnt/evafs/groups/mi2lab/hkowalski/Mi-Crow/slurm-logs/%x-%j.out
 #SBATCH --error=/mnt/evafs/groups/mi2lab/hkowalski/Mi-Crow/slurm-logs/%x-%j.err
 #SBATCH --export=ALL
+#SBATCH --mail-user hubik112@gmail.com
+#SBATCH --mail-type FAIL,END
 
 set -euo pipefail
 
