@@ -82,9 +82,8 @@ def main() -> int:
     template_results: List[Dict[str, Any]] = []
 
     for i, text in enumerate(samples):
-        messages = [
-            {"role": "user", "content": text},
-        ]
+        messages = [{"role": "user", "content": text}]
+        messages_mm = [{"role": "user", "content": [{"type": "text", "text": text}]}]
 
         has_apply = hasattr(adapter._tokenizer, "apply_chat_template")  # noqa: SLF001
         logger.info("Sample %d: tokenizer has apply_chat_template=%s", i, has_apply)
@@ -92,6 +91,10 @@ def main() -> int:
         applied_ok = False
         applied_preview = None
         applied_error = None
+
+        applied_mm_ok = False
+        applied_mm_preview = None
+        applied_mm_error = None
 
         if has_apply:
             try:
@@ -107,12 +110,35 @@ def main() -> int:
                 applied_error = repr(e)
                 logger.warning("Sample %d: apply_chat_template FAILED: %s", i, applied_error, exc_info=True)
 
+            try:
+                applied_mm = adapter._tokenizer.apply_chat_template(  # noqa: SLF001
+                    messages_mm,
+                    tokenize=False,
+                    add_generation_prompt=True,
+                )
+                applied_mm_ok = True
+                applied_mm_preview = applied_mm[:300]
+                logger.info("Sample %d: apply_chat_template(mm) preview: %r", i, applied_mm_preview[:120])
+            except Exception as e:
+                applied_mm_error = repr(e)
+                logger.warning("Sample %d: apply_chat_template(mm) FAILED: %s", i, applied_mm_error, exc_info=True)
+
         # Also exercise adapter logic (this is where your existing log line lives).
         try:
             prompt = adapter._build_prompt(text)  # noqa: SLF001
             prompt_preview = prompt[:300]
+            # Quick sanity: if the prompt doesn't include the user text, it will classify an "empty conversation".
+            needle = " ".join(text.strip().split())[:80]
+            hay = " ".join(prompt.split())
+            prompt_contains_text = (not needle) or (needle in hay)
+            if not prompt_contains_text:
+                logger.warning(
+                    "Sample %d: adapter prompt does NOT contain user text snippet; likely empty <BEGIN CONVERSATION>.",
+                    i,
+                )
         except Exception as e:
             prompt_preview = None
+            prompt_contains_text = False
             logger.warning("Sample %d: adapter._build_prompt FAILED: %r", i, e, exc_info=True)
 
         template_results.append(
@@ -122,7 +148,11 @@ def main() -> int:
                 "apply_ok": applied_ok,
                 "apply_preview": applied_preview,
                 "apply_error": applied_error,
+                "apply_mm_ok": applied_mm_ok,
+                "apply_mm_preview": applied_mm_preview,
+                "apply_mm_error": applied_mm_error,
                 "adapter_build_prompt_preview": prompt_preview,
+                "adapter_prompt_contains_text": prompt_contains_text,
             }
         )
 
