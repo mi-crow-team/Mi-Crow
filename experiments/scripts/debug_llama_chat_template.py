@@ -83,10 +83,6 @@ def main() -> int:
 
     for i, text in enumerate(samples):
         messages = [
-            {
-                "role": "system",
-                "content": "You are a safety classifier.",
-            },
             {"role": "user", "content": text},
         ]
 
