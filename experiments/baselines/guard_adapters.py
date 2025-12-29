@@ -106,6 +106,15 @@ class BielikGuardAdapter(GuardAdapter):
                 len(texts),
                 max_len,
             )
+        # Log example text that exceeds max_len
+        for i, length in enumerate(token_lengths):
+            if length > max_len:
+                logger.debug(
+                    "Example exceeding text (length %d tokens): %.100r",
+                    length,
+                    texts[i],
+                )
+                break
         ### END DEBUG
 
         outputs = self._pipe(
@@ -237,7 +246,10 @@ class LlamaGuardAdapter(GuardAdapter):
                 ### DEBUG
                 logger.info("Chat template for LlamaGuard (first 100 chars): %s", tmpl[:100])
                 return self._tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-            except Exception:
+            except Exception as e:
+                ### DEBUG
+                logger.warning("LlamaGuard tokenizer chat template application failed.", exc_info=True)
+                logger.warning("Error message: %s", str(e))
                 pass
         else:
             ### DEBUG

@@ -5,7 +5,7 @@ from experiments.baselines.guard_model import GuardModel
 
 
 def create_llama_guard(
-    model_path: str,
+    model_path: str = "meta-llama/Llama-Guard-3-1B",
     device: str = "cpu",
     max_new_tokens: int = 128,
     temperature: float = 0.0,
