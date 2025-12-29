@@ -229,44 +229,86 @@ class LlamaGuardAdapter(GuardAdapter):
     def adapter_id(self) -> str:
         return f"llamaguard:{self.model_path}"
 
-    def _build_prompt(self, text: str) -> str:
-        # Minimal, stable prompt that encourages structured output.
-        # Important: some Llama chat templates reject the `system` role.
-        # So we embed instructions in the user message and use a single user turn.
+    def _normalized_snippet(self, text: str, *, max_chars: int = 80) -> str:
+        norm = " ".join(text.strip().split())
+        return norm[:max_chars]
 
-        # instruction = "Answer with: SAFE or UNSAFE. If UNSAFE, also output a threat category S1-S14."
+    def _prompt_contains_text(self, prompt: str, text: str) -> bool:
+        needle = self._normalized_snippet(text)
+        if not needle:
+            return True
+        hay = " ".join(prompt.split())
+        return needle in hay
 
-        if hasattr(self._tokenizer, "apply_chat_template"):
-            messages = [
-                {
-                    "role": "user",
-                    # "content": f"{instruction}\n\n{text}",
-                    "content": text,
-                }
-            ]
+    def _inject_into_conversation_block(self, prompt: str, text: str) -> Optional[str]:
+        start_tag = "<BEGIN CONVERSATION>"
+        end_tag = "<END CONVERSATION>"
+        if start_tag not in prompt or end_tag not in prompt:
+            return None
+
+        start_idx = prompt.find(start_tag)
+        end_idx = prompt.find(end_tag)
+        if start_idx < 0 or end_idx < 0 or end_idx <= start_idx:
+            return None
+
+        before = prompt[: start_idx + len(start_tag)]
+        after = prompt[end_idx:]
+        injected = f"\n\nUser: {text.strip()}\n"
+        return before + injected + after
+
+    def _apply_chat_template_user_only(self, user_text: str) -> Optional[str]:
+        if not hasattr(self._tokenizer, "apply_chat_template"):
+            return None
+
+        # Some Llama-3-family templates expect the "multimodal" content format (list of parts).
+        # If we pass a plain string, the template may render an empty conversation.
+        message_variants = [
+            [{"role": "user", "content": user_text}],
+            [{"role": "user", "content": [{"type": "text", "text": user_text}]}],
+        ]
+
+        last_prompt: Optional[str] = None
+        for messages in message_variants:
             try:
-                tmpl = self._tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-                # Log the full template only once (for first call)
-                ### DEBUG
-                if self._true_batch_call_idx == 1:
-                    logger.info("LlamaGuard full chat template for model %s:", self.model_path)
-                    logger.info(tmpl)
-                logger.info("Chat template for LlamaGuard (first 100 chars): %s", tmpl[:100])
-                return tmpl + "\n"
-            except Exception as e:
-                logger.warning("LlamaGuard tokenizer chat template application failed.", exc_info=True)
-                logger.warning("Error message: %s", str(e))
+                candidate = self._tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+                last_prompt = candidate
+                if self._prompt_contains_text(candidate, user_text):
+                    return candidate
+            except Exception:
+                continue
 
-        logger.info("LlamaGuard (%s): using basic prompt (no chat template).", self.model_path)
-        return f"User: {text}\nAssistant: \n"
+        if last_prompt is not None:
+            injected = self._inject_into_conversation_block(last_prompt, user_text)
+            if injected is not None:
+                return injected
+
+        return None
+
+    def _build_prompt(self, text: str) -> str:
+        # For Llama Guard 3, the tokenizer's chat template already contains the full policy +
+        # "safe/unsafe" formatting instructions; we only need to provide the last user message.
+        prompt = self._apply_chat_template_user_only(text)
+        if prompt is not None:
+            logger.info(
+                "Chat template for LlamaGuard (first 100 chars): %s (contains_text=%s)",
+                prompt[:100],
+                self._prompt_contains_text(prompt, text),
+            )
+            return prompt + "\n"
+
+        # Fallback: plain-text prompt (works even without a chat template).
+        instruction = "Answer with: safe or unsafe. If unsafe, include categories S1-S14 on a second line."
+        logger.warning(
+            "LlamaGuard (%s): chat template did not include message; using fallback prompt.",
+            self.model_path,
+        )
+        return f"User: {instruction}\n\n{text}\nAssistant:\n"
 
     def _build_official_prompt(self, text: str) -> str:
-        # It is CRITICAL to use the model's own chat template.
-        # Llama Guard 3 expects the <BEGIN UNSAFE CONTENT CATEGORIES> tags.
-        messages = [{"role": "user", "content": text}]
-        prompt = self._tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-
-        # The trick: add the newline to bypass the model's tendency to start with whitespace
+        prompt = self._apply_chat_template_user_only(text)
+        if prompt is None:
+            instruction = "Answer with: safe or unsafe. If unsafe, include categories S1-S14 on a second line."
+            prompt = f"User: {instruction}\n\n{text}\nAssistant:\n"
         return prompt + "\n"
 
     def _parse(self, generated_text: str) -> JsonDict:
@@ -343,6 +385,17 @@ class LlamaGuardAdapter(GuardAdapter):
         )
 
         prompts = [self._build_prompt(t) for t in texts]
+        if should_log:
+            unique_prompts = len(set(prompts))
+            prompt_lens_chars = [len(p) for p in prompts]
+            logger.info(
+                "LlamaGuard true-batch[%d]: prompts unique=%d/%d chars(min/max)=%d/%d",
+                self._true_batch_call_idx,
+                unique_prompts,
+                len(prompts),
+                min(prompt_lens_chars) if prompt_lens_chars else -1,
+                max(prompt_lens_chars) if prompt_lens_chars else -1,
+            )
         max_inp = self._effective_max_input_length(reserved_new_tokens=self.max_new_tokens)
 
         enc = self._tokenizer(
