@@ -109,7 +109,7 @@ class BielikGuardAdapter(GuardAdapter):
         # Log example text that exceeds max_len
         for i, length in enumerate(token_lengths):
             if length > max_len:
-                logger.debug(
+                logger.warning(
                     "Example exceeding text (length %d tokens): %.100r",
                     length,
                     texts[i],
@@ -231,31 +231,34 @@ class LlamaGuardAdapter(GuardAdapter):
 
     def _build_prompt(self, text: str) -> str:
         # Minimal, stable prompt that encourages structured output.
-        # If the model has a chat template, we use it; otherwise raw string.
-        system = (
-            "You are a safety classifier. Answer with: SAFE or UNSAFE. If UNSAFE, also output a threat category S1-S14."
-        )
+        # Important: some Llama chat templates reject the `system` role.
+        # So we embed instructions in the user message and use a single user turn.
+
+        # instruction = "Answer with: SAFE or UNSAFE. If UNSAFE, also output a threat category S1-S14."
 
         if hasattr(self._tokenizer, "apply_chat_template"):
             messages = [
-                {"role": "system", "content": system},
-                {"role": "user", "content": text},
+                {
+                    "role": "user",
+                    # "content": f"{instruction}\n\n{text}",
+                    "content": text,
+                }
             ]
             try:
                 tmpl = self._tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+                # Log the full template only once (for first call)
                 ### DEBUG
+                if self._true_batch_call_idx == 0:
+                    logger.info("LlamaGuard full chat template for model %s:", self.model_path)
+                    logger.info(tmpl)
                 logger.info("Chat template for LlamaGuard (first 100 chars): %s", tmpl[:100])
-                return self._tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+                return tmpl + "\n"
             except Exception as e:
-                ### DEBUG
                 logger.warning("LlamaGuard tokenizer chat template application failed.", exc_info=True)
                 logger.warning("Error message: %s", str(e))
-                pass
-        else:
-            ### DEBUG
-            logger.info(f"LlamaGuard ({self.model_path}) tokenizer has no chat template; using basic prompt.")
 
-        return f"System: {system}\nUser: {text}\nAssistant:"
+        logger.info("LlamaGuard (%s): using basic prompt (no chat template).", self.model_path)
+        return f"User: {text}\nAssistant: \n"
 
     def _build_official_prompt(self, text: str) -> str:
         # It is CRITICAL to use the model's own chat template.
