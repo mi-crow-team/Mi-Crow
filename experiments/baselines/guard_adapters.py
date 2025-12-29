@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 
 import torch
 import torch.nn.functional as F
+from transformers import GenerationConfig
 
 from amber.utils import get_logger
 
@@ -63,6 +64,9 @@ class BielikGuardAdapter(GuardAdapter):
             device=pipeline_device,
         )
 
+        ### DEBUG
+        self.total_truncated = 0
+
     def _effective_max_length(self) -> int:
         tokenizer = getattr(self._pipe, "tokenizer", None)
         model = getattr(self._pipe, "model", None)
@@ -89,6 +93,21 @@ class BielikGuardAdapter(GuardAdapter):
 
     def predict_batch(self, texts: List[str]) -> List[JsonDict]:
         max_len = self._effective_max_length()
+        ### DEBUG
+        # Check lenght - number of tokens in each of texts, find maximum and log
+        token_lengths = [len(self._pipe.tokenizer.tokenize(text)) for text in texts]
+        # Calculate how many texts exceed max_len
+        num_exceeding = sum(1 for length in token_lengths if length > max_len)
+        if num_exceeding > 0:
+            self.total_truncated += num_exceeding
+            logger.warning(
+                "BielikGuardAdapter: %d/%d texts exceed max token length of %d; they will be truncated.",
+                num_exceeding,
+                len(texts),
+                max_len,
+            )
+        ### END DEBUG
+
         outputs = self._pipe(
             texts,
             truncation=True,
@@ -163,6 +182,12 @@ class LlamaGuardAdapter(GuardAdapter):
         self.safe_token_id = self._tokenizer.convert_tokens_to_ids("safe")
         self.unsafe_token_id = self._tokenizer.convert_tokens_to_ids("unsafe")
 
+        # Debug logging controls for true batching.
+        self._true_batch_call_idx = 0
+        self._true_batch_log_first_n = 3
+        self._true_batch_log_every_n = 200
+        self._true_batch_log_decoded_chars = 240
+
     def _effective_max_input_length(self, reserved_new_tokens: int = 0) -> int:
         tok_max = getattr(self._tokenizer, "model_max_length", None)
         cfg_max = getattr(getattr(self._model, "config", None), "max_position_embeddings", None)
@@ -193,11 +218,14 @@ class LlamaGuardAdapter(GuardAdapter):
             ]
             try:
                 tmpl = self._tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-                #### DEBUG
+                ### DEBUG
                 logger.info("Chat template for LlamaGuard (first 100 chars): %s", tmpl[:100])
                 return self._tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
             except Exception:
                 pass
+        else:
+            ### DEBUG
+            logger.info(f"LlamaGuard ({self.model_path}) tokenizer has no chat template; using basic prompt.")
 
         return f"System: {system}\nUser: {text}\nAssistant:"
 
@@ -241,32 +269,168 @@ class LlamaGuardAdapter(GuardAdapter):
             "extra_json": json.dumps({"parsed_from": "generation"}, ensure_ascii=False),
         }
 
-    @torch.no_grad()
-    def predict_batch(self, texts: List[str]) -> List[JsonDict]:
-        from transformers import GenerationConfig
+    def _true_batch_decode(
+        self,
+        *,
+        input_ids: torch.Tensor,
+        attention_mask: torch.Tensor,
+        output_ids: torch.Tensor,
+    ) -> List[str]:
+        """Decode only the generated continuation per sample (not the echoed prompt).
 
-        predictions: List[JsonDict] = []
+        Works with padded batches by using per-sample prompt lengths from attention_mask.
+        """
+
+        prompt_lens = attention_mask.sum(dim=1).tolist()
+        decoded: List[str] = []
+        for row_idx, prompt_len in enumerate(prompt_lens):
+            gen_part = output_ids[row_idx, int(prompt_len) :]
+            decoded.append(self._tokenizer.decode(gen_part, skip_special_tokens=True).strip())
+        return decoded
+
+    def _true_batch_parse(self, generated_texts: List[str]) -> List[JsonDict]:
+        return [self._parse(t) for t in generated_texts]
+
+    @torch.no_grad()
+    def _true_predict_batch(self, texts: List[str]) -> List[JsonDict]:
+        """Generate in a single batched `model.generate` call.
+
+        This is substantially faster than looping per sample, especially on GPU.
+        """
+
+        if not texts:
+            return []
+
+        self._true_batch_call_idx += 1
+        should_log = (
+            self._true_batch_call_idx <= self._true_batch_log_first_n
+            or self._true_batch_call_idx % self._true_batch_log_every_n == 0
+        )
+
+        prompts = [self._build_prompt(t) for t in texts]
+        max_inp = self._effective_max_input_length(reserved_new_tokens=self.max_new_tokens)
+
+        enc = self._tokenizer(
+            prompts,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=max_inp,
+        )
+
+        attention_mask = enc.get("attention_mask")
+        used_fallback_attention_mask = attention_mask is None
+        if attention_mask is None:
+            # Should not happen with padding=True, but keep safe. This affects decode prompt lengths.
+            logger.warning("LlamaGuard true-batch: tokenizer returned no attention_mask; using ones_like fallback.")
+            attention_mask = torch.ones_like(enc["input_ids"])
+
+        if should_log:
+            prompt_lens = attention_mask.sum(dim=1).tolist()
+            logger.info(
+                "LlamaGuard true-batch[%d]: n=%d max_inp=%d max_new_tokens=%d device=%s",
+                self._true_batch_call_idx,
+                len(texts),
+                max_inp,
+                self.max_new_tokens,
+                self.device,
+            )
+            logger.info(
+                "LlamaGuard true-batch[%d]: input_ids shape=%s attention_mask shape=%s fallback_mask=%s",
+                self._true_batch_call_idx,
+                tuple(enc["input_ids"].shape),
+                tuple(attention_mask.shape),
+                used_fallback_attention_mask,
+            )
+            logger.info(
+                "LlamaGuard true-batch[%d]: prompt_len(min/median/max)=%d/%d/%d",
+                self._true_batch_call_idx,
+                int(min(prompt_lens)) if prompt_lens else -1,
+                int(sorted(prompt_lens)[len(prompt_lens) // 2]) if prompt_lens else -1,
+                int(max(prompt_lens)) if prompt_lens else -1,
+            )
+
+        if self.device in {"cuda", "mps"}:
+            enc = {k: v.to(self.device) for k, v in enc.items()}
+
+        # Ensure pad_token_id is set for models/tokenizers that don't define it.
+        pad_token_id = self._tokenizer.pad_token_id
+        if pad_token_id is None:
+            pad_token_id = self._tokenizer.eos_token_id
+
+        if should_log:
+            logger.info(
+                "LlamaGuard true-batch[%d]: pad_token_id=%s eos_token_id=%s",
+                self._true_batch_call_idx,
+                pad_token_id,
+                self._tokenizer.eos_token_id,
+            )
+
         gen_cfg = GenerationConfig(
             max_new_tokens=self.max_new_tokens,
             do_sample=self.temperature > 0,
             temperature=self.temperature if self.temperature > 0 else None,
         )
 
-        for text in texts:
-            prompt = self._build_prompt(text)
-            max_inp = self._effective_max_input_length(reserved_new_tokens=self.max_new_tokens)
-            inputs = self._tokenizer(prompt, return_tensors="pt", truncation=True, max_length=max_inp)
-            if self.device in {"cuda", "mps"}:
-                inputs = {k: v.to(self.device) for k, v in inputs.items()}
+        output_ids = self._model.generate(
+            input_ids=enc["input_ids"],
+            attention_mask=attention_mask,
+            generation_config=gen_cfg,
+            pad_token_id=pad_token_id,
+        )
 
-            output_ids = self._model.generate(**inputs, generation_config=gen_cfg)
-            decoded = self._tokenizer.decode(output_ids[0], skip_special_tokens=True)
+        if should_log:
+            logger.info(
+                "LlamaGuard true-batch[%d]: output_ids shape=%s",
+                self._true_batch_call_idx,
+                tuple(output_ids.shape),
+            )
 
-            # Try to isolate the assistant part if prompt is echoed.
-            parsed = self._parse(decoded)
-            predictions.append(parsed)
+        generated_texts = self._true_batch_decode(
+            input_ids=enc["input_ids"],
+            attention_mask=attention_mask,
+            output_ids=output_ids,
+        )
 
-        return predictions
+        if should_log and generated_texts:
+            sample = generated_texts[0].replace("\n", " ").strip()
+            sample = sample[: self._true_batch_log_decoded_chars]
+            logger.info(
+                "LlamaGuard true-batch[%d]: decoded sample[0] (%d chars): %r",
+                self._true_batch_call_idx,
+                len(sample),
+                sample,
+            )
+
+        return self._true_batch_parse(generated_texts)
+
+    @torch.no_grad()
+    def predict_batch(self, texts: List[str]) -> List[JsonDict]:
+        # Temporary switch: use true batched generation for performance.
+        return self._true_predict_batch(texts)
+
+        # --- legacy per-item generation (kept for reference) ---
+        # predictions: List[JsonDict] = []
+        # gen_cfg = GenerationConfig(
+        #     max_new_tokens=self.max_new_tokens,
+        #     do_sample=self.temperature > 0,
+        #     temperature=self.temperature if self.temperature > 0 else None,
+        # )
+        #
+        # for text in texts:
+        #     prompt = self._build_prompt(text)
+        #     max_inp = self._effective_max_input_length(reserved_new_tokens=self.max_new_tokens)
+        #     inputs = self._tokenizer(prompt, return_tensors="pt", truncation=True, max_length=max_inp)
+        #     if self.device in {"cuda", "mps"}:
+        #         inputs = {k: v.to(self.device) for k, v in inputs.items()}
+        #
+        #     output_ids = self._model.generate(**inputs, generation_config=gen_cfg)
+        #     decoded = self._tokenizer.decode(output_ids[0], skip_special_tokens=True)
+        #
+        #     parsed = self._parse(decoded)
+        #     predictions.append(parsed)
+        #
+        # return predictions
 
     @torch.no_grad()
     def predict_batch_with_scores(self, texts: List[str]) -> List[Dict[str, Any]]:
