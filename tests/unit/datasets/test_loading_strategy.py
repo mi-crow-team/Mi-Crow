@@ -8,8 +8,8 @@ from amber.datasets.loading_strategy import LoadingStrategy
 def test_loading_strategy_enum_values():
     """Test that LoadingStrategy has correct enum values."""
     assert LoadingStrategy.MEMORY.value == "memory"
-    assert LoadingStrategy.DISK.value == "dynamic_load"
-    assert LoadingStrategy.STREAMING.value == "iterable_only"
+    assert LoadingStrategy.DISK.value == "disk"
+    assert LoadingStrategy.STREAMING.value == "streaming"
 
 
 def test_loading_strategy_enum_membership():
@@ -22,8 +22,8 @@ def test_loading_strategy_enum_membership():
 def test_loading_strategy_from_string():
     """Test creating LoadingStrategy from string value."""
     assert LoadingStrategy("memory") == LoadingStrategy.MEMORY
-    assert LoadingStrategy("dynamic_load") == LoadingStrategy.DISK
-    assert LoadingStrategy("iterable_only") == LoadingStrategy.STREAMING
+    assert LoadingStrategy("disk") == LoadingStrategy.DISK
+    assert LoadingStrategy("streaming") == LoadingStrategy.STREAMING
 
 
 def test_loading_strategy_invalid_string():
