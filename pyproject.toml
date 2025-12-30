@@ -70,22 +70,10 @@ output = "coverage.xml"
 [tool.coverage.html]
 directory = "htmlcov"
 
-[tool.setuptools]
-packages = [
-    "mi_crow",
-    "mi_crow.datasets",
-    "mi_crow.hooks",
-    "mi_crow.hooks.implementations",
-    "mi_crow.language_model",
-    "mi_crow.mechanistic",
-    "mi_crow.mechanistic.sae",
-    "mi_crow.mechanistic.sae.concepts",
-    "mi_crow.mechanistic.sae.modules",
-    "mi_crow.store",
-]
-
-[tool.setuptools.package-dir]
-"" = "src"
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["mi_crow*"]
+exclude = ["server*", "frontend*"]
 
 [tool.setuptools_scm]
 fallback_version = "0.0.0"
