@@ -33,6 +33,9 @@ jobs:
           pip install build twine
 
       - name: Build package
+        env:
+          # Disable local version identifiers for PyPI (they're not allowed)
+          SETUPTOOLS_SCM_LOCAL_SCHEME: "no-local-version"
         run: python -m build
 
       - name: Publish to PyPI
