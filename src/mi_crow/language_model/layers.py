@@ -1,4 +1,4 @@
-from typing import Dict, List, Callable, TYPE_CHECKING
+from typing import Dict, List, Callable, TYPE_CHECKING, Any
 
 from torch import nn
 
@@ -121,7 +121,7 @@ class LanguageModelLayers:
             layer_signature: str | int,
             hook: Callable,
             hook_args: dict = None
-    ):
+    ) -> Any:
         """
         Register a forward hook directly on a layer.
         
@@ -141,7 +141,7 @@ class LanguageModelLayers:
             layer_signature: str | int,
             hook: Callable,
             hook_args: dict = None
-    ):
+    ) -> Any:
         """
         Register a pre-forward hook directly on a layer.
         

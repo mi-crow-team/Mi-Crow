@@ -454,7 +454,7 @@ class BaseDataset(ABC):
         limit: Optional[int] = None,
         stratify_by: Optional[str] = None,
         stratify_seed: Optional[int] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> "BaseDataset":
         """
         Load dataset from HuggingFace Hub.
@@ -534,7 +534,7 @@ class BaseDataset(ABC):
         stratify_by: Optional[str] = None,
         stratify_seed: Optional[int] = None,
         drop_na_columns: Optional[List[str]] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> "BaseDataset":
         """
         Load dataset from CSV file.
@@ -593,7 +593,7 @@ class BaseDataset(ABC):
         stratify_by: Optional[str] = None,
         stratify_seed: Optional[int] = None,
         drop_na_columns: Optional[List[str]] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> "BaseDataset":
         """
         Load dataset from JSON or JSONL file.

@@ -26,6 +26,8 @@ class TopKSaeTrainingConfig(SaeTrainingConfig):
     
     Args:
         k: Number of top activations to keep (required for TopK SAE training)
+    
+    Note:
         All other parameters are inherited from SaeTrainingConfig.
     
     Attributes:

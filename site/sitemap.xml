@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://adamkaniasty.github.io/Inzynierka/</loc>
+         <lastmod>2025-12-30</lastmod>
+    </url>
+    <url>
+         <loc>https://adamkaniasty.github.io/Inzynierka/api/</loc>
+         <lastmod>2025-12-30</lastmod>
+    </url>
+    <url>
+         <loc>https://adamkaniasty.github.io/Inzynierka/api/</loc>
+         <lastmod>2025-12-30</lastmod>
+    </url>
+    <url>
+         <loc>https://adamkaniasty.github.io/Inzynierka/api/datasets/</loc>
+         <lastmod>2025-12-30</lastmod>
+    </url>
+    <url>
+         <loc>https://adamkaniasty.github.io/Inzynierka/api/hooks/</loc>
+         <lastmod>2025-12-30</lastmod>
+    </url>
+    <url>
+         <loc>https://adamkaniasty.github.io/Inzynierka/api/language_model/</loc>
+         <lastmod>2025-12-30</lastmod>
+    </url>
+    <url>
+         <loc>https://adamkaniasty.github.io/Inzynierka/api/sae/</loc>
+         <lastmod>2025-12-30</lastmod>
+    </url>
+    <url>
+         <loc>https://adamkaniasty.github.io/Inzynierka/api/store/</loc>
+         <lastmod>2025-12-30</lastmod>
+    </url>
+</urlset>
