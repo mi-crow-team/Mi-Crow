@@ -4,7 +4,7 @@ import pytest
 import torch
 from unittest.mock import Mock, MagicMock
 
-from amber.language_model.utils import (
+from mi_crow.language_model.utils import (
     extract_model_id,
     get_device_from_model,
     move_tensors_to_device,

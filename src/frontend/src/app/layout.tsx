@@ -12,15 +12,15 @@ const nav = [
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-amber-50 text-slate-900">
-        <div className="border-b border-amber-100 bg-white/80 backdrop-blur">
+      <body className="min-h-screen bg-mi_crow-50 text-slate-900">
+        <div className="border-b border-mi_crow-100 bg-white/80 backdrop-blur">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400 text-slate-900 font-bold shadow-sm">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-mi_crow-400 text-slate-900 font-bold shadow-sm">
                 A
               </div>
               <div>
-                <div className="text-lg font-semibold text-slate-900 tracking-tight">Amber SAE Studio</div>
+                <div className="text-lg font-semibold text-slate-900 tracking-tight">mi_crow SAE Studio</div>
                 <div className="text-xs text-slate-500">Train SAEs, inspect activations, and play with concepts.</div>
               </div>
             </div>
@@ -29,7 +29,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="rounded-full px-3 py-1 text-slate-600 hover:text-slate-900 hover:bg-amber-100 transition"
+                  className="rounded-full px-3 py-1 text-slate-600 hover:text-slate-900 hover:bg-mi_crow-100 transition"
                 >
                   {item.label}
                 </Link>

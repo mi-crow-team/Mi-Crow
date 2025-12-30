@@ -49,5 +49,5 @@ class Settings(BaseSettings):
             return saved_path
 
         # Fall back to default
-        return Path.home() / ".cache" / "amber_server"
+        return Path.home() / ".cache" / "mi_crow_server"
 

@@ -138,7 +138,7 @@ style: |
 
 ## 4. Thesis Deliverables
 
-1. **Amber Python Package** 
+1. **mi_crow Python Package** 
    - Facilitates LLM interactions, dataset handling, activations collection
    - Ready-to-use SAE implementation
 
@@ -153,12 +153,12 @@ style: |
 
 ---
 
-## 5. Amber Package: Architecture
+## 5. mi_crow Package: Architecture
 
 **Modular Design Philosophy**
 
 ```
-amber/
+mi_crow/
 ├── language_model/     # LLM wrapper & inference
 ├── datasets/           # Data loading strategies
 ├── hooks/             # Activation inspection system
@@ -173,11 +173,11 @@ amber/
 
 ---
 
-## 6. Amber: Key Modules (1/2)
+## 6. mi_crow: Key Modules (1/2)
 
 **LanguageModel Module**
 ```python
-from amber.language_model import LanguageModel
+from mi_crow.language_model import LanguageModel
 
 # Load from HuggingFace
 lm = LanguageModel.from_huggingface(
@@ -193,7 +193,7 @@ lm = LanguageModel.from_huggingface(
 
 ---
 
-## 7. Amber: Key Modules (2/2)
+## 7. mi_crow: Key Modules (2/2)
 
 **Hooks System**
 - **Detector**: Capture activations without modification
@@ -231,7 +231,7 @@ $$
 **TopK Sparse Autoencoder Implementation**
 
 ```python
-from amber.mechanistic.sae import TopKSae, SaeTrainingConfig
+from mi_crow.mechanistic.sae import TopKSae, SaeTrainingConfig
 
 # Initialize SAE
 sae = TopKSae(
@@ -281,7 +281,7 @@ sae.concepts.manipulate_concept(
 
 ---
 
-## 11. Amber in Action: Results
+## 11. mi_crow in Action: Results
 
 **Training Metrics**
 - if ready
@@ -355,7 +355,7 @@ pytest           # All tests with coverage
 ## 15. Current Status & Next Steps
 
 **Completed ✓**
-- Core Amber package with 85%+ test coverage
+- Core mi_crow package with 85%+ test coverage
 - SAE training and concept tracking
 - CI/CD pipeline with multi-version testing
 

@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import Mock
 
-from amber.mechanistic.sae.autoencoder_context import AutoencoderContext
+from mi_crow.mechanistic.sae.autoencoder_context import AutoencoderContext
 from tests.unit.mechanistic.test_sae_base import ConcreteSae
 
 

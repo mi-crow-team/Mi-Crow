@@ -1,9 +1,9 @@
 import torch
 from pathlib import Path
 
-from amber.language_model.language_model import LanguageModel
-from amber.mechanistic.sae.modules.topk_sae import TopKSae
-from amber.store.local_store import LocalStore
+from mi_crow.language_model.language_model import LanguageModel
+from mi_crow.mechanistic.sae.modules.topk_sae import TopKSae
+from mi_crow.store.local_store import LocalStore
 
 
 def main() -> None:

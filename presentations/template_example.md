@@ -130,8 +130,8 @@ style: |
 
 ### Training Pipeline
 ```python
-from amber.language_model import LanguageModel
-from amber.datasets import TextDataset
+from mi_crow.language_model import LanguageModel
+from mi_crow.datasets import TextDataset
 
 def train_sae_model(model: LanguageModel, data: TextDataset):
     """Train Sparse Autoencoder on language model activations."""

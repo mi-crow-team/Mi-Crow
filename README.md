@@ -58,7 +58,7 @@ uv run --group server pytest tests/server/test_api.py --cov=server --cov-fail-un
 
 ### SAE API usage
 
-- Configure artifact location (optional): `export SERVER_ARTIFACT_BASE_PATH=/path/to/amber_artifacts` (defaults to `~/.cache/amber_server`)
+- Configure artifact location (optional): `export SERVER_ARTIFACT_BASE_PATH=/path/to/mi_crow_artifacts` (defaults to `~/.cache/mi_crow_server`)
 - Load a model: `curl -X POST http://localhost:8000/models/load -H "Content-Type: application/json" -d '{"model_id":"bielik"}'`
 - Save activations from dataset (stored in `LocalStore` under `activations/<model>/<run_id>`):
   - HF dataset: `{"dataset":{"type":"hf","name":"ag_news","split":"train","text_field":"text"}}`

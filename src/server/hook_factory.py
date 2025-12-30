@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Type
 
-from amber.hooks.hook import Hook
+from mi_crow.hooks.hook import Hook
 
 from server.schemas import HookPayload
 

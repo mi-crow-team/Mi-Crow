@@ -4,31 +4,31 @@ Sparse Autoencoders, training, concepts, and related modules for mechanistic int
 
 ## Core SAE Classes
 
-::: amber.mechanistic.sae.sae.Sae
+::: mi_crow.mechanistic.sae.sae.Sae
 
-::: amber.mechanistic.sae.modules.topk_sae.TopKSae
+::: mi_crow.mechanistic.sae.modules.topk_sae.TopKSae
 
-::: amber.mechanistic.sae.autoencoder_context.AutoencoderContext
+::: mi_crow.mechanistic.sae.autoencoder_context.AutoencoderContext
 
 ## Training
 
-::: amber.mechanistic.sae.sae_trainer.SaeTrainer
+::: mi_crow.mechanistic.sae.sae_trainer.SaeTrainer
 
-::: amber.mechanistic.sae.sae_trainer.SaeTrainingConfig
+::: mi_crow.mechanistic.sae.sae_trainer.SaeTrainingConfig
 
-::: amber.mechanistic.sae.modules.topk_sae.TopKSaeTrainingConfig
+::: mi_crow.mechanistic.sae.modules.topk_sae.TopKSaeTrainingConfig
 
 ## Concepts
 
-::: amber.mechanistic.sae.concepts.autoencoder_concepts.AutoencoderConcepts
+::: mi_crow.mechanistic.sae.concepts.autoencoder_concepts.AutoencoderConcepts
 
-::: amber.mechanistic.sae.concepts.concept_dictionary.ConceptDictionary
+::: mi_crow.mechanistic.sae.concepts.concept_dictionary.ConceptDictionary
 
-::: amber.mechanistic.sae.concepts.concept_models
+::: mi_crow.mechanistic.sae.concepts.concept_models
 
-::: amber.mechanistic.sae.concepts.input_tracker.InputTracker
+::: mi_crow.mechanistic.sae.concepts.input_tracker.InputTracker
 
 ## Training Utilities
 
-::: amber.mechanistic.sae.training.wandb_logger.WandbLogger
+::: mi_crow.mechanistic.sae.training.wandb_logger.WandbLogger
 

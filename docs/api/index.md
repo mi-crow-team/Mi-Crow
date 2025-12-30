@@ -1,8 +1,8 @@
 # API Reference
 
-Amber's public Python API is documented automatically from docstrings.
+mi_crow's public Python API is documented automatically from docstrings.
 
-The top-level `amber` package is intentionally minimal (it only exports things
+The top-level `mi_crow` package is intentionally minimal (it only exports things
 like `ping`). The real functionality lives in subpackages, which are documented
 in the sections below.
 
@@ -16,5 +16,5 @@ in the sections below.
 
 ## Top-level Package
 
-::: amber
+::: mi_crow
 

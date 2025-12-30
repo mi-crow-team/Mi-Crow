@@ -45,7 +45,7 @@
 ### 1.4 Testy i coverage (pytest)
 
 **Konfiguracja**: Sekcja `[tool.pytest.ini_options]` w `pyproject.toml`:
-- `addopts = "--maxfail=1 -q --cov=amber --cov-report=term-missing --cov-report=xml --cov-fail-under=90"`
+- `addopts = "--maxfail=1 -q --cov=mi_crow --cov-report=term-missing --cov-report=xml --cov-fail-under=90"`
 - `testpaths = ["tests"]`
 - `pythonpath = ["src"]`
 
@@ -96,9 +96,9 @@
 
 ## 2. Implementacja modułów
 
-### 2.1 Moduł amber.datasets
+### 2.1 Moduł mi_crow.datasets
 
-**BaseDataset** (`src/amber/datasets/base_dataset.py`):
+**BaseDataset** (`src/mi_crow/datasets/base_dataset.py`):
 - Klasa abstrakcyjna bazowa dla wszystkich datasetów
 - Parametry inicjalizacji:
   - `ds`: `Dataset | IterableDataset` - dataset HuggingFace
@@ -106,13 +106,13 @@
   - `loading_strategy`: `LoadingStrategy` - strategia ładowania (domyślnie `MEMORY`)
 - Metody abstrakcyjne: `__getitem__()`, `__len__()`, `__iter__()`
 
-**LoadingStrategy** (`src/amber/datasets/loading_strategy.py`):
+**LoadingStrategy** (`src/mi_crow/datasets/loading_strategy.py`):
 - Enum z trzema strategiami:
   - `MEMORY`: Ładowanie całego datasetu do pamięci (najszybszy dostęp, najwyższe użycie pamięci)
   - `DYNAMIC_LOAD`: Zapis na dysk, odczyt dynamiczny przez memory-mapped Arrow files (obsługuje len/getitem, niższe użycie pamięci)
   - `ITERABLE_ONLY`: Prawdziwy streaming używając IterableDataset (najniższe użycie pamięci, brak wsparcia dla len/getitem)
 
-**TextDataset** (`src/amber/datasets/text_dataset.py`):
+**TextDataset** (`src/mi_crow/datasets/text_dataset.py`):
 - Dataset tekstowy dziedziczący z `BaseDataset`
 - Parametry:
   - `ds`: `Dataset | IterableDataset`
@@ -120,7 +120,7 @@
   - `loading_strategy`: `LoadingStrategy` (domyślnie `MEMORY`)
   - `text_field`: `str` - nazwa kolumny z tekstem (domyślnie `"text"`)
 
-**ClassificationDataset** (`src/amber/datasets/classification_dataset.py`):
+**ClassificationDataset** (`src/mi_crow/datasets/classification_dataset.py`):
 - Dataset z kategoriami dziedziczący z `BaseDataset`
 - Parametry:
   - `ds`: `Dataset | IterableDataset`
@@ -129,9 +129,9 @@
   - `text_field`: `str` - nazwa kolumny z tekstem (domyślnie `"text"`)
   - `category_field`: `Union[str, List[str]]` - nazwa kolumny(ów) z kategorią/etykietą (domyślnie `"category"`), obsługuje pojedyncze lub wielokrotne etykiety
 
-### 2.2 Moduł amber.hooks
+### 2.2 Moduł mi_crow.hooks
 
-**Hook** (`src/amber/hooks/hook.py`):
+**Hook** (`src/mi_crow/hooks/hook.py`):
 - Klasa abstrakcyjna bazowa dla wszystkich hooków
 - Parametry inicjalizacji:
   - `layer_signature`: `str | int | None` - nazwa lub indeks warstwy do podpięcia hooka
@@ -139,7 +139,7 @@
   - `hook_id`: `str | None` - unikalny identyfikator (auto-generowany jeśli nie podany)
 - `HookType` Enum: `FORWARD`, `PRE_FORWARD`
 
-**Detector** (`src/amber/hooks/detector.py`):
+**Detector** (`src/mi_crow/hooks/detector.py`):
 - Klasa abstrakcyjna dziedzicząca z `Hook` do wykrywania/zapisywania aktywacji
 - Parametry:
   - `hook_type`: `HookType | str` (domyślnie `HookType.FORWARD`)
@@ -148,7 +148,7 @@
   - `layer_signature`: `str | int | None`
 - Atrybuty: `metadata: Dict[str, Any]`, `tensor_metadata: Dict[str, torch.Tensor]`
 
-**Controller** (`src/amber/hooks/controller.py`):
+**Controller** (`src/mi_crow/hooks/controller.py`):
 - Klasa abstrakcyjna dziedzicząca z `Hook` do modyfikacji aktywacji
 - Parametry:
   - `hook_type`: `HookType | str` (domyślnie `HookType.FORWARD`)
@@ -156,17 +156,17 @@
   - `layer_signature`: `str | int | None`
 - Może modyfikować wejścia (pre_forward) lub wyjścia (forward) warstw
 
-**LayerActivationDetector** (`src/amber/hooks/implementations/activation_saver.py`):
+**LayerActivationDetector** (`src/mi_crow/hooks/implementations/activation_saver.py`):
 - Implementacja `Detector` do zapisywania aktywacji warstw
 - Zapisuje aktywacje do Store podczas forward pass
 
-**FunctionController** (`src/amber/hooks/implementations/function_controller.py`):
+**FunctionController** (`src/mi_crow/hooks/implementations/function_controller.py`):
 - Implementacja `Controller` do kontroli funkcji
 - Pozwala na modyfikację aktywacji przez funkcję użytkownika
 
-### 2.3 Moduł amber.language_model
+### 2.3 Moduł mi_crow.language_model
 
-**LanguageModel** (`src/amber/language_model/language_model.py`):
+**LanguageModel** (`src/mi_crow/language_model/language_model.py`):
 - Główna klasa wrappera modelu językowego
 - Parametry inicjalizacji:
   - `model`: `nn.Module` - model PyTorch
@@ -183,19 +183,19 @@
   - `from_local_torch(model_path, tokenizer_path, store)` - ładowanie z lokalnych ścieżek HuggingFace
   - `from_local(saved_path, store, model_id)` - ładowanie z zapisanego pliku
 
-**LanguageModelLayers** (`src/amber/language_model/layers.py`):
+**LanguageModelLayers** (`src/mi_crow/language_model/layers.py`):
 - Zarządzanie warstwami i hookami
 - Metody do rejestracji/odrejestracji hooków na warstwach
 
-**LanguageModelActivations** (`src/amber/language_model/activations.py`):
+**LanguageModelActivations** (`src/mi_crow/language_model/activations.py`):
 - Zarządzanie aktywacjami modelu
 - Dostęp do zapisanych aktywacji z Store
 
-**LanguageModelTokenizer** (`src/amber/language_model/tokenizer.py`):
+**LanguageModelTokenizer** (`src/mi_crow/language_model/tokenizer.py`):
 - Wrapper tokenizera
 - Ujednolicony interfejs do operacji tokenizacji
 
-**InferenceEngine** (`src/amber/language_model/inference.py`):
+**InferenceEngine** (`src/mi_crow/language_model/inference.py`):
 - Silnik inferencji dla LanguageModel
 - Parametry metody `execute_inference()`:
   - `texts`: `Sequence[str]` - sekwencja tekstów wejściowych
@@ -204,13 +204,13 @@
   - `autocast_dtype`: `torch.dtype | None` - opcjonalny dtype dla autocast
   - `with_controllers`: `bool` - użycie controllerów podczas inferencji (domyślnie `True`)
 
-**LanguageModelContext** (`src/amber/language_model/context.py`):
+**LanguageModelContext** (`src/mi_crow/language_model/context.py`):
 - Dataclass z kontekstem współdzielonym dla LanguageModel i jego komponentów
 - Zawiera: `model`, `tokenizer`, `model_id`, `store`, `device`, `dtype`, rejestry hooków
 
-### 2.4 Moduł amber.mechanistic.sae (moduły uczenia maszynowego)
+### 2.4 Moduł mi_crow.mechanistic.sae (moduły uczenia maszynowego)
 
-**Sae** (`src/amber/mechanistic/sae/sae.py`):
+**Sae** (`src/mi_crow/mechanistic/sae/sae.py`):
 - Klasa abstrakcyjna dziedzicząca z `Controller` i `Detector`
 - Parametry inicjalizacji:
   - `n_latents`: `int` - liczba neuronów latentnych
@@ -225,19 +225,19 @@
   - `modify_activations(module, inputs, output) -> torch.Tensor | None` - modyfikacja aktywacji (Controller)
   - `save(name: str)` - zapis modelu
 
-**TopKSae** (`src/amber/mechanistic/sae/modules/topk_sae.py`):
+**TopKSae** (`src/mi_crow/mechanistic/sae/modules/topk_sae.py`):
 - Implementacja TopK SAE dziedzicząca z `Sae`
 - Dodatkowy parametr: `k: int` - liczba aktywnych neuronów (TopK)
 - Metody:
   - `train(store, run_id, layer_signature, config)` - trening SAE używając aktywacji z Store
-  - `save(name, path)` - zapis modelu (overcomplete state dict + metadata Amber)
+  - `save(name, path)` - zapis modelu (overcomplete state dict + metadata mi_crow)
   - `load(path)` - statyczna metoda do ładowania TopKSae z pliku
 
-**SaeTrainer** (`src/amber/mechanistic/sae/sae_trainer.py`):
+**SaeTrainer** (`src/mi_crow/mechanistic/sae/sae_trainer.py`):
 - Klasa trenująca SAE używając funkcji z biblioteki `overcomplete`
 - Metoda `train(store, run_id, layer_signature, config)` - główna metoda treningu
 
-**SaeTrainingConfig** (`src/amber/mechanistic/sae/sae_trainer.py`):
+**SaeTrainingConfig** (`src/mi_crow/mechanistic/sae/sae_trainer.py`):
 - Dataclass z konfiguracją treningu SAE
 - Parametry treningu:
   - `epochs`: `int` (domyślnie 1)
@@ -265,7 +265,7 @@
   - `wandb_mode`: `str` - tryb wandb: "online", "offline", "disabled" (domyślnie "online")
   - `wandb_slow_metrics_frequency`: `int` - częstotliwość logowania wolnych metryk (L0, dead features) (domyślnie 50)
 
-**AutoencoderContext** (`src/amber/mechanistic/sae/autoencoder_context.py`):
+**AutoencoderContext** (`src/mi_crow/mechanistic/sae/autoencoder_context.py`):
 - Dataclass z kontekstem SAE
 - Parametry:
   - `autoencoder`: `Sae` - instancja SAE
@@ -285,7 +285,7 @@
   - `bias_init`: `float` (domyślnie 0.0)
   - `init_method`: `str` (domyślnie "kaiming")
 
-**AutoencoderConcepts** (`src/amber/mechanistic/sae/concepts/autoencoder_concepts.py`):
+**AutoencoderConcepts** (`src/mi_crow/mechanistic/sae/concepts/autoencoder_concepts.py`):
 - Zarządzanie konceptami SAE
 - Parametry manipulacji konceptami:
   - `multiplication`: `nn.Parameter` - mnożnik dla każdego neuronu (domyślnie ones)
@@ -295,12 +295,12 @@
   - `disable_text_tracking()` - wyłączenie śledzenia tekstów
 - Atrybut: `dictionary: ConceptDictionary | None` - słownik konceptów
 
-**ConceptDictionary** (`src/amber/mechanistic/sae/concepts/concept_dictionary.py`):
+**ConceptDictionary** (`src/mi_crow/mechanistic/sae/concepts/concept_dictionary.py`):
 - Słownik konceptów z neuronami i ich tekstami
 
-### 2.5 Moduł amber.store
+### 2.5 Moduł mi_crow.store
 
-**Store** (`src/amber/store/store.py`):
+**Store** (`src/mi_crow/store/store.py`):
 - Klasa abstrakcyjna do przechowywania tensorów
 - Parametry inicjalizacji:
   - `base_path`: `Path | str` - bazowa ścieżka katalogu (domyślnie "")
@@ -319,14 +319,14 @@
   - `get_detector_metadata(run_id, batch_index)` - odczyt metadanych detektora
   - `get_detector_metadata_by_layer_by_key(run_id, batch_index, layer, key)` - odczyt konkretnego tensora
 
-**LocalStore** (`src/amber/store/local_store.py`):
+**LocalStore** (`src/mi_crow/store/local_store.py`):
 - Implementacja lokalnego przechowywania dziedzicząca z `Store`
 - Używa `safetensors.torch` do zapisu tensorów
 - Metadane zapisywane jako pliki JSON
 - Tensory zapisywane jako pliki safetensors
 - Struktura katalogów: `base_path/runs_prefix/run_id/batch_index/layer_signature/`
 
-**StoreDataloader** (`src/amber/store/store_dataloader.py`):
+**StoreDataloader** (`src/mi_crow/store/store_dataloader.py`):
 - DataLoader-like klasa do iteracji po aktywacjach w Store
 - Parametry:
   - `store`: `Store` - instancja Store

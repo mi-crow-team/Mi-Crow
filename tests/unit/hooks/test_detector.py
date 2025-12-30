@@ -5,8 +5,8 @@ import torch
 from unittest.mock import Mock, MagicMock
 from torch import nn
 
-from amber.hooks.detector import Detector
-from amber.hooks.hook import HookType
+from mi_crow.hooks.detector import Detector
+from mi_crow.hooks.hook import HookType
 from tests.unit.fixtures.hooks import MockDetector
 from tests.unit.fixtures.stores import create_mock_store
 

@@ -3,11 +3,11 @@
 import pytest
 from unittest.mock import Mock, MagicMock
 
-from amber.language_model.hook_metadata import collect_hooks_metadata
-from amber.language_model.context import LanguageModelContext
-from amber.hooks.detector import Detector
-from amber.hooks.controller import Controller
-from amber.hooks import HookType
+from mi_crow.language_model.hook_metadata import collect_hooks_metadata
+from mi_crow.language_model.context import LanguageModelContext
+from mi_crow.hooks.detector import Detector
+from mi_crow.hooks.controller import Controller
+from mi_crow.hooks import HookType
 
 
 class TestCollectHooksMetadata:

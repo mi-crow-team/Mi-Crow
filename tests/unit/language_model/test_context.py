@@ -1,7 +1,7 @@
 """Tests for LanguageModelContext."""
 
 import pytest
-from amber.language_model.context import LanguageModelContext
+from mi_crow.language_model.context import LanguageModelContext
 from tests.unit.fixtures.language_models import create_language_model_from_mock
 from tests.unit.fixtures.stores import create_temp_store
 

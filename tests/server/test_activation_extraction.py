@@ -28,7 +28,7 @@ from server.dependencies import (
 from server.inference_service import InferenceService
 from server.main import create_app
 from server.sae_service import SAEService
-from amber.store.local_store import LocalStore
+from mi_crow.store.local_store import LocalStore
 
 
 class DummyTokenizer:

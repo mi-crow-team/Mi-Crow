@@ -13,9 +13,9 @@ from server.model_manager import ModelManager
 from server.schemas import TrainSAERequest, TrainSAEResponse, TrainStatusResponse
 from server.storage import sae_dir
 from server.utils import SAERegistry, generate_id, write_json
-from amber.store.local_store import LocalStore
-from amber.mechanistic.sae.sae import Sae
-from amber.mechanistic.sae.sae_trainer import SaeTrainingConfig
+from mi_crow.store.local_store import LocalStore
+from mi_crow.mechanistic.sae.sae import Sae
+from mi_crow.mechanistic.sae.sae_trainer import SaeTrainingConfig
 
 logger = logging.getLogger(__name__)
 

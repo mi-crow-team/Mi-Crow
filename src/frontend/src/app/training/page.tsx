@@ -231,11 +231,11 @@ export default function TrainingPage() {
 
           {/* Layer size display */}
           {layer && selectedRun?.manifest_path && (
-            <Card className="bg-amber-50/50 border-amber-200 p-3">
+            <Card className="bg-mi_crow-50/50 border-mi_crow-200 p-3">
               <div className="flex items-center gap-2 text-sm">
                 {isLoadingLayerSize ? (
                   <>
-                    <Spinner className="text-amber-600" />
+                    <Spinner className="text-mi_crow-600" />
                     <span className="text-slate-600">Loading layer size...</span>
                   </>
                 ) : hiddenDim ? (
@@ -440,7 +440,7 @@ export default function TrainingPage() {
                         type="checkbox"
                         checked={verbose}
                         onChange={(e) => setVerbose(e.target.checked)}
-                        className="rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                        className="rounded border-slate-300 text-mi_crow-600 focus:ring-mi_crow-500"
                       />
                       Verbose logging
                     </label>
@@ -449,7 +449,7 @@ export default function TrainingPage() {
                         type="checkbox"
                         checked={useAmp}
                         onChange={(e) => setUseAmp(e.target.checked)}
-                        className="rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                        className="rounded border-slate-300 text-mi_crow-600 focus:ring-mi_crow-500"
                       />
                       Use AMP (Automatic Mixed Precision)
                     </label>
@@ -458,7 +458,7 @@ export default function TrainingPage() {
                         type="checkbox"
                         checked={memoryEfficient}
                         onChange={(e) => setMemoryEfficient(e.target.checked)}
-                        className="rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                        className="rounded border-slate-300 text-mi_crow-600 focus:ring-mi_crow-500"
                       />
                       Memory efficient mode
                     </label>
@@ -492,13 +492,13 @@ export default function TrainingPage() {
                       : status.status === "failed" || status.status === "error"
                       ? "text-red-600"
                       : status.status === "running" || status.status === "pending"
-                      ? "text-amber-600"
+                      ? "text-mi_crow-600"
                       : "text-slate-700"
                   }`}
                 >
                   {status.status}
                 </span>
-                {["running", "pending"].includes(status.status ?? "") && <Spinner className="text-amber-600" />}
+                {["running", "pending"].includes(status.status ?? "") && <Spinner className="text-mi_crow-600" />}
               </div>
               {status.progress !== undefined && status.progress !== null && (
                 <div className="text-slate-700">

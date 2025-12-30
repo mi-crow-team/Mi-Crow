@@ -4,10 +4,10 @@ import pytest
 from unittest.mock import Mock
 from torch import nn
 
-from amber.language_model.layers import LanguageModelLayers
-from amber.language_model.context import LanguageModelContext
-from amber.language_model.language_model import LanguageModel
-from amber.hooks.hook import HookType
+from mi_crow.language_model.layers import LanguageModelLayers
+from mi_crow.language_model.context import LanguageModelContext
+from mi_crow.language_model.language_model import LanguageModel
+from mi_crow.hooks.hook import HookType
 from tests.unit.fixtures.language_models import create_language_model_from_mock
 from tests.unit.fixtures.stores import create_temp_store
 from tests.unit.fixtures.hooks import create_mock_detector
@@ -83,7 +83,7 @@ class TestLanguageModelLayers:
 
     def test_flatten_layer_names_raises_when_model_none(self, temp_store):
         """Test that _flatten_layer_names raises ValueError when model is None."""
-        from amber.language_model.context import LanguageModelContext
+        from mi_crow.language_model.context import LanguageModelContext
         
         context = LanguageModelContext(language_model=Mock())
         context.model = None
@@ -232,7 +232,7 @@ class TestLanguageModelLayers:
 
     def test_get_hooks_with_type_filter(self, temp_store):
         """Test get_hooks filtered by hook type."""
-        from amber.hooks.hook import HookType
+        from mi_crow.hooks.hook import HookType
         from tests.unit.fixtures.hooks import create_mock_controller
         
         lm = create_language_model_from_mock(temp_store)
@@ -251,7 +251,7 @@ class TestLanguageModelLayers:
 
     def test_get_hooks_with_both_filters(self, temp_store):
         """Test get_hooks filtered by both layer and type."""
-        from amber.hooks.hook import HookType
+        from mi_crow.hooks.hook import HookType
         
         lm = create_language_model_from_mock(temp_store)
         detector1 = create_mock_detector(layer_signature=0)
@@ -403,7 +403,7 @@ class TestLanguageModelLayers:
 
     def test_register_hook_adds_to_id_map(self, temp_store):
         """Test that register_hook adds hook to ID map."""
-        from amber.hooks.hook import HookType
+        from mi_crow.hooks.hook import HookType
         
         lm = create_language_model_from_mock(temp_store)
         detector = create_mock_detector(layer_signature=0)

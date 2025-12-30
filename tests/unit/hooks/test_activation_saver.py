@@ -4,8 +4,8 @@ import pytest
 import torch
 from torch import nn
 
-from amber.hooks.implementations.layer_activation_detector import LayerActivationDetector
-from amber.hooks.hook import HookType
+from mi_crow.hooks.implementations.layer_activation_detector import LayerActivationDetector
+from mi_crow.hooks.hook import HookType
 
 
 class TestLayerActivationDetectorInitialization:

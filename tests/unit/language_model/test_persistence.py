@@ -6,8 +6,8 @@ from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
 from dataclasses import asdict
 
-from amber.language_model.persistence import save_model, load_model_from_saved_file
-from amber.language_model.contracts import ModelMetadata
+from mi_crow.language_model.persistence import save_model, load_model_from_saved_file
+from mi_crow.language_model.contracts import ModelMetadata
 from tests.unit.fixtures import create_language_model, create_temp_store
 
 
@@ -21,7 +21,7 @@ class TestSaveModel:
         mock_language_model.context.model.state_dict = Mock(return_value={"layer.weight": torch.tensor([1.0])})
         mock_language_model.context._hook_registry = {}
         
-        with patch("amber.language_model.persistence.collect_hooks_metadata", return_value={}):
+        with patch("mi_crow.language_model.persistence.collect_hooks_metadata", return_value={}):
             save_path = save_model(mock_language_model)
         
         assert save_path.exists()
@@ -36,7 +36,7 @@ class TestSaveModel:
         
         custom_path = Path(tmpdir) / "custom_model.pt"
         
-        with patch("amber.language_model.persistence.collect_hooks_metadata", return_value={}):
+        with patch("mi_crow.language_model.persistence.collect_hooks_metadata", return_value={}):
             save_path = save_model(mock_language_model, path=custom_path)
         
         assert save_path == custom_path
@@ -48,7 +48,7 @@ class TestSaveModel:
         mock_language_model.context.model.state_dict = Mock(return_value={"layer.weight": torch.tensor([1.0])})
         mock_language_model.context._hook_registry = {}
         
-        with patch("amber.language_model.persistence.collect_hooks_metadata", return_value={}):
+        with patch("mi_crow.language_model.persistence.collect_hooks_metadata", return_value={}):
             save_path = save_model(mock_language_model, path="custom/model.pt")
         
         assert save_path.exists()
@@ -63,7 +63,7 @@ class TestSaveModel:
         
         hooks_info = {"layer_0": [{"hook_id": "hook1"}]}
         
-        with patch("amber.language_model.persistence.collect_hooks_metadata", return_value=hooks_info):
+        with patch("mi_crow.language_model.persistence.collect_hooks_metadata", return_value=hooks_info):
             save_path = save_model(mock_language_model)
         
         # Verify saved data contains hooks
@@ -84,7 +84,7 @@ class TestSaveModel:
         mock_language_model.context.model.state_dict = Mock(return_value={"layer.weight": torch.tensor([1.0])})
         mock_language_model.context._hook_registry = {}
         
-        with patch("amber.language_model.persistence.collect_hooks_metadata", return_value={}):
+        with patch("mi_crow.language_model.persistence.collect_hooks_metadata", return_value={}):
             with patch("torch.save", side_effect=OSError("disk full")):
                 with pytest.raises(OSError, match="Failed to save model"):
                     save_model(mock_language_model)
@@ -95,7 +95,7 @@ class TestSaveModel:
         mock_language_model.context.model.state_dict = Mock(return_value={"layer.weight": torch.tensor([1.0])})
         mock_language_model.context._hook_registry = {}
         
-        with patch("amber.language_model.persistence.collect_hooks_metadata", return_value={}):
+        with patch("mi_crow.language_model.persistence.collect_hooks_metadata", return_value={}):
             save_path = save_model(mock_language_model, path="deep/nested/path/model.pt")
         
         assert save_path.exists()
@@ -123,8 +123,8 @@ class TestLoadModelFromSavedFile:
         
         from tests.unit.fixtures.models import SimpleLM
         
-        with patch("amber.language_model.persistence.AutoTokenizer.from_pretrained") as mock_tokenizer:
-            with patch("amber.language_model.persistence.AutoModelForCausalLM.from_pretrained") as mock_model:
+        with patch("mi_crow.language_model.persistence.AutoTokenizer.from_pretrained") as mock_tokenizer:
+            with patch("mi_crow.language_model.persistence.AutoModelForCausalLM.from_pretrained") as mock_model:
                 mock_tokenizer.return_value = Mock()
                 mock_model_instance = SimpleLM()
                 mock_model_instance.load_state_dict = Mock(return_value=None)
@@ -152,8 +152,8 @@ class TestLoadModelFromSavedFile:
         
         from tests.unit.fixtures.models import SimpleLM
         
-        with patch("amber.language_model.persistence.AutoTokenizer.from_pretrained") as mock_tokenizer:
-            with patch("amber.language_model.persistence.AutoModelForCausalLM.from_pretrained") as mock_model:
+        with patch("mi_crow.language_model.persistence.AutoTokenizer.from_pretrained") as mock_tokenizer:
+            with patch("mi_crow.language_model.persistence.AutoModelForCausalLM.from_pretrained") as mock_model:
                 mock_tokenizer.return_value = Mock()
                 mock_model_instance = SimpleLM()
                 mock_model_instance.load_state_dict = Mock(return_value=None)
@@ -245,7 +245,7 @@ class TestLoadModelFromSavedFile:
         }
         torch.save(payload, saved_path)
         
-        with patch("amber.language_model.persistence.AutoTokenizer.from_pretrained", side_effect=Exception("not found")):
+        with patch("mi_crow.language_model.persistence.AutoTokenizer.from_pretrained", side_effect=Exception("not found")):
             with pytest.raises(ValueError, match="Failed to load model"):
                 load_model_from_saved_file(
                     type(mock_language_model),
@@ -262,8 +262,8 @@ class TestLoadModelFromSavedFile:
         }
         torch.save(payload, saved_path)
         
-        with patch("amber.language_model.persistence.AutoTokenizer.from_pretrained") as mock_tokenizer:
-            with patch("amber.language_model.persistence.AutoModelForCausalLM.from_pretrained") as mock_model:
+        with patch("mi_crow.language_model.persistence.AutoTokenizer.from_pretrained") as mock_tokenizer:
+            with patch("mi_crow.language_model.persistence.AutoModelForCausalLM.from_pretrained") as mock_model:
                 mock_tokenizer.return_value = Mock()
                 mock_model_instance = Mock()
                 mock_model_instance.load_state_dict = Mock(side_effect=RuntimeError("size mismatch"))

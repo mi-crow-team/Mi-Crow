@@ -11,7 +11,7 @@ from server.routers import store as store_router
 
 def create_app() -> FastAPI:
     settings = get_settings()
-    app = FastAPI(title="Amber Server", version="0.1.0")
+    app = FastAPI(title="mi_crow Server", version="0.1.0")
 
     app.add_middleware(
         CORSMiddleware,

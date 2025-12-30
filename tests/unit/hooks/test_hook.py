@@ -5,7 +5,7 @@ import torch
 from unittest.mock import Mock, MagicMock
 from torch import nn
 
-from amber.hooks.hook import Hook, HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
+from mi_crow.hooks.hook import Hook, HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
 from tests.unit.fixtures.hooks import MockDetector
 
 
@@ -152,7 +152,7 @@ class TestHookGetTorchHook:
 
     def test_torch_hook_handles_exceptions(self):
         """Test that torch hook raises HookError when hook function raises exception."""
-        from amber.hooks.hook import HookError
+        from mi_crow.hooks.hook import HookError
         
         class FailingHook(ConcreteHook):
             def _hook_fn(self, module, input, output):
@@ -228,8 +228,8 @@ class TestHookIsBothControllerAndDetector:
 
     def test_is_both_controller_and_detector_true_for_dual_inheritance(self):
         """Test that hook inheriting from both Controller and Detector returns True."""
-        from amber.hooks.controller import Controller
-        from amber.hooks.detector import Detector
+        from mi_crow.hooks.controller import Controller
+        from mi_crow.hooks.detector import Detector
         
         class DualHook(Controller, Detector):
             def __init__(self):
@@ -247,8 +247,8 @@ class TestHookIsBothControllerAndDetector:
 
     def test_is_both_controller_and_detector_checks_mro(self):
         """Test that method correctly checks MRO for both classes."""
-        from amber.hooks.controller import Controller
-        from amber.hooks.detector import Detector
+        from mi_crow.hooks.controller import Controller
+        from mi_crow.hooks.detector import Detector
         
         class DualHook(Controller, Detector):
             def __init__(self):
@@ -338,7 +338,7 @@ class TestHookPreForwardWrapper:
 
     def test_pre_forward_wrapper_handles_exceptions(self):
         """Test that pre-forward wrapper raises HookError when hook function raises exception."""
-        from amber.hooks.hook import HookError
+        from mi_crow.hooks.hook import HookError
         
         class FailingHook(ConcreteHook):
             def _hook_fn(self, module, input, output):
@@ -391,7 +391,7 @@ class TestHookForwardWrapper:
 
     def test_forward_wrapper_handles_exceptions(self):
         """Test that forward wrapper raises HookError when hook function raises exception."""
-        from amber.hooks.hook import HookError
+        from mi_crow.hooks.hook import HookError
         
         class FailingHook(ConcreteHook):
             def _hook_fn(self, module, input, output):

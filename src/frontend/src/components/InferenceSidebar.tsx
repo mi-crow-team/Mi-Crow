@@ -42,7 +42,7 @@ export function InferenceSidebar({
             onClick={() => setActiveTab("history")}
             className={`flex-1 px-3 py-1.5 text-sm rounded-md transition ${
               activeTab === "history"
-                ? "bg-amber-100 text-amber-900 font-medium"
+                ? "bg-mi_crow-100 text-mi_crow-900 font-medium"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
             }`}
           >
@@ -52,7 +52,7 @@ export function InferenceSidebar({
             onClick={() => setActiveTab("settings")}
             className={`flex-1 px-3 py-1.5 text-sm rounded-md transition ${
               activeTab === "settings"
-                ? "bg-amber-100 text-amber-900 font-medium"
+                ? "bg-mi_crow-100 text-mi_crow-900 font-medium"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
             }`}
           >
@@ -62,7 +62,7 @@ export function InferenceSidebar({
 
         {activeTab === "history" && (
           <div className="space-y-2">
-            <div className="text-xs font-semibold uppercase tracking-wide text-amber-600 mb-2">
+            <div className="text-xs font-semibold uppercase tracking-wide text-mi_crow-600 mb-2">
               Past Runs ({history.length})
             </div>
             {history.length === 0 ? (
@@ -76,7 +76,7 @@ export function InferenceSidebar({
                     <button
                       key={entry.id}
                       onClick={() => onSelectHistory(entry)}
-                      className="w-full text-left p-2 rounded-md border border-slate-200 bg-white hover:bg-amber-50 hover:border-amber-300 transition text-xs"
+                      className="w-full text-left p-2 rounded-md border border-slate-200 bg-white hover:bg-mi_crow-50 hover:border-mi_crow-300 transition text-xs"
                     >
                       <div className="flex items-center justify-between mb-1">
                         <div className="font-medium text-slate-900 truncate">
@@ -107,14 +107,14 @@ export function InferenceSidebar({
 
         {activeTab === "settings" && (
           <div className="space-y-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-amber-600 mb-2">Options</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-mi_crow-600 mb-2">Options</div>
             <div className="space-y-3">
               <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
                   checked={settings.loadConcepts}
                   onChange={(e) => onSettingsChange({ ...settings, loadConcepts: e.target.checked })}
-                  className="rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                  className="rounded border-slate-300 text-mi_crow-600 focus:ring-mi_crow-500"
                 />
                 <span className="text-slate-700">Load concepts</span>
               </label>
@@ -123,7 +123,7 @@ export function InferenceSidebar({
                   type="checkbox"
                   checked={settings.saveTopTexts}
                   onChange={(e) => onSettingsChange({ ...settings, saveTopTexts: e.target.checked })}
-                  className="rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                  className="rounded border-slate-300 text-mi_crow-600 focus:ring-mi_crow-500"
                 />
                 <span className="text-slate-700">Save top texts</span>
               </label>
@@ -132,7 +132,7 @@ export function InferenceSidebar({
                   type="checkbox"
                   checked={settings.trackTexts}
                   onChange={(e) => onSettingsChange({ ...settings, trackTexts: e.target.checked })}
-                  className="rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                  className="rounded border-slate-300 text-mi_crow-600 focus:ring-mi_crow-500"
                 />
                 <span className="text-slate-700">Track texts</span>
               </label>

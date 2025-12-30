@@ -108,7 +108,7 @@ export function SectionTitle({ children }: { children: ReactNode }) {
 export function Spinner({ className }: { className?: string }) {
   return (
     <svg
-      className={`animate-spin h-4 w-4 ${className || "text-amber-600"}`}
+      className={`animate-spin h-4 w-4 ${className || "text-mi_crow-600"}`}
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"

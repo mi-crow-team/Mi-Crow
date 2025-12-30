@@ -4,23 +4,23 @@ Hook system for intercepting and managing model activations during inference.
 
 ## Core Hook Classes
 
-::: amber.hooks.hook.Hook
+::: mi_crow.hooks.hook.Hook
 
-::: amber.hooks.detector.Detector
+::: mi_crow.hooks.detector.Detector
 
-::: amber.hooks.controller.Controller
+::: mi_crow.hooks.controller.Controller
 
 ## Implementations
 
-::: amber.hooks.implementations.layer_activation_detector.LayerActivationDetector
+::: mi_crow.hooks.implementations.layer_activation_detector.LayerActivationDetector
 
-::: amber.hooks.implementations.model_input_detector.ModelInputDetector
+::: mi_crow.hooks.implementations.model_input_detector.ModelInputDetector
 
-::: amber.hooks.implementations.model_output_detector.ModelOutputDetector
+::: mi_crow.hooks.implementations.model_output_detector.ModelOutputDetector
 
-::: amber.hooks.implementations.function_controller.FunctionController
+::: mi_crow.hooks.implementations.function_controller.FunctionController
 
 ## Utilities
 
-::: amber.hooks.utils
+::: mi_crow.hooks.utils
 

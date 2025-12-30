@@ -4,7 +4,7 @@ import pytest
 import torch
 from torch import nn
 
-from amber.hooks.utils import extract_tensor_from_input, extract_tensor_from_output
+from mi_crow.hooks.utils import extract_tensor_from_input, extract_tensor_from_output
 
 
 class TestExtractTensorFromInput:

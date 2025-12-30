@@ -20,15 +20,12 @@ def pytest_addoption(parser):
     )
 
 import pytest
-from pathlib import Path
-
-from amber.datasets.loading_strategy import LoadingStrategy
+from mi_crow.datasets.loading_strategy import LoadingStrategy
 from tests.unit.fixtures.stores import create_temp_store, create_mock_store
 from tests.unit.fixtures.models import create_mock_model
 from tests.unit.fixtures.tokenizers import create_mock_tokenizer
 from tests.unit.fixtures.datasets import create_sample_dataset
 from tests.unit.fixtures.language_models import create_language_model_from_mock
-
 
 def pytest_collection_modifyitems(config, items):
     if config.getoption("--unit"):

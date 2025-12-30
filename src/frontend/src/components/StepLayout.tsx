@@ -37,7 +37,7 @@ export function StepCard({ step, title, description, children }: StepCardProps) 
   return (
     <Card className="space-y-3">
       <div className="space-y-1">
-        <div className="text-xs font-semibold uppercase tracking-wide text-amber-600">
+        <div className="text-xs font-semibold uppercase tracking-wide text-mi_crow-600">
           Step {step} - {title}
         </div>
         {description && <p className="text-xs text-slate-500">{description}</p>}

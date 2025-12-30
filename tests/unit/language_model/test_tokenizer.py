@@ -2,7 +2,7 @@
 
 import pytest
 
-from amber.language_model.tokenizer import LanguageModelTokenizer
+from mi_crow.language_model.tokenizer import LanguageModelTokenizer
 from tests.unit.fixtures.language_models import create_language_model_from_mock
 from tests.unit.fixtures.stores import create_temp_store
 

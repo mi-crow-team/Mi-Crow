@@ -4,8 +4,8 @@ from unittest.mock import patch
 import pytest
 from datasets import Dataset, IterableDatasetDict
 
-from amber.datasets.loading_strategy import LoadingStrategy
-from amber.datasets.text_dataset import TextDataset
+from mi_crow.datasets.loading_strategy import LoadingStrategy
+from mi_crow.datasets.text_dataset import TextDataset
 from tests.unit.fixtures.stores import create_temp_store
 
 
@@ -103,7 +103,7 @@ def test_iter_batches_iterable_dataset(temp_store):
     assert batches == [["a", "b"], ["c"]]
 
 
-@patch("amber.datasets.text_dataset.load_dataset")
+@patch("mi_crow.datasets.text_dataset.load_dataset")
 def test_from_huggingface_filters_and_limit(mock_load_dataset, temp_store):
     ds = Dataset.from_dict({"text": ["keep", "drop", "keep"]})
     mock_load_dataset.return_value = ds
@@ -121,7 +121,7 @@ def test_from_huggingface_filters_and_limit(mock_load_dataset, temp_store):
     assert dataset[0] == "keep"
 
 
-@patch("amber.datasets.text_dataset.load_dataset", side_effect=RuntimeError("boom"))
+@patch("mi_crow.datasets.text_dataset.load_dataset", side_effect=RuntimeError("boom"))
 def test_from_huggingface_wraps_errors(mock_load_dataset, temp_store):
     with pytest.raises(RuntimeError, match="Failed to load text dataset"):
         TextDataset.from_huggingface("repo", temp_store)
@@ -138,7 +138,7 @@ def test_from_csv_and_json(tmp_path):
     json_store = create_temp_store(tmp_path, base_path=tmp_path / "json_store")
 
     with patch(
-        "amber.datasets.base_dataset.BaseDataset._save_and_load_dataset",
+        "mi_crow.datasets.base_dataset.BaseDataset._save_and_load_dataset",
         side_effect=lambda ds, use_memory_mapping=True: ds,
     ):
         csv_ds = TextDataset.from_csv(csv_path, csv_store)

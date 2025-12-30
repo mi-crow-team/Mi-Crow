@@ -8,7 +8,7 @@ from unittest.mock import patch, MagicMock
 import sys
 import types
 
-from amber.mechanistic.sae.sae_trainer import SaeTrainer, SaeTrainingConfig
+from mi_crow.mechanistic.sae.sae_trainer import SaeTrainer, SaeTrainingConfig
 from tests.unit.mechanistic.test_sae_base import ConcreteSae
 from tests.unit.fixtures.stores import create_temp_store
 

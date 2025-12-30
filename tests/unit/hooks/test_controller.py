@@ -4,8 +4,8 @@ import pytest
 import torch
 from torch import nn
 
-from amber.hooks.controller import Controller
-from amber.hooks.hook import HookType
+from mi_crow.hooks.controller import Controller
+from mi_crow.hooks.hook import HookType
 from tests.unit.fixtures.hooks import MockController
 
 
@@ -176,8 +176,8 @@ class TestControllerDualInheritance:
 
     def test_hook_fn_calls_process_activations_when_dual_inheritance(self):
         """Test that _hook_fn calls process_activations when hook inherits from both."""
-        from amber.hooks.detector import Detector
-        from amber.hooks.hook import HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
+        from mi_crow.hooks.detector import Detector
+        from mi_crow.hooks.hook import HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
         
         class DualHook(Controller, Detector):
             def __init__(self):
@@ -206,7 +206,7 @@ class TestControllerDualInheritance:
 
     def test_hook_fn_calls_process_activations_first(self):
         """Test that process_activations is called before modify_activations."""
-        from amber.hooks.detector import Detector
+        from mi_crow.hooks.detector import Detector
         
         call_order = []
         
@@ -234,7 +234,7 @@ class TestControllerDualInheritance:
 
     def test_hook_fn_handles_process_activations_error_gracefully(self):
         """Test that process_activations errors are logged as warnings but don't stop execution."""
-        from amber.hooks.detector import Detector
+        from mi_crow.hooks.detector import Detector
         import warnings
         
         class DualHook(Controller, Detector):
@@ -269,7 +269,7 @@ class TestControllerDualInheritance:
 
     def test_hook_fn_raises_on_modify_activations_error(self):
         """Test that modify_activations errors raise RuntimeError."""
-        from amber.hooks.detector import Detector
+        from mi_crow.hooks.detector import Detector
         
         class DualHook(Controller, Detector):
             def __init__(self):
@@ -292,7 +292,7 @@ class TestControllerDualInheritance:
 
     def test_hook_fn_dual_inheritance_pre_forward(self):
         """Test dual inheritance hook with PRE_FORWARD hook type."""
-        from amber.hooks.detector import Detector
+        from mi_crow.hooks.detector import Detector
         
         class DualHook(Controller, Detector):
             def __init__(self):
@@ -321,7 +321,7 @@ class TestControllerDualInheritance:
 
     def test_hook_fn_dual_inheritance_when_disabled(self):
         """Test that dual inheritance hook doesn't call methods when disabled."""
-        from amber.hooks.detector import Detector
+        from mi_crow.hooks.detector import Detector
         
         class DualHook(Controller, Detector):
             def __init__(self):

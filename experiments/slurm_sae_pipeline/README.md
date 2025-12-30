@@ -18,7 +18,7 @@ slurm_sae_pipeline/
 
 - Python 3.8+
 - PyTorch with CUDA support (for GPU clusters)
-- Required packages: `amber`, `torch`, `transformers`, `datasets`
+- Required packages: `mi_crow`, `torch`, `transformers`, `datasets`
 - Access to SLURM cluster with GPU nodes
 - **HuggingFace Access**: The Bielik 1.5B-v3.0-Instruct model is publicly available. You may need to authenticate with HuggingFace: `huggingface-cli login` or set `HF_TOKEN` environment variable
 
@@ -276,7 +276,7 @@ If you run out of memory:
 
 Install required packages:
 ```bash
-pip install torch transformers datasets amber
+pip install torch transformers datasets mi_crow
 ```
 
 ### Model Access

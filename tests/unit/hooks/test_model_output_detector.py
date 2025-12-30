@@ -5,8 +5,8 @@ import torch
 from torch import nn
 from unittest.mock import MagicMock, patch
 
-from amber.hooks.implementations.model_output_detector import ModelOutputDetector
-from amber.hooks.hook import HookType
+from mi_crow.hooks.implementations.model_output_detector import ModelOutputDetector
+from mi_crow.hooks.hook import HookType
 
 
 class TestModelOutputDetectorInitialization:

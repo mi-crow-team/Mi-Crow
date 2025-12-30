@@ -6,7 +6,7 @@ import types
 from unittest.mock import Mock, MagicMock, patch
 import torch
 
-from amber.mechanistic.sae.sae_trainer import SaeTrainer, SaeTrainingConfig
+from mi_crow.mechanistic.sae.sae_trainer import SaeTrainer, SaeTrainingConfig
 from tests.unit.mechanistic.test_sae_base import ConcreteSae
 
 
@@ -85,7 +85,7 @@ class TestSaeTrainer:
             def __iter__(self):
                 yield torch.ones(2, 3)
 
-        monkeypatch.setattr("amber.mechanistic.sae.sae_trainer.StoreDataloader", DummyDataLoader)
+        monkeypatch.setattr("mi_crow.mechanistic.sae.sae_trainer.StoreDataloader", DummyDataLoader)
 
         sae = ConcreteSae(n_latents=4, n_inputs=4)
         sae.sae_engine.parameters.return_value = [torch.nn.Parameter(torch.ones(1, requires_grad=True))]
@@ -115,7 +115,7 @@ class TestSaeTrainer:
             def __iter__(self):
                 yield torch.ones(1, 2)
 
-        monkeypatch.setattr("amber.mechanistic.sae.sae_trainer.StoreDataloader", DummyDataLoader)
+        monkeypatch.setattr("mi_crow.mechanistic.sae.sae_trainer.StoreDataloader", DummyDataLoader)
 
         sae = ConcreteSae(n_latents=4, n_inputs=4)
         sae.sae_engine.parameters.return_value = [torch.nn.Parameter(torch.ones(1, requires_grad=True))]
@@ -147,7 +147,7 @@ class TestSaeTrainer:
             def __iter__(self):
                 yield torch.ones(2, 3)
 
-        monkeypatch.setattr("amber.mechanistic.sae.sae_trainer.StoreDataloader", DummyDataLoader)
+        monkeypatch.setattr("mi_crow.mechanistic.sae.sae_trainer.StoreDataloader", DummyDataLoader)
 
         class DummyRun:
             def __init__(self):
@@ -215,7 +215,7 @@ class TestSaeTrainer:
             def __iter__(self):
                 yield torch.ones(1, 2)
 
-        monkeypatch.setattr("amber.mechanistic.sae.sae_trainer.StoreDataloader", DummyDataLoader)
+        monkeypatch.setattr("mi_crow.mechanistic.sae.sae_trainer.StoreDataloader", DummyDataLoader)
 
         sae = ConcreteSae(n_latents=2, n_inputs=2)
         sae.sae_engine.parameters.return_value = [torch.nn.Parameter(torch.ones(1, requires_grad=True))]
@@ -251,7 +251,7 @@ class TestSaeTrainer:
             def __iter__(self):
                 yield torch.ones(1, 2)
 
-        monkeypatch.setattr("amber.mechanistic.sae.sae_trainer.StoreDataloader", DummyDataLoader)
+        monkeypatch.setattr("mi_crow.mechanistic.sae.sae_trainer.StoreDataloader", DummyDataLoader)
 
         sae = ConcreteSae(n_latents=2, n_inputs=2)
         sae.sae_engine.parameters.return_value = [torch.nn.Parameter(torch.ones(1, requires_grad=True))]
@@ -677,7 +677,7 @@ class TestSaeTrainerHelperMethods:
             def __iter__(self):
                 yield torch.ones(1, 2)
 
-        monkeypatch.setattr("amber.mechanistic.sae.sae_trainer.StoreDataloader", DummyDataLoader)
+        monkeypatch.setattr("mi_crow.mechanistic.sae.sae_trainer.StoreDataloader", DummyDataLoader)
 
         def failing_wandb_init(**kwargs):
             raise RuntimeError("Unexpected wandb error")
@@ -716,7 +716,7 @@ class TestSaeTrainerHelperMethods:
             def __iter__(self):
                 yield torch.ones(2, 3)
 
-        monkeypatch.setattr("amber.mechanistic.sae.sae_trainer.StoreDataloader", DummyDataLoader)
+        monkeypatch.setattr("mi_crow.mechanistic.sae.sae_trainer.StoreDataloader", DummyDataLoader)
 
         sae = ConcreteSae(n_latents=4, n_inputs=4)
         sae.sae_engine.parameters.return_value = [torch.nn.Parameter(torch.ones(1, requires_grad=True))]
@@ -745,7 +745,7 @@ class TestSaeTrainerHelperMethods:
             def __iter__(self):
                 yield torch.ones(1, 2)
 
-        monkeypatch.setattr("amber.mechanistic.sae.sae_trainer.StoreDataloader", DummyDataLoader)
+        monkeypatch.setattr("mi_crow.mechanistic.sae.sae_trainer.StoreDataloader", DummyDataLoader)
 
         sae = ConcreteSae(n_latents=2, n_inputs=2)
         sae.sae_engine.parameters.return_value = [torch.nn.Parameter(torch.ones(1, requires_grad=True))]
@@ -894,7 +894,7 @@ class TestSaeTrainerHelperMethods:
 
     def test_save_training_to_store_success(self, tmp_path):
         """Test _save_training_to_store saves successfully."""
-        from amber.store.local_store import LocalStore
+        from mi_crow.store.local_store import LocalStore
         
         store = LocalStore(base_path=tmp_path)
         sae = ConcreteSae(n_latents=4, n_inputs=4)
@@ -926,7 +926,7 @@ class TestSaeTrainerHelperMethods:
 
     def test_save_training_to_store_with_k_attribute(self, tmp_path):
         """Test _save_training_to_store with SAE that has k attribute."""
-        from amber.store.local_store import LocalStore
+        from mi_crow.store.local_store import LocalStore
         
         store = LocalStore(base_path=tmp_path)
         sae = ConcreteSae(n_latents=4, n_inputs=4)
@@ -951,7 +951,7 @@ class TestSaeTrainerHelperMethods:
 
     def test_save_training_to_store_handles_exception(self, tmp_path, caplog):
         """Test _save_training_to_store handles exceptions gracefully."""
-        from amber.store.local_store import LocalStore
+        from mi_crow.store.local_store import LocalStore
         
         store = LocalStore(base_path=tmp_path)
         sae = ConcreteSae(n_latents=4, n_inputs=4)
@@ -1081,7 +1081,7 @@ class TestSaeTrainerHelperMethods:
             def __iter__(self):
                 yield torch.ones(2, 3)
 
-        monkeypatch.setattr("amber.mechanistic.sae.sae_trainer.StoreDataloader", DummyDataLoader)
+        monkeypatch.setattr("mi_crow.mechanistic.sae.sae_trainer.StoreDataloader", DummyDataLoader)
 
         sae = ConcreteSae(n_latents=4, n_inputs=4)
         sae.sae_engine.parameters.return_value = [torch.nn.Parameter(torch.ones(1, requires_grad=True))]

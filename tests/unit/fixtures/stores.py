@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Optional
 from unittest.mock import Mock, MagicMock
 
-from amber.store.local_store import LocalStore
-from amber.store.store import Store
+from mi_crow.store.local_store import LocalStore
+from mi_crow.store.store import Store
 
 
 def create_temp_store(tmp_path: Path, base_path: Optional[Path] = None) -> LocalStore:

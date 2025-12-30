@@ -12,8 +12,8 @@ import json
 import torch
 from fastapi.testclient import TestClient
 from torch import nn
-from amber.mechanistic.sae.sae import Sae
-from amber.store.local_store import LocalStore
+from mi_crow.mechanistic.sae.sae import Sae
+from mi_crow.store.local_store import LocalStore
 
 from server.config import Settings
 from server.dependencies import (
@@ -61,7 +61,7 @@ class DummyModel(nn.Module):
         activation hooks so that the activation extraction + training flow
         in tests closely mirrors the real system.
 
-        The real models integrate with Amber's hook system; in tests we
+        The real models integrate with mi_crow's hook system; in tests we
         emulate this by manually calling `process_activations` on any
         registered detectors.
         """

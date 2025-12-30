@@ -10,12 +10,12 @@ import tempfile
 import shutil
 from datasets import Dataset
 
-from amber.language_model.language_model import LanguageModel
-from amber.datasets import TextDataset
-from amber.store.local_store import LocalStore
-from amber.store.local_store import LocalStore
+from mi_crow.language_model.language_model import LanguageModel
+from mi_crow.datasets import TextDataset
+from mi_crow.store.local_store import LocalStore
+from mi_crow.store.local_store import LocalStore
 
-from amber.mechanistic.sae.modules.topk_sae import TopKSae, TopKSaeTrainingConfig
+from mi_crow.mechanistic.sae.modules.topk_sae import TopKSae, TopKSaeTrainingConfig
 
 
 @pytest.fixture

@@ -4,8 +4,8 @@ from typing import Dict
 
 import torch
 
-from amber.hooks.controller import Controller
-from amber.hooks.hook import HookType
+from mi_crow.hooks.controller import Controller
+from mi_crow.hooks.hook import HookType
 
 
 class NeuronMultiplierController(Controller):

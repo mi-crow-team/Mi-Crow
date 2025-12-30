@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import Optional
 import torch
 
-from amber.language_model.language_model import LanguageModel
-from amber.store.store import Store
+from mi_crow.language_model.language_model import LanguageModel
+from mi_crow.store.store import Store
 from .models import create_mock_model
 from .tokenizers import create_mock_tokenizer
 

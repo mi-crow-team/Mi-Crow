@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional
 
-from amber.language_model.language_model import LanguageModel
-from amber.store.local_store import LocalStore
+from mi_crow.language_model.language_model import LanguageModel
+from mi_crow.store.local_store import LocalStore
 
 from server.config import Settings
 from server.schemas import LayerInfo, ModelInfo
@@ -23,7 +23,7 @@ LoaderFn = Callable[[str, str, Optional[str]], LanguageModel]
 
 
 def default_loader(model_id: str, hf_id: str, hf_token: str | None) -> LanguageModel:
-    store_path = Path.home() / ".cache" / "amber_store" / model_id
+    store_path = Path.home() / ".cache" / "mi_crow_store" / model_id
     store_path.mkdir(parents=True, exist_ok=True)
     store = LocalStore(base_path=store_path)
     tokenizer_params = {"token": hf_token} if hf_token else {}

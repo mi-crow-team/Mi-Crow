@@ -1,6 +1,6 @@
-# Amber Examples
+# mi_crow Examples
 
-This directory contains example notebooks demonstrating the core functionality of the Amber library for interpretable AI research.
+This directory contains example notebooks demonstrating the core functionality of the mi_crow library for interpretable AI research.
 
 ## Example Flow
 
@@ -121,7 +121,7 @@ This file maps neurons to human-interpretable concept names for use in Example 3
 Create your own controllers by inheriting from `Controller`:
 
 ```python
-from amber.hooks import Controller, HookType
+from mi_crow.hooks import Controller, HookType
 
 class MyController(Controller):
     def __init__(self, layer_signature):

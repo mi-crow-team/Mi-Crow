@@ -12,10 +12,10 @@ from tests.unit.mechanistic.test_sae_base import ConcreteSae
 class TestSAELanguageModelIntegration:
     """Tests for SAE with LanguageModel."""
 
-    @patch('amber.mechanistic.sae.modules.topk_sae.OvercompleteTopkSAE')
+    @patch('mi_crow.mechanistic.sae.modules.topk_sae.OvercompleteTopkSAE')
     def test_sae_attachment_to_language_model(self, mock_topk_sae_class, temp_store):
         """Test attaching SAE to LanguageModel."""
-        from amber.mechanistic.sae.modules.topk_sae import TopKSae
+        from mi_crow.mechanistic.sae.modules.topk_sae import TopKSae
         
         mock_engine = MagicMock()
         mock_engine.forward.return_value = (None, None, torch.randn(2, 10))

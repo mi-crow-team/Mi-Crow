@@ -19,7 +19,7 @@ verify_sae_training/
 
 - Python 3.8+
 - PyTorch
-- Required packages: `amber`, `torch`, `transformers`, `datasets`, `overcomplete`, `matplotlib`, `seaborn`
+- Required packages: `mi_crow`, `torch`, `transformers`, `datasets`, `overcomplete`, `matplotlib`, `seaborn`
 
 ## Usage
 

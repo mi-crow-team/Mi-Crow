@@ -3,7 +3,7 @@
 import pytest
 import torch
 
-from amber.language_model.language_model import LanguageModel
+from mi_crow.language_model.language_model import LanguageModel
 from tests.unit.fixtures.language_models import create_language_model_from_mock
 from tests.unit.fixtures.stores import create_temp_store
 from tests.unit.fixtures.hooks import create_mock_detector, create_mock_controller
@@ -239,8 +239,8 @@ class TestLanguageModelModelId:
         """Test from_huggingface extracts model_id correctly."""
         from unittest.mock import patch, MagicMock
         
-        with patch('amber.language_model.initialization.AutoTokenizer') as mock_tokenizer, \
-             patch('amber.language_model.initialization.AutoModelForCausalLM') as mock_model:
+        with patch('mi_crow.language_model.initialization.AutoTokenizer') as mock_tokenizer, \
+             patch('mi_crow.language_model.initialization.AutoModelForCausalLM') as mock_model:
             
             mock_tokenizer_instance = MagicMock()
             mock_model_instance = MagicMock()

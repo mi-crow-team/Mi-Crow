@@ -50,13 +50,13 @@ docs = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--maxfail=1 -q --cov=amber --cov-report=term-missing --cov-report=xml --cov-fail-under=85"
+addopts = "--maxfail=1 -q --cov=mi_crow --cov-report=term-missing --cov-report=xml --cov-fail-under=85"
 testpaths = ["tests"]
 pythonpath = ["src"]
 
 [tool.coverage.run]
 branch = true
-source = ["amber"]
+source = ["mi_crow"]
 parallel = true
 
 [tool.coverage.report]
@@ -72,7 +72,7 @@ directory = "htmlcov"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["amber*"]
+include = ["mi_crow*"]
 exclude = ["server*", "frontend*"]
 
 [tool.setuptools_scm]

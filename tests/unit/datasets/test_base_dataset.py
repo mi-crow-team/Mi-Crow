@@ -8,8 +8,8 @@ from unittest.mock import patch
 import pytest
 from datasets import Dataset, IterableDataset
 
-from amber.datasets.base_dataset import BaseDataset
-from amber.datasets.loading_strategy import LoadingStrategy
+from mi_crow.datasets.base_dataset import BaseDataset
+from mi_crow.datasets.loading_strategy import LoadingStrategy
 
 
 class ConcreteBaseDataset(BaseDataset):
@@ -272,7 +272,7 @@ class TestBaseDatasetFactoryMethods:
 
     def test_from_huggingface_success(self, temp_store):
         """Test from_huggingface factory method."""
-        with patch("amber.datasets.base_dataset.load_dataset") as mock_load:
+        with patch("mi_crow.datasets.base_dataset.load_dataset") as mock_load:
             mock_ds = Dataset.from_dict({"text": ["a", "b"]})
             mock_load.return_value = mock_ds
 
@@ -282,7 +282,7 @@ class TestBaseDatasetFactoryMethods:
 
     def test_from_huggingface_with_streaming(self, temp_store):
         """Test from_huggingface with streaming=True."""
-        with patch("amber.datasets.base_dataset.load_dataset") as mock_load:
+        with patch("mi_crow.datasets.base_dataset.load_dataset") as mock_load:
             mock_ds = IterableDataset.from_generator(lambda: iter([{"text": "a"}]))
             mock_load.return_value = mock_ds
 
@@ -309,7 +309,7 @@ class TestBaseDatasetFactoryMethods:
 
     def test_from_huggingface_load_failure_raises_error(self, temp_store):
         """Test that load failure raises RuntimeError."""
-        with patch("amber.datasets.base_dataset.load_dataset") as mock_load:
+        with patch("mi_crow.datasets.base_dataset.load_dataset") as mock_load:
             mock_load.side_effect = Exception("Network error")
             with pytest.raises(RuntimeError, match="Failed to load dataset"):
                 ConcreteBaseDataset.from_huggingface("test/dataset", temp_store)
@@ -527,7 +527,7 @@ class TestBaseDatasetSourceLoaders:
             csv_path = f.name
 
         try:
-            with patch("amber.datasets.base_dataset.load_dataset") as mock_load:
+            with patch("mi_crow.datasets.base_dataset.load_dataset") as mock_load:
                 mock_load.side_effect = Exception("CSV Parse Error")
                 with pytest.raises(RuntimeError, match="Failed to load CSV dataset"):
                     BaseDataset._load_csv_source(csv_path, delimiter=",", streaming=False)

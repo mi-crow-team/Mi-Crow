@@ -1,6 +1,6 @@
 import pytest
 
-from amber.mechanistic.sae.concepts.input_tracker import InputTracker
+from mi_crow.mechanistic.sae.concepts.input_tracker import InputTracker
 from tests.unit.fixtures.language_models import create_language_model_from_mock
 from tests.unit.fixtures.stores import create_temp_store
 

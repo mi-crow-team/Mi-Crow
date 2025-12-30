@@ -137,7 +137,7 @@ export function ConceptManipulator({
                 onClick={() => toggleConcept(concept.neuron_index)}
                 className={`w-full text-left px-3 py-2 rounded-md text-sm transition ${
                   selectedConcepts.has(concept.neuron_index)
-                    ? "bg-amber-100 border-2 border-amber-400 text-amber-900"
+                    ? "bg-mi_crow-100 border-2 border-mi_crow-400 text-mi_crow-900"
                     : "bg-white border border-slate-200 hover:bg-slate-50 text-slate-700"
                 }`}
               >
@@ -149,7 +149,7 @@ export function ConceptManipulator({
                     </div>
                   </div>
                   {selectedConcepts.has(concept.neuron_index) && (
-                    <div className="text-amber-600">✓</div>
+                    <div className="text-mi_crow-600">✓</div>
                   )}
                 </div>
               </button>
@@ -166,7 +166,7 @@ export function ConceptManipulator({
             .map((neuronIdx) => {
               const concept = concepts.find((c) => c.neuron_index === neuronIdx);
               return (
-                <div key={neuronIdx} className="space-y-2 p-3 bg-amber-50 rounded-md border border-amber-200">
+                <div key={neuronIdx} className="space-y-2 p-3 bg-mi_crow-50 rounded-md border border-mi_crow-200">
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-medium text-sm text-slate-900">
