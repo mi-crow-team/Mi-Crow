@@ -70,7 +70,7 @@ class TestClassificationDatasetInitialization:
     def test_init_with_iterable_dataset(self, temp_store):
         """Test initialization with IterableDataset."""
         iter_ds = IterableDataset.from_generator(lambda: iter([{"text": "a", "category": "b"}]))
-        dataset = ClassificationDataset(iter_ds, temp_store, loading_strategy=LoadingStrategy.ITERABLE_ONLY)
+        dataset = ClassificationDataset(iter_ds, temp_store, loading_strategy=LoadingStrategy.STREAMING)
         assert dataset._is_iterable
 
 
@@ -84,9 +84,9 @@ class TestClassificationDatasetLen:
         assert len(dataset) == 3
 
     def test_len_iterable_only_raises_error(self, temp_store):
-        """Test that len raises NotImplementedError for ITERABLE_ONLY."""
+        """Test that len raises NotImplementedError for STREAMING."""
         iter_ds = IterableDataset.from_generator(lambda: iter([{"text": "a", "category": "b"}]))
-        dataset = ClassificationDataset(iter_ds, temp_store, LoadingStrategy.ITERABLE_ONLY)
+        dataset = ClassificationDataset(iter_ds, temp_store, LoadingStrategy.STREAMING)
         with pytest.raises(NotImplementedError):
             len(dataset)
 
@@ -140,9 +140,9 @@ class TestClassificationDatasetGetItem:
             _ = dataset[0]
 
     def test_getitem_iterable_only_raises_error(self, temp_store):
-        """Test that indexing raises NotImplementedError for ITERABLE_ONLY."""
+        """Test that indexing raises NotImplementedError for STREAMING."""
         iter_ds = IterableDataset.from_generator(lambda: iter([{"text": "a", "category": "b"}]))
-        dataset = ClassificationDataset(iter_ds, temp_store, LoadingStrategy.ITERABLE_ONLY)
+        dataset = ClassificationDataset(iter_ds, temp_store, LoadingStrategy.STREAMING)
         with pytest.raises(NotImplementedError):
             _ = dataset[0]
 
@@ -166,11 +166,11 @@ class TestClassificationDatasetIterItems:
         assert items[0] == {"text": "Text 1", "category": "a"}
 
     def test_iter_items_iterable_only(self, temp_store):
-        """Test iter_items with ITERABLE_ONLY strategy."""
+        """Test iter_items with STREAMING strategy."""
         iter_ds = IterableDataset.from_generator(
             lambda: iter([{"text": "Text 1", "category": "a"}, {"text": "Text 2", "category": "b"}])
         )
-        dataset = ClassificationDataset(iter_ds, temp_store, LoadingStrategy.ITERABLE_ONLY)
+        dataset = ClassificationDataset(iter_ds, temp_store, LoadingStrategy.STREAMING)
         items = list(dataset.iter_items())
         assert len(items) == 2
 
@@ -188,11 +188,11 @@ class TestClassificationDatasetIterBatches:
         assert len(batches[1]) == 1
 
     def test_iter_batches_iterable_only(self, temp_store):
-        """Test iter_batches with ITERABLE_ONLY strategy."""
+        """Test iter_batches with STREAMING strategy."""
         iter_ds = IterableDataset.from_generator(
             lambda: iter([{"text": f"Text {i}", "category": f"cat_{i}"} for i in range(5)])
         )
-        dataset = ClassificationDataset(iter_ds, temp_store, LoadingStrategy.ITERABLE_ONLY)
+        dataset = ClassificationDataset(iter_ds, temp_store, LoadingStrategy.STREAMING)
         batches = list(dataset.iter_batches(batch_size=2))
         assert len(batches) == 3
 
@@ -216,7 +216,7 @@ class TestClassificationDatasetGetCategories:
         assert set(categories) == {"a", "b"}
 
     def test_get_categories_single_field_iterable(self, temp_store):
-        """Test get_categories with single category field and ITERABLE_ONLY."""
+        """Test get_categories with single category field and STREAMING."""
         iter_ds = IterableDataset.from_generator(
             lambda: iter(
                 [
@@ -226,7 +226,7 @@ class TestClassificationDatasetGetCategories:
                 ]
             )
         )
-        dataset = ClassificationDataset(iter_ds, temp_store, LoadingStrategy.ITERABLE_ONLY)
+        dataset = ClassificationDataset(iter_ds, temp_store, LoadingStrategy.STREAMING)
         categories = dataset.get_categories()
         assert isinstance(categories, list)
         assert set(categories) == {"a", "b"}
@@ -260,11 +260,11 @@ class TestClassificationDatasetGetTexts:
         assert texts == ["Text 1", "Text 2"]
 
     def test_get_all_texts_iterable_only(self, temp_store):
-        """Test get_all_texts with ITERABLE_ONLY strategy."""
+        """Test get_all_texts with STREAMING strategy."""
         iter_ds = IterableDataset.from_generator(
             lambda: iter([{"text": "Text 1", "category": "a"}, {"text": "Text 2", "category": "b"}])
         )
-        dataset = ClassificationDataset(iter_ds, temp_store, LoadingStrategy.ITERABLE_ONLY)
+        dataset = ClassificationDataset(iter_ds, temp_store, LoadingStrategy.STREAMING)
         texts = dataset.get_all_texts()
         assert texts == ["Text 1", "Text 2"]
 
@@ -288,9 +288,9 @@ class TestClassificationDatasetGetCategoriesForTexts:
         assert categories[0] == {"label1": "a", "label2": "x"}
 
     def test_get_categories_for_texts_iterable_only_raises_error(self, temp_store):
-        """Test that get_categories_for_texts raises NotImplementedError for ITERABLE_ONLY."""
+        """Test that get_categories_for_texts raises NotImplementedError for STREAMING."""
         iter_ds = IterableDataset.from_generator(lambda: iter([{"text": "a", "category": "b"}]))
-        dataset = ClassificationDataset(iter_ds, temp_store, LoadingStrategy.ITERABLE_ONLY)
+        dataset = ClassificationDataset(iter_ds, temp_store, LoadingStrategy.STREAMING)
         with pytest.raises(NotImplementedError):
             dataset.get_categories_for_texts(["a"])
 
@@ -363,7 +363,7 @@ class TestClassificationDatasetFactoryMethods:
                 store,
                 text_field="text",
                 category_field="category",
-                loading_strategy=LoadingStrategy.ITERABLE_ONLY,  # Use streaming to avoid cache
+                loading_strategy=LoadingStrategy.STREAMING,  # Use streaming to avoid cache
             )
             items = list(dataset.iter_items())
             assert len(items) == 2
@@ -387,7 +387,7 @@ class TestClassificationDatasetFactoryMethods:
                 store,
                 text_field="text",
                 category_field="category",
-                loading_strategy=LoadingStrategy.ITERABLE_ONLY,  # Use streaming to avoid cache
+                loading_strategy=LoadingStrategy.STREAMING,  # Use streaming to avoid cache
             )
             items = list(dataset.iter_items())
             assert len(items) == 2
@@ -413,7 +413,7 @@ def test_classification_dataset_iter_batches_iterable_only(temp_store):
     iter_ds = IterableDataset.from_generator(
         lambda: iter([{"text": "t1", "category": "a"}, {"text": "t2", "category": "b"}])
     )
-    dataset = ClassificationDataset(iter_ds, temp_store, LoadingStrategy.ITERABLE_ONLY)
+    dataset = ClassificationDataset(iter_ds, temp_store, LoadingStrategy.STREAMING)
     batches = list(dataset.iter_batches(1))
     assert len(batches) == 2
 
@@ -428,7 +428,7 @@ def test_classification_dataset_get_categories_multiple_labels_iterable(temp_sto
         )
     )
     dataset = ClassificationDataset(
-        iter_ds, temp_store, LoadingStrategy.ITERABLE_ONLY, category_field=["label1", "label2"]
+        iter_ds, temp_store, LoadingStrategy.STREAMING, category_field=["label1", "label2"]
     )
     categories = dataset.get_categories()
     assert categories["label1"] == ["x", "z"]

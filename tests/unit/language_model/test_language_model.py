@@ -352,6 +352,8 @@ class TestLanguageModelSpecialTokenExtraction:
         from tests.unit.fixtures.tokenizers import create_mock_tokenizer
         
         tokenizer = create_mock_tokenizer()
+        # Remove all_special_ids so function falls back to checking individual attributes
+        tokenizer.all_special_ids = None
         tokenizer.eos_token_id = [4, 2]
         
         model = create_mock_model()

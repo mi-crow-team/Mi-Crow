@@ -44,7 +44,7 @@ def test_len_iterable_strategy_not_supported(temp_store):
     text_ds = TextDataset(
         iterable,
         store=temp_store,
-        loading_strategy=LoadingStrategy.ITERABLE_ONLY,
+        loading_strategy=LoadingStrategy.STREAMING,
     )
 
     with pytest.raises(NotImplementedError):
@@ -95,7 +95,7 @@ def test_iter_batches_iterable_dataset(temp_store):
     text_ds = TextDataset(
         iterable,
         store=temp_store,
-        loading_strategy=LoadingStrategy.ITERABLE_ONLY,
+        loading_strategy=LoadingStrategy.STREAMING,
     )
 
     batches = list(text_ds.iter_batches(batch_size=2))
@@ -222,12 +222,12 @@ class TestTextDatasetExtractTexts:
         assert isinstance(texts, list)
 
     def test_get_all_texts_iterable_only(self, temp_store):
-        """Test get_all_texts with ITERABLE_ONLY strategy."""
+        """Test get_all_texts with STREAMING strategy."""
         iterable = IterableDatasetDict({"train": Dataset.from_dict({"text": ["a", "b"]})})["train"]
         text_ds = TextDataset(
             iterable,
             store=temp_store,
-            loading_strategy=LoadingStrategy.ITERABLE_ONLY,
+            loading_strategy=LoadingStrategy.STREAMING,
         )
 
         texts = text_ds.get_all_texts()

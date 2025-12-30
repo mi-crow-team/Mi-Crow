@@ -93,10 +93,10 @@ class TextDataset(BaseDataset):
         Return the number of items in the dataset.
 
         Raises:
-            NotImplementedError: If loading_strategy is ITERABLE_ONLY
+            NotImplementedError: If loading_strategy is STREAMING
         """
-        if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
-            raise NotImplementedError("len() not supported for ITERABLE_ONLY datasets")
+        if self._loading_strategy == LoadingStrategy.STREAMING:
+            raise NotImplementedError("len() not supported for STREAMING datasets")
         return self._ds.num_rows
 
     def __getitem__(self, idx: IndexLike) -> Union[Optional[str], List[Optional[str]]]:
@@ -110,13 +110,13 @@ class TextDataset(BaseDataset):
             Single text string or list of text strings
 
         Raises:
-            NotImplementedError: If loading_strategy is ITERABLE_ONLY
+            NotImplementedError: If loading_strategy is STREAMING
             IndexError: If index is out of bounds
             ValueError: If dataset is empty
         """
-        if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
+        if self._loading_strategy == LoadingStrategy.STREAMING:
             raise NotImplementedError(
-                "Indexing not supported for ITERABLE_ONLY datasets. Use iter_items or iter_batches."
+                "Indexing not supported for STREAMING datasets. Use iter_items or iter_batches."
             )
 
         dataset_len = len(self)
@@ -178,7 +178,7 @@ class TextDataset(BaseDataset):
         if batch_size <= 0:
             raise ValueError(f"batch_size must be > 0, got: {batch_size}")
 
-        if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
+        if self._loading_strategy == LoadingStrategy.STREAMING:
             batch = []
             for row in self._ds:
                 batch.append(self._extract_text_from_row(row))
@@ -211,9 +211,9 @@ class TextDataset(BaseDataset):
             List of all text strings
 
         Raises:
-            NotImplementedError: If loading_strategy is ITERABLE_ONLY
+            NotImplementedError: If loading_strategy is STREAMING
         """
-        if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
+        if self._loading_strategy == LoadingStrategy.STREAMING:
             return list(self.iter_items())
         return list(self._ds["text"])
 
@@ -260,11 +260,11 @@ class TextDataset(BaseDataset):
             ValueError: If parameters are invalid
             RuntimeError: If dataset loading fails
         """
-        use_streaming = streaming if streaming is not None else (loading_strategy == LoadingStrategy.ITERABLE_ONLY)
+        use_streaming = streaming if streaming is not None else (loading_strategy == LoadingStrategy.STREAMING)
 
         if (stratify_by or drop_na) and use_streaming:
             raise NotImplementedError(
-                "Stratification and drop_na are not supported for streaming datasets. Use MEMORY or DYNAMIC_LOAD."
+                "Stratification and drop_na are not supported for streaming datasets. Use MEMORY or DISK."
             )
 
         try:
@@ -279,7 +279,7 @@ class TextDataset(BaseDataset):
             if use_streaming:
                 if filters or limit:
                     raise NotImplementedError(
-                        "filters and limit are not supported when streaming datasets. Choose MEMORY or DYNAMIC_LOAD."
+                        "filters and limit are not supported when streaming datasets. Choose MEMORY or DISK."
                     )
             else:
                 drop_na_columns = [text_field] if drop_na else None

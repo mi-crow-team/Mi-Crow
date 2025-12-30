@@ -20,9 +20,9 @@ class BaseDataset(ABC):
 
     Loading Strategies:
     - MEMORY: Load entire dataset into memory (fastest random access, highest memory usage)
-    - DYNAMIC_LOAD: Save to disk, read dynamically via memory-mapped Arrow files
+    - DISK: Save to disk, read dynamically via memory-mapped Arrow files
       (supports len/getitem, lower memory usage)
-    - ITERABLE_ONLY: True streaming mode using IterableDataset
+    - STREAMING: True streaming mode using IterableDataset
       (lowest memory, no len/getitem support, no stratification and limit support)
     """
 
@@ -38,7 +38,7 @@ class BaseDataset(ABC):
         Args:
             ds: HuggingFace Dataset or IterableDataset
             store: Store instance for caching/persistence
-            loading_strategy: How to load data (MEMORY, DYNAMIC_LOAD, or ITERABLE_ONLY)
+            loading_strategy: How to load data (MEMORY, DISK, or STREAMING)
 
         Raises:
             ValueError: If store is None, loading_strategy is invalid, or dataset operations fail
@@ -58,14 +58,14 @@ class BaseDataset(ABC):
             if is_iterable_input:
                 ds = Dataset.from_generator(lambda: iter(ds))
             self._ds = self._save_and_load_dataset(ds, use_memory_mapping=False)
-        elif loading_strategy == LoadingStrategy.DYNAMIC_LOAD:
-            # DYNAMIC_LOAD: Save to disk, use memory-mapped Arrow files (supports len/getitem)
+        elif loading_strategy == LoadingStrategy.DISK:
+            # DISK: Save to disk, use memory-mapped Arrow files (supports len/getitem)
             self._is_iterable = False
             if is_iterable_input:
                 ds = Dataset.from_generator(lambda: iter(ds))
             self._ds = self._save_and_load_dataset(ds, use_memory_mapping=True)
-        elif loading_strategy == LoadingStrategy.ITERABLE_ONLY:
-            # ITERABLE_ONLY: Convert to IterableDataset, don't save to disk (no len/getitem)
+        elif loading_strategy == LoadingStrategy.STREAMING:
+            # STREAMING: Convert to IterableDataset, don't save to disk (no len/getitem)
             if not is_iterable_input:
                 ds = ds.to_iterable_dataset()
             self._is_iterable = True
@@ -105,7 +105,7 @@ class BaseDataset(ABC):
 
         Args:
             ds: Dataset to save and load
-            use_memory_mapping: Whether to use memory mapping (True for DYNAMIC_LOAD)
+            use_memory_mapping: Whether to use memory mapping (True for DISK)
 
         Returns:
             Loaded dataset
@@ -323,10 +323,10 @@ class BaseDataset(ABC):
             List of items
 
         Raises:
-            NotImplementedError: If loading_strategy is ITERABLE_ONLY
+            NotImplementedError: If loading_strategy is STREAMING
         """
-        if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
-            raise NotImplementedError("get_batch not supported for ITERABLE_ONLY datasets. Use iter_batches instead.")
+        if self._loading_strategy == LoadingStrategy.STREAMING:
+            raise NotImplementedError("get_batch not supported for STREAMING datasets. Use iter_batches instead.")
         if batch_size <= 0:
             return []
         end = min(start + batch_size, len(self))
@@ -346,7 +346,7 @@ class BaseDataset(ABC):
         Returns:
             List of first n items
         """
-        if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
+        if self._loading_strategy == LoadingStrategy.STREAMING:
             items = []
             for i, item in enumerate(self.iter_items()):
                 if i >= n:
@@ -359,7 +359,7 @@ class BaseDataset(ABC):
         """
         Get n random items from the dataset.
 
-        Works for MEMORY and DYNAMIC_LOAD strategies only.
+        Works for MEMORY and DISK strategies only.
 
         Args:
             n: Number of items to sample
@@ -368,11 +368,11 @@ class BaseDataset(ABC):
             List of n randomly sampled items
 
         Raises:
-            NotImplementedError: If loading_strategy is ITERABLE_ONLY
+            NotImplementedError: If loading_strategy is STREAMING
         """
-        if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
+        if self._loading_strategy == LoadingStrategy.STREAMING:
             raise NotImplementedError(
-                "sample() not supported for ITERABLE_ONLY datasets. Use iter_items() and sample manually."
+                "sample() not supported for STREAMING datasets. Use iter_items() and sample manually."
             )
 
         dataset_len = len(self)
@@ -391,8 +391,8 @@ class BaseDataset(ABC):
 
     @property
     def is_streaming(self) -> bool:
-        """Whether this dataset is streaming (DYNAMIC_LOAD or ITERABLE_ONLY)."""
-        return self._loading_strategy in (LoadingStrategy.DYNAMIC_LOAD, LoadingStrategy.ITERABLE_ONLY)
+        """Whether this dataset is streaming (DISK or STREAMING)."""
+        return self._loading_strategy in (LoadingStrategy.DISK, LoadingStrategy.STREAMING)
 
     @abstractmethod
     def __len__(self) -> int:
@@ -463,7 +463,7 @@ class BaseDataset(ABC):
             repo_id: HuggingFace dataset repository ID
             store: Store instance
             split: Dataset split (e.g., "train", "validation")
-            loading_strategy: Loading strategy (MEMORY, DYNAMIC_LOAD, or ITERABLE_ONLY)
+            loading_strategy: Loading strategy (MEMORY, DISK, or STREAMING)
             revision: Optional git revision/branch/tag
             streaming: Optional override for streaming (if None, uses loading_strategy)
             filters: Optional dict of column->value pairs used for exact-match filtering
@@ -486,10 +486,10 @@ class BaseDataset(ABC):
             raise ValueError("store cannot be None")
 
         # Determine if we should use streaming for HuggingFace load_dataset
-        use_streaming = streaming if streaming is not None else (loading_strategy == LoadingStrategy.ITERABLE_ONLY)
+        use_streaming = streaming if streaming is not None else (loading_strategy == LoadingStrategy.STREAMING)
 
-        if stratify_by and loading_strategy == LoadingStrategy.ITERABLE_ONLY:
-            raise NotImplementedError("Stratification is not supported for ITERABLE_ONLY datasets.")
+        if stratify_by and loading_strategy == LoadingStrategy.STREAMING:
+            raise NotImplementedError("Stratification is not supported for STREAMING datasets.")
 
         try:
             ds = load_dataset(
@@ -509,7 +509,7 @@ class BaseDataset(ABC):
             if filters or limit or stratify_by:
                 raise NotImplementedError(
                     "filters, limit, and stratification are not supported when streaming datasets. "
-                    "Choose MEMORY or DYNAMIC_LOAD loading strategy instead."
+                    "Choose MEMORY or DISK loading strategy instead."
                 )
         else:
             ds = cls._postprocess_non_streaming_dataset(
@@ -561,9 +561,9 @@ class BaseDataset(ABC):
         if store is None:
             raise ValueError("store cannot be None")
 
-        use_streaming = loading_strategy == LoadingStrategy.ITERABLE_ONLY
+        use_streaming = loading_strategy == LoadingStrategy.STREAMING
         if (stratify_by or drop_na_columns) and use_streaming:
-            raise NotImplementedError("Stratification and drop_na are not supported for ITERABLE_ONLY datasets.")
+            raise NotImplementedError("Stratification and drop_na are not supported for STREAMING datasets.")
 
         ds = cls._load_csv_source(
             source,
@@ -619,9 +619,9 @@ class BaseDataset(ABC):
         if store is None:
             raise ValueError("store cannot be None")
 
-        use_streaming = loading_strategy == LoadingStrategy.ITERABLE_ONLY
+        use_streaming = loading_strategy == LoadingStrategy.STREAMING
         if (stratify_by or drop_na_columns) and use_streaming:
-            raise NotImplementedError("Stratification and drop_na are not supported for ITERABLE_ONLY datasets.")
+            raise NotImplementedError("Stratification and drop_na are not supported for STREAMING datasets.")
 
         ds = cls._load_json_source(
             source,
