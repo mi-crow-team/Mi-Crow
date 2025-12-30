@@ -30,7 +30,13 @@ export LR=1e-3
 export L1_LAMBDA=1e-4
 export DEVICE=cuda
 
+# Parse --run_id flag if provided
+RUN_ID_ARG=""
+if [ "$1" = "--run_id" ] && [ -n "$2" ]; then
+    RUN_ID_ARG="--run_id $2"
+fi
+
 # Run script
 cd "$(dirname "$0")"
-python 02_train_sae.py
+uv run python 02_train_sae.py $RUN_ID_ARG
 

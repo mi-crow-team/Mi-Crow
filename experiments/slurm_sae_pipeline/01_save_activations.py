@@ -12,8 +12,11 @@ Usage:
     python 01_save_activations.py
     # or with environment variables:
     STORE_DIR=/path/to/store python 01_save_activations.py
+    # or with --run_id flag:
+    python 01_save_activations.py --run_id my_custom_run_id
 """
 
+import argparse
 import logging
 import os
 import torch
@@ -37,11 +40,11 @@ logger = get_logger(__name__)
 MODEL_ID = os.getenv("MODEL_ID", "speakleash/Bielik-1.5B-v3.0-Instruct")  # Bielik 1.5B Instruct
 
 # Dataset configuration
-HF_DATASET = os.getenv("HF_DATASET", "roneneldan/TinyStories")
+HF_DATASET = os.getenv("HF_DATASET", "chrisociepa/wikipedia-pl-20230401")
 DATA_SPLIT = os.getenv("DATA_SPLIT", "train")
 TEXT_FIELD = os.getenv("TEXT_FIELD", "text")
-DATA_LIMIT = int(os.getenv("DATA_LIMIT", "10000"))  # Increase for production
-MAX_LENGTH = int(os.getenv("MAX_LENGTH", "128"))
+DATA_LIMIT = int(os.getenv("DATA_LIMIT", "25000"))  # 25K random rows
+MAX_LENGTH = int(os.getenv("MAX_LENGTH", "1000"))  # 1000 tokens max
 BATCH_SIZE_SAVE = int(os.getenv("BATCH_SIZE_SAVE", "16"))
 
 # Layer configuration - adjust layer number based on model architecture
@@ -58,7 +61,14 @@ DEVICE = os.getenv("DEVICE", "cuda" if torch.cuda.is_available() else "cpu")
 
 
 def main():
-    RUN_ID = f"activations_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    parser = argparse.ArgumentParser(description="Save activations from Bielik model")
+    parser.add_argument("--run_id", type=str, default=None, help="Custom run ID (default: auto-generated)")
+    args = parser.parse_args()
+    
+    if args.run_id:
+        RUN_ID = args.run_id
+    else:
+        RUN_ID = f"activations_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
     logger.info("🚀 Starting Activation Saving")
     logger.info(f"📱 Using device: {DEVICE}")
@@ -99,14 +109,28 @@ def main():
         return
 
     logger.info("📥 Loading dataset...")
+    # Load dataset (we'll shuffle and sample after loading)
+    # Load more than needed to ensure we have enough for random sampling
     dataset = TextDataset.from_huggingface(
         HF_DATASET,
         split=DATA_SPLIT,
         store=store,
         text_field=TEXT_FIELD,
-        limit=DATA_LIMIT,
+        limit=None,  # Load all, then sample randomly
     )
-    logger.info(f"✅ Loaded {len(dataset)} text samples")
+    logger.info(f"✅ Loaded {len(dataset)} text samples from dataset")
+    
+    # Randomly sample DATA_LIMIT rows
+    if len(dataset) > DATA_LIMIT:
+        logger.info(f"📊 Randomly sampling {DATA_LIMIT} rows from {len(dataset)} total rows...")
+        sampled_texts = dataset.sample(DATA_LIMIT)
+        # Create a new dataset from sampled texts
+        from datasets import Dataset
+        sampled_ds = Dataset.from_dict({"text": [t for t in sampled_texts if t is not None]})
+        dataset = TextDataset(sampled_ds, store=store, text_field=TEXT_FIELD)
+        logger.info(f"✅ Sampled {len(dataset)} text samples")
+    else:
+        logger.info(f"📊 Using all {len(dataset)} available rows (less than requested {DATA_LIMIT})")
 
     logger.info("💾 Saving activations...")
     logger.info(f"   Batch size: {BATCH_SIZE_SAVE}")

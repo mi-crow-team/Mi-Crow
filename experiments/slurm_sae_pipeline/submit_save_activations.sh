@@ -22,16 +22,22 @@
 # Set environment variables
 export STORE_DIR=${SCRATCH:-./store}/sae_store
 export MODEL_ID="speakleash/Bielik-1.5B-v3.0-Instruct"
-export DATA_LIMIT=100000
+export DATA_LIMIT=25000
 export BATCH_SIZE_SAVE=32
 export LAYER_NUM=16
 export DEVICE=cuda
-export HF_DATASET="roneneldan/TinyStories"
+export HF_DATASET="chrisociepa/wikipedia-pl-20230401"
 export DATA_SPLIT="train"
 export TEXT_FIELD="text"
-export MAX_LENGTH=128
+export MAX_LENGTH=1000
+
+# Parse --run_id flag if provided
+RUN_ID_ARG=""
+if [ "$1" = "--run_id" ] && [ -n "$2" ]; then
+    RUN_ID_ARG="--run_id $2"
+fi
 
 # Run script
 cd "$(dirname "$0")"
-python 01_save_activations.py
+uv run python 01_save_activations.py $RUN_ID_ARG
 

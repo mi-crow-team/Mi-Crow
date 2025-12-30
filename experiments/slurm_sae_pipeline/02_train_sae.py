@@ -12,8 +12,11 @@ Usage:
     python 02_train_sae.py
     # or with environment variables:
     STORE_DIR=/path/to/store python 02_train_sae.py
+    # or with --run_id flag:
+    python 02_train_sae.py --run_id my_custom_run_id
 """
 
+import argparse
 import os
 import torch
 from pathlib import Path
@@ -47,6 +50,10 @@ DTYPE = torch.float16 if DEVICE == "cuda" and torch.cuda.is_available() else Non
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Train SAE on saved activations")
+    parser.add_argument("--run_id", type=str, default=None, help="Run ID to use (default: read from run_id.txt)")
+    args = parser.parse_args()
+    
     logger.info("🚀 Starting SAE Training")
     logger.info(f"📱 Using device: {DEVICE}")
     logger.info(f"🔧 Model: {MODEL_ID}")
@@ -67,15 +74,19 @@ def main():
 
     logger.info(f"✅ Model loaded: {lm.model_id}")
 
-    # Load run ID from previous step
-    run_id_file = STORE_DIR / "run_id.txt"
-    if not run_id_file.exists():
-        logger.error("❌ Error: run_id.txt not found. Please run 01_save_activations.py first.")
-        logger.error(f"   Expected file: {run_id_file}")
-        return
+    # Load run ID from argument or previous step
+    if args.run_id:
+        RUN_ID = args.run_id
+        logger.info(f"📁 Using run ID from command line: {RUN_ID}")
+    else:
+        run_id_file = STORE_DIR / "run_id.txt"
+        if not run_id_file.exists():
+            logger.error("❌ Error: run_id.txt not found. Please run 01_save_activations.py first or use --run_id flag.")
+            logger.error(f"   Expected file: {run_id_file}")
+            return
 
-    with open(run_id_file, "r") as f:
-        RUN_ID = f.read().strip()
+        with open(run_id_file, "r") as f:
+            RUN_ID = f.read().strip()
 
     logger.info(f"📁 Using run ID: {RUN_ID}")
 
@@ -151,6 +162,7 @@ def main():
         logger.warning(f"   ⚠️  AMP disabled for CPU device")
 
     config = TopKSaeTrainingConfig(
+        k=TOP_K,
         epochs=EPOCHS,
         batch_size=BATCH_SIZE_TRAIN,
         lr=LR,

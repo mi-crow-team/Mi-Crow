@@ -126,14 +126,17 @@ Both scripts support the following environment variables:
 
 ```bash
 # Basic usage
-python 01_save_activations.py
+uv run python 01_save_activations.py
 
 # With custom configuration
 DATA_LIMIT=50000 \
 BATCH_SIZE_SAVE=32 \
 LAYER_NUM=20 \
 STORE_DIR=/scratch/user/sae_store \
-python 01_save_activations.py
+uv run python 01_save_activations.py
+
+# With custom run_id
+uv run python 01_save_activations.py --run_id my_custom_run_id
 ```
 
 This script will:
@@ -147,14 +150,17 @@ This script will:
 
 ```bash
 # Basic usage (uses run_id.txt from step 1)
-python 02_train_sae.py
+uv run python 02_train_sae.py
 
 # With custom configuration
 EPOCHS=20 \
 BATCH_SIZE_TRAIN=64 \
 N_LATENTS_MULTIPLIER=8 \
 STORE_DIR=/scratch/user/sae_store \
-python 02_train_sae.py
+uv run python 02_train_sae.py
+
+# With custom run_id
+uv run python 02_train_sae.py --run_id my_custom_run_id
 ```
 
 This script will:
@@ -195,7 +201,7 @@ export DEVICE=cuda
 
 # Run script
 cd /path/to/experiments/slurm_sae_pipeline
-python 01_save_activations.py
+uv run python 01_save_activations.py
 ```
 
 ### Example SLURM script for training SAE
@@ -229,7 +235,7 @@ export DEVICE=cuda
 
 # Run script
 cd /path/to/experiments/slurm_sae_pipeline
-python 02_train_sae.py
+uv run python 02_train_sae.py
 ```
 
 ## Output Files
@@ -285,7 +291,7 @@ The Bielik 1.5B-v3.0-Instruct model is publicly available on HuggingFace. If you
    ```bash
    export HF_TOKEN="your_token_here"
    ```
-2. **Verify access**: Run `python discover_layers.py` to verify you can access the model
+2. **Verify access**: Run `uv run python discover_layers.py` to verify you can access the model
 
 ## Notes
 

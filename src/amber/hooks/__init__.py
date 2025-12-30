@@ -1,4 +1,4 @@
-from amber.hooks.hook import Hook, HookType
+from amber.hooks.hook import Hook, HookType, HookError
 from amber.hooks.detector import Detector
 from amber.hooks.controller import Controller
 from amber.hooks.implementations.layer_activation_detector import LayerActivationDetector
@@ -9,6 +9,7 @@ from amber.hooks.implementations.function_controller import FunctionController
 __all__ = [
     "Hook",
     "HookType",
+    "HookError",
     "Detector",
     "Controller",
     "LayerActivationDetector",

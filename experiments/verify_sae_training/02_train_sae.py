@@ -106,6 +106,7 @@ def main():
         logger.warning(f"   ⚠️  AMP disabled for CPU device")
 
     config = TopKSaeTrainingConfig(
+        k=TOP_K,
         epochs=EPOCHS,
         batch_size=BATCH_SIZE_TRAIN,
         lr=LR,

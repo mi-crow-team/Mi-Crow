@@ -9,12 +9,8 @@ import torch
 from torch import nn, Tensor
 from torch.types import _TensorOrTensors
 
-from amber.utils import get_logger
-
 if TYPE_CHECKING:
     from amber.language_model.context import LanguageModelContext
-
-logger = get_logger(__name__)
 
 
 class HookType(str, Enum):
@@ -25,6 +21,25 @@ class HookType(str, Enum):
 
 HOOK_FUNCTION_INPUT: TypeAlias = Sequence[Tensor]
 HOOK_FUNCTION_OUTPUT: TypeAlias = _TensorOrTensors | None
+
+
+class HookError(Exception):
+    """Exception raised when a hook encounters an error during execution."""
+    
+    def __init__(self, hook_id: str, hook_type: str, original_error: Exception):
+        """
+        Initialize HookError.
+        
+        Args:
+            hook_id: Unique identifier of the hook that raised the error
+            hook_type: Type of hook (e.g., "forward", "pre_forward")
+            original_error: The original exception that was raised
+        """
+        self.hook_id = hook_id
+        self.hook_type = hook_type
+        self.original_error = original_error
+        message = f"Hook {hook_id} (type={hook_type}) raised exception: {original_error}"
+        super().__init__(message)
 
 
 class Hook(abc.ABC):
@@ -102,11 +117,7 @@ class Hook(abc.ABC):
                 result = self._hook_fn(module, input, None)
                 return result if result is not None else None
             except Exception as e:
-                logger.warning(
-                    f"Hook {self.id} (type={self.hook_type.value}) raised exception in pre-forward: {e}",
-                    exc_info=True
-                )
-                return None
+                raise HookError(self.id, self.hook_type.value, e) from e
 
         return pre_forward_wrapper
 
@@ -123,11 +134,7 @@ class Hook(abc.ABC):
                 self._hook_fn(module, input, output)
                 return None
             except Exception as e:
-                logger.warning(
-                    f"Hook {self.id} (type={self.hook_type.value}) raised exception in forward: {e}",
-                    exc_info=True
-                )
-                return None
+                raise HookError(self.id, self.hook_type.value, e) from e
 
         return forward_wrapper
 

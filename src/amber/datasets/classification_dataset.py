@@ -132,10 +132,10 @@ class ClassificationDataset(BaseDataset):
         Return the number of items in the dataset.
 
         Raises:
-            NotImplementedError: If loading_strategy is ITERABLE_ONLY
+            NotImplementedError: If loading_strategy is STREAMING
         """
-        if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
-            raise NotImplementedError("len() not supported for ITERABLE_ONLY datasets")
+        if self._loading_strategy == LoadingStrategy.STREAMING:
+            raise NotImplementedError("len() not supported for STREAMING datasets")
         return self._ds.num_rows
 
     def __getitem__(self, idx: IndexLike) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
@@ -152,13 +152,13 @@ class ClassificationDataset(BaseDataset):
             Single item dict or list of item dicts
 
         Raises:
-            NotImplementedError: If loading_strategy is ITERABLE_ONLY
+            NotImplementedError: If loading_strategy is STREAMING
             IndexError: If index is out of bounds
             ValueError: If dataset is empty
         """
-        if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
+        if self._loading_strategy == LoadingStrategy.STREAMING:
             raise NotImplementedError(
-                "Indexing not supported for ITERABLE_ONLY datasets. Use iter_items or iter_batches."
+                "Indexing not supported for STREAMING datasets. Use iter_items or iter_batches."
             )
 
         dataset_len = len(self)
@@ -227,7 +227,7 @@ class ClassificationDataset(BaseDataset):
         if batch_size <= 0:
             raise ValueError(f"batch_size must be > 0, got: {batch_size}")
 
-        if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
+        if self._loading_strategy == LoadingStrategy.STREAMING:
             batch = []
             for row in self._ds:
                 batch.append(self._extract_item_from_row(row))
@@ -252,12 +252,12 @@ class ClassificationDataset(BaseDataset):
             - For multiple label columns: Dict mapping column name to list of unique categories
 
         Raises:
-            NotImplementedError: If loading_strategy is ITERABLE_ONLY and dataset is large
+            NotImplementedError: If loading_strategy is STREAMING and dataset is large
         """
         if len(self._category_fields) == 1:
             # Single label: return list for backward compatibility
             cat_field = self._category_fields[0]
-            if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
+            if self._loading_strategy == LoadingStrategy.STREAMING:
                 categories = set()
                 for item in self.iter_items():
                     cat = item[cat_field]
@@ -269,7 +269,7 @@ class ClassificationDataset(BaseDataset):
         else:
             # Multiple labels: return dict
             result = {}
-            if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
+            if self._loading_strategy == LoadingStrategy.STREAMING:
                 # Collect categories from all items
                 category_sets = {field: set() for field in self._category_fields}
                 for item in self.iter_items():
@@ -312,9 +312,9 @@ class ClassificationDataset(BaseDataset):
             List of all text strings
 
         Raises:
-            NotImplementedError: If loading_strategy is ITERABLE_ONLY and dataset is very large
+            NotImplementedError: If loading_strategy is STREAMING and dataset is very large
         """
-        if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
+        if self._loading_strategy == LoadingStrategy.STREAMING:
             return [item["text"] for item in self.iter_items()]
         return list(self._ds[self._text_field])
 
@@ -330,11 +330,11 @@ class ClassificationDataset(BaseDataset):
             - For multiple label columns: List of dicts with label columns as keys
 
         Raises:
-            NotImplementedError: If loading_strategy is ITERABLE_ONLY
+            NotImplementedError: If loading_strategy is STREAMING
             ValueError: If texts list is empty
         """
-        if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
-            raise NotImplementedError("get_categories_for_texts not supported for ITERABLE_ONLY datasets")
+        if self._loading_strategy == LoadingStrategy.STREAMING:
+            raise NotImplementedError("get_categories_for_texts not supported for STREAMING datasets")
 
         if not texts:
             raise ValueError("texts list cannot be empty")
@@ -396,11 +396,11 @@ class ClassificationDataset(BaseDataset):
             ValueError: If parameters are invalid
             RuntimeError: If dataset loading fails
         """
-        use_streaming = streaming if streaming is not None else (loading_strategy == LoadingStrategy.ITERABLE_ONLY)
+        use_streaming = streaming if streaming is not None else (loading_strategy == LoadingStrategy.STREAMING)
 
         if (stratify_by or drop_na) and use_streaming:
             raise NotImplementedError(
-                "Stratification and drop_na are not supported for streaming datasets. Use MEMORY or DYNAMIC_LOAD."
+                "Stratification and drop_na are not supported for streaming datasets. Use MEMORY or DISK."
             )
 
         try:
@@ -415,7 +415,7 @@ class ClassificationDataset(BaseDataset):
             if use_streaming:
                 if filters or limit:
                     raise NotImplementedError(
-                        "filters and limit are not supported when streaming datasets. Choose MEMORY or DYNAMIC_LOAD."
+                        "filters and limit are not supported when streaming datasets. Choose MEMORY or DISK."
                     )
             else:
                 drop_na_columns = None

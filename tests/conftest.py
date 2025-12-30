@@ -119,13 +119,13 @@ def sample_classification_dataset():
 
 
 # Parametrized fixtures for loading strategies
-@pytest.fixture(params=[LoadingStrategy.MEMORY, LoadingStrategy.DYNAMIC_LOAD, LoadingStrategy.ITERABLE_ONLY])
+@pytest.fixture(params=[LoadingStrategy.MEMORY, LoadingStrategy.DISK, LoadingStrategy.STREAMING])
 def loading_strategy(request):
     """Parametrized fixture for all loading strategies."""
     return request.param
 
 
-@pytest.fixture(params=[LoadingStrategy.MEMORY, LoadingStrategy.DYNAMIC_LOAD])
+@pytest.fixture(params=[LoadingStrategy.MEMORY, LoadingStrategy.DISK])
 def non_streaming_strategy(request):
     """Parametrized fixture for non-streaming loading strategies."""
     return request.param

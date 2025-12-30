@@ -43,7 +43,7 @@ class TestLanguageModelDatasetsIntegration:
         dataset = create_text_dataset(
             temp_store,
             texts=["Text 1", "Text 2"],
-            loading_strategy=LoadingStrategy.ITERABLE_ONLY
+            loading_strategy=LoadingStrategy.STREAMING
         )
         
         # Process streaming dataset
