@@ -69,14 +69,14 @@ Jeden plik Markdown (np. `raport.md` lub `raport_implementacji.md`) w katalogu g
 
 ## 2. Implementacja modułów
 
-### 2.1 Moduł `amber.datasets`
+### 2.1 Moduł `mi_crow.datasets`
 
 - **BaseDataset**: Klasa abstrakcyjna z LoadingStrategy (MEMORY, DYNAMIC_LOAD, ITERABLE_ONLY)
 - **TextDataset**: Dataset tekstowy z parametrem `text_field`
 - **ClassificationDataset**: Dataset z kategoriami, parametry `text_field`, `category_field` (single/multiple)
 - **LoadingStrategy**: Enum z trzema strategiami ładowania
 
-### 2.2 Moduł `amber.hooks`
+### 2.2 Moduł `mi_crow.hooks`
 
 - **Hook**: Klasa abstrakcyjna, parametry: `layer_signature`, `hook_type` (FORWARD/PRE_FORWARD), `hook_id`
 - **Detector**: Hook do wykrywania/zapisywania aktywacji
@@ -84,7 +84,7 @@ Jeden plik Markdown (np. `raport.md` lub `raport_implementacji.md`) w katalogu g
 - **LayerActivationDetector**: Implementacja zapisywania aktywacji warstw
 - **FunctionController**: Implementacja kontrolera funkcji
 
-### 2.3 Moduł `amber.language_model`
+### 2.3 Moduł `mi_crow.language_model`
 
 - **LanguageModel**: Główna klasa wrappera modelu
 - Parametry inicjalizacji: `model`, `tokenizer`, `store`, `model_id`
@@ -95,7 +95,7 @@ Jeden plik Markdown (np. `raport.md` lub `raport_implementacji.md`) w katalogu g
 - **LanguageModelTokenizer**: Wrapper tokenizera
 - **InferenceEngine**: Silnik inferencji z parametrami `autocast`, `autocast_dtype`, `with_controllers`
 
-### 2.4 Moduł `amber.mechanistic.sae` (moduły uczenia maszynowego)
+### 2.4 Moduł `mi_crow.mechanistic.sae` (moduły uczenia maszynowego)
 
 - **Sae**: Klasa abstrakcyjna SAE
 - Parametry: `n_latents`, `n_inputs`, `hook_id`, `device`, `store`
@@ -111,7 +111,7 @@ Jeden plik Markdown (np. `raport.md` lub `raport_implementacji.md`) w katalogu g
 - **AutoencoderContext**: Kontekst SAE z parametrami: `n_latents`, `n_inputs`, `device`, `text_tracking_enabled`, `text_tracking_k`
 - **AutoencoderConcepts**: Zarządzanie konceptami (multiplication, bias)
 
-### 2.5 Moduł `amber.store`
+### 2.5 Moduł `mi_crow.store`
 
 - **Store**: Klasa abstrakcyjna do przechowywania tensorów
 - Parametry: `base_path`, `runs_prefix`, `dataset_prefix`, `model_prefix`

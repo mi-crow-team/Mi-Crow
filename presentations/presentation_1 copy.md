@@ -137,7 +137,7 @@ style: |
 
 ## 4. Thesis Deliverables
 
-1. **Amber Python Package**
+1. **mi_crow Python Package**
    - Comprehensive MI research library
    - Non-invasive hook system
    - SAE with overcomplete integration
@@ -159,7 +159,7 @@ style: |
 
 **Three-Tier Architecture**
 
-- **Amber Python Library**: Core MI package
+- **mi_crow Python Library**: Core MI package
   - Modular design, independent testing
   - Models, hooks, storage, training separation
 
@@ -171,12 +171,12 @@ style: |
 
 ---
 
-## 5.1. Amber Library Structure
+## 5.1. mi_crow Library Structure
 
 **Five Core Modules**
 
 ```
-amber/
+mi_crow/
 ├── language_model/     # LLM wrapper, inference, tokenization
 ├── datasets/           # TextDataset, ClassificationDataset, loading strategies
 ├── hooks/             # Detector, Controller implementations
@@ -634,7 +634,7 @@ $$
 ## 15. Current Status & Next Steps
 
 **Completed ✓**
-- Core Amber package (85%+ coverage)
+- Core mi_crow package (85%+ coverage)
 - SAE training & concept tracking
 - CI/CD pipeline (multi-version testing)
 

@@ -4,9 +4,9 @@ import pytest
 import torch
 from unittest.mock import Mock, MagicMock
 
-from amber.mechanistic.sae.sae import Sae
-from amber.hooks.hook import HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
-from amber.hooks.utils import extract_tensor_from_input, extract_tensor_from_output
+from mi_crow.mechanistic.sae.sae import Sae
+from mi_crow.hooks.hook import HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
+from mi_crow.hooks.utils import extract_tensor_from_input, extract_tensor_from_output
 
 
 class ConcreteSae(Sae):
@@ -614,7 +614,7 @@ class TestSaeContext:
 
     def test_context_property_setter(self):
         """Test context property setter."""
-        from amber.mechanistic.sae.autoencoder_context import AutoencoderContext
+        from mi_crow.mechanistic.sae.autoencoder_context import AutoencoderContext
         
         sae = ConcreteSae(n_latents=100, n_inputs=200)
         new_context = AutoencoderContext(
@@ -631,7 +631,7 @@ class TestSaeContext:
 
     def test_set_context_syncs_language_model_context(self):
         """Test that set_context syncs LanguageModelContext to AutoencoderContext."""
-        from amber.language_model.context import LanguageModelContext
+        from mi_crow.language_model.context import LanguageModelContext
         from unittest.mock import Mock
         
         sae = ConcreteSae(n_latents=100, n_inputs=200)
@@ -650,7 +650,7 @@ class TestSaeContext:
 
     def test_set_context_sets_hook_context(self):
         """Test that set_context also sets Hook context."""
-        from amber.language_model.context import LanguageModelContext
+        from mi_crow.language_model.context import LanguageModelContext
         from unittest.mock import Mock
         
         sae = ConcreteSae(n_latents=100, n_inputs=200)
@@ -670,7 +670,7 @@ class TestSaeContext:
 
     def test_set_context_preserves_existing_store(self):
         """Test that set_context preserves existing store if context store is None."""
-        from amber.language_model.context import LanguageModelContext
+        from mi_crow.language_model.context import LanguageModelContext
         from unittest.mock import Mock
         
         sae = ConcreteSae(n_latents=100, n_inputs=200)
@@ -686,7 +686,7 @@ class TestSaeContext:
 
     def test_set_context_updates_store_when_context_has_store(self):
         """Test that set_context updates store when context has store."""
-        from amber.language_model.context import LanguageModelContext
+        from mi_crow.language_model.context import LanguageModelContext
         from unittest.mock import Mock
         
         sae = ConcreteSae(n_latents=100, n_inputs=200)

@@ -5,8 +5,8 @@ import torch
 from torch import nn
 from unittest.mock import MagicMock, patch
 
-from amber.hooks.implementations.model_input_detector import ModelInputDetector
-from amber.hooks.hook import HookType
+from mi_crow.hooks.implementations.model_input_detector import ModelInputDetector
+from mi_crow.hooks.hook import HookType
 
 
 class TestModelInputDetectorInitialization:

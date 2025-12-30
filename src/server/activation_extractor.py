@@ -7,8 +7,8 @@ from typing import Dict, Iterable, List, Sequence, Optional
 import torch
 from datasets import load_dataset
 
-from amber.hooks.implementations.layer_activation_detector import LayerActivationDetector
-from amber.language_model.utils import get_device_from_model, move_tensors_to_device
+from mi_crow.hooks.implementations.layer_activation_detector import LayerActivationDetector
+from mi_crow.language_model.utils import get_device_from_model, move_tensors_to_device
 
 
 class ActivationExtractor:

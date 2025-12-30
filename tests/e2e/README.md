@@ -1,6 +1,6 @@
 # End-to-End Tests
 
-This directory contains end-to-end tests that validate complete workflows in the Amber library. These tests are based on the example notebooks and demonstrate real-world usage patterns.
+This directory contains end-to-end tests that validate complete workflows in the mi_crow library. These tests are based on the example notebooks and demonstrate real-world usage patterns.
 
 ## Test Suite
 

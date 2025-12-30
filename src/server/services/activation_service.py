@@ -12,7 +12,7 @@ from server.model_manager import ModelManager
 from server.schemas import ActivationRunInfo, ActivationRunListResponse, SaveActivationsRequest, SaveActivationsResponse
 from server.storage import activation_dir
 from server.utils import generate_id, write_json
-from amber.store.local_store import LocalStore
+from mi_crow.store.local_store import LocalStore
 
 logger = logging.getLogger(__name__)
 

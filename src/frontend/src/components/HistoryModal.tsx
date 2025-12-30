@@ -130,7 +130,7 @@ export function HistoryModal({ entry, onClose }: HistoryModalProps) {
           <div className="space-y-2">
             <h3 className="font-semibold text-slate-900">Top Texts</h3>
             <div className="text-slate-700 text-xs">
-              Saved at: <span className="text-amber-600 font-mono">{entry.top_texts_path}</span>
+              Saved at: <span className="text-mi_crow-600 font-mono">{entry.top_texts_path}</span>
             </div>
           </div>
         )}

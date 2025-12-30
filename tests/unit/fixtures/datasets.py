@@ -5,10 +5,10 @@ from __future__ import annotations
 from typing import List, Dict, Any, Optional
 from datasets import Dataset, IterableDataset
 
-from amber.datasets.text_dataset import TextDataset
-from amber.datasets.classification_dataset import ClassificationDataset
-from amber.datasets.loading_strategy import LoadingStrategy
-from amber.store.store import Store
+from mi_crow.datasets.text_dataset import TextDataset
+from mi_crow.datasets.classification_dataset import ClassificationDataset
+from mi_crow.datasets.loading_strategy import LoadingStrategy
+from mi_crow.store.store import Store
 
 
 def create_sample_dataset(

@@ -7,8 +7,8 @@ from unittest.mock import patch
 import pytest
 from datasets import Dataset, IterableDataset
 
-from amber.datasets.classification_dataset import ClassificationDataset
-from amber.datasets.loading_strategy import LoadingStrategy
+from mi_crow.datasets.classification_dataset import ClassificationDataset
+from mi_crow.datasets.loading_strategy import LoadingStrategy
 from tests.unit.fixtures.stores import create_temp_store
 
 
@@ -307,7 +307,7 @@ class TestClassificationDatasetFactoryMethods:
 
     def test_from_huggingface_success(self, temp_store):
         """Test from_huggingface factory method."""
-        with patch("amber.datasets.classification_dataset.load_dataset") as mock_load:
+        with patch("mi_crow.datasets.classification_dataset.load_dataset") as mock_load:
             mock_ds = Dataset.from_dict({"text": ["a", "b"], "category": ["x", "y"]})
             mock_load.return_value = mock_ds
 
@@ -318,7 +318,7 @@ class TestClassificationDatasetFactoryMethods:
 
     def test_from_huggingface_with_filters(self, temp_store):
         """Test from_huggingface with filters."""
-        with patch("amber.datasets.classification_dataset.load_dataset") as mock_load:
+        with patch("mi_crow.datasets.classification_dataset.load_dataset") as mock_load:
             mock_ds = Dataset.from_dict({"text": ["a", "b", "c"], "category": ["x", "y", "x"]})
             mock_load.return_value = mock_ds
 
@@ -328,7 +328,7 @@ class TestClassificationDatasetFactoryMethods:
 
     def test_from_huggingface_with_limit(self, temp_store):
         """Test from_huggingface with limit."""
-        with patch("amber.datasets.classification_dataset.load_dataset") as mock_load:
+        with patch("mi_crow.datasets.classification_dataset.load_dataset") as mock_load:
             mock_ds = Dataset.from_dict(
                 {"text": [f"text_{i}" for i in range(10)], "category": [f"cat_{i}" for i in range(10)]}
             )
@@ -339,7 +339,7 @@ class TestClassificationDatasetFactoryMethods:
 
     def test_from_huggingface_invalid_limit_raises_error(self, temp_store):
         """Test that invalid limit raises ValueError."""
-        with patch("amber.datasets.classification_dataset.load_dataset") as mock_load:
+        with patch("mi_crow.datasets.classification_dataset.load_dataset") as mock_load:
             mock_ds = Dataset.from_dict({"text": ["a"], "category": ["b"]})
             mock_load.return_value = mock_ds
 

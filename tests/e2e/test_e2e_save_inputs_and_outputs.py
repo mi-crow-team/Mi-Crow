@@ -11,9 +11,9 @@ import tempfile
 import shutil
 from datetime import datetime
 
-from amber.hooks import ModelInputDetector, ModelOutputDetector
-from amber.language_model.language_model import LanguageModel
-from amber.store.local_store import LocalStore
+from mi_crow.hooks import ModelInputDetector, ModelOutputDetector
+from mi_crow.language_model.language_model import LanguageModel
+from mi_crow.store.local_store import LocalStore
 
 
 @pytest.fixture

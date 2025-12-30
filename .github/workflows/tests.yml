@@ -34,9 +34,9 @@ jobs:
 
       - name: Verify package installation
         run: |
-          python -c "import amber; print('✓ amber package found')"
-          python -c "import amber.store; print('✓ amber.store package found')"
-          python -c "from amber.store.store import Store; print('✓ Store import successful')"
+          python -c "import mi_crow; print('✓ mi_crow package found')"
+          python -c "import mi_crow.store; print('✓ mi_crow.store package found')"
+          python -c "from mi_crow.store.store import Store; print('✓ Store import successful')"
 
       - name: Run tests with coverage threshold
         run: |

@@ -3,8 +3,8 @@
 import pytest
 from unittest.mock import Mock, MagicMock, patch
 
-from amber.language_model.tokenizer import LanguageModelTokenizer
-from amber.language_model.context import LanguageModelContext
+from mi_crow.language_model.tokenizer import LanguageModelTokenizer
+from mi_crow.language_model.context import LanguageModelContext
 from tests.unit.fixtures import create_mock_tokenizer
 
 

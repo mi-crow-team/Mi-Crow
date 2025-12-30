@@ -1,8 +1,8 @@
 import pytest
 from datasets import Dataset
 
-from amber.datasets.base_dataset import BaseDataset
-from amber.datasets.loading_strategy import LoadingStrategy
+from mi_crow.datasets.base_dataset import BaseDataset
+from mi_crow.datasets.loading_strategy import LoadingStrategy
 from tests.unit.fixtures.stores import create_temp_store
 
 

@@ -3,9 +3,9 @@ from __future__ import annotations
 from functools import lru_cache
 from fastapi import Depends, Header, HTTPException, status
 
-from amber.hooks.implementations.layer_activation_detector import LayerActivationDetector
-from amber.hooks.implementations.model_input_detector import ModelInputDetector
-from amber.hooks.implementations.model_output_detector import ModelOutputDetector
+from mi_crow.hooks.implementations.layer_activation_detector import LayerActivationDetector
+from mi_crow.hooks.implementations.model_input_detector import ModelInputDetector
+from mi_crow.hooks.implementations.model_output_detector import ModelOutputDetector
 from server.hooks import NeuronMultiplierController
 
 from server.config import Settings

@@ -4,8 +4,8 @@ import pytest
 from unittest.mock import patch, MagicMock
 from torch import nn
 
-from amber.language_model.initialization import initialize_model_id, create_from_huggingface, create_from_local_torch
-from amber.language_model.language_model import LanguageModel
+from mi_crow.language_model.initialization import initialize_model_id, create_from_huggingface, create_from_local_torch
+from mi_crow.language_model.language_model import LanguageModel
 from tests.unit.fixtures.stores import create_temp_store
 
 
@@ -31,8 +31,8 @@ class TestCreateFromHuggingface:
 
     def test_create_from_huggingface_success(self, temp_store):
         """Test creating LanguageModel from HuggingFace."""
-        with patch("amber.language_model.initialization.AutoTokenizer") as mock_tokenizer_class, \
-             patch("amber.language_model.initialization.AutoModelForCausalLM") as mock_model_class:
+        with patch("mi_crow.language_model.initialization.AutoTokenizer") as mock_tokenizer_class, \
+             patch("mi_crow.language_model.initialization.AutoModelForCausalLM") as mock_model_class:
             
             mock_tokenizer = MagicMock()
             mock_model = MagicMock()
@@ -55,8 +55,8 @@ class TestCreateFromHuggingface:
 
     def test_create_from_huggingface_with_params(self, temp_store):
         """Test creating with tokenizer and model parameters."""
-        with patch("amber.language_model.initialization.AutoTokenizer") as mock_tokenizer_class, \
-             patch("amber.language_model.initialization.AutoModelForCausalLM") as mock_model_class:
+        with patch("mi_crow.language_model.initialization.AutoTokenizer") as mock_tokenizer_class, \
+             patch("mi_crow.language_model.initialization.AutoModelForCausalLM") as mock_model_class:
             
             mock_tokenizer = MagicMock()
             mock_model = MagicMock()
@@ -95,7 +95,7 @@ class TestCreateFromHuggingface:
 
     def test_create_from_huggingface_load_failure_raises_error(self, temp_store):
         """Test that load failure raises RuntimeError."""
-        with patch("amber.language_model.initialization.AutoTokenizer") as mock_tokenizer_class:
+        with patch("mi_crow.language_model.initialization.AutoTokenizer") as mock_tokenizer_class:
             mock_tokenizer_class.from_pretrained.side_effect = Exception("Network error")
             
             with pytest.raises(RuntimeError, match="Failed to load model"):
@@ -113,8 +113,8 @@ class TestCreateFromLocalTorch:
         model_path.mkdir()
         tokenizer_path.mkdir()
         
-        with patch("amber.language_model.initialization.AutoTokenizer") as mock_tokenizer_class, \
-             patch("amber.language_model.initialization.AutoModelForCausalLM") as mock_model_class:
+        with patch("mi_crow.language_model.initialization.AutoTokenizer") as mock_tokenizer_class, \
+             patch("mi_crow.language_model.initialization.AutoModelForCausalLM") as mock_model_class:
             
             mock_tokenizer = MagicMock()
             mock_model = MagicMock()
@@ -155,7 +155,7 @@ class TestCreateFromLocalTorch:
         tokenizer_path = tmp_path / "tokenizer"
         model_path.mkdir()
         tokenizer_path.mkdir()
-        with patch("amber.language_model.initialization.AutoTokenizer") as mock_tokenizer_class:
+        with patch("mi_crow.language_model.initialization.AutoTokenizer") as mock_tokenizer_class:
             mock_tokenizer_class.from_pretrained.side_effect = Exception("boom")
             with pytest.raises(RuntimeError):
                 create_from_local_torch(LanguageModel, str(model_path), str(tokenizer_path), temp_store)

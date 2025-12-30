@@ -8,9 +8,9 @@ import pytest
 import torch
 from typing import Any
 
-from amber.language_model.language_model import LanguageModel
-from amber.hooks import Controller, HookType
-from amber.store.local_store import LocalStore
+from mi_crow.language_model.language_model import LanguageModel
+from mi_crow.hooks import Controller, HookType
+from mi_crow.store.local_store import LocalStore
 
 
 class SimpleActivationController(Controller):

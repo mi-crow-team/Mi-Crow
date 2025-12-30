@@ -21,8 +21,8 @@ from server.schemas import (
 )
 from server.storage import concepts_dir
 from server.utils import SAERegistry, generate_id, write_json
-from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary
-from amber.mechanistic.sae.sae import Sae
+from mi_crow.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary
+from mi_crow.mechanistic.sae.sae import Sae
 
 logger = logging.getLogger(__name__)
 

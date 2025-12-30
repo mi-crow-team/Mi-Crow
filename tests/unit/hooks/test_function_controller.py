@@ -4,8 +4,8 @@ import pytest
 import torch
 from torch import nn
 
-from amber.hooks.implementations.function_controller import FunctionController
-from amber.hooks.hook import HookType
+from mi_crow.hooks.implementations.function_controller import FunctionController
+from mi_crow.hooks.hook import HookType
 
 
 class TestFunctionControllerInitialization:

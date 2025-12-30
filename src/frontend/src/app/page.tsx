@@ -26,7 +26,7 @@ export default function Page() {
 
   return (
     <div className="space-y-6">
-      <SectionTitle>Amber SAE Studio</SectionTitle>
+      <SectionTitle>mi_crow SAE Studio</SectionTitle>
       
       <Card className="space-y-3">
         <p className="text-sm text-slate-600">
@@ -39,7 +39,7 @@ export default function Page() {
             <Input
               value={storePath}
               onChange={(e) => setPendingPath(e.target.value)}
-              placeholder="/path/to/amber_store"
+              placeholder="/path/to/mi_crow_store"
             />
             <Button onClick={handleSavePath}>Save</Button>
           </div>

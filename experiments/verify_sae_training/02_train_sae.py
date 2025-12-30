@@ -1,10 +1,10 @@
 import torch
 from pathlib import Path
 
-from amber.language_model.language_model import LanguageModel
-from amber.mechanistic.sae.modules.topk_sae import TopKSae, TopKSaeTrainingConfig
-from amber.store.local_store import LocalStore
-from amber.utils import get_logger
+from mi_crow.language_model.language_model import LanguageModel
+from mi_crow.mechanistic.sae.modules.topk_sae import TopKSae, TopKSaeTrainingConfig
+from mi_crow.store.local_store import LocalStore
+from mi_crow.utils import get_logger
 
 logger = get_logger(__name__)
 
@@ -122,7 +122,7 @@ def main():
     )
 
     logger.info("📦 Checking dataloader...")
-    from amber.store.store_dataloader import StoreDataloader
+    from mi_crow.store.store_dataloader import StoreDataloader
     test_dataloader = StoreDataloader(
         store=store,
         run_id=RUN_ID,

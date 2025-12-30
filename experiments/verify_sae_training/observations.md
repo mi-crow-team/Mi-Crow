@@ -6,7 +6,7 @@ This document tracks core functionality that is missing from the library and wou
 
 **Status**: Not Implemented
 
-**Location**: `src/amber/mechanistic/sae/concepts/concept_dictionary.py`
+**Location**: `src/mi_crow/mechanistic/sae/concepts/concept_dictionary.py`
 
 **Issue**: The `ConceptDictionary._generate_concept_names_llm()` method raises `NotImplementedError`. The method signature exists but requires implementation of LLM provider integration.
 
@@ -34,7 +34,7 @@ This document tracks core functionality that is missing from the library and wou
 - Use external plotting libraries (matplotlib, seaborn, plotly)
 
 **Recommended Implementation**:
-- Add `amber.mechanistic.sae.visualization` module
+- Add `mi_crow.mechanistic.sae.visualization` module
 - Provide functions like `plot_training_history()`, `plot_sparsity_metrics()`, etc.
 - Support multiple backends (matplotlib, plotly)
 
@@ -63,7 +63,7 @@ This document tracks core functionality that is missing from the library and wou
 
 **Status**: Partially Available
 
-**Location**: `src/amber/mechanistic/sae/modules/topk_sae.py`
+**Location**: `src/mi_crow/mechanistic/sae/modules/topk_sae.py`
 
 **Issue**: Accessing encoder/decoder weights requires accessing internal `sae_engine.state_dict()` which may have different key names depending on the underlying overcomplete implementation.
 
@@ -81,7 +81,7 @@ This document tracks core functionality that is missing from the library and wou
 
 **Status**: Available but Limited
 
-**Location**: `src/amber/mechanistic/sae/concepts/concept_dictionary.py`
+**Location**: `src/mi_crow/mechanistic/sae/concepts/concept_dictionary.py`
 
 **Issue**: Concept dictionary supports JSON and CSV formats, but could benefit from more formats and better integration.
 
@@ -119,7 +119,7 @@ This document tracks core functionality that is missing from the library and wou
 
 **Status**: Partial (WandB only)
 
-**Location**: `src/amber/mechanistic/sae/sae_trainer.py`
+**Location**: `src/mi_crow/mechanistic/sae/sae_trainer.py`
 
 **Issue**: Only WandB integration exists. No support for other experiment tracking tools (MLflow, TensorBoard, etc.).
 

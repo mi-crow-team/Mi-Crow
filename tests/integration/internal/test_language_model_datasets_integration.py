@@ -37,7 +37,7 @@ class TestLanguageModelDatasetsIntegration:
 
     def test_streaming_dataset_with_inference(self, temp_store):
         """Test streaming dataset with inference."""
-        from amber.datasets.loading_strategy import LoadingStrategy
+        from mi_crow.datasets.loading_strategy import LoadingStrategy
         
         lm = create_language_model_from_mock(temp_store)
         dataset = create_text_dataset(

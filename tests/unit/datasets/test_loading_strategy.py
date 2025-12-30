@@ -2,7 +2,7 @@
 
 import pytest
 
-from amber.datasets.loading_strategy import LoadingStrategy
+from mi_crow.datasets.loading_strategy import LoadingStrategy
 
 
 def test_loading_strategy_enum_values():

@@ -1,4 +1,4 @@
-"""Comprehensive tests for amber.utils module."""
+"""Comprehensive tests for mi_crow.utils module."""
 
 import logging
 import os
@@ -6,7 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from amber import utils
+from mi_crow import utils
 
 
 class TestSetSeed:
@@ -130,7 +130,7 @@ class TestGetLogger:
 
     def test_get_logger_creates_new_logger(self):
         """Test that get_logger creates a new logger with correct name."""
-        name = "amber-test-new-logger"
+        name = "mi_crow-test-new-logger"
         logger = utils.get_logger(name)
         
         assert logger.name == name
@@ -139,7 +139,7 @@ class TestGetLogger:
 
     def test_get_logger_idempotent_handlers(self):
         """Test that get_logger is idempotent for handlers."""
-        name = "amber-test-logger"
+        name = "mi_crow-test-logger"
         logger = utils.get_logger(name, level=logging.DEBUG)
         handler_count = len(logger.handlers)
 
@@ -158,7 +158,7 @@ class TestGetLogger:
     ])
     def test_get_logger_with_int_level(self, level):
         """Test get_logger with integer log levels."""
-        name = f"amber-test-{level}"
+        name = f"mi_crow-test-{level}"
         logger = utils.get_logger(name, level=level)
         
         assert logger.level == level
@@ -172,28 +172,28 @@ class TestGetLogger:
     ])
     def test_get_logger_with_string_level(self, level_str, expected):
         """Test get_logger with string log levels (uppercase)."""
-        name = f"amber-test-{level_str}"
+        name = f"mi_crow-test-{level_str}"
         logger = utils.get_logger(name, level=level_str)
         
         assert logger.level == expected
 
     def test_get_logger_with_lowercase_string_level_raises_error(self):
         """Test that lowercase string levels raise ValueError (current behavior)."""
-        name = "amber-test-lowercase"
+        name = "mi_crow-test-lowercase"
         # getLevelName("debug") returns "Level debug" which is invalid
         with pytest.raises(ValueError, match="Unknown level"):
             utils.get_logger(name, level="debug")
 
     def test_get_logger_sets_propagation(self):
         """Test that get_logger sets propagate=True."""
-        name = "amber-test-propagate"
+        name = "mi_crow-test-propagate"
         logger = utils.get_logger(name)
         
         assert logger.propagate is True
 
     def test_get_logger_creates_handler_on_first_call(self):
         """Test that handler is created on first call."""
-        name = "amber-test-handler-creation"
+        name = "mi_crow-test-handler-creation"
         logger = utils.get_logger(name)
         
         assert len(logger.handlers) == 1
@@ -201,7 +201,7 @@ class TestGetLogger:
 
     def test_get_logger_handler_has_formatter(self):
         """Test that handler has correct formatter."""
-        name = "amber-test-formatter"
+        name = "mi_crow-test-formatter"
         logger = utils.get_logger(name)
         
         handler = logger.handlers[0]
@@ -210,7 +210,7 @@ class TestGetLogger:
 
     def test_get_logger_formatter_format(self):
         """Test that formatter has correct format."""
-        name = "amber-test-format"
+        name = "mi_crow-test-format"
         logger = utils.get_logger(name)
         
         handler = logger.handlers[0]
@@ -222,7 +222,7 @@ class TestGetLogger:
 
     def test_get_logger_multiple_calls_same_name(self):
         """Test that multiple calls with same name return same logger."""
-        name = "amber-test-same"
+        name = "mi_crow-test-same"
         logger1 = utils.get_logger(name)
         logger2 = utils.get_logger(name)
         logger3 = utils.get_logger(name)
@@ -232,15 +232,15 @@ class TestGetLogger:
 
     def test_get_logger_different_names_different_loggers(self):
         """Test that different names create different loggers."""
-        logger1 = utils.get_logger("amber-test-1")
-        logger2 = utils.get_logger("amber-test-2")
+        logger1 = utils.get_logger("mi_crow-test-1")
+        logger2 = utils.get_logger("mi_crow-test-2")
         
         assert logger1 is not logger2
         assert logger1.name != logger2.name
 
     def test_get_logger_does_not_add_duplicate_handlers(self):
         """Test that calling get_logger multiple times doesn't add duplicate handlers."""
-        name = "amber-test-no-duplicates"
+        name = "mi_crow-test-no-duplicates"
         logger = utils.get_logger(name)
         initial_handler_count = len(logger.handlers)
         
@@ -253,7 +253,7 @@ class TestGetLogger:
 
     def test_get_logger_preserves_existing_handlers(self):
         """Test that get_logger preserves existing handlers."""
-        name = "amber-test-preserve"
+        name = "mi_crow-test-preserve"
         logger = logging.getLogger(name)
         custom_handler = logging.StreamHandler()
         logger.addHandler(custom_handler)
@@ -268,7 +268,7 @@ class TestGetLogger:
 
     def test_get_logger_ensures_propagation_even_with_existing_handler(self):
         """Test that get_logger ensures propagation even if handler exists."""
-        name = "amber-test-propagation"
+        name = "mi_crow-test-propagation"
         logger = logging.getLogger(name)
         logger.propagate = False
         logger.addHandler(logging.StreamHandler())
@@ -279,21 +279,21 @@ class TestGetLogger:
 
     def test_get_logger_with_invalid_string_level_raises_error(self):
         """Test that invalid string level raises ValueError."""
-        name = "amber-test-invalid-level"
+        name = "mi_crow-test-invalid-level"
         # getLevelName("INVALID_LEVEL") returns "Level INVALID_LEVEL" which is invalid
         with pytest.raises(ValueError, match="Unknown level"):
             utils.get_logger(name, level="INVALID_LEVEL")
 
     def test_get_logger_default_level_is_info(self):
         """Test that default level is INFO when not specified."""
-        name = "amber-test-default"
+        name = "mi_crow-test-default"
         logger = utils.get_logger(name)
         
         assert logger.level == logging.INFO
 
     def test_get_logger_returns_same_logger_different_levels(self):
         """Test that same logger is returned even with different level on second call."""
-        name = "amber-test-level-change"
+        name = "mi_crow-test-level-change"
         logger1 = utils.get_logger(name, level=logging.DEBUG)
         logger2 = utils.get_logger(name, level=logging.WARNING)
         

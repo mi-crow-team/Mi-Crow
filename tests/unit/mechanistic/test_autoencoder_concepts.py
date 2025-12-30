@@ -5,9 +5,9 @@ from unittest.mock import Mock
 import pytest
 import torch
 
-from amber.mechanistic.sae.autoencoder_context import AutoencoderContext
-from amber.mechanistic.sae.concepts.autoencoder_concepts import AutoencoderConcepts
-from amber.mechanistic.sae.concepts.concept_models import NeuronText
+from mi_crow.mechanistic.sae.autoencoder_context import AutoencoderContext
+from mi_crow.mechanistic.sae.concepts.autoencoder_concepts import AutoencoderConcepts
+from mi_crow.mechanistic.sae.concepts.concept_models import NeuronText
 
 
 class DummyAutoencoder:
@@ -194,7 +194,7 @@ def test_generate_concepts_with_stub(monkeypatch):
         return stub_dict
 
     monkeypatch.setattr(
-        "amber.mechanistic.sae.concepts.concept_dictionary.ConceptDictionary.from_llm",
+        "mi_crow.mechanistic.sae.concepts.concept_dictionary.ConceptDictionary.from_llm",
         staticmethod(lambda **kwargs: stub_dict),
     )
 

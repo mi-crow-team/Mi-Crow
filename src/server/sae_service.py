@@ -39,7 +39,7 @@ from server.services.concept_service import ConceptService
 from server.services.sae_training_service import SAETrainingService
 from server.storage import top_texts_dir
 from server.utils import SAERegistry, generate_id, resolve_sae_path, write_json
-from amber.mechanistic.sae.sae import Sae
+from mi_crow.mechanistic.sae.sae import Sae
 
 logger = logging.getLogger(__name__)
 

@@ -4,8 +4,8 @@ from unittest.mock import patch
 
 import pytest
 
-from amber.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary, Concept
-from amber.mechanistic.sae.concepts.concept_models import NeuronText
+from mi_crow.mechanistic.sae.concepts.concept_dictionary import ConceptDictionary, Concept
+from mi_crow.mechanistic.sae.concepts.concept_models import NeuronText
 
 
 def test_add_and_get_enforce_bounds():

@@ -3,11 +3,11 @@
 import pytest
 from unittest.mock import Mock, MagicMock
 
-from amber.language_model.layers import LanguageModelLayers
-from amber.language_model.context import LanguageModelContext
-from amber.hooks import HookType
-from amber.hooks.detector import Detector
-from amber.hooks.controller import Controller
+from mi_crow.language_model.layers import LanguageModelLayers
+from mi_crow.language_model.context import LanguageModelContext
+from mi_crow.hooks import HookType
+from mi_crow.hooks.detector import Detector
+from mi_crow.hooks.controller import Controller
 from tests.unit.fixtures import create_language_model, create_mock_detector, create_mock_controller
 
 
@@ -78,9 +78,9 @@ class TestLanguageModelLayersAdditional:
 
     def test_validate_hook_registration_dual_inheritance_with_detector(self, mock_language_model):
         """Test that dual-inheritance hook can be registered with existing Detector."""
-        from amber.hooks.controller import Controller
-        from amber.hooks.detector import Detector
-        from amber.hooks.hook import HookType
+        from mi_crow.hooks.controller import Controller
+        from mi_crow.hooks.detector import Detector
+        from mi_crow.hooks.hook import HookType
         
         # Create a dual-inheritance hook
         class DualHook(Controller, Detector):
@@ -104,8 +104,8 @@ class TestLanguageModelLayersAdditional:
 
     def test_validate_hook_registration_dual_inheritance_with_controller(self, mock_language_model):
         """Test that dual-inheritance hook can be registered with existing Controller."""
-        from amber.hooks.controller import Controller
-        from amber.hooks.detector import Detector
+        from mi_crow.hooks.controller import Controller
+        from mi_crow.hooks.detector import Detector
         
         class DualHook(Controller, Detector):
             def __init__(self, hook_id):
@@ -128,8 +128,8 @@ class TestLanguageModelLayersAdditional:
 
     def test_validate_hook_registration_dual_inheritance_with_dual_hook(self, mock_language_model):
         """Test that dual-inheritance hook can be registered with existing dual hook."""
-        from amber.hooks.controller import Controller
-        from amber.hooks.detector import Detector
+        from mi_crow.hooks.controller import Controller
+        from mi_crow.hooks.detector import Detector
         
         class DualHook(Controller, Detector):
             def __init__(self, hook_id):
@@ -152,8 +152,8 @@ class TestLanguageModelLayersAdditional:
 
     def test_get_existing_hook_types_dual_inheritance(self, mock_language_model):
         """Test getting existing hook types when dual-inheritance hook is registered."""
-        from amber.hooks.controller import Controller
-        from amber.hooks.detector import Detector
+        from mi_crow.hooks.controller import Controller
+        from mi_crow.hooks.detector import Detector
         
         class DualHook(Controller, Detector):
             def __init__(self, hook_id):
@@ -176,8 +176,8 @@ class TestLanguageModelLayersAdditional:
 
     def test_validate_hook_registration_single_type_with_dual_hook_allowed(self, mock_language_model):
         """Test that single-type hook can be registered with dual hook (they're compatible)."""
-        from amber.hooks.controller import Controller
-        from amber.hooks.detector import Detector
+        from mi_crow.hooks.controller import Controller
+        from mi_crow.hooks.detector import Detector
         
         class DualHook(Controller, Detector):
             def __init__(self, hook_id):

@@ -5,12 +5,12 @@ from __future__ import annotations
 from typing import Optional, Callable
 import torch
 
-from amber.hooks.detector import Detector
-from amber.hooks.controller import Controller
-from amber.hooks.hook import HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
-from amber.hooks.implementations.layer_activation_detector import LayerActivationDetector
-from amber.hooks.implementations.function_controller import FunctionController
-from amber.store.store import Store
+from mi_crow.hooks.detector import Detector
+from mi_crow.hooks.controller import Controller
+from mi_crow.hooks.hook import HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
+from mi_crow.hooks.implementations.layer_activation_detector import LayerActivationDetector
+from mi_crow.hooks.implementations.function_controller import FunctionController
+from mi_crow.store.store import Store
 
 
 class MockDetector(Detector):

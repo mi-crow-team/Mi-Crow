@@ -18,8 +18,8 @@ overcomplete_module.sae = overcomplete_sae_module
 sys.modules['overcomplete'] = overcomplete_module
 sys.modules['overcomplete.sae'] = overcomplete_sae_module
 
-from amber.hooks.hook import HookType
-from amber.mechanistic.sae.modules.topk_sae import TopKSae
+from mi_crow.hooks.hook import HookType
+from mi_crow.mechanistic.sae.modules.topk_sae import TopKSae
 from tests.unit.fixtures.stores import create_temp_store
 
 

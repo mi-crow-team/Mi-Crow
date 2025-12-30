@@ -40,8 +40,8 @@ export function InferenceRunCard({
   };
 
   return (
-    <Card className="space-y-4 border-2 border-amber-200 bg-amber-50/50">
-      <div className="flex items-center justify-between border-b border-amber-200 pb-2">
+    <Card className="space-y-4 border-2 border-mi_crow-200 bg-mi_crow-50/50">
+      <div className="flex items-center justify-between border-b border-mi_crow-200 pb-2">
         <div>
           <h3 className="font-semibold text-slate-900">Run #{runNumber}</h3>
           <div className="text-xs text-slate-600">{formatTimestamp(timestamp)}</div>
@@ -158,7 +158,7 @@ export function InferenceRunCard({
         <Card className="bg-white">
           <div className="text-sm text-slate-700">
             Top texts saved at:{" "}
-            <a href={top_texts_path} className="text-amber-600 hover:underline">
+            <a href={top_texts_path} className="text-mi_crow-600 hover:underline">
               {top_texts_path}
             </a>
           </div>

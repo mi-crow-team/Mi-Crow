@@ -11,7 +11,7 @@ export function RunHistorySidebar<T>({ title, items, emptyMessage, renderItem }:
   return (
     <div className="space-y-2 text-sm h-full">
       <div className="flex items-center justify-between">
-        <div className="text-xs font-semibold uppercase tracking-wide text-amber-600">History</div>
+        <div className="text-xs font-semibold uppercase tracking-wide text-mi_crow-600">History</div>
         <div className="text-xs text-slate-500">{title}</div>
       </div>
       {items.length === 0 ? (

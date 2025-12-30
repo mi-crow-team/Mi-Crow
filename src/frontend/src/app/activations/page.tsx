@@ -456,7 +456,7 @@ export default function ActivationsPage() {
                 className={`px-2 py-0.5 rounded text-xs font-medium ${
                   isCompleted
                     ? "bg-green-100 text-green-700"
-                    : "bg-amber-100 text-amber-700"
+                    : "bg-mi_crow-100 text-mi_crow-700"
                 }`}
               >
                 {isCompleted ? "✓ Done" : "⏳ In Progress"}
@@ -514,7 +514,7 @@ export default function ActivationsPage() {
                 className={`px-2 py-1 rounded text-xs font-medium ${
                   selectedRun.status === "done" || selectedRun.status === "completed" || selectedRun.samples
                     ? "bg-green-100 text-green-700 border border-green-300"
-                    : "bg-amber-100 text-amber-700 border border-amber-300"
+                    : "bg-mi_crow-100 text-mi_crow-700 border border-mi_crow-300"
                 }`}
               >
                 {selectedRun.status === "done" || selectedRun.status === "completed" || selectedRun.samples

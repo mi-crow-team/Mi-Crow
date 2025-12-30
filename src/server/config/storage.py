@@ -7,7 +7,7 @@ from functools import lru_cache
 
 def get_config_file_path() -> Path:
     """Get the path to the server config file."""
-    return Path.home() / ".config" / "amber_server" / "config.json"
+    return Path.home() / ".config" / "mi_crow_server" / "config.json"
 
 
 class ConfigManager:
@@ -41,7 +41,7 @@ class ConfigManager:
         saved_path = self.load_artifact_path()
         if saved_path is not None:
             return saved_path
-        return Path.home() / ".cache" / "amber_server"
+        return Path.home() / ".cache" / "mi_crow_server"
 
 
 @lru_cache

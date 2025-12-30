@@ -83,7 +83,7 @@ export function InferenceConfig({
               type="checkbox"
               checked={saveTopTexts}
               onChange={(e) => setSaveTopTexts(e.target.checked)}
-              className="rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+              className="rounded border-slate-300 text-mi_crow-600 focus:ring-mi_crow-500"
             />
             Save top texts
           </label>
@@ -92,7 +92,7 @@ export function InferenceConfig({
               type="checkbox"
               checked={trackTexts}
               onChange={(e) => setTrackTexts(e.target.checked)}
-              className="rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+              className="rounded border-slate-300 text-mi_crow-600 focus:ring-mi_crow-500"
             />
             Track texts
           </label>
@@ -101,7 +101,7 @@ export function InferenceConfig({
               type="checkbox"
               checked={returnTokenLatents}
               onChange={(e) => setReturnTokenLatents(e.target.checked)}
-              className="rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+              className="rounded border-slate-300 text-mi_crow-600 focus:ring-mi_crow-500"
             />
             Return token latents
           </label>

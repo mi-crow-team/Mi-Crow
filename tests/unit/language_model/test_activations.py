@@ -5,8 +5,8 @@ from unittest.mock import Mock, patch
 import pytest
 import torch
 
-from amber.hooks.implementations.layer_activation_detector import LayerActivationDetector
-from amber.language_model.activations import LanguageModelActivations
+from mi_crow.hooks.implementations.layer_activation_detector import LayerActivationDetector
+from mi_crow.language_model.activations import LanguageModelActivations
 from tests.unit.fixtures import (
     create_sample_dataset,
 )
@@ -113,7 +113,7 @@ class TestLanguageModelActivations:
 
     def test_extract_dataset_info_with_dataset(self, mock_language_model):
         """Test extracting dataset info when dataset is provided."""
-        from amber.language_model.inference import InferenceEngine
+        from mi_crow.language_model.inference import InferenceEngine
         
         engine = InferenceEngine(mock_language_model)
         dataset = create_sample_dataset()
@@ -126,7 +126,7 @@ class TestLanguageModelActivations:
 
     def test_extract_dataset_info_none(self, mock_language_model):
         """Test extracting dataset info when dataset is None."""
-        from amber.language_model.inference import InferenceEngine
+        from mi_crow.language_model.inference import InferenceEngine
         
         engine = InferenceEngine(mock_language_model)
         info = engine._extract_dataset_info(None)
@@ -135,7 +135,7 @@ class TestLanguageModelActivations:
 
     def test_extract_dataset_info_error_handling(self, mock_language_model):
         """Test extracting dataset info with error handling."""
-        from amber.language_model.inference import InferenceEngine
+        from mi_crow.language_model.inference import InferenceEngine
         
         engine = InferenceEngine(mock_language_model)
         dataset = Mock()
@@ -221,7 +221,7 @@ class TestLanguageModelActivations:
         """Test processing empty batch."""
         from datasets import Dataset
 
-        from amber.datasets import TextDataset
+        from mi_crow.datasets import TextDataset
 
         activations = LanguageModelActivations(mock_language_model.context)
         hf_dataset = Dataset.from_dict({"text": ["a"]})
@@ -234,7 +234,7 @@ class TestLanguageModelActivations:
         """Test processing batch with texts."""
         from datasets import Dataset
 
-        from amber.datasets import TextDataset
+        from mi_crow.datasets import TextDataset
 
         activations = LanguageModelActivations(mock_language_model.context)
         mock_language_model._inference_engine.execute_inference = Mock()
@@ -314,7 +314,7 @@ class TestLanguageModelActivations:
         """Test saving activations from dataset successfully."""
         from datasets import Dataset
 
-        from amber.datasets import TextDataset
+        from mi_crow.datasets import TextDataset
 
         activations = LanguageModelActivations(mock_language_model.context)
         # Create a proper TextDataset
@@ -341,7 +341,7 @@ class TestLanguageModelActivations:
         """Test saving activations when model is not initialized."""
         from datasets import Dataset
 
-        from amber.datasets import TextDataset
+        from mi_crow.datasets import TextDataset
 
         activations = LanguageModelActivations(mock_language_model.context)
         mock_language_model.context.model = None
@@ -434,7 +434,7 @@ class TestLanguageModelActivations:
         """Test saving activations when store is not set."""
         from datasets import Dataset
 
-        from amber.datasets import TextDataset
+        from mi_crow.datasets import TextDataset
 
         activations = LanguageModelActivations(mock_language_model.context)
         mock_language_model.context.store = None
@@ -448,7 +448,7 @@ class TestLanguageModelActivations:
         """Test saving activations with dtype conversion."""
         from datasets import Dataset
 
-        from amber.datasets import TextDataset
+        from mi_crow.datasets import TextDataset
 
         activations = LanguageModelActivations(mock_language_model.context)
         hf_dataset = Dataset.from_dict({"text": ["text1"]})
@@ -473,7 +473,7 @@ class TestLanguageModelActivations:
         """Test saving activations with max_length."""
         from datasets import Dataset
 
-        from amber.datasets import TextDataset
+        from mi_crow.datasets import TextDataset
 
         activations = LanguageModelActivations(mock_language_model.context)
         hf_dataset = Dataset.from_dict({"text": ["text1"]})
@@ -499,7 +499,7 @@ class TestLanguageModelActivations:
         """Test that detector is cleaned up even on error."""
         from datasets import Dataset
 
-        from amber.datasets import TextDataset
+        from mi_crow.datasets import TextDataset
 
         activations = LanguageModelActivations(mock_language_model.context)
         hf_dataset = Dataset.from_dict({"text": ["text1"]})
@@ -523,7 +523,7 @@ class TestLanguageModelActivations:
         """Test saving activations from dataset with multiple layers."""
         from datasets import Dataset
 
-        from amber.datasets import TextDataset
+        from mi_crow.datasets import TextDataset
 
         activations = LanguageModelActivations(mock_language_model.context)
         hf_dataset = Dataset.from_dict({"text": ["text1", "text2", "text3"]})

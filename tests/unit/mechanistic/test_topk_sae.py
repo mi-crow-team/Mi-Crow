@@ -3,8 +3,8 @@ from unittest.mock import MagicMock
 import pytest
 import torch
 
-from amber.hooks.hook import HookType
-from amber.mechanistic.sae.modules.topk_sae import TopKSae
+from mi_crow.hooks.hook import HookType
+from mi_crow.mechanistic.sae.modules.topk_sae import TopKSae
 
 
 class StubEngine:
@@ -91,7 +91,7 @@ def test_save_and_load(monkeypatch, tmp_path):
     def fake_save(payload, path):
         captured["payload"] = payload
 
-    monkeypatch.setattr("amber.mechanistic.sae.modules.topk_sae.torch.save", fake_save)
+    monkeypatch.setattr("mi_crow.mechanistic.sae.modules.topk_sae.torch.save", fake_save)
     sae = make_topk()
     sae.concepts.multiplication.data = torch.full((2,), 2.0)
     sae.save("model", path=tmp_path)
@@ -99,7 +99,7 @@ def test_save_and_load(monkeypatch, tmp_path):
 
     load_payload = {
         "sae_state_dict": {"weight": torch.ones(1)},
-        "amber_metadata": {
+        "mi_crow_metadata": {
             "n_latents": 2,
             "n_inputs": 2,
             "k": 1,
@@ -110,13 +110,13 @@ def test_save_and_load(monkeypatch, tmp_path):
             },
         },
     }
-    monkeypatch.setattr("amber.mechanistic.sae.modules.topk_sae.torch.load", lambda *args, **kwargs: load_payload)
+    monkeypatch.setattr("mi_crow.mechanistic.sae.modules.topk_sae.torch.load", lambda *args, **kwargs: load_payload)
     loaded = TopKSae.load(tmp_path / "model.pt")
     assert torch.equal(loaded.concepts.multiplication, torch.full((2,), 3.0))
 
 
 def test_load_missing_metadata_raises(monkeypatch, tmp_path):
-    monkeypatch.setattr("amber.mechanistic.sae.modules.topk_sae.torch.load", lambda *args, **kwargs: {})
+    monkeypatch.setattr("mi_crow.mechanistic.sae.modules.topk_sae.torch.load", lambda *args, **kwargs: {})
     with pytest.raises(ValueError):
         TopKSae.load(tmp_path / "missing.pt")
 

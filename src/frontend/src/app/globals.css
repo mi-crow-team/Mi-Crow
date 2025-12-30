@@ -7,32 +7,32 @@
 }
 
 body {
-  @apply bg-amber-50 text-slate-900 min-h-screen antialiased;
+  @apply bg-mi_crow-50 text-slate-900 min-h-screen antialiased;
 }
 
 a {
-  @apply text-amber-600 hover:text-amber-700;
+  @apply text-mi_crow-600 hover:text-mi_crow-700;
 }
 
 .card {
-  @apply bg-white border border-amber-100 rounded-2xl p-4 md:p-5 shadow-sm;
+  @apply bg-white border border-mi_crow-100 rounded-2xl p-4 md:p-5 shadow-sm;
 }
 
 .input {
-  @apply w-full rounded-xl border border-amber-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400
-  focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200;
+  @apply w-full rounded-xl border border-mi_crow-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400
+  focus:border-mi_crow-500 focus:outline-none focus:ring-2 focus:ring-mi_crow-200;
 }
 
 .btn {
   @apply inline-flex items-center justify-center rounded-full px-3.5 py-2 text-sm font-medium transition
-  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-300 focus:ring-offset-amber-50;
+  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-mi_crow-300 focus:ring-offset-mi_crow-50;
 }
 
 .btn-primary {
-  @apply bg-amber-500 hover:bg-amber-600 text-slate-900 shadow-sm;
+  @apply bg-mi_crow-500 hover:bg-mi_crow-600 text-slate-900 shadow-sm;
 }
 
 .btn-ghost {
-  @apply text-slate-700 hover:bg-amber-100;
+  @apply text-slate-700 hover:bg-mi_crow-100;
 }
 

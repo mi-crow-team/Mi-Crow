@@ -100,4 +100,4 @@ src/frontend/dist/
 src/frontend/build/
 src/frontend/.next/
 
-amber_server
+mi_crow_server

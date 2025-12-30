@@ -4,8 +4,8 @@ import time
 from typing import Dict, List, Sequence
 
 import torch
-from amber.hooks.hook import Hook
-from amber.language_model.utils import get_device_from_model, move_tensors_to_device
+from mi_crow.hooks.hook import Hook
+from mi_crow.language_model.utils import get_device_from_model, move_tensors_to_device
 
 from server.hook_factory import HookFactory
 from server.schemas import HookPayload, InferenceInput, InferenceOutput
