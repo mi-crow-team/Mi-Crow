@@ -368,7 +368,7 @@ class ClassificationDataset(BaseDataset):
         stratify_seed: Optional[int] = None,
         streaming: Optional[bool] = None,
         drop_na: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> "ClassificationDataset":
         """
         Load classification dataset from HuggingFace Hub.
@@ -459,7 +459,7 @@ class ClassificationDataset(BaseDataset):
         stratify_by: Optional[str] = None,
         stratify_seed: Optional[int] = None,
         drop_na: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> "ClassificationDataset":
         """
         Load classification dataset from CSV file.
@@ -519,7 +519,7 @@ class ClassificationDataset(BaseDataset):
         stratify_by: Optional[str] = None,
         stratify_seed: Optional[int] = None,
         drop_na: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> "ClassificationDataset":
         """
         Load classification dataset from JSON/JSONL file.

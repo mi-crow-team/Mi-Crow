@@ -233,7 +233,7 @@ class TextDataset(BaseDataset):
         stratify_seed: Optional[int] = None,
         streaming: Optional[bool] = None,
         drop_na: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> "TextDataset":
         """
         Load text dataset from HuggingFace Hub.
@@ -312,7 +312,7 @@ class TextDataset(BaseDataset):
         stratify_by: Optional[str] = None,
         stratify_seed: Optional[int] = None,
         drop_na: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> "TextDataset":
         """
         Load text dataset from CSV file.
@@ -365,7 +365,7 @@ class TextDataset(BaseDataset):
         stratify_by: Optional[str] = None,
         stratify_seed: Optional[int] = None,
         drop_na: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> "TextDataset":
         """
         Load text dataset from JSON/JSONL file.

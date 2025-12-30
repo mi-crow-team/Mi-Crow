@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from pathlib import Path
-from typing import Sequence, Any, Dict, List, TYPE_CHECKING, Set
+from typing import Sequence, Any, Dict, List, TYPE_CHECKING, Set, Tuple
 
 import torch
 from torch import nn, Tensor
@@ -134,7 +134,7 @@ class LanguageModel:
         """Set the store instance."""
         self.context.store = value
 
-    def tokenize(self, texts: Sequence[str], **kwargs: Any):
+    def tokenize(self, texts: Sequence[str], **kwargs: Any) -> Any:
         """
         Tokenize texts using the language model tokenizer.
         
@@ -154,7 +154,7 @@ class LanguageModel:
             autocast: bool = True,
             autocast_dtype: torch.dtype | None = None,
             with_controllers: bool = True,
-    ):
+    ) -> Tuple[Any, Any]:
         """
         Run forward pass on texts.
         
