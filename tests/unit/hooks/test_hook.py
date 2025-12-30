@@ -151,7 +151,9 @@ class TestHookGetTorchHook:
         assert result is None
 
     def test_torch_hook_handles_exceptions(self):
-        """Test that torch hook handles exceptions gracefully."""
+        """Test that torch hook raises HookError when hook function raises exception."""
+        from amber.hooks.hook import HookError
+        
         class FailingHook(ConcreteHook):
             def _hook_fn(self, module, input, output):
                 raise ValueError("Test error")
@@ -163,9 +165,12 @@ class TestHookGetTorchHook:
         input_tensor = torch.randn(2, 10)
         output_tensor = torch.randn(2, 5)
         
-        # Should not raise, but log warning
-        result = torch_hook(module, (input_tensor,), output_tensor)
-        assert result is None
+        # Should raise HookError wrapping the original exception
+        with pytest.raises(HookError) as exc_info:
+            torch_hook(module, (input_tensor,), output_tensor)
+        
+        assert exc_info.value.hook_id == hook.id
+        assert isinstance(exc_info.value.original_error, ValueError)
 
 
 class TestHookNormalizeHookType:
@@ -331,8 +336,10 @@ class TestHookPreForwardWrapper:
         assert result is not None
         assert isinstance(result, tuple)
 
-    def test_pre_forward_wrapper_handles_exceptions(self, caplog):
-        """Test that pre-forward wrapper handles exceptions gracefully."""
+    def test_pre_forward_wrapper_handles_exceptions(self):
+        """Test that pre-forward wrapper raises HookError when hook function raises exception."""
+        from amber.hooks.hook import HookError
+        
         class FailingHook(ConcreteHook):
             def _hook_fn(self, module, input, output):
                 raise ValueError("Test error")
@@ -343,10 +350,13 @@ class TestHookPreForwardWrapper:
         module = Mock()
         input_tuple = (Mock(),)
         
-        result = torch_hook(module, input_tuple)
+        with pytest.raises(HookError) as exc_info:
+            torch_hook(module, input_tuple)
         
-        assert result is None
-        assert "raised exception" in caplog.text.lower()
+        assert exc_info.value.hook_id == hook.id
+        assert exc_info.value.hook_type == "pre_forward"
+        assert isinstance(exc_info.value.original_error, ValueError)
+        assert "Test error" in str(exc_info.value.original_error)
 
 
 class TestHookForwardWrapper:
@@ -379,8 +389,10 @@ class TestHookForwardWrapper:
         
         assert result is None
 
-    def test_forward_wrapper_handles_exceptions(self, caplog):
-        """Test that forward wrapper handles exceptions gracefully."""
+    def test_forward_wrapper_handles_exceptions(self):
+        """Test that forward wrapper raises HookError when hook function raises exception."""
+        from amber.hooks.hook import HookError
+        
         class FailingHook(ConcreteHook):
             def _hook_fn(self, module, input, output):
                 raise ValueError("Test error")
@@ -392,10 +404,13 @@ class TestHookForwardWrapper:
         input_tuple = (Mock(),)
         output = Mock()
         
-        result = torch_hook(module, input_tuple, output)
+        with pytest.raises(HookError) as exc_info:
+            torch_hook(module, input_tuple, output)
         
-        assert result is None
-        assert "raised exception" in caplog.text.lower()
+        assert exc_info.value.hook_id == hook.id
+        assert exc_info.value.hook_type == "forward"
+        assert isinstance(exc_info.value.original_error, ValueError)
+        assert "Test error" in str(exc_info.value.original_error)
 
 
 class TestHookGetTorchHook:

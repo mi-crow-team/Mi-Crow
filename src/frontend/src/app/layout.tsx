@@ -7,8 +7,6 @@ const nav = [
   { href: "/activations", label: "Activations" },
   { href: "/training", label: "Training" },
   { href: "/inference", label: "Inference" },
-  { href: "/concepts", label: "Concepts" },
-  { href: "/ops", label: "Ops" },
 ];
 
 export default function RootLayout({ children }: { children: ReactNode }) {

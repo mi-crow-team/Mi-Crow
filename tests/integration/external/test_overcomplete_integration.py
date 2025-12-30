@@ -5,6 +5,8 @@ import tempfile
 from pathlib import Path
 import torch
 from unittest.mock import patch, MagicMock
+import sys
+import types
 
 from amber.mechanistic.sae.sae_trainer import SaeTrainer, SaeTrainingConfig
 from tests.unit.mechanistic.test_sae_base import ConcreteSae
@@ -14,17 +16,19 @@ from tests.unit.fixtures.stores import create_temp_store
 class TestOvercompleteIntegration:
     """Tests for overcomplete library integration."""
 
-    @patch('overcomplete.sae.train.train_sae')
-    @patch('overcomplete.sae.train.train_sae_amp')
-    def test_sae_trainer_with_overcomplete(self, mock_train_sae_amp, mock_train_sae):
+    def test_sae_trainer_with_overcomplete(self, monkeypatch):
         """Test SaeTrainer integration with overcomplete."""
         logs = {
             "avg_loss": [1.0, 0.5, 0.3],
             "r2": [0.1, 0.5, 0.7],
             "z": [[torch.ones(2, 2)]],
         }
-        mock_train_sae.return_value = logs
-        mock_train_sae_amp.return_value = logs
+        
+        # Mock the overcomplete.sae.train module
+        mock_train_module = types.SimpleNamespace()
+        mock_train_module.train_sae = MagicMock(return_value=logs)
+        mock_train_module.train_sae_amp = MagicMock(return_value=logs)
+        monkeypatch.setitem(sys.modules, "overcomplete.sae.train", mock_train_module)
         
         sae = ConcreteSae(n_latents=100, n_inputs=200)
         sae.sae_engine.parameters.return_value = [torch.nn.Parameter(torch.ones(1, requires_grad=True))]
@@ -38,13 +42,16 @@ class TestOvercompleteIntegration:
             }
             store.put_detector_metadata("run_1", 0, {}, tensor_metadata)
             
-            config = SaeTrainingConfig(use_wandb=False)
+            config = SaeTrainingConfig(use_wandb=False, use_amp=True)
             result = trainer.train(store, "run_1", "layer_0", config)
             
             assert "history" in result
             assert "training_run_id" in result
             assert result["history"]["loss"] == [1.0, 0.5, 0.3]
-            mock_train_sae_amp.assert_called_once()
+            mock_train_module.train_sae_amp.assert_called_once()
+        
+        # Cleanup
+        sys.modules.pop("overcomplete.sae.train", None)
 
     def test_overcomplete_unavailable_raises_error(self):
         """Test error handling when overcomplete is unavailable."""

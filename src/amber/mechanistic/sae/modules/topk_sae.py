@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -15,14 +16,31 @@ from amber.utils import get_logger
 logger = get_logger(__name__)
 
 
+@dataclass
 class TopKSaeTrainingConfig(SaeTrainingConfig):
     """Training configuration for TopK SAE models.
     
-    Extends SaeTrainingConfig with TopK-specific training parameters.
-    Currently, TopK SAE uses the same training parameters as the base SAE,
-    but this class provides a clear extension point for future TopK-specific options.
+    This class extends SaeTrainingConfig to provide a type-safe configuration
+    interface specifically for TopK SAE models. It adds the `k` parameter which
+    specifies how many top activations to keep during encoding.
+    
+    Args:
+        k: Number of top activations to keep (required for TopK SAE training)
+        All other parameters are inherited from SaeTrainingConfig.
+    
+    Attributes:
+        k: Number of top activations to keep during TopK encoding
+    
+    Example:
+        >>> config = TopKSaeTrainingConfig(
+        ...     k=10,
+        ...     epochs=100,
+        ...     batch_size=1024,
+        ...     lr=1e-3,
+        ...     l1_lambda=1e-4
+        ... )
     """
-    pass
+    k: int = 10
 
 
 class TopKSae(Sae):
@@ -30,17 +48,40 @@ class TopKSae(Sae):
             self,
             n_latents: int,
             n_inputs: int,
-            k: int,
             hook_id: str | None = None,
             device: str = 'cpu',
             store: Store | None = None,
             *args: Any,
             **kwargs: Any
     ) -> None:
-        self.k = k
+        """
+        Initialize TopK SAE.
+        
+        Args:
+            n_latents: Number of latent dimensions (concepts)
+            n_inputs: Number of input dimensions
+            hook_id: Optional hook identifier
+            device: Device to run on ('cpu', 'cuda', 'mps')
+            store: Optional store instance
+            
+        Note:
+            The `k` parameter must be provided in TopKSaeTrainingConfig during training.
+            For loaded models, `k` is restored from saved metadata.
+            A temporary default k=1 is used for engine initialization and will be
+            overridden with the actual k value from config during training.
+        """
+        # Set temporary default k for engine initialization (base class calls _initialize_sae_engine)
+        # This will be overridden with the actual k from config during training
+        self.k: int = 1
         super().__init__(n_latents, n_inputs, hook_id, device, store, *args, **kwargs)
 
     def _initialize_sae_engine(self) -> OvercompleteSAE:
+        """Initialize the SAE engine with the current k value.
+        
+        Note:
+            k should be set from TopKSaeTrainingConfig during training.
+            For loaded models, k is restored from saved metadata.
+        """
         return OvercompleteTopkSAE(
             input_shape=self.context.n_inputs,
             nb_concepts=self.context.n_latents,
@@ -100,19 +141,43 @@ class TopKSae(Sae):
         Train TopKSAE using activations from a Store.
         
         This method delegates to the SaeTrainer composite class.
+        If k is provided in the config and differs from the current k, the SAE engine
+        will be reinitialized with the config's k value.
         
         Args:
             store: Store instance containing activations
             run_id: Run ID to train on
-            config: Training configuration
+            config: Training configuration (must include k parameter)
+            training_run_id: Optional training run ID
             
         Returns:
             Dictionary with keys:
                 - "history": Training history dictionary
                 - "training_run_id": Training run ID where outputs were saved
+                
+        Raises:
+            ValueError: If config is None or config.k is not set
         """
         if config is None:
             config = TopKSaeTrainingConfig()
+        
+        # Ensure k is set in config
+        if not hasattr(config, 'k') or config.k is None:
+            raise ValueError(
+                "TopKSaeTrainingConfig must have k parameter set. "
+                "Example: TopKSaeTrainingConfig(k=10, epochs=100, ...)"
+            )
+        
+        # Set k from config and initialize/reinitialize the engine if needed
+        if self.k != config.k:
+            if self.k is None:
+                logger.info(f"Initializing SAE engine with k={config.k}")
+            else:
+                logger.info(f"Reinitializing SAE engine with k={config.k} (was k={self.k})")
+            self.k = config.k
+            # Initialize or reinitialize the SAE engine with k from config
+            self.sae_engine = self._initialize_sae_engine()
+        
         return self.trainer.train(store, run_id, layer_signature, config, training_run_id)
 
     def modify_activations(
@@ -333,9 +398,12 @@ class TopKSae(Sae):
         topk_sae = TopKSae(
             n_latents=n_latents,
             n_inputs=n_inputs,
-            k=k,
             device=device
         )
+        
+        # Set k from saved metadata and reinitialize engine with correct k
+        topk_sae.k = k
+        topk_sae.sae_engine = topk_sae._initialize_sae_engine()
 
         # Load overcomplete model state dict
         if "sae_state_dict" in payload:

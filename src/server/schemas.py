@@ -153,6 +153,11 @@ class TrainSAEResponse(BaseModel):
     status: str
 
 
+class LayerSizeInfo(BaseModel):
+    layer: str
+    hidden_dim: int
+
+
 class TrainStatusResponse(BaseModel):
     job_id: str
     status: str
@@ -229,6 +234,11 @@ class SAEInferenceResponse(BaseModel):
 class ConceptListResponse(BaseModel):
     base_path: str
     concepts: List[str] = Field(default_factory=list)
+
+
+class ConceptDictionaryResponse(BaseModel):
+    n_size: int
+    concepts: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
 
 
 class ConceptLoadRequest(BaseModel):

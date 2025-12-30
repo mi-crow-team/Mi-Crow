@@ -16,13 +16,13 @@ class ConcreteBaseDataset(BaseDataset):
     """Concrete implementation of BaseDataset for testing."""
 
     def __len__(self) -> int:
-        if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
-            raise NotImplementedError("len() not supported for ITERABLE_ONLY datasets")
+        if self._loading_strategy == LoadingStrategy.STREAMING:
+            raise NotImplementedError("len() not supported for STREAMING datasets")
         return self._ds.num_rows
 
     def __getitem__(self, idx):
-        if self._loading_strategy == LoadingStrategy.ITERABLE_ONLY:
-            raise NotImplementedError("Indexing not supported for ITERABLE_ONLY datasets")
+        if self._loading_strategy == LoadingStrategy.STREAMING:
+            raise NotImplementedError("Indexing not supported for STREAMING datasets")
         if isinstance(idx, int):
             return self._ds[idx]
         elif isinstance(idx, slice):
@@ -71,18 +71,18 @@ class TestBaseDatasetInitialization:
         assert len(dataset) == 3
 
     def test_init_with_dynamic_load_strategy(self, temp_store):
-        """Test initialization with DYNAMIC_LOAD strategy."""
+        """Test initialization with DISK strategy."""
         ds = Dataset.from_dict({"text": ["a", "b", "c"]})
-        dataset = ConcreteBaseDataset(ds, temp_store, LoadingStrategy.DYNAMIC_LOAD)
-        assert dataset._loading_strategy == LoadingStrategy.DYNAMIC_LOAD
+        dataset = ConcreteBaseDataset(ds, temp_store, LoadingStrategy.DISK)
+        assert dataset._loading_strategy == LoadingStrategy.DISK
         assert not dataset._is_iterable
         assert len(dataset) == 3
 
     def test_init_with_iterable_only_strategy(self, temp_store):
-        """Test initialization with ITERABLE_ONLY strategy."""
+        """Test initialization with STREAMING strategy."""
         iter_ds = IterableDataset.from_generator(lambda: iter([{"text": "a"}]))
-        dataset = ConcreteBaseDataset(iter_ds, temp_store, LoadingStrategy.ITERABLE_ONLY)
-        assert dataset._loading_strategy == LoadingStrategy.ITERABLE_ONLY
+        dataset = ConcreteBaseDataset(iter_ds, temp_store, LoadingStrategy.STREAMING)
+        assert dataset._loading_strategy == LoadingStrategy.STREAMING
         assert dataset._is_iterable
 
     def test_init_with_none_store_raises_error(self):
@@ -105,16 +105,16 @@ class TestBaseDatasetInitialization:
         assert len(dataset) == 1
 
     def test_init_converts_iterable_to_dataset_for_dynamic_load(self, temp_store):
-        """Test that IterableDataset is converted to Dataset for DYNAMIC_LOAD strategy."""
+        """Test that IterableDataset is converted to Dataset for DISK strategy."""
         iter_ds = IterableDataset.from_generator(lambda: iter([{"text": "a"}]))
-        dataset = ConcreteBaseDataset(iter_ds, temp_store, LoadingStrategy.DYNAMIC_LOAD)
+        dataset = ConcreteBaseDataset(iter_ds, temp_store, LoadingStrategy.DISK)
         assert not dataset._is_iterable
         assert len(dataset) == 1
 
     def test_init_converts_dataset_to_iterable_for_iterable_only(self, temp_store):
-        """Test that Dataset is converted to IterableDataset for ITERABLE_ONLY strategy."""
+        """Test that Dataset is converted to IterableDataset for STREAMING strategy."""
         ds = Dataset.from_dict({"text": ["a", "b"]})
-        dataset = ConcreteBaseDataset(ds, temp_store, LoadingStrategy.ITERABLE_ONLY)
+        dataset = ConcreteBaseDataset(ds, temp_store, LoadingStrategy.STREAMING)
         assert dataset._is_iterable
 
 
@@ -128,15 +128,15 @@ class TestBaseDatasetProperties:
         assert not dataset.is_streaming
 
     def test_is_streaming_dynamic_load_true(self, temp_store):
-        """Test is_streaming property for DYNAMIC_LOAD strategy."""
+        """Test is_streaming property for DISK strategy."""
         ds = Dataset.from_dict({"text": ["a"]})
-        dataset = ConcreteBaseDataset(ds, temp_store, LoadingStrategy.DYNAMIC_LOAD)
+        dataset = ConcreteBaseDataset(ds, temp_store, LoadingStrategy.DISK)
         assert dataset.is_streaming
 
     def test_is_streaming_iterable_only_true(self, temp_store):
-        """Test is_streaming property for ITERABLE_ONLY strategy."""
+        """Test is_streaming property for STREAMING strategy."""
         iter_ds = IterableDataset.from_generator(lambda: iter([{"text": "a"}]))
-        dataset = ConcreteBaseDataset(iter_ds, temp_store, LoadingStrategy.ITERABLE_ONLY)
+        dataset = ConcreteBaseDataset(iter_ds, temp_store, LoadingStrategy.STREAMING)
         assert dataset.is_streaming
 
 
@@ -151,16 +151,16 @@ class TestBaseDatasetGetBatch:
         assert len(batch) == 3
 
     def test_get_batch_dynamic_load_strategy(self, temp_store):
-        """Test get_batch with DYNAMIC_LOAD strategy."""
+        """Test get_batch with DISK strategy."""
         ds = Dataset.from_dict({"text": ["a", "b", "c", "d", "e"]})
-        dataset = ConcreteBaseDataset(ds, temp_store, LoadingStrategy.DYNAMIC_LOAD)
+        dataset = ConcreteBaseDataset(ds, temp_store, LoadingStrategy.DISK)
         batch = dataset.get_batch(1, 2)
         assert len(batch) == 2
 
     def test_get_batch_iterable_only_raises_error(self, temp_store):
-        """Test that get_batch raises NotImplementedError for ITERABLE_ONLY."""
+        """Test that get_batch raises NotImplementedError for STREAMING."""
         iter_ds = IterableDataset.from_generator(lambda: iter([{"text": "a"}]))
-        dataset = ConcreteBaseDataset(iter_ds, temp_store, LoadingStrategy.ITERABLE_ONLY)
+        dataset = ConcreteBaseDataset(iter_ds, temp_store, LoadingStrategy.STREAMING)
         with pytest.raises(NotImplementedError, match="get_batch not supported"):
             dataset.get_batch(0, 1)
 
@@ -197,9 +197,9 @@ class TestBaseDatasetHead:
         assert len(items) == 3
 
     def test_head_iterable_only_strategy(self, temp_store):
-        """Test head with ITERABLE_ONLY strategy."""
+        """Test head with STREAMING strategy."""
         iter_ds = IterableDataset.from_generator(lambda: iter([{"text": f"text_{i}"} for i in range(10)]))
-        dataset = ConcreteBaseDataset(iter_ds, temp_store, LoadingStrategy.ITERABLE_ONLY)
+        dataset = ConcreteBaseDataset(iter_ds, temp_store, LoadingStrategy.STREAMING)
         items = dataset.head(3)
         assert len(items) == 3
 
@@ -232,16 +232,16 @@ class TestBaseDatasetSample:
         assert all(item in all_items for item in items)
 
     def test_sample_dynamic_load_strategy(self, temp_store):
-        """Test sample with DYNAMIC_LOAD strategy."""
+        """Test sample with DISK strategy."""
         ds = Dataset.from_dict({"text": ["a", "b", "c", "d", "e"]})
-        dataset = ConcreteBaseDataset(ds, temp_store, LoadingStrategy.DYNAMIC_LOAD)
+        dataset = ConcreteBaseDataset(ds, temp_store, LoadingStrategy.DISK)
         items = dataset.sample(2)
         assert len(items) == 2
 
     def test_sample_iterable_only_raises_error(self, temp_store):
-        """Test that sample raises NotImplementedError for ITERABLE_ONLY."""
+        """Test that sample raises NotImplementedError for STREAMING."""
         iter_ds = IterableDataset.from_generator(lambda: iter([{"text": "a"}]))
-        dataset = ConcreteBaseDataset(iter_ds, temp_store, LoadingStrategy.ITERABLE_ONLY)
+        dataset = ConcreteBaseDataset(iter_ds, temp_store, LoadingStrategy.STREAMING)
         with pytest.raises(NotImplementedError, match="sample\\(\\) not supported"):
             dataset.sample(1)
 
@@ -287,7 +287,7 @@ class TestBaseDatasetFactoryMethods:
             mock_load.return_value = mock_ds
 
             dataset = ConcreteBaseDataset.from_huggingface(
-                "test/dataset", temp_store, split="train", loading_strategy=LoadingStrategy.ITERABLE_ONLY
+                "test/dataset", temp_store, split="train", loading_strategy=LoadingStrategy.STREAMING
             )
             assert dataset._is_iterable
             mock_load.assert_called_once_with(

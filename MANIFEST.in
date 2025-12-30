@@ -1,0 +1,19 @@
+# Include README and project files
+include README.md
+include pyproject.toml
+
+# Exclude build artifacts and unnecessary directories
+global-exclude *.pyc *.pyo *.pyd
+global-exclude __pycache__
+global-exclude *.so *.egg-info
+global-exclude .DS_Store
+recursive-exclude src/server *
+recursive-exclude src/frontend *
+recursive-exclude tests *
+recursive-exclude examples *
+recursive-exclude experiments *
+recursive-exclude playground *
+recursive-exclude presentations *
+recursive-exclude htmlcov *
+recursive-exclude store *
+

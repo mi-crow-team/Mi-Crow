@@ -1,3 +1,8 @@
 {
-  "/activations/page": "app/activations/page.js"
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/activations/page": "app/activations/page.js",
+  "/inference/page": "app/inference/page.js",
+  "/page": "app/page.js",
+  "/training/page": "app/training/page.js"
 }

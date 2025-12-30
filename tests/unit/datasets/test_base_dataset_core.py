@@ -68,7 +68,7 @@ def test_base_dataset_batching_head_and_sample(tmp_path):
 def test_base_dataset_sample_iterable_only(tmp_path):
     store = create_temp_store(tmp_path)
     data = ["a", "b"]
-    iterable_ds = DummyDataset(data, store, strategy=LoadingStrategy.ITERABLE_ONLY)
+    iterable_ds = DummyDataset(data, store, strategy=LoadingStrategy.STREAMING)
     with pytest.raises(NotImplementedError):
         iterable_ds.sample(1)
 
@@ -76,8 +76,8 @@ def test_base_dataset_sample_iterable_only(tmp_path):
 def test_base_dataset_is_streaming_flags(tmp_path):
     store = create_temp_store(tmp_path)
     memory_ds = DummyDataset(["a"], store, strategy=LoadingStrategy.MEMORY)
-    dynamic_ds = DummyDataset(["a"], store, strategy=LoadingStrategy.DYNAMIC_LOAD)
-    iterable_ds = DummyDataset(["a"], store, strategy=LoadingStrategy.ITERABLE_ONLY)
+    dynamic_ds = DummyDataset(["a"], store, strategy=LoadingStrategy.DISK)
+    iterable_ds = DummyDataset(["a"], store, strategy=LoadingStrategy.STREAMING)
 
     assert memory_ds.is_streaming is False
     assert dynamic_ds.is_streaming is True

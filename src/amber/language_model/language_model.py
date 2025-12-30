@@ -28,6 +28,9 @@ def _extract_special_token_ids(tokenizer: PreTrainedTokenizerBase) -> Set[int]:
     """
     Extract special token IDs from a tokenizer.
     
+    Prioritizes the common case (all_special_ids) and falls back to
+    individual token ID attributes for edge cases.
+    
     Handles cases where token_id attributes may be lists (e.g., eos_token_id: [4, 2]).
     
     Args:
@@ -38,10 +41,18 @@ def _extract_special_token_ids(tokenizer: PreTrainedTokenizerBase) -> Set[int]:
     """
     special_ids = set()
     
+    # Common case: most tokenizers have all_special_ids
+    if hasattr(tokenizer, 'all_special_ids'):
+        all_special_ids = tokenizer.all_special_ids
+        if all_special_ids and isinstance(all_special_ids, (list, tuple, set)):
+            special_ids.update(all_special_ids)
+            return special_ids  # Early return for common case
+    
+    # Fallback: extract from individual token ID attributes
     def add_token_id(token_id):
         if token_id is None:
             return
-        if isinstance(token_id, list):
+        if isinstance(token_id, (list, tuple)):
             special_ids.update(token_id)
         else:
             special_ids.add(token_id)
@@ -51,11 +62,6 @@ def _extract_special_token_ids(tokenizer: PreTrainedTokenizerBase) -> Set[int]:
     for attr in token_id_attrs:
         token_id = getattr(tokenizer, attr, None)
         add_token_id(token_id)
-    
-    if hasattr(tokenizer, 'all_special_ids'):
-        all_special_ids = tokenizer.all_special_ids
-        if all_special_ids and isinstance(all_special_ids, (list, tuple, set)):
-            special_ids.update(all_special_ids)
     
     return special_ids
 

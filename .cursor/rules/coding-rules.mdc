@@ -1,0 +1,195 @@
+---
+globs: *.py
+alwaysApply: false
+---
+# Python Programming Rules
+
+This file defines coding standards and best practices for Python files in this codebase.
+
+## 1. Comments in Docstrings Only
+
+- **All comments must be in docstrings** using Google-style format
+- **No inline comments** (`#`) except for type ignore comments (e.g., `# type: ignore`)
+- Docstrings should explain **"why"** not just **"what"**
+- Use docstrings for:
+  - Module-level documentation
+  - Class documentation
+  - Function/method documentation
+  - Complex logic explanations
+
+### Example
+
+```python
+def process_activations(activations: Tensor) -> Tensor:
+    """
+    Normalize and scale activations for downstream processing.
+    
+    This normalization is required because raw activations can have
+    extreme values that cause numerical instability in the SAE.
+    We use layer normalization to ensure consistent scale across batches.
+    
+    Args:
+        activations: Raw activation tensor of shape (batch, seq_len, hidden_dim)
+        
+    Returns:
+        Normalized activation tensor with same shape
+        
+    Raises:
+        ValueError: If activations contain NaN or Inf values
+    """
+    if torch.isnan(activations).any() or torch.isinf(activations).any():
+        raise ValueError("Activations contain invalid values")
+    return self._normalize(activations)
+```
+
+## 2. Modular Code with Private Methods
+
+- **Prefer small, focused private methods** (prefixed with `_`) over large monolithic functions
+- Break down complex logic into smaller, testable units
+- Public methods should be **thin orchestration layers** that delegate to private methods
+- Methods should have **single responsibility**
+- If a method exceeds ~50 lines, consider breaking it into smaller methods
+- Private methods should be well-named and self-documenting
+
+### Example
+
+```python
+class ActivationProcessor:
+    def process(self, activations: Tensor) -> Tensor:
+        """Process activations through normalization and scaling pipeline."""
+        normalized = self._normalize(activations)
+        scaled = self._apply_scaling(normalized)
+        return self._validate_output(scaled)
+    
+    def _normalize(self, activations: Tensor) -> Tensor:
+        """Apply layer normalization to activations."""
+        # Implementation here
+        pass
+    
+    def _apply_scaling(self, activations: Tensor) -> Tensor:
+        """Scale activations by learned factor."""
+        # Implementation here
+        pass
+    
+    def _validate_output(self, activations: Tensor) -> Tensor:
+        """Validate processed activations meet quality criteria."""
+        # Implementation here
+        pass
+```
+
+## 3. Test Refactoring Requirements
+
+- **When refactoring code, always refactor corresponding tests**
+- Tests should reflect the new structure and implementation
+- Update test names and assertions to match refactored code
+- Remove tests for implementation details that no longer exist
+- Add tests for new private methods if they expose new behavior
+- Ensure test coverage remains at or above 85%
+
+### Example
+
+If you refactor a method `process_data()` into `_validate()`, `_transform()`, and `_save()`:
+- Update the test to verify the public interface still works
+- Add tests for the new private methods if they have complex logic
+- Remove tests that were checking internal implementation details
+
+## 4. Meaningful Tests Only
+
+- Write tests that **verify behavior, not implementation details**
+- Avoid trivial tests that don't add value (e.g., testing simple getters/setters)
+- Focus on:
+  - Edge cases and boundary conditions
+  - Error conditions and exception handling
+  - Integration points between components
+  - Complex business logic
+- Tests should be **readable and self-documenting**
+- Use descriptive test names that explain what is being tested
+
+### Example
+
+```python
+# Good: Tests meaningful behavior
+def test_process_activations_raises_on_invalid_input():
+    """Test that invalid activations raise appropriate errors."""
+    processor = ActivationProcessor()
+    invalid_activations = torch.tensor([float('nan')])
+    with pytest.raises(ValueError, match="invalid values"):
+        processor.process(invalid_activations)
+
+# Bad: Trivial test that doesn't add value
+def test_get_enabled_returns_boolean():
+    """Test that get_enabled returns a boolean."""
+    hook = Hook()
+    assert isinstance(hook.enabled, bool)  # Too trivial
+```
+
+## 5. No Backward Compatibility
+
+- **Do not maintain backward compatibility** when refactoring
+- Remove deprecated code paths immediately
+- Update all call sites when changing APIs
+- Breaking changes are acceptable for code quality improvements
+- If an API change is needed, update all usages throughout the codebase
+- Do not add deprecation warnings or compatibility shims
+
+### Example
+
+If you need to change a method signature:
+```python
+# Old API
+def process(data: Tensor, batch_size: int = 32) -> Tensor:
+    pass
+
+# New API - just change it, don't keep the old one
+def process(data: Tensor, config: ProcessingConfig) -> Tensor:
+    pass
+```
+
+Then update all call sites immediately - do not provide both versions.
+
+## Additional Best Practices
+
+### Type Hints
+
+- **Type hints required** for all function signatures
+- Use `from __future__ import annotations` for forward references
+- Prefer `|` union syntax over `Union` (Python 3.10+)
+- Use `TypeAlias` for complex type definitions
+
+### Code Style
+
+- Follow existing code style (ruff configuration, 120 char line length)
+- Use double quotes for strings (per ruff configuration)
+- Follow PEP 8 naming conventions:
+  - Classes: `PascalCase`
+  - Functions/methods: `snake_case`
+  - Constants: `UPPER_SNAKE_CASE`
+  - Private: `_leading_underscore`
+
+### Design Principles
+
+- **Prefer composition over inheritance**
+- Use abstract base classes (`abc.ABC`) for interfaces
+- Handle errors explicitly with custom exceptions when appropriate
+- Use dependency injection for testability
+- Keep functions pure when possible (no side effects)
+
+### Error Handling
+
+- Create custom exception classes for domain-specific errors
+- Use exception chaining (`raise ... from e`) when appropriate
+- Provide clear error messages that help with debugging
+
+### Performance
+
+- Profile before optimizing
+- Use appropriate data structures (e.g., `dict` for O(1) lookups)
+- Consider memory usage for large tensors
+- Use generators for large datasets
+
+### Documentation
+
+- All public APIs must have docstrings
+- Include Args, Returns, and Raises sections in docstrings
+- Use type hints in docstrings only if they add clarity beyond type hints
+- Keep docstrings up-to-date with code changes

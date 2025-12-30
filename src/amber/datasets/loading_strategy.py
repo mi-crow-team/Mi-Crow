@@ -13,16 +13,16 @@ class LoadingStrategy(Enum):
     - MEMORY: Load entire dataset into memory (fastest random access, highest memory usage)
       Best for: Small datasets that fit in memory, when you need fast random access
     
-    - DYNAMIC_LOAD: Save to disk, read dynamically via memory-mapped Arrow files
+    - DISK: Save to disk, read dynamically via memory-mapped Arrow files
       (supports len/getitem, lower memory usage)
       Best for: Large datasets that don't fit in memory, when you need random access
     
-    - ITERABLE_ONLY: True streaming mode using IterableDataset (lowest memory, no len/getitem support)
+    - STREAMING: True streaming mode using IterableDataset (lowest memory, no len/getitem support)
       Best for: Very large datasets, when you only need sequential iteration
     """
     MEMORY = "memory"  # Load all into memory (fastest random access, highest memory usage)
-    DYNAMIC_LOAD = "dynamic_load"  # Save to disk, read dynamically via memory-mapped Arrow files (supports len/getitem, lower memory usage)
-    ITERABLE_ONLY = "iterable_only"  # True streaming mode using IterableDataset (lowest memory, no len/getitem support)
+    DISK = "disk"  # Save to disk, read dynamically via memory-mapped Arrow files (supports len/getitem, lower memory usage)
+    STREAMING = "streaming"  # True streaming mode using IterableDataset (lowest memory, no len/getitem support)
 
 
 IndexLike: TypeAlias = Union[int, slice, Sequence[int]]

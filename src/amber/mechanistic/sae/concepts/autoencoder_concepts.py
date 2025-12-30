@@ -100,7 +100,18 @@ class AutoencoderConcepts:
             self._top_texts_heaps = [[] for _ in range(n_neurons)]
 
     def _decode_token(self, text: str, token_idx: int) -> str:
-        """Decode a specific token from the text using the language model's tokenizer."""
+        """
+        Decode a specific token from the text using the language model's tokenizer.
+        
+        The token_idx is relative to the sequence length T that the model saw during inference.
+        However, there's a mismatch: during inference, texts are tokenized with 
+        add_special_tokens=True (which adds BOS/EOS), but the token_idx appears to be
+        calculated relative to the sequence without special tokens.
+        
+        We tokenize the text the same way as _decode_token originally did (without special tokens)
+        to match the token_idx calculation, but we also account for truncation that may have
+        occurred during inference (max_length).
+        """
         if self.context.lm is None:
             return f"<token_{token_idx}>"
 
@@ -111,8 +122,11 @@ class AutoencoderConcepts:
             # Use the raw tokenizer (not the wrapper) to encode and decode
             tokenizer = self.context.lm.tokenizer
 
-            # Tokenize the text to get token IDs
+            # Tokenize without special tokens (matching original behavior)
+            # This matches how token_idx was calculated in update_top_texts_from_latents
             tokens = tokenizer.encode(text, add_special_tokens=False)
+            
+            # Check if token_idx is valid
             if 0 <= token_idx < len(tokens):
                 token_id = tokens[token_idx]
                 # Decode the specific token
