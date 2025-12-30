@@ -104,8 +104,8 @@ def main() -> int:
                     add_generation_prompt=True,
                 )
                 applied_ok = True
-                applied_preview = applied[:300]
-                logger.info("Sample %d: apply_chat_template preview: %r", i, applied_preview[:120])
+                applied_preview = applied[:700]
+                logger.info("Sample %d: apply_chat_template preview: %r", i, applied_preview[:700])
             except Exception as e:
                 applied_error = repr(e)
                 logger.warning("Sample %d: apply_chat_template FAILED: %s", i, applied_error, exc_info=True)
@@ -117,8 +117,8 @@ def main() -> int:
                     add_generation_prompt=True,
                 )
                 applied_mm_ok = True
-                applied_mm_preview = applied_mm[:300]
-                logger.info("Sample %d: apply_chat_template(mm) preview: %r", i, applied_mm_preview[:120])
+                applied_mm_preview = applied_mm[:700]
+                logger.info("Sample %d: apply_chat_template(mm) preview: %r", i, applied_mm_preview[:700])
             except Exception as e:
                 applied_mm_error = repr(e)
                 logger.warning("Sample %d: apply_chat_template(mm) FAILED: %s", i, applied_mm_error, exc_info=True)
