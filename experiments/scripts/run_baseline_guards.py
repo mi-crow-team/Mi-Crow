@@ -56,21 +56,47 @@ def _evaluate_and_save_analysis(
     y_pred: List[int] = []
     threat_vals: List[Any] = []
 
+    n_total_predictions = 0
+    n_skipped_no_sample_index = 0
+    n_skipped_missing_gt = 0
+    n_skipped_unmappable_gt = 0
+    n_skipped_missing_pred = 0
+
     for p in predictions:
+        n_total_predictions += 1
         idx = p.get("sample_index")
         if idx is None:
+            n_skipped_no_sample_index += 1
             continue
+
         gt_raw = dataset[int(idx)].get(category_field)
+        if gt_raw is None:
+            n_skipped_missing_gt += 1
+            continue
+
         gt = map_wildguard_label_to_binary(gt_raw)
         if gt is None:
+            n_skipped_unmappable_gt += 1
+            continue
+
+        pred_label = p.get("predicted_label")
+        if pred_label is None:
+            n_skipped_missing_pred += 1
             continue
 
         y_true.append(gt)
-        y_pred.append(int(p.get("predicted_label")))
+        y_pred.append(int(pred_label))
         threat_vals.append(p.get("threat_category"))
 
     metrics = compute_binary_metrics(y_true, y_pred)
     analysis = {
+        "dataset_len": len(dataset),
+        "n_total_predictions": n_total_predictions,
+        "n_used_for_metrics": metrics.n,
+        "n_skipped_no_sample_index": n_skipped_no_sample_index,
+        "n_skipped_missing_gt": n_skipped_missing_gt,
+        "n_skipped_unmappable_gt": n_skipped_unmappable_gt,
+        "n_skipped_missing_predicted_label": n_skipped_missing_pred,
         "n": metrics.n,
         "tp": metrics.tp,
         "tn": metrics.tn,
@@ -82,7 +108,10 @@ def _evaluate_and_save_analysis(
         "f1": metrics.f1,
     }
 
-    _write_json(run_dir / "analysis" / "metrics.json", analysis)
+    out_analysis_dir = run_dir / "analysis"
+    _write_json(out_analysis_dir / "metrics.json", analysis)
+    # Backwards-compat filename (some older runs refer to analysis.json).
+    _write_json(out_analysis_dir / "analysis.json", analysis)
 
     save_confusion_matrix_plot(
         (metrics.tp, metrics.tn, metrics.fp, metrics.fn),
