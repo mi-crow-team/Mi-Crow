@@ -92,7 +92,8 @@ outputs
 # experiments
 .llm_context/
 results/
-store/
+# Exclude data store directories but NOT src/mi_crow/store/ (package code)
+/experiments/*/store/
 
 # frontend
 src/frontend/node_modules/
