@@ -20,6 +20,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # When triggered by a tag, checkout that specific tag
+          ref: ${{ github.ref }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -32,6 +34,9 @@ jobs:
           pip install build twine
 
       - name: Build package
+        env:
+          # Disable local version identifiers for PyPI (they're not allowed)
+          SETUPTOOLS_SCM_LOCAL_SCHEME: "no-local-version"
         run: python -m build
 
       - name: Publish to PyPI
