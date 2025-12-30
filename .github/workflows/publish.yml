@@ -2,10 +2,8 @@ name: Publish to PyPI
 
 on:
   push:
-    branches:
-      - main
     tags:
-      - 'v*'
+      - 'v*'  # Only trigger on version tags for PyPI releases
   workflow_dispatch: 
 
 jobs:
@@ -32,9 +30,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install build twine
 
+      - name: Verify tag and version
+        run: |
+          echo "Building from ref: ${{ github.ref }}"
+          git describe --tags --exact-match HEAD || (echo "Error: HEAD is not at a tag" && exit 1)
+          python -c "import setuptools_scm; v = setuptools_scm.get_version(); print(f'Version: {v}'); assert '+' not in v, f'Version contains local identifier: {v}'"
+      
       - name: Build package
-        env:
-          SETUPTOOLS_SCM_LOCAL_SCHEME: "no-local-version"
         run: python -m build
 
       - name: Publish to PyPI
