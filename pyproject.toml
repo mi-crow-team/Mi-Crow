@@ -3,7 +3,7 @@ requires = ["setuptools>=69", "setuptools-scm>=8", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "amber"
+name = "mi-crow"
 readme = "README.md"
 description = "Engineer Thesis: Explaining and modifying LLM responses using SAE and concepts."
 authors = [
