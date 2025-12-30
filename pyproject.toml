@@ -78,8 +78,7 @@ exclude = ["server*", "frontend*"]
 [tool.setuptools_scm]
 fallback_version = "0.0.0"
 version_scheme = "post-release"
-local_scheme = "node-and-date"  # For development
-# For PyPI builds, use: SETUPTOOLS_SCM_PRETEND_VERSION=0.1.1 python -m build
+local_scheme = "node-and-date"
 
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
