@@ -15,8 +15,7 @@ from amber.datasets import TextDataset
 from amber.store.local_store import LocalStore
 from amber.store.local_store import LocalStore
 
-from amber.mechanistic.sae.modules.topk_sae import TopKSae
-from amber.mechanistic.sae.sae_trainer import SaeTrainingConfig
+from amber.mechanistic.sae.modules.topk_sae import TopKSae, TopKSaeTrainingConfig
 
 
 @pytest.fixture
@@ -72,7 +71,8 @@ def trained_sae_setup():
     )
     
     # Quick training using SaeTrainer
-    config = SaeTrainingConfig(
+    config = TopKSaeTrainingConfig(
+        k=4,  # TopK parameter
         epochs=2,
         batch_size=2,
         lr=1e-3,
