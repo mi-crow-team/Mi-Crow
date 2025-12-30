@@ -78,7 +78,7 @@ exclude = ["server*", "frontend*"]
 [tool.setuptools_scm]
 fallback_version = "0.0.0"
 version_scheme = "post-release"
-local_scheme = "node-and-date"
+local_scheme = "no-local-version"  # Required for PyPI (local versions not allowed)
 
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
