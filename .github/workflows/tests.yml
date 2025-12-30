@@ -35,6 +35,7 @@ jobs:
       - name: Verify package installation
         run: |
           python -c "import mi_crow; print('✓ mi_crow package found')"
+          python -c "import sys; import os; import mi_crow; print('mi_crow location:', mi_crow.__file__); print('mi_crow.__path__:', getattr(mi_crow, '__path__', 'NOT SET')); store_dir = os.path.join(os.path.dirname(mi_crow.__file__), 'store'); print('store dir exists:', os.path.exists(store_dir)); print('store/__init__.py exists:', os.path.exists(os.path.join(store_dir, '__init__.py')))"
           python -c "import mi_crow.store; print('✓ mi_crow.store package found')"
           python -c "from mi_crow.store.store import Store; print('✓ Store import successful')"
 
