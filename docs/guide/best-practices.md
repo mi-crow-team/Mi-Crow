@@ -386,5 +386,5 @@ assert len(top_texts) > 0  # Found some concepts
 
 - **[Troubleshooting](troubleshooting.md)** - Common issues and solutions
 - **[Examples](examples.md)** - Example code patterns
-- **[Hooks: Advanced](../hooks/advanced.md)** - Advanced patterns
+- **[Hooks: Advanced](hooks/advanced.md)** - Advanced patterns
 
