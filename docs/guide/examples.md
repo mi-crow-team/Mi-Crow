@@ -77,7 +77,7 @@ The examples directory contains Jupyter notebooks demonstrating mi-crow function
 
 **Related guides**:
 - [Concept Discovery](workflows/concept-discovery.md)
-- [Hooks: Detectors](../hooks/detectors.md)
+- [Hooks: Detectors](hooks/detectors.md)
 
 ---
 
@@ -112,7 +112,7 @@ The examples directory contains Jupyter notebooks demonstrating mi-crow function
 **Related guides**:
 - [Concept Manipulation](workflows/concept-manipulation.md)
 - [Activation Control](workflows/activation-control.md)
-- [Hooks: Controllers](../hooks/controllers.md)
+- [Hooks: Controllers](hooks/controllers.md)
 
 ---
 
@@ -133,7 +133,7 @@ The examples directory contains Jupyter notebooks demonstrating mi-crow function
 
 **Related guides**:
 - [Saving Activations](workflows/saving-activations.md)
-- [Hooks: Detectors](../hooks/detectors.md)
+- [Hooks: Detectors](hooks/detectors.md)
 
 ---
 
@@ -215,8 +215,8 @@ The examples directory contains Jupyter notebooks demonstrating mi-crow function
 
 **Related guides**:
 - [Activation Control](workflows/activation-control.md)
-- [Hooks: Fundamentals](../hooks/fundamentals.md)
-- [Hooks: Controllers](../hooks/controllers.md)
+- [Hooks: Fundamentals](hooks/fundamentals.md)
+- [Hooks: Controllers](hooks/controllers.md)
 
 ---
 
@@ -319,6 +319,6 @@ If you encounter issues:
 After working through examples:
 
 - **[Workflows](workflows/index.md)** - Detailed workflow guides
-- **[Hooks System](../hooks/index.md)** - Deep dive into hooks
+- **[Hooks System](hooks/index.md)** - Deep dive into hooks
 - **[Experiments](../experiments/index.md)** - Real-world experiments
 

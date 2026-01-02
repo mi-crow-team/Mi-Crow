@@ -76,6 +76,7 @@ nav:
     - experiments/verify-sae-training.md
     - experiments/slurm-pipeline.md
   - API Reference:
+    - api.md
     - api/index.md
     - Language Model: api/language_model.md
     - SAE: api/sae.md
