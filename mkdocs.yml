@@ -49,6 +49,32 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - User Guide:
+    - guide/index.md
+    - guide/installation.md
+    - guide/quickstart.md
+    - guide/core-concepts.md
+    - Hooks System:
+      - guide/hooks/index.md
+      - guide/hooks/fundamentals.md
+      - guide/hooks/detectors.md
+      - guide/hooks/controllers.md
+      - guide/hooks/registration.md
+      - guide/hooks/advanced.md
+    - Workflows:
+      - guide/workflows/index.md
+      - guide/workflows/saving-activations.md
+      - guide/workflows/training-sae.md
+      - guide/workflows/concept-discovery.md
+      - guide/workflows/concept-manipulation.md
+      - guide/workflows/activation-control.md
+    - guide/best-practices.md
+    - guide/troubleshooting.md
+    - guide/examples.md
+  - Experiments:
+    - experiments/index.md
+    - experiments/verify-sae-training.md
+    - experiments/slurm-pipeline.md
   - API Reference:
     - api/index.md
     - Language Model: api/language_model.md
