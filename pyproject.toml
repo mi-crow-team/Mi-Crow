@@ -138,6 +138,7 @@ dev = [
     "pytest>=8.0.0",
     "pytest-cov>=7.0.0",
     "python-dotenv>=1.2.1",
+    "sentence-transformers>=5.2.0",
 ]
 server = [
     "fastapi>=0.124.4",
