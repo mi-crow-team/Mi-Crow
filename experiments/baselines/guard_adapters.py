@@ -10,7 +10,7 @@ import torch
 import torch.nn.functional as F
 from transformers import GenerationConfig
 
-from amber.utils import get_logger
+from mi_crow.utils import get_logger
 
 logger = get_logger(__name__)
 
