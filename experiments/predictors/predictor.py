@@ -6,8 +6,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-from amber.store.store import Store
-from amber.utils import get_logger
+from mi_crow.store.store import Store
+from mi_crow.utils import get_logger
 
 logger = get_logger(__name__)
 
@@ -18,7 +18,7 @@ JsonDict = Dict[str, Any]
 class Predictor(ABC):
     """Experiment-layer abstraction for *storing* predictions.
 
-    This is intentionally not part of `src/amber`.
+    This is intentionally not part of `src/mi_crow`.
 
     - Accumulates batch predictions in-memory.
     - Saves a single artifact per run under: `store.base_path / "runs" / run_id / predictions.*`

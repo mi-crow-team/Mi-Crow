@@ -6,12 +6,12 @@ from typing import Any, Dict, List, Literal, Optional, Union
 import torch
 from tqdm.auto import tqdm
 
-from amber.datasets import ClassificationDataset
-from amber.hooks.detector import Detector
-from amber.hooks.hook import HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT, HookType
-from amber.store.store import Store
-from amber.utils import get_logger
 from experiments.predictors.predictor import Predictor
+from mi_crow.datasets import ClassificationDataset
+from mi_crow.hooks.detector import Detector
+from mi_crow.hooks.hook import HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT, HookType
+from mi_crow.store.store import Store
+from mi_crow.utils import get_logger
 
 from .lpm_context import LPMContext
 
