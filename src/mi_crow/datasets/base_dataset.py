@@ -118,7 +118,7 @@ class BaseDataset(ABC):
             try:
                 self._dataset_dir.mkdir(parents=True, exist_ok=True)
                 ds.save_to_disk(str(self._dataset_dir))
-                return load_from_disk(str(self._dataset_dir))
+                return load_from_disk(str(self._dataset_dir), keep_in_memory=not use_memory_mapping)
             except OSError as e:
                 raise OSError(f"Failed to save/load dataset at {self._dataset_dir}. Error: {e}") from e
             except Exception as e:
