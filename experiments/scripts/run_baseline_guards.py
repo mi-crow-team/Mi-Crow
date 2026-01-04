@@ -16,9 +16,6 @@ from pathlib import Path
 from time import perf_counter
 from typing import Any, Dict, List
 
-from amber.datasets import ClassificationDataset
-from amber.store import LocalStore
-from amber.utils import get_logger
 from experiments.baselines import create_bielik_guard, create_llama_guard
 from experiments.scripts.analysis_utils import (
     compute_binary_metrics,
@@ -26,6 +23,9 @@ from experiments.scripts.analysis_utils import (
     save_confusion_matrix_plot,
     save_threat_category_bar,
 )
+from mi_crow.datasets import ClassificationDataset
+from mi_crow.store import LocalStore
+from mi_crow.utils import get_logger
 
 logger = get_logger(__name__)
 

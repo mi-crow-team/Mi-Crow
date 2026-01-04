@@ -26,13 +26,13 @@ def _load_hf_dataset(*, repo_id: str, config: Optional[str], split: str):
     try:
         from datasets import load_dataset
     except Exception as e:
-        # Fallback for this repo: use Amber's dataset helper (it wraps HF datasets).
+        # Fallback for this repo: use Mi-Crow's dataset helper (it wraps HF datasets).
         try:
-            from amber.datasets import ClassificationDataset
-            from amber.store import LocalStore
+            from mi_crow.datasets import ClassificationDataset
+            from mi_crow.store import LocalStore
         except Exception:
             raise SystemExit(
-                "Reading prompts/labels requires HuggingFace `datasets` or Amber installed.\n"
+                "Reading prompts/labels requires HuggingFace `datasets` or Mi-Crow installed.\n"
                 "Install e.g. `pip install datasets`, or run inside the project's environment.\n"
                 f"Original error: {e}"
             )

@@ -17,11 +17,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from amber.datasets import ClassificationDataset
-from amber.store import LocalStore
-from amber.utils import get_logger
 from experiments.baselines import create_bielik_guard
 from experiments.baselines.guard_adapters import BielikGuardAdapter
+from mi_crow.datasets import ClassificationDataset
+from mi_crow.store import LocalStore
+from mi_crow.utils import get_logger
 
 logger = get_logger(__name__)
 
