@@ -25,7 +25,7 @@ from experiments.scripts.analysis_utils import (
 )
 from mi_crow.datasets import ClassificationDataset
 from mi_crow.store import LocalStore
-from mi_crow.utils import get_logger
+from mi_crow.utils import get_logger, set_seed
 
 logger = get_logger(__name__)
 
@@ -136,6 +136,7 @@ def main() -> int:
     parser.add_argument("--text-field", type=str, default="prompt")
     parser.add_argument("--category-field", type=str, default="prompt_harm_label")
     parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
 
     parser.add_argument("--batch-size", type=int, default=32)
 
@@ -154,6 +155,7 @@ def main() -> int:
 
     script_t0 = perf_counter()
 
+    set_seed(args.seed)
     store = LocalStore(args.store)
 
     logger.info("Loading dataset %s (%s/%s)", args.dataset, args.dataset_config, args.split)
@@ -166,6 +168,7 @@ def main() -> int:
         text_field=args.text_field,
         category_field=args.category_field,
         limit=args.limit,
+        stratify_seed=args.seed,
     )
     dataset_load_s = perf_counter() - dataset_t0
 

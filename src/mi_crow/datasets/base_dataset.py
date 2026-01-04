@@ -118,7 +118,7 @@ class BaseDataset(ABC):
             try:
                 self._dataset_dir.mkdir(parents=True, exist_ok=True)
                 ds.save_to_disk(str(self._dataset_dir))
-                return load_from_disk(str(self._dataset_dir))
+                return load_from_disk(str(self._dataset_dir), keep_in_memory=not use_memory_mapping)
             except OSError as e:
                 raise OSError(f"Failed to save/load dataset at {self._dataset_dir}. Error: {e}") from e
             except Exception as e:
@@ -519,6 +519,73 @@ class BaseDataset(ABC):
                 stratify_by=stratify_by,
                 stratify_seed=stratify_seed,
             )
+
+        return cls(ds, store=store, loading_strategy=loading_strategy)
+
+    @classmethod
+    def from_disk(
+        cls,
+        store: Store,
+        *,
+        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+        **kwargs: Any,
+    ) -> "BaseDataset":
+        """
+        Load dataset from already-saved Arrow files on disk.
+
+        Use this when you've previously saved a dataset and want to reload it
+        without re-downloading from HuggingFace or re-applying transformations.
+
+        Args:
+            store: Store instance pointing to where the dataset was saved
+                   (dataset will be loaded from store.base_path/store.dataset_prefix/)
+            loading_strategy: Loading strategy (MEMORY or DISK only, not STREAMING)
+            **kwargs: Additional arguments (for subclass compatibility)
+
+        Returns:
+            BaseDataset instance loaded from disk
+
+        Raises:
+            ValueError: If store is None or loading_strategy is STREAMING
+            FileNotFoundError: If dataset directory doesn't exist
+            RuntimeError: If dataset loading fails
+
+        Example:
+            # First: save dataset
+            dataset_store = LocalStore("store/my_dataset")
+            dataset = ClassificationDataset.from_huggingface(..., store=dataset_store)
+            # Dataset saved to: store/my_dataset/datasets/*.arrow
+
+            # Later: reload from disk
+            dataset_store = LocalStore("store/my_dataset")
+            dataset = ClassificationDataset.from_disk(store=dataset_store)
+        """
+        if store is None:
+            raise ValueError("store cannot be None")
+
+        if loading_strategy == LoadingStrategy.STREAMING:
+            raise ValueError("STREAMING loading strategy not supported for from_disk(). Use MEMORY or DISK.")
+
+        dataset_dir = Path(store.base_path) / store.dataset_prefix
+
+        if not dataset_dir.exists():
+            raise FileNotFoundError(
+                f"Dataset directory not found: {dataset_dir}. "
+                f"Make sure you've previously saved a dataset to this store location."
+            )
+
+        # Verify it's a valid Arrow dataset directory
+        arrow_files = list(dataset_dir.glob("*.arrow"))
+        if not arrow_files:
+            raise FileNotFoundError(
+                f"No Arrow files found in {dataset_dir}. Directory exists but doesn't contain a valid dataset."
+            )
+
+        try:
+            use_memory_mapping = loading_strategy == LoadingStrategy.DISK
+            ds = load_from_disk(str(dataset_dir), keep_in_memory=not use_memory_mapping)
+        except Exception as e:
+            raise RuntimeError(f"Failed to load dataset from {dataset_dir}. Error: {e}") from e
 
         return cls(ds, store=store, loading_strategy=loading_strategy)
 

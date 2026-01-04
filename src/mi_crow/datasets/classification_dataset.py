@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Sequence, Union
 
-from datasets import Dataset, IterableDataset, load_dataset
+from datasets import Dataset, IterableDataset, load_dataset, load_from_disk
 
 from mi_crow.datasets.base_dataset import BaseDataset
 from mi_crow.datasets.loading_strategy import IndexLike, LoadingStrategy
@@ -156,9 +156,7 @@ class ClassificationDataset(BaseDataset):
             ValueError: If dataset is empty
         """
         if self._loading_strategy == LoadingStrategy.STREAMING:
-            raise NotImplementedError(
-                "Indexing not supported for STREAMING datasets. Use iter_items or iter_batches."
-            )
+            raise NotImplementedError("Indexing not supported for STREAMING datasets. Use iter_items or iter_batches.")
 
         dataset_len = len(self)
         if dataset_len == 0:
@@ -437,6 +435,89 @@ class ClassificationDataset(BaseDataset):
                 f"category_field={category_field!r}. Error: {e}"
             ) from e
 
+        return cls(
+            ds,
+            store=store,
+            loading_strategy=loading_strategy,
+            text_field=text_field,
+            category_field=category_field,
+        )
+
+    @classmethod
+    def from_disk(
+        cls,
+        store: Store,
+        *,
+        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+        text_field: str = "text",
+        category_field: Union[str, List[str]] = "category",
+    ) -> "ClassificationDataset":
+        """
+        Load classification dataset from already-saved Arrow files on disk.
+
+        Use this when you've previously saved a dataset and want to reload it
+        without re-downloading from HuggingFace or re-applying transformations.
+
+        Args:
+            store: Store instance pointing to where the dataset was saved
+            loading_strategy: Loading strategy (MEMORY or DISK only)
+            text_field: Name of the column containing text
+            category_field: Name(s) of the column(s) containing category/label
+
+        Returns:
+            ClassificationDataset instance loaded from disk
+
+        Raises:
+            FileNotFoundError: If dataset directory doesn't exist or contains no Arrow files
+            ValueError: If required fields are not in the loaded dataset
+
+        Example:
+            # First: save dataset
+            dataset_store = LocalStore("store/wgmix_test")
+            dataset = ClassificationDataset.from_huggingface(
+                "allenai/wildguardmix",
+                store=dataset_store,
+                limit=100
+            )
+            # Dataset saved to: store/wgmix_test/datasets/*.arrow
+
+            # Later: reload from disk
+            dataset_store = LocalStore("store/wgmix_test")
+            dataset = ClassificationDataset.from_disk(
+                store=dataset_store,
+                text_field="prompt",
+                category_field="prompt_harm_label"
+            )
+        """
+
+        if store is None:
+            raise ValueError("store cannot be None")
+
+        if loading_strategy == LoadingStrategy.STREAMING:
+            raise ValueError("STREAMING loading strategy not supported for from_disk(). Use MEMORY or DISK.")
+
+        dataset_dir = Path(store.base_path) / store.dataset_prefix
+
+        if not dataset_dir.exists():
+            raise FileNotFoundError(
+                f"Dataset directory not found: {dataset_dir}. "
+                f"Make sure you've previously saved a dataset to this store location."
+            )
+
+        # Verify it's a valid Arrow dataset directory
+        arrow_files = list(dataset_dir.glob("*.arrow"))
+        if not arrow_files:
+            raise FileNotFoundError(
+                f"No Arrow files found in {dataset_dir}. Directory exists but doesn't contain a valid dataset."
+            )
+
+        try:
+            use_memory_mapping = loading_strategy == LoadingStrategy.DISK
+            ds = load_from_disk(str(dataset_dir), keep_in_memory=not use_memory_mapping)
+        except Exception as e:
+            raise RuntimeError(f"Failed to load dataset from {dataset_dir}. Error: {e}") from e
+
+        # Create ClassificationDataset with the loaded dataset and field names
         return cls(
             ds,
             store=store,
