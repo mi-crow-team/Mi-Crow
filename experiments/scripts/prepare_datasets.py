@@ -49,17 +49,25 @@ def log_subcategory_distribution(dataset: ClassificationDataset, dataset_name: s
     logger.info("   Subcategory distribution:")
 
     # Access underlying HuggingFace dataset directly to get subcategory column
-    if hasattr(dataset, "_ds") and "subcategory" in dataset._ds.column_names:
-        subcategories = dataset._ds["subcategory"]
-        counter = Counter(subcategories)
+    try:
+        if hasattr(dataset, "_ds"):
+            # Check if column exists in the dataset
+            if "subcategory" not in dataset._ds.column_names:
+                logger.warning("   Subcategory column not available (only text and label columns were saved)")
+                return
 
-        total = len(subcategories)
-        # Sort by count (descending) then by name
-        for subcategory, count in sorted(counter.items(), key=lambda x: (-x[1], str(x[0]))):
-            percentage = (count / total * 100) if total > 0 else 0
-            logger.info("     %s: %d (%.2f%%)", subcategory, count, percentage)
-    else:
-        logger.warning("   Subcategory column not found in dataset")
+            subcategories = dataset._ds["subcategory"]
+            counter = Counter(subcategories)
+
+            total = len(subcategories)
+            # Sort by count (descending) then by name
+            for subcategory, count in sorted(counter.items(), key=lambda x: (-x[1], str(x[0]))):
+                percentage = (count / total * 100) if total > 0 else 0
+                logger.info("     %s: %d (%.2f%%)", subcategory, count, percentage)
+        else:
+            logger.warning("   Cannot access underlying dataset")
+    except Exception as e:
+        logger.warning("   Failed to get subcategory distribution: %s", e)
 
 
 def prepare_wgmix_train(seed: int) -> None:
@@ -77,7 +85,7 @@ def prepare_wgmix_train(seed: int) -> None:
         name="wildguardtrain",
         split="train",
         text_field="prompt",
-        category_field="prompt_harm_label",
+        category_field=["prompt_harm_label", "subcategory"],  # Include subcategory to preserve it
         limit=5_000,
         stratify_by="prompt_harm_label",
         stratify_seed=seed,
