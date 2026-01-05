@@ -25,14 +25,8 @@ cd "$REPO_DIR"
 echo "Node: $(hostname -s)"
 echo "PWD:  $(pwd)"
 
-# WildGuardMix is gated on HF Hub; authenticate via `huggingface-cli login` on the login node
-# or pass a token via environment variable: `HF_TOKEN=... sbatch ...`.
-if [[ -z "${HF_TOKEN:-}" ]] && [[ ! -f "${HF_HOME:-$HOME/.cache/huggingface}/token" ]]; then
-  echo "ERROR: HuggingFace auth missing (wildguardmix is gated)." >&2
-  echo "Run once:  uv run huggingface-cli login" >&2
-  echo "Or submit with: HF_TOKEN=... sbatch slurm/run_baseline_guards_cpu.sh" >&2
-  exit 2
-fi
+# Using pre-cached PLMix dataset from store/datasets/plmix_test
+# No HuggingFace authentication needed since we load from disk
 
 BATCH_SIZE=${BATCH_SIZE:-16}
 
@@ -42,7 +36,7 @@ export MKL_NUM_THREADS=${SLURM_CPUS_PER_TASK:-4}
 
 uv run python -m experiments.scripts.run_baseline_guards \
   --store "$STORE_DIR" \
-  --run-llama \
-  --llama-model "meta-llama/Llama-Guard-3-1B" \
+  --dataset-name plmix_test \
+  --run-bielik \
   --device "cuda" \
   --batch-size "$BATCH_SIZE"
