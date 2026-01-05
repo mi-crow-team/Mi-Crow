@@ -97,6 +97,9 @@ outputs
 /tests/unit/store
 /tests/store
 
+# Github instructions
+.github/instructions/
+
 # Experiments
 .llm_context/
 .local_results/
