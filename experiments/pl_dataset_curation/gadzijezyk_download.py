@@ -17,7 +17,13 @@ def prepare_gadzi_jezyk():
     print(f"Wykryte kolumny: {df.columns.tolist()}")
 
     # 2. Definicja mapowania kategorii (uwzględniamy spacje w kluczach)
-    mapping = {" Kat 1": "verbal_abuse", " Kat 2": "vulgar", " Kat 3": "sexual", " Kat 4": "crime", " Kat 5": "suicide"}
+    mapping = {
+        " Kat 1": "verbal_abuse",
+        " Kat 2": "vulgar",
+        " Kat 3": "sexual",
+        " Kat 4": "crime",
+        " Kat 5": "self_harm",
+    }
 
     def get_harm_categories_list(row):
         categories = []
