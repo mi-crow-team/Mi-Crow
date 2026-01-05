@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH -A mi2lab-normal
 #SBATCH -p short,long
-#SBATCH -t 05:00:00
+#SBATCH -t 1-00:00:00
 #SBATCH -N 1
-#SBATCH -c 4
-#SBATCH --mem=32G
+#SBATCH -c 6
+#SBATCH --mem=40G
 #SBATCH --job-name=direct-prompting
 #SBATCH --output=/mnt/evafs/groups/mi2lab/hkowalski/Mi-Crow/slurm-logs/%x-%j.out
 #SBATCH --error=/mnt/evafs/groups/mi2lab/hkowalski/Mi-Crow/slurm-logs/%x-%j.err
@@ -32,12 +32,11 @@ echo "============================================"
 # Using pre-cached datasets from store/datasets/{wgmix_test, plmix_test}
 # No HuggingFace authentication needed since we load from disk
 
-BATCH_SIZE=${BATCH_SIZE:-32}
+BATCH_SIZE=${BATCH_SIZE:-128}
 
 # Respect allocated cores for common CPU backends
-export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-4}
-export MKL_NUM_THREADS=${SLURM_CPUS_PER_TASK:-4}
-
+export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-6}
+export MKL_NUM_THREADS=${SLURM_CPUS_PER_TASK:-6}
 # Models to test
 LLAMA_MODEL="meta-llama/Llama-3.2-3B-Instruct"
 BIELIK_MODEL="speakleash/Bielik-4.5B-v3.0-Instruct"
