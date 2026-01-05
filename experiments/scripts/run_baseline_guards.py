@@ -1,10 +1,17 @@
 """
-Docstring for experiments.scripts.run_baseline_guards
+Run baseline guard models (BielikGuard, LlamaGuard) on test datasets.
+
+This script evaluates baseline models on cached test datasets (WGMix or PLMix).
+Datasets must be prepared first using experiments.scripts.prepare_datasets.
 
 Usage:
-Bielik: uv run python -m experiments.scripts.run_baseline_guards --run-bielik --limit 50 --device cpu
-LlamaGuard: uv run python -m experiments.scripts.run_baseline_guards --run-llama \
-    --llama-model <HF_ID_OR_PATH> --limit 50 --device cpu
+    # WildGuardMix Test (English)
+    uv run python -m experiments.scripts.run_baseline_guards \
+        --dataset-name wgmix_test --run-bielik --device cpu
+
+    # PL Mix Test (Polish)
+    uv run python -m experiments.scripts.run_baseline_guards \
+        --dataset-name plmix_test --run-llama --llama-model <PATH> --device cpu
 """
 
 from __future__ import annotations
@@ -23,6 +30,7 @@ from experiments.scripts.analysis_utils import (
     save_confusion_matrix_plot,
     save_threat_category_bar,
 )
+from experiments.scripts.config import DATASET_CONFIGS
 from mi_crow.datasets import ClassificationDataset
 from mi_crow.store import LocalStore
 from mi_crow.utils import get_logger, set_seed
@@ -127,26 +135,28 @@ def _evaluate_and_save_analysis(
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Run baseline guard models on test datasets")
 
-    parser.add_argument("--store", type=str, default="store", help="LocalStore base path")
-    parser.add_argument("--dataset", type=str, default="allenai/wildguardmix")
-    parser.add_argument("--dataset-config", type=str, default="wildguardtest")
-    parser.add_argument("--split", type=str, default="test")
-    parser.add_argument("--text-field", type=str, default="prompt")
-    parser.add_argument("--category-field", type=str, default="prompt_harm_label")
-    parser.add_argument("--limit", type=int, default=None)
+    # Dataset selection
+    parser.add_argument(
+        "--dataset-name",
+        type=str,
+        required=True,
+        choices=list(DATASET_CONFIGS.keys()),
+        help="Test dataset to use (must be prepared first with prepare_datasets.py)",
+    )
+    parser.add_argument("--store", type=str, default="store", help="LocalStore base path for saving results")
     parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
 
+    # Model selection
     parser.add_argument("--batch-size", type=int, default=32)
-
     parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "cuda", "mps"])
 
-    parser.add_argument("--run-bielik", action="store_true")
+    parser.add_argument("--run-bielik", action="store_true", help="Run BielikGuard model")
     parser.add_argument("--bielik-model", type=str, default="speakleash/Bielik-Guard-0.1B-v1.0")
     parser.add_argument("--bielik-threshold", type=float, default=0.5)
 
-    parser.add_argument("--run-llama", action="store_true")
+    parser.add_argument("--run-llama", action="store_true", help="Run LlamaGuard model")
     parser.add_argument(
         "--llama-model", type=str, default="meta-llama/Llama-Guard-3-1B", help="HF model id/path for LlamaGuard"
     )
@@ -154,24 +164,36 @@ def main() -> int:
     args = parser.parse_args()
 
     script_t0 = perf_counter()
-
     set_seed(args.seed)
-    store = LocalStore(args.store)
 
-    logger.info("Loading dataset %s (%s/%s)", args.dataset, args.dataset_config, args.split)
+    # Get dataset configuration
+    dataset_config = DATASET_CONFIGS[args.dataset_name]
+    dataset_store_path = dataset_config["store_path"]
+    text_field = dataset_config["text_field"]
+    category_field = dataset_config["category_field"]
+
+    logger.info("=" * 80)
+    logger.info("Dataset: %s", dataset_config["description"])
+    logger.info("Store path: %s", dataset_store_path)
+    logger.info("Text field: %s, Category field: %s", text_field, category_field)
+    logger.info("=" * 80)
+
+    # Load dataset from disk
+    logger.info("Loading dataset from disk...")
     dataset_t0 = perf_counter()
-    dataset = ClassificationDataset.from_huggingface(
-        repo_id=args.dataset,
-        store=store,
-        name=args.dataset_config,
-        split=args.split,
-        text_field=args.text_field,
-        category_field=args.category_field,
-        limit=args.limit,
-        stratify_seed=args.seed,
-    )
-    dataset_load_s = perf_counter() - dataset_t0
 
+    dataset_store = LocalStore(base_path=dataset_store_path)
+    dataset = ClassificationDataset.from_disk(
+        store=dataset_store,
+        text_field=text_field,
+        category_field=category_field,
+    )
+
+    dataset_load_s = perf_counter() - dataset_t0
+    logger.info("✅ Dataset loaded: %d samples (%.2fs)", len(dataset), dataset_load_s)
+
+    # Store for saving results
+    results_store = LocalStore(args.store)
     ts = _timestamp()
 
     if not args.run_bielik and not args.run_llama:
@@ -185,7 +207,7 @@ def main() -> int:
         bielik = create_bielik_guard(model_path=args.bielik_model, threshold=args.bielik_threshold, device=args.device)
         init_s = perf_counter() - init_t0
 
-        run_id = f"baseline_bielik_{ts}"
+        run_id = f"baseline_bielik_{args.dataset_name}_{ts}"
         logger.info("Running BielikGuard -> run_id=%s", run_id)
 
         predict_t0 = perf_counter()
@@ -193,16 +215,16 @@ def main() -> int:
         predict_s = perf_counter() - predict_t0
 
         save_t0 = perf_counter()
-        bielik.save_predictions(run_id=run_id, store=store, format="parquet")
+        bielik.save_predictions(run_id=run_id, store=results_store, format="parquet")
         save_s = perf_counter() - save_t0
 
-        run_dir = Path(store.base_path) / "runs" / run_id
+        run_dir = Path(results_store.base_path) / "runs" / run_id
 
         analysis_t0 = perf_counter()
         _evaluate_and_save_analysis(
             run_dir=run_dir,
             dataset=dataset,
-            category_field=args.category_field,
+            category_field=category_field,
             predictions=bielik.predictions,
             model_name=bielik.model_id,
         )
@@ -210,6 +232,7 @@ def main() -> int:
 
         total_s = perf_counter() - run_t0
         timings = {
+            "dataset_name": args.dataset_name,
             "dataset_load_seconds": dataset_load_s,
             "model_init_seconds": init_s,
             "predict_seconds": predict_s,
@@ -230,7 +253,7 @@ def main() -> int:
         llama = create_llama_guard(model_path=args.llama_model, device=args.device)
         init_s = perf_counter() - init_t0
 
-        run_id = f"baseline_llamaguard_{ts}"
+        run_id = f"baseline_llamaguard_{args.dataset_name}_{ts}"
         logger.info("Running LlamaGuard -> run_id=%s", run_id)
 
         # Per request: use predict_batch (generation) only.
@@ -239,16 +262,16 @@ def main() -> int:
         predict_s = perf_counter() - predict_t0
 
         save_t0 = perf_counter()
-        llama.save_predictions(run_id=run_id, store=store, format="parquet")
+        llama.save_predictions(run_id=run_id, store=results_store, format="parquet")
         save_s = perf_counter() - save_t0
 
-        run_dir = Path(store.base_path) / "runs" / run_id
+        run_dir = Path(results_store.base_path) / "runs" / run_id
 
         analysis_t0 = perf_counter()
         _evaluate_and_save_analysis(
             run_dir=run_dir,
             dataset=dataset,
-            category_field=args.category_field,
+            category_field=category_field,
             predictions=llama.predictions,
             model_name=llama.model_id,
         )
@@ -256,6 +279,7 @@ def main() -> int:
 
         total_s = perf_counter() - run_t0
         timings = {
+            "dataset_name": args.dataset_name,
             "dataset_load_seconds": dataset_load_s,
             "model_init_seconds": init_s,
             "predict_seconds": predict_s,
