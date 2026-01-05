@@ -33,9 +33,24 @@ BATCH_SIZE=${BATCH_SIZE:-16}
 export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-4}
 export MKL_NUM_THREADS=${SLURM_CPUS_PER_TASK:-4}
 
-uv run python -m experiments.scripts.run_baseline_guards \
-  --store "$STORE_DIR" \
-  --dataset-name plmix_test \
-  --run-bielik \
-  --device cpu \
-  --batch-size "$BATCH_SIZE"
+
+# Run all combinations: (wgmix_test, plmix_test) x (BielikGuard, LlamaGuard)
+
+for DATASET in wgmix_test plmix_test; do
+  # BielikGuard
+  uv run python -m experiments.scripts.run_baseline_guards \
+    --store "$STORE_DIR" \
+    --dataset-name "$DATASET" \
+    --run-bielik \
+    --device cpu \
+    --batch-size "$BATCH_SIZE"
+
+  # LlamaGuard
+  uv run python -m experiments.scripts.run_baseline_guards \
+    --store "$STORE_DIR" \
+    --dataset-name "$DATASET" \
+    --run-llama \
+    --llama-model "meta-llama/Llama-Guard-3-1B" \
+    --device cpu \
+    --batch-size "$BATCH_SIZE"
+done
