@@ -2,8 +2,8 @@ import csv
 import os
 import re
 
-INPUT_FILE = "sampled_neutral_520.csv"
-OUTPUT_FILE = "sampled_neutral_520_processed.csv"
+INPUT_FILE = "sampled_neutral_260.csv"
+OUTPUT_FILE = "sampled_neutral_260_processed.csv"
 
 # Define quote characters to remove from start/end
 QUOTE_CHARS = [

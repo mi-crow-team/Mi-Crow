@@ -106,9 +106,10 @@ results/
 /experiments/store/
 
 .local_results/
-
 # All csv files from experiments/pl_dataset_curation folder
 /experiments/pl_dataset_curation/*.csv
+# Dataset CSV files
+data/
 
 # frontend
 src/frontend/node_modules/
