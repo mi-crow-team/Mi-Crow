@@ -70,10 +70,8 @@ def intelligent_sampling(df, k_target, text_col="text"):
 
 
 if __name__ == "__main__":
-    # --- EXECUTION ---
-    # Load your dataset (Polemo2 neutral subset)
-    # Expected columns: 'text', 'text_harm_label'
-    # Get the directory of the current Python file
+    # --- POLEMO ---
+
     script_dir = os.path.dirname(os.path.abspath(__file__))
     input_csv = os.path.join(script_dir, "polemo_neutral.csv")
     df_neutral = pd.read_csv(input_csv)
@@ -81,12 +79,23 @@ if __name__ == "__main__":
     # Filter for neutral label (as per your instruction)
     df_neutral = df_neutral[df_neutral["text_harm_label"] == 0]
 
-    # Perform intelligent sampling for K = 520
-    k_target = 520
+    # Perform intelligent sampling
+    k_target = 260
     curated_df = intelligent_sampling(df_neutral, k_target)
 
     # Clean up temporary columns and save
     curated_df = curated_df[["text", "text_harm_label"]]
-    save_path = os.path.join(script_dir, "sampled_neutral_520.csv")
+    save_path = os.path.join(script_dir, "sampled_neutral_260.csv")
     curated_df.to_csv(save_path, index=False)
     print(f"Success! Saved {len(curated_df)} rows to '{save_path}'.")
+
+    # --- AEGIS ---
+    # script_dir = os.path.dirname(os.path.abspath(__file__))
+    # k_target = 260
+    # input_csv_aegis = os.path.join(script_dir, "aegis_safe_train.csv")
+    # df_aegis = pd.read_csv(input_csv_aegis)
+    # curated_aegis_df = intelligent_sampling(df_aegis, k_target, text_col="prompt")
+    # curated_aegis_df = curated_aegis_df[["prompt", "prompt_label"]]
+    # save_path_aegis = os.path.join(script_dir, "sampled_aegis_safe_260.csv")
+    # curated_aegis_df.to_csv(save_path_aegis, index=False)
+    # print(f"Success! Saved {len(curated_aegis_df)} rows to '{save_path_aegis}'.")
