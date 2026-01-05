@@ -54,7 +54,7 @@ uv run python -m experiments.scripts.run_direct_prompting \
   --store "$STORE_DIR" \
   --dataset-name wgmix_test \
   --model "$LLAMA_MODEL" \
-  --device cuda \
+  --device cpu \
   --batch-size "$BATCH_SIZE" \
   --max-new-tokens 10 \
   --temperature 0.0
@@ -67,7 +67,7 @@ uv run python -m experiments.scripts.run_direct_prompting \
   --store "$STORE_DIR" \
   --dataset-name plmix_test \
   --model "$LLAMA_MODEL" \
-  --device cuda \
+  --device cpu \
   --batch-size "$BATCH_SIZE" \
   --max-new-tokens 10 \
   --temperature 0.0
