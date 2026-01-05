@@ -563,24 +563,37 @@ class ClassificationDataset(BaseDataset):
             FileNotFoundError: If CSV file doesn't exist
             RuntimeError: If dataset loading fails
         """
-        drop_na_columns = None
-        if drop_na:
-            cat_fields = [category_field] if isinstance(category_field, str) else category_field
-            drop_na_columns = [text_field] + list(cat_fields)
+        if store is None:
+            raise ValueError("store cannot be None")
 
-        dataset = super().from_csv(
+        use_streaming = loading_strategy == LoadingStrategy.STREAMING
+        if (stratify_by or drop_na) and use_streaming:
+            raise NotImplementedError("Stratification and drop_na are not supported for STREAMING datasets.")
+
+        # Load CSV using parent's static method
+        ds = cls._load_csv_source(
             source,
-            store=store,
-            loading_strategy=loading_strategy,
-            text_field=text_field,
             delimiter=delimiter,
-            stratify_by=stratify_by,
-            stratify_seed=stratify_seed,
-            drop_na_columns=drop_na_columns,
+            streaming=use_streaming,
             **kwargs,
         )
+
+        # Apply postprocessing if not streaming
+        if not use_streaming and (stratify_by or drop_na):
+            drop_na_columns = None
+            if drop_na:
+                cat_fields = [category_field] if isinstance(category_field, str) else category_field
+                drop_na_columns = [text_field] + list(cat_fields)
+
+            ds = cls._postprocess_non_streaming_dataset(
+                ds,
+                stratify_by=stratify_by,
+                stratify_seed=stratify_seed,
+                drop_na_columns=drop_na_columns,
+            )
+
         return cls(
-            dataset._ds,
+            ds,
             store=store,
             loading_strategy=loading_strategy,
             text_field=text_field,
@@ -622,23 +635,36 @@ class ClassificationDataset(BaseDataset):
             FileNotFoundError: If JSON file doesn't exist
             RuntimeError: If dataset loading fails
         """
-        drop_na_columns = None
-        if drop_na:
-            cat_fields = [category_field] if isinstance(category_field, str) else category_field
-            drop_na_columns = [text_field] + list(cat_fields)
+        if store is None:
+            raise ValueError("store cannot be None")
 
-        dataset = super().from_json(
+        use_streaming = loading_strategy == LoadingStrategy.STREAMING
+        if (stratify_by or drop_na) and use_streaming:
+            raise NotImplementedError("Stratification and drop_na are not supported for STREAMING datasets.")
+
+        # Load JSON using parent's static method
+        ds = cls._load_json_source(
             source,
-            store=store,
-            loading_strategy=loading_strategy,
-            text_field=text_field,
-            stratify_by=stratify_by,
-            stratify_seed=stratify_seed,
-            drop_na_columns=drop_na_columns,
+            streaming=use_streaming,
             **kwargs,
         )
+
+        # Apply postprocessing if not streaming
+        if not use_streaming and (stratify_by or drop_na):
+            drop_na_columns = None
+            if drop_na:
+                cat_fields = [category_field] if isinstance(category_field, str) else category_field
+                drop_na_columns = [text_field] + list(cat_fields)
+
+            ds = cls._postprocess_non_streaming_dataset(
+                ds,
+                stratify_by=stratify_by,
+                stratify_seed=stratify_seed,
+                drop_na_columns=drop_na_columns,
+            )
+
         return cls(
-            dataset._ds,
+            ds,
             store=store,
             loading_strategy=loading_strategy,
             text_field=text_field,
