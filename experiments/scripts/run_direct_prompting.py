@@ -238,8 +238,9 @@ def main() -> int:
         logger.info("✅ Predictor initialized (%.2fs)", init_s)
 
         # Run predictions
+        # Note: ClassificationDataset normalizes all text fields to "text" key in __getitem__
         predict_t0 = perf_counter()
-        predictor.predict_dataset(dataset, batch_size=args.batch_size, verbose=True, text_field=text_field)
+        predictor.predict_dataset(dataset, batch_size=args.batch_size, verbose=True, text_field="text")
         predict_s = perf_counter() - predict_t0
         logger.info("✅ Predictions complete (%.2fs)", predict_s)
 
