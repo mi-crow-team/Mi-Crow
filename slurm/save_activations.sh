@@ -28,7 +28,6 @@ echo "GPU:  $(nvidia-smi -L)"
 
 # Configuration
 BATCH_SIZE=${BATCH_SIZE:-64}
-MAX_LENGTH=${MAX_LENGTH:-512}
 DEVICE="cuda"
 
 # Model configurations with their default last layers
@@ -59,7 +58,6 @@ for MODEL in "${!MODEL_LAYERS[@]}"; do
       --dataset "$DATASET" \
       --layer-num "$LAYER_NUM" \
       --batch-size "$BATCH_SIZE" \
-      --max-length "$MAX_LENGTH" \
       --device "$DEVICE" \
       --store "$STORE_DIR"
     
