@@ -197,47 +197,8 @@ class LanguageModelActivations:
             dtype: Optional dtype to convert activations to
             verbose: Whether to log progress
         """
-        # #region agent log
-        import json
-        import os
-        from datetime import datetime
-        log_path = "/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log"
-        def log_debug(location, message, data, hypothesis_id):
-            try:
-                with open(log_path, "a") as f:
-                    f.write(json.dumps({
-                        "sessionId": "debug-session",
-                        "runId": "pre-fix",
-                        "hypothesisId": hypothesis_id,
-                        "location": location,
-                        "message": message,
-                        "data": data,
-                        "timestamp": int(datetime.now().timestamp() * 1000)
-                    }) + "\n")
-            except: pass
-        # #endregion
-        
         if not texts:
             return
-
-        # #region agent log
-        import torch
-        import gc
-        gc.collect()
-        if torch.cuda.is_available():
-            cuda_mem_before = torch.cuda.memory_allocated() / 1024**3
-            cuda_mem_reserved = torch.cuda.memory_reserved() / 1024**3
-        else:
-            cuda_mem_before = 0
-            cuda_mem_reserved = 0
-        log_debug("activations.py:_process_batch:entry", "Batch processing started", {
-            "batch_index": batch_index,
-            "batch_size": len(texts),
-            "max_length": max_length,
-            "cuda_mem_allocated_gb": cuda_mem_before,
-            "cuda_mem_reserved_gb": cuda_mem_reserved
-        }, "A")
-        # #endregion
 
         tok_kwargs = {}
         if max_length is not None:
@@ -250,30 +211,6 @@ class LanguageModelActivations:
             autocast_dtype=autocast_dtype,
         )
 
-        # #region agent log
-        detectors = self.context.language_model.layers.get_detectors()
-        activation_sizes = {}
-        for det in detectors:
-            if "activations" in det.tensor_metadata:
-                tensor = det.tensor_metadata["activations"]
-                if tensor is not None:
-                    activation_sizes[det.layer_signature] = {
-                        "shape": list(tensor.shape),
-                        "numel": tensor.numel(),
-                        "dtype": str(tensor.dtype),
-                        "size_mb": tensor.numel() * tensor.element_size() / 1024**2
-                    }
-        if torch.cuda.is_available():
-            cuda_mem_after_inference = torch.cuda.memory_allocated() / 1024**3
-        else:
-            cuda_mem_after_inference = 0
-        log_debug("activations.py:_process_batch:after_inference", "After inference, before save", {
-            "batch_index": batch_index,
-            "activation_sizes": activation_sizes,
-            "cuda_mem_allocated_gb": cuda_mem_after_inference
-        }, "A")
-        # #endregion
-
         if dtype is not None:
             self._convert_activations_to_dtype(dtype)
 
@@ -283,50 +220,17 @@ class LanguageModelActivations:
             unified=not save_in_batches,
         )
 
-        # #region agent log
-        detectors_after_save = self.context.language_model.layers.get_detectors()
-        activation_sizes_after = {}
-        for det in detectors_after_save:
-            if "activations" in det.tensor_metadata:
-                tensor = det.tensor_metadata["activations"]
-                if tensor is not None:
-                    activation_sizes_after[det.layer_signature] = {
-                        "shape": list(tensor.shape),
-                        "numel": tensor.numel(),
-                        "size_mb": tensor.numel() * tensor.element_size() / 1024**2
-                    }
-        if torch.cuda.is_available():
-            cuda_mem_after_save = torch.cuda.memory_allocated() / 1024**3
-        else:
-            cuda_mem_after_save = 0
-        log_debug("activations.py:_process_batch:after_save", "After save_detector_metadata", {
-            "batch_index": batch_index,
-            "activation_sizes_still_in_memory": activation_sizes_after,
-            "cuda_mem_allocated_gb": cuda_mem_after_save,
-            "activations_cleared": len(activation_sizes_after) == 0
-        }, "A")
-        # #endregion
-
         detectors = self.context.language_model.layers.get_detectors()
         for detector in detectors:
             clear_captured = getattr(detector, "clear_captured", None)
             if callable(clear_captured):
                 clear_captured()
         
-        # #region agent log
         import gc
+        import torch
         gc.collect()
         if torch.cuda.is_available():
-            cuda_mem_after_clear = torch.cuda.memory_allocated() / 1024**3
             torch.cuda.empty_cache()
-        else:
-            cuda_mem_after_clear = 0
-        log_debug("activations.py:_process_batch:after_clear", "After clearing activations", {
-            "batch_index": batch_index,
-            "cuda_mem_allocated_gb": cuda_mem_after_clear,
-            "cuda_mem_freed_gb": cuda_mem_after_save - cuda_mem_after_clear if torch.cuda.is_available() else 0
-        }, "A")
-        # #endregion
 
         if verbose:
             logger.info(f"Saved batch {batch_index} for run={run_name}")
@@ -449,42 +353,6 @@ class LanguageModelActivations:
         try:
             with torch.inference_mode():
                 for batch_index, batch in enumerate(dataset.iter_batches(batch_size)):
-                    # #region agent log
-                    import json
-                    import os
-                    import torch
-                    import gc
-                    from datetime import datetime
-                    log_path = "/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log"
-                    def log_debug(location, message, data, hypothesis_id):
-                        try:
-                            with open(log_path, "a") as f:
-                                f.write(json.dumps({
-                                    "sessionId": "debug-session",
-                                    "runId": "pre-fix",
-                                    "hypothesisId": hypothesis_id,
-                                    "location": location,
-                                    "message": message,
-                                    "data": data,
-                                    "timestamp": int(datetime.now().timestamp() * 1000)
-                                }) + "\n")
-                        except: pass
-                    gc.collect()
-                    if torch.cuda.is_available():
-                        cuda_mem = torch.cuda.memory_allocated() / 1024**3
-                        cuda_mem_reserved = torch.cuda.memory_reserved() / 1024**3
-                    else:
-                        cuda_mem = 0
-                        cuda_mem_reserved = 0
-                    log_debug("activations.py:save_activations_dataset:batch_start", "Starting batch", {
-                        "batch_index": batch_index,
-                        "batch_counter": batch_counter,
-                        "cuda_mem_allocated_gb": cuda_mem,
-                        "cuda_mem_reserved_gb": cuda_mem_reserved,
-                        "free_cuda_cache_every": free_cuda_cache_every
-                    }, "D")
-                    # #endregion
-                    
                     texts = dataset.extract_texts_from_batch(batch)
                     self._process_batch(
                         texts,
@@ -498,24 +366,6 @@ class LanguageModelActivations:
                         save_in_batches=save_in_batches,
                     )
                     batch_counter += 1
-                    
-                    # #region agent log
-                    gc.collect()
-                    if torch.cuda.is_available():
-                        cuda_mem_after = torch.cuda.memory_allocated() / 1024**3
-                        cuda_mem_reserved_after = torch.cuda.memory_reserved() / 1024**3
-                    else:
-                        cuda_mem_after = 0
-                        cuda_mem_reserved_after = 0
-                    log_debug("activations.py:save_activations_dataset:batch_end", "After batch processing", {
-                        "batch_index": batch_index,
-                        "batch_counter": batch_counter,
-                        "cuda_mem_allocated_gb": cuda_mem_after,
-                        "cuda_mem_reserved_gb": cuda_mem_reserved_after,
-                        "cuda_mem_delta_gb": cuda_mem_after - cuda_mem
-                    }, "D")
-                    # #endregion
-                    
                     self._manage_cuda_cache(batch_counter, free_cuda_cache_every, device_type, verbose)
         finally:
             for hook_id in hook_ids:

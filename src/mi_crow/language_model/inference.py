@@ -50,33 +50,11 @@ class InferenceEngine:
         Returns:
             Dictionary of tokenizer kwargs with defaults applied
         """
-        # #region agent log
-        import json
-        import os
-        from datetime import datetime
-        log_path = "/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log"
-        def log_debug(location, message, data, hypothesis_id):
-            try:
-                with open(log_path, "a") as f:
-                    f.write(json.dumps({
-                        "sessionId": "debug-session",
-                        "runId": "pre-fix",
-                        "hypothesisId": hypothesis_id,
-                        "location": location,
-                        "message": message,
-                        "data": data,
-                        "timestamp": int(datetime.now().timestamp() * 1000)
-                    }) + "\n")
-            except: pass
-        # #endregion
-        
         if tok_kwargs is None:
             tok_kwargs = {}
         
         padding_strategy = tok_kwargs.pop("padding", True)
         if padding_strategy is True and "max_length" in tok_kwargs:
-            # Use "longest" padding strategy: pad to longest sequence in batch (up to max_length)
-            # This is more memory efficient than padding all to max_length
             padding_strategy = "longest"
         
         result = {
@@ -85,14 +63,6 @@ class InferenceEngine:
             "return_tensors": "pt",
             **tok_kwargs,
         }
-        
-        # #region agent log
-        log_debug("inference.py:_prepare_tokenizer_kwargs", "Tokenizer kwargs prepared", {
-            "max_length": result.get("max_length"),
-            "padding": result.get("padding"),
-            "truncation": result.get("truncation")
-        }, "B")
-        # #endregion
         
         return result
     
@@ -219,39 +189,6 @@ class InferenceEngine:
 
         tok_kwargs = self._prepare_tokenizer_kwargs(tok_kwargs)
         enc = self.lm.tokenize(texts, **tok_kwargs)
-
-        # #region agent log
-        import json
-        import os
-        from datetime import datetime
-        log_path = "/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log"
-        def log_debug(location, message, data, hypothesis_id):
-            try:
-                with open(log_path, "a") as f:
-                    f.write(json.dumps({
-                        "sessionId": "debug-session",
-                        "runId": "pre-fix",
-                        "hypothesisId": hypothesis_id,
-                        "location": location,
-                        "message": message,
-                        "data": data,
-                        "timestamp": int(datetime.now().timestamp() * 1000)
-                    }) + "\n")
-            except: pass
-        if "input_ids" in enc:
-            actual_lengths = [len(ids) if isinstance(ids, list) else ids.shape[1] if hasattr(ids, 'shape') else 0 for ids in (enc["input_ids"] if isinstance(enc["input_ids"], list) else [enc["input_ids"]])]
-            if hasattr(enc["input_ids"], "shape"):
-                batch_size, seq_len = enc["input_ids"].shape
-                actual_lengths = [seq_len] * batch_size
-            max_actual = max(actual_lengths) if actual_lengths else 0
-            log_debug("inference.py:execute_inference:after_tokenize", "Tokenization completed", {
-                "batch_size": len(texts),
-                "max_length_setting": tok_kwargs.get("max_length"),
-                "actual_max_length": max_actual,
-                "actual_lengths": actual_lengths[:5] if len(actual_lengths) > 5 else actual_lengths,
-                "padding_waste": tok_kwargs.get("max_length", 0) - max_actual if tok_kwargs.get("max_length") else 0
-            }, "B")
-        # #endregion
 
         device = get_device_from_model(self.lm.model)
         device_type = str(device.type)
