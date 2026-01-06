@@ -39,6 +39,25 @@ class TestInferenceEngine:
         assert kwargs["truncation"] is True
         assert kwargs["return_tensors"] == "pt"
 
+    def test_prepare_tokenizer_kwargs_padding_longest_with_max_length(self, mock_language_model):
+        """Test that padding is set to 'longest' when padding=True and max_length is provided."""
+        engine = InferenceEngine(mock_language_model)
+        kwargs = engine._prepare_tokenizer_kwargs({"max_length": 1024, "padding": True})
+        
+        assert kwargs["max_length"] == 1024
+        assert kwargs["padding"] == "longest"
+        assert kwargs["truncation"] is True
+        assert kwargs["return_tensors"] == "pt"
+
+    def test_prepare_tokenizer_kwargs_padding_true_without_max_length(self, mock_language_model):
+        """Test that padding remains True when max_length is not provided."""
+        engine = InferenceEngine(mock_language_model)
+        kwargs = engine._prepare_tokenizer_kwargs({"padding": True})
+        
+        assert kwargs["padding"] is True
+        assert kwargs["truncation"] is True
+        assert kwargs["return_tensors"] == "pt"
+
     def test_setup_trackers_with_tracker(self, mock_language_model):
         """Test setting up trackers when tracker exists."""
         engine = InferenceEngine(mock_language_model)
