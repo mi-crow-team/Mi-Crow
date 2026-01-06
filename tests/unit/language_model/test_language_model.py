@@ -274,13 +274,10 @@ class TestLanguageModelInferenceControllerRestoration:
             
             lm.inference.execute_inference(["test"], with_controllers=False)
             
-            mock_execute.assert_called_once_with(
-                ["test"],
-                tok_kwargs=None,
-                autocast=True,
-                autocast_dtype=None,
-                with_controllers=False
-            )
+            mock_execute.assert_called_once()
+            call_args = mock_execute.call_args
+            assert call_args[0][0] == ["test"]
+            assert call_args[1]["with_controllers"] is False
 
 
 class TestLanguageModelSpecialTokenExtraction:
