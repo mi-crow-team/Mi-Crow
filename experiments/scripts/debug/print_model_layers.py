@@ -2,6 +2,8 @@
 Debug script to print all available layers for different models.
 """
 
+import contextlib
+import io
 import os
 from pathlib import Path
 
@@ -28,9 +30,6 @@ for model_id in MODELS:
     # Load model
     lm = LanguageModel.from_huggingface(model_id, store=store)
 
-    # Get all layer names
-    layer_names = lm.layers.get_layer_names()
-
     # Prepare output
     output_lines = [
         "=" * 80,
@@ -38,7 +37,12 @@ for model_id in MODELS:
         "=" * 80,
         "",
     ]
-    output_lines += [f"  {i}: {name}" for i, name in enumerate(layer_names)]
+
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        lm.layers.print_layer_names()
+    layer_names_str = buf.getvalue()
+    output_lines.append(layer_names_str.rstrip())
     output_lines.append("")
 
     # Write to file
