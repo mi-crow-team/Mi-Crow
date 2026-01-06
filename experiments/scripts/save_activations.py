@@ -181,7 +181,10 @@ def main() -> int:
     text_field = dataset_config["text_field"]
 
     dataset_store = LocalStore(base_path=dataset_store_path)
-    dataset = TextDataset.from_disk(store=dataset_store, text_field=text_field)
+    dataset = TextDataset.from_disk(
+        store=dataset_store, 
+        text_field=text_field,
+    )
 
     dataset_load_s = perf_counter() - dataset_t0
     logger.info("✅ Dataset loaded: %d samples (%.2fs)", len(dataset), dataset_load_s)
@@ -191,7 +194,7 @@ def main() -> int:
     model_t0 = perf_counter()
 
     results_store = LocalStore(args.store)
-    lm = LanguageModel.from_huggingface(args.model, store=results_store)
+    lm = LanguageModel.from_huggingface(args.model, store=results_store, device=args.device)
 
     # Get effective max length
     effective_max_length = _get_effective_max_length(lm)

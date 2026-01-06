@@ -1,4 +1,5 @@
 import datetime
+import gc
 from typing import TYPE_CHECKING, Any, Dict, Sequence
 
 import torch
@@ -219,15 +220,7 @@ class LanguageModelActivations:
             batch_index,
             unified=not save_in_batches,
         )
-
-        detectors = self.context.language_model.layers.get_detectors()
-        for detector in detectors:
-            clear_captured = getattr(detector, "clear_captured", None)
-            if callable(clear_captured):
-                clear_captured()
         
-        import gc
-        import torch
         gc.collect()
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
@@ -366,6 +359,7 @@ class LanguageModelActivations:
                         save_in_batches=save_in_batches,
                     )
                     batch_counter += 1
+                    
                     self._manage_cuda_cache(batch_counter, free_cuda_cache_every, device_type, verbose)
         finally:
             for hook_id in hook_ids:
