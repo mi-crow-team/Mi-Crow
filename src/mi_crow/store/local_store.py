@@ -250,11 +250,8 @@ class LocalStore(Store):
                 tensor_filename = f"{tensor_key}.safetensors"
                 tensor_path = layer_dir / tensor_filename
                 try:
-                    # Create a copy of the tensor to avoid holding references
-                    # This ensures storch.save_file doesn't keep a reference to the original tensor
                     tensor_copy = tensor.clone().detach()
                     storch.save_file({"tensor": tensor_copy}, str(tensor_path))
-                    # Explicitly delete the copy to free memory immediately
                     del tensor_copy
                 except Exception as e:
                     raise OSError(
@@ -430,12 +427,10 @@ class LocalStore(Store):
                     existing = {}
 
                 batch_key = f"batch_{batch_index}"
-                # Create a copy of the tensor to avoid holding references
                 existing[batch_key] = tensor.clone().detach()
 
                 try:
                     storch.save_file(existing, str(tensor_path))
-                    # Explicitly delete the copy to free memory immediately
                     del existing[batch_key]
                 except Exception as e:
                     raise OSError(
