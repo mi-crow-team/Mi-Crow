@@ -53,6 +53,7 @@ docs = [
 addopts = "--maxfail=1 -q --cov=mi_crow --cov-report=term-missing --cov-report=xml --cov-fail-under=85"
 testpaths = ["tests"]
 pythonpath = ["src"]
+norecursedirs = ["experiments", "playground", "examples", "presentations", "site", "htmlcov", ".git", "__pycache__", "*.egg-info"]
 
 [tool.coverage.run]
 branch = true
