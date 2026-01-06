@@ -211,11 +211,15 @@ class LanguageModel:
         if self.store is None:
             raise ValueError("Store must be provided or set on the language model")
         detectors_metadata, detectors_tensor_metadata = self.get_all_detector_metadata()
+        
         if unified:
-            return self.store.put_run_detector_metadata(run_name, detectors_metadata, detectors_tensor_metadata)
-        if batch_idx is None:
-            raise ValueError("batch_idx must be provided when unified is False")
-        return self.store.put_detector_metadata(run_name, batch_idx, detectors_metadata, detectors_tensor_metadata)
+            result = self.store.put_run_detector_metadata(run_name, detectors_metadata, detectors_tensor_metadata)
+        else:
+            if batch_idx is None:
+                raise ValueError("batch_idx must be provided when unified is False")
+            result = self.store.put_detector_metadata(run_name, batch_idx, detectors_metadata, detectors_tensor_metadata)
+        
+        return result
 
     def _ensure_input_tracker(self) -> "InputTracker":
         """
