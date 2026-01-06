@@ -170,7 +170,6 @@ def main() -> int:
     logger.info("Dataset: %s (%s)", args.dataset, dataset_config["description"])
     logger.info("Layer number: %d", layer_num)
     logger.info("Batch size: %d", args.batch_size)
-    logger.info("Max length: %d", args.max_length)
     logger.info("Device: %s", args.device)
     logger.info("=" * 80)
 
