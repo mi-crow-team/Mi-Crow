@@ -39,9 +39,13 @@ def create_from_huggingface(
         store: Store,
         tokenizer_params: dict | None = None,
         model_params: dict | None = None,
+        device: str | None = None,
 ) -> "LanguageModel":
     """
     Load a language model from HuggingFace Hub.
+    
+    Automatically loads model to GPU if device is "cuda" and CUDA is available.
+    This prevents OOM errors by keeping the model on GPU instead of CPU RAM.
     
     Args:
         cls: LanguageModel class
@@ -49,10 +53,12 @@ def create_from_huggingface(
         store: Store instance for persistence
         tokenizer_params: Optional tokenizer parameters
         model_params: Optional model parameters
-        
+        device: Target device ("cuda", "cpu", "mps"). If "cuda" and CUDA is available,
+            model will be loaded directly to GPU using device_map="auto"
+    
     Returns:
         LanguageModel instance
-        
+    
     Raises:
         ValueError: If model_name is invalid
         RuntimeError: If model loading fails
@@ -67,6 +73,11 @@ def create_from_huggingface(
         tokenizer_params = {}
     if model_params is None:
         model_params = {}
+    
+    if device == "cuda" and torch.cuda.is_available():
+        model_params = dict(model_params)
+        if "device_map" not in model_params:
+            model_params["device_map"] = "auto"
 
     try:
         tokenizer = AutoTokenizer.from_pretrained(model_name, **tokenizer_params)

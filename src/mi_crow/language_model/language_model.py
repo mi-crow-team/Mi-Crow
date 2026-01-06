@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import defaultdict
 from pathlib import Path
 from typing import Sequence, Any, Dict, List, TYPE_CHECKING, Set, Tuple
+import gc
 
 import torch
 from torch import nn, Tensor
@@ -167,8 +168,8 @@ class LanguageModel:
         detectors_tensor_metadata: Dict[str, Dict[str, torch.Tensor]] = defaultdict(dict)
 
         for detector in detectors:
-            detectors_metadata[detector.layer_signature] = detector.metadata
-            detectors_tensor_metadata[detector.layer_signature] = detector.tensor_metadata
+            detectors_metadata[detector.layer_signature] = dict(detector.metadata)
+            detectors_tensor_metadata[detector.layer_signature] = dict(detector.tensor_metadata)
 
         return detectors_metadata, detectors_tensor_metadata
 
@@ -192,7 +193,7 @@ class LanguageModel:
             if callable(clear_captured):
                 clear_captured()
 
-    def save_detector_metadata(self, run_name: str, batch_idx: int | None, unified: bool = False) -> str:
+    def save_detector_metadata(self, run_name: str, batch_idx: int | None, unified: bool = False, clear_after_save: bool = True) -> str:
         """
         Save detector metadata to store.
         
@@ -201,6 +202,8 @@ class LanguageModel:
             batch_idx: Batch index. Ignored when ``unified`` is True.
             unified: If True, save metadata in a single detectors directory
                 for the whole run instead of per‑batch directories.
+            clear_after_save: If True, clear detector metadata after saving to free memory.
+                Defaults to True to prevent OOM errors when processing large batches.
             
         Returns:
             Path where metadata was saved
@@ -210,6 +213,7 @@ class LanguageModel:
         """
         if self.store is None:
             raise ValueError("Store must be provided or set on the language model")
+        
         detectors_metadata, detectors_tensor_metadata = self.get_all_detector_metadata()
         
         if unified:
@@ -218,6 +222,25 @@ class LanguageModel:
             if batch_idx is None:
                 raise ValueError("batch_idx must be provided when unified is False")
             result = self.store.put_detector_metadata(run_name, batch_idx, detectors_metadata, detectors_tensor_metadata)
+        
+        if clear_after_save:
+            for layer_signature in list(detectors_tensor_metadata.keys()):
+                detector_tensors = detectors_tensor_metadata[layer_signature]
+                for tensor_key in list(detector_tensors.keys()):
+                    del detector_tensors[tensor_key]
+                del detectors_tensor_metadata[layer_signature]
+            detectors_metadata.clear()
+            
+            detectors = self.layers.get_detectors()
+            for detector in detectors:
+                clear_captured = getattr(detector, "clear_captured", None)
+                if callable(clear_captured):
+                    clear_captured()
+                for key in list(detector.tensor_metadata.keys()):
+                    del detector.tensor_metadata[key]
+                detector.metadata.clear()
+            
+            gc.collect()
         
         return result
 
@@ -262,20 +285,26 @@ class LanguageModel:
             store: Store,
             tokenizer_params: dict = None,
             model_params: dict = None,
+            device: str | None = None,
     ) -> "LanguageModel":
         """
         Load a language model from HuggingFace Hub.
+        
+        Automatically loads model to GPU if device is "cuda" and CUDA is available.
+        This prevents OOM errors by keeping the model on GPU instead of CPU RAM.
         
         Args:
             model_name: HuggingFace model identifier
             store: Store instance for persistence
             tokenizer_params: Optional tokenizer parameters
             model_params: Optional model parameters
+            device: Target device ("cuda", "cpu", "mps"). If "cuda" and CUDA is available,
+                model will be loaded directly to GPU using device_map="auto"
             
         Returns:
             LanguageModel instance
         """
-        return create_from_huggingface(cls, model_name, store, tokenizer_params, model_params)
+        return create_from_huggingface(cls, model_name, store, tokenizer_params, model_params, device)
 
     @classmethod
     def from_local_torch(cls, model_path: str, tokenizer_path: str, store: Store) -> "LanguageModel":

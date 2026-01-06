@@ -59,22 +59,6 @@ norecursedirs = ["experiments", "playground", "examples", "presentations", "site
 branch = true
 source = ["mi_crow"]
 parallel = true
-omit = [
-    # Experimental code
-    "*/mechanistic/sae/*",
-    
-    # Low priority features (not in main workflows)
-    "*/language_model/persistence.py",
-    "*/language_model/hook_metadata.py",
-    
-    # Utility functions (well-tested but low coverage)
-    "*/hooks/utils.py",
-    "*/hooks/controller.py",
-    "*/hooks/implementations/function_controller.py",
-    "*/hooks/implementations/model_output_detector.py",
-    "*/utils.py",
-    "*/language_model/utils.py",
-]
 
 [tool.coverage.report]
 show_missing = true

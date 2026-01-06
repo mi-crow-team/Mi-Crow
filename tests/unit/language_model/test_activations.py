@@ -351,20 +351,18 @@ class TestLanguageModelActivations:
         layer_names = mock_language_model.layers.get_layer_names()
         layer_sig = layer_names[0] if layer_names else 0
 
-        # Create a real detector to test clearing
         detector = LayerActivationDetector(layer_signature=layer_sig)
         detector.tensor_metadata["activations"] = torch.randn(2, 10)
         mock_language_model.layers.get_detectors = Mock(return_value=[detector])
 
-        mock_language_model._inference_engine.execute_inference = Mock()
-        mock_language_model.save_detector_metadata = Mock()
+        mock_language_model.inference.execute_inference = Mock()
+        mock_language_model.context.store = temp_store
 
         with patch("torch.inference_mode"), patch("torch.cuda.is_available", return_value=False):
             activations.save_activations_dataset(
                 dataset, layer_sig, run_name="test_run", batch_size=2
             )
 
-        # Verify that clear_captured was called (activations should be None)
         assert detector.get_captured() is None
 
     def test_process_batch_clears_cuda_cache(self, mock_language_model):
@@ -377,7 +375,7 @@ class TestLanguageModelActivations:
         detector.tensor_metadata["activations"] = torch.randn(1, 10)
         mock_language_model.layers.get_detectors = Mock(return_value=[detector])
 
-        mock_language_model._inference_engine.execute_inference = Mock()
+        mock_language_model.inference.execute_inference = Mock()
         mock_language_model.save_detector_metadata = Mock()
 
         with patch.object(torch_module.cuda, "is_available", return_value=True), \
@@ -410,7 +408,7 @@ class TestLanguageModelActivations:
         layer_names = mock_language_model.layers.get_layer_names()
         layer_sig = layer_names[0] if layer_names else 0
 
-        mock_language_model._inference_engine.execute_inference = Mock()
+        mock_language_model.inference.execute_inference = Mock()
         mock_language_model.save_detector_metadata = Mock()
 
         # Mock CUDA device
@@ -423,7 +421,7 @@ class TestLanguageModelActivations:
                 )
 
         # Verify that free_cuda_cache_every was set to 5 (tested via _manage_cuda_cache being called)
-        assert mock_language_model._inference_engine.execute_inference.called
+        assert mock_language_model.inference.execute_inference.called
 
     def test_save_activations_dataset_model_not_initialized(self, mock_language_model, temp_store):
         """Test saving activations when model is not initialized."""

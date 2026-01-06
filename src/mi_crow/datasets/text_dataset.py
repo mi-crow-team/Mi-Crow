@@ -20,7 +20,7 @@ class TextDataset(BaseDataset):
         self,
         ds: Dataset | IterableDataset,
         store: Store,
-        loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+        loading_strategy: LoadingStrategy = LoadingStrategy.DISK,
         text_field: str = "text",
     ):
         """
