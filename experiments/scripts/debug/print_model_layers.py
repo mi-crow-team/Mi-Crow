@@ -1,8 +1,11 @@
 import contextlib
+import gc
 import io
 import os
 import sys
 from pathlib import Path
+
+import torch
 
 from mi_crow.language_model.language_model import LanguageModel
 from mi_crow.store.local_store import LocalStore
@@ -50,6 +53,12 @@ def main():
             with open(output_path, "w", encoding="utf-8") as f:
                 f.write("\n".join(output_lines))
             print(f"[INFO] Saved layer names to {output_path}", file=sys.stderr)
+
+            # Cleanup to free memory before next model
+            del lm
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
         except Exception as e:
             import traceback
 
