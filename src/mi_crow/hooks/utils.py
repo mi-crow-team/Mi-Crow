@@ -95,20 +95,33 @@ def apply_modification_to_output(
         return
     
     if isinstance(output, torch.Tensor):
+        # Ensure modified_tensor is on the same device as output
+        if modified_tensor.device != output.device:
+            modified_tensor = modified_tensor.to(output.device)
         output.data.copy_(modified_tensor.data)
         return
     
     if isinstance(output, (tuple, list)):
         for i, item in enumerate(output):
             if isinstance(item, torch.Tensor):
+                # Ensure modified_tensor is on the same device and dtype as item
+                if modified_tensor.device != item.device or modified_tensor.dtype != item.dtype:
+                    modified_tensor = modified_tensor.to(device=item.device, dtype=item.dtype)
                 if isinstance(output, tuple):
+                    # For tuples, we need to modify in-place, so copy the data
                     item.data.copy_(modified_tensor.data)
                 else:
+                    # For lists, we can replace the item
                     output[i] = modified_tensor
                 break
         return
     
     if hasattr(output, "last_hidden_state"):
+        original_tensor = output.last_hidden_state
+        if isinstance(original_tensor, torch.Tensor):
+            # Ensure modified_tensor is on the same device as original
+            if modified_tensor.device != original_tensor.device:
+                modified_tensor = modified_tensor.to(original_tensor.device)
         output.last_hidden_state = modified_tensor
         return
 
