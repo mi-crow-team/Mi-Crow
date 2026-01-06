@@ -323,7 +323,6 @@ class TestClassificationDatasetFactoryMethods:
             mock_load.return_value = mock_ds
 
             dataset = ClassificationDataset.from_huggingface("test/dataset", temp_store, filters={"category": "x"})
-            # After filtering, should have 2 items with category "x"
             assert len(dataset) == 2
 
     def test_from_huggingface_with_limit(self, temp_store):
@@ -348,7 +347,6 @@ class TestClassificationDatasetFactoryMethods:
 
     def test_from_csv_success(self, tmp_path):
         """Test from_csv factory method."""
-        # Use separate store to avoid cache conflicts
         store = create_temp_store(tmp_path / "csv_store")
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
@@ -363,7 +361,7 @@ class TestClassificationDatasetFactoryMethods:
                 store,
                 text_field="text",
                 category_field="category",
-                loading_strategy=LoadingStrategy.STREAMING,  # Use streaming to avoid cache
+                loading_strategy=LoadingStrategy.STREAMING
             )
             items = list(dataset.iter_items())
             assert len(items) == 2
@@ -374,7 +372,6 @@ class TestClassificationDatasetFactoryMethods:
         """Test from_json factory method."""
         import json
 
-        # Use separate store to avoid cache conflicts
         store = create_temp_store(tmp_path / "json_store")
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
@@ -387,7 +384,7 @@ class TestClassificationDatasetFactoryMethods:
                 store,
                 text_field="text",
                 category_field="category",
-                loading_strategy=LoadingStrategy.STREAMING,  # Use streaming to avoid cache
+                loading_strategy=LoadingStrategy.STREAMING
             )
             items = list(dataset.iter_items())
             assert len(items) == 2
@@ -472,7 +469,7 @@ class TestClassificationDatasetExtractTexts:
         ds = Dataset.from_dict({"text": ["Text 1"], "category": ["a"]})
         dataset = ClassificationDataset(ds, temp_store)
 
-        batch = [{"category": "a"}]  # Missing text field
+        batch = [{"category": "a"}]
 
         with pytest.raises(ValueError, match="'text' key not found"):
             dataset.extract_texts_from_batch(batch)
@@ -486,3 +483,173 @@ class TestClassificationDatasetExtractTexts:
             extracted = dataset.extract_texts_from_batch(batch)
             assert all(isinstance(text, str) for text in extracted)
             assert len(extracted) == len(batch)
+
+
+class TestClassificationDatasetFromDisk:
+    """Tests for from_disk factory method."""
+
+    def test_from_disk_success(self, temp_store, tmp_path):
+        """Test from_disk loads dataset successfully."""
+        from datasets import load_from_disk
+        
+        ds = Dataset.from_dict({"text": ["text1", "text2"], "category": ["a", "b"]})
+        dataset_dir = tmp_path / "datasets"
+        dataset_dir.mkdir(parents=True)
+        ds.save_to_disk(str(dataset_dir))
+        
+        temp_store.base_path = tmp_path
+        
+        loaded_ds = ClassificationDataset.from_disk(temp_store)
+        
+        assert len(loaded_ds) == 2
+        assert loaded_ds[0] == {"text": "text1", "category": "a"}
+
+    def test_from_disk_none_store_raises(self, tmp_path):
+        """Test from_disk raises error when store is None."""
+        with pytest.raises(ValueError, match="store cannot be None"):
+            ClassificationDataset.from_disk(None)
+
+    def test_from_disk_streaming_strategy_raises(self, temp_store):
+        """Test from_disk raises error for STREAMING strategy."""
+        with pytest.raises(ValueError, match="STREAMING loading strategy not supported"):
+            ClassificationDataset.from_disk(temp_store, loading_strategy=LoadingStrategy.STREAMING)
+
+    def test_from_disk_missing_directory_raises(self, temp_store, tmp_path):
+        """Test from_disk raises error when dataset directory doesn't exist."""
+        temp_store.base_path = tmp_path
+        temp_store.dataset_prefix = "datasets"
+        
+        with pytest.raises(FileNotFoundError, match="Dataset directory not found"):
+            ClassificationDataset.from_disk(temp_store)
+
+    def test_from_disk_no_arrow_files_raises(self, temp_store, tmp_path):
+        """Test from_disk raises error when no Arrow files found."""
+        from pathlib import Path
+        
+        dataset_dir = tmp_path / "datasets"
+        dataset_dir.mkdir(parents=True)
+        (dataset_dir / "not_arrow.txt").write_text("test")
+        
+        temp_store.base_path = tmp_path
+        
+        with pytest.raises(FileNotFoundError, match="No Arrow files found"):
+            ClassificationDataset.from_disk(temp_store)
+
+    def test_from_disk_load_error_raises_runtime_error(self, temp_store, tmp_path):
+        """Test from_disk raises RuntimeError when load_from_disk fails."""
+        from unittest.mock import patch
+        from pathlib import Path
+        
+        dataset_dir = tmp_path / "datasets"
+        dataset_dir.mkdir(parents=True)
+        (dataset_dir / "data.arrow").touch()
+        
+        temp_store.base_path = tmp_path
+        
+        with patch('mi_crow.datasets.classification_dataset.load_from_disk', side_effect=Exception("Load error")):
+            with pytest.raises(RuntimeError, match="Failed to load dataset"):
+                ClassificationDataset.from_disk(temp_store)
+
+
+class TestClassificationDatasetFromCsv:
+    """Tests for from_csv factory method."""
+
+    def test_from_csv_none_store_raises(self, tmp_path):
+        """Test from_csv raises error when store is None."""
+        csv_path = tmp_path / "test.csv"
+        csv_path.write_text("text,category\na,b\n", encoding="utf-8")
+        
+        with pytest.raises(ValueError, match="store cannot be None"):
+            ClassificationDataset.from_csv(csv_path, None)
+
+    def test_from_csv_streaming_with_stratify_raises(self, temp_store, tmp_path):
+        """Test from_csv raises error when streaming with stratify."""
+        csv_path = tmp_path / "test.csv"
+        csv_path.write_text("text,category\na,b\n", encoding="utf-8")
+        
+        with pytest.raises(NotImplementedError, match="Stratification and drop_na are not supported for STREAMING"):
+            ClassificationDataset.from_csv(
+                csv_path,
+                temp_store,
+                loading_strategy=LoadingStrategy.STREAMING,
+                stratify_by="category"
+            )
+
+    def test_from_csv_streaming_with_drop_na_raises(self, temp_store, tmp_path):
+        """Test from_csv raises error when streaming with drop_na."""
+        csv_path = tmp_path / "test.csv"
+        csv_path.write_text("text,category\na,b\n", encoding="utf-8")
+        
+        with pytest.raises(NotImplementedError, match="Stratification and drop_na are not supported for STREAMING"):
+            ClassificationDataset.from_csv(
+                csv_path,
+                temp_store,
+                loading_strategy=LoadingStrategy.STREAMING,
+                drop_na=True
+            )
+
+    def test_from_csv_with_drop_na_multiple_category_fields(self, temp_store, tmp_path):
+        """Test from_csv with drop_na and multiple category fields."""
+        csv_path = tmp_path / "test.csv"
+        csv_path.write_text("text,label1,label2\na,x,y\nb,p,q\n", encoding="utf-8")
+        
+        dataset = ClassificationDataset.from_csv(
+            csv_path,
+            temp_store,
+            category_field=["label1", "label2"],
+            drop_na=True
+        )
+        
+        assert len(dataset) == 2
+
+
+class TestClassificationDatasetFromJson:
+    """Tests for from_json factory method."""
+
+    def test_from_json_none_store_raises(self, tmp_path):
+        """Test from_json raises error when store is None."""
+        json_path = tmp_path / "test.json"
+        json_path.write_text('{"text": ["a"], "category": ["b"]}', encoding="utf-8")
+        
+        with pytest.raises(ValueError, match="store cannot be None"):
+            ClassificationDataset.from_json(json_path, None)
+
+    def test_from_json_streaming_with_stratify_raises(self, temp_store, tmp_path):
+        """Test from_json raises error when streaming with stratify."""
+        json_path = tmp_path / "test.json"
+        json_path.write_text('{"text": ["a"], "category": ["b"]}', encoding="utf-8")
+        
+        with pytest.raises(NotImplementedError, match="Stratification and drop_na are not supported for STREAMING"):
+            ClassificationDataset.from_json(
+                json_path,
+                temp_store,
+                loading_strategy=LoadingStrategy.STREAMING,
+                stratify_by="category"
+            )
+
+    def test_from_json_streaming_with_drop_na_raises(self, temp_store, tmp_path):
+        """Test from_json raises error when streaming with drop_na."""
+        json_path = tmp_path / "test.json"
+        json_path.write_text('{"text": ["a"], "category": ["b"]}', encoding="utf-8")
+        
+        with pytest.raises(NotImplementedError, match="Stratification and drop_na are not supported for STREAMING"):
+            ClassificationDataset.from_json(
+                json_path,
+                temp_store,
+                loading_strategy=LoadingStrategy.STREAMING,
+                drop_na=True
+            )
+
+    def test_from_json_with_drop_na_multiple_category_fields(self, temp_store, tmp_path):
+        """Test from_json with drop_na and multiple category fields."""
+        json_path = tmp_path / "test.jsonl"
+        json_path.write_text('{"text": "a", "label1": "x", "label2": "y"}\n{"text": "b", "label1": "p", "label2": "q"}\n', encoding="utf-8")
+        
+        dataset = ClassificationDataset.from_json(
+            json_path,
+            temp_store,
+            category_field=["label1", "label2"],
+            drop_na=True
+        )
+        
+        assert len(dataset) == 2

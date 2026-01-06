@@ -59,25 +59,18 @@ branch = true
 source = ["mi_crow"]
 parallel = true
 omit = [
+    # Experimental code
     "*/mechanistic/sae/*",
-    "*/store/store_dataloader.py",
+    
+    # Low priority features (not in main workflows)
     "*/language_model/persistence.py",
-    "*/language_model/initialization.py",
-    "*/datasets/*",
-    "*/hooks/implementations/model_input_detector.py",
-    "*/hooks/implementations/model_output_detector.py",
+    "*/language_model/hook_metadata.py",
+    
+    # Utility functions (well-tested but low coverage)
     "*/hooks/utils.py",
     "*/hooks/controller.py",
     "*/hooks/implementations/function_controller.py",
-    "*/store/local_store.py",
-    "*/language_model/tokenizer.py",
-    "*/language_model/layers.py",
-    "*/language_model/language_model.py",
-    "*/language_model/hook_metadata.py",
-    "*/hooks/detector.py",
-    "*/hooks/hook.py",
-    "*/hooks/implementations/layer_activation_detector.py",
-    "*/store/store.py",
+    "*/hooks/implementations/model_output_detector.py",
     "*/utils.py",
     "*/language_model/utils.py",
 ]
