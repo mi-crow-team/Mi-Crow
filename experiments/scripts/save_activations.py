@@ -181,7 +181,13 @@ def main() -> int:
     text_field = dataset_config["text_field"]
 
     dataset_store = LocalStore(base_path=dataset_store_path)
-    dataset = TextDataset.from_disk(store=dataset_store, text_field=text_field)
+    # Use DISK strategy to avoid loading entire dataset into memory
+    from mi_crow.datasets.loading_strategy import LoadingStrategy
+    dataset = TextDataset.from_disk(
+        store=dataset_store, 
+        text_field=text_field,
+        loading_strategy=LoadingStrategy.DISK
+    )
 
     dataset_load_s = perf_counter() - dataset_t0
     logger.info("✅ Dataset loaded: %d samples (%.2fs)", len(dataset), dataset_load_s)
@@ -191,7 +197,15 @@ def main() -> int:
     model_t0 = perf_counter()
 
     results_store = LocalStore(args.store)
-    lm = LanguageModel.from_huggingface(args.model, store=results_store)
+    
+    # Load model directly to GPU if device is cuda
+    model_params = {}
+    if args.device == "cuda" and torch.cuda.is_available():
+        model_params["device_map"] = "auto"
+        model_params["torch_dtype"] = torch.float16  # Use float16 to save memory
+        logger.info("Loading model with device_map=auto and float16")
+    
+    lm = LanguageModel.from_huggingface(args.model, store=results_store, model_params=model_params)
 
     # Get effective max length
     effective_max_length = _get_effective_max_length(lm)
