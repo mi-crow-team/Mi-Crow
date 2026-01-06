@@ -53,12 +53,8 @@ class InferenceEngine:
         if tok_kwargs is None:
             tok_kwargs = {}
         
-        padding_strategy = tok_kwargs.pop("padding", True)
-        if padding_strategy is True and "max_length" in tok_kwargs:
-            padding_strategy = "longest"
-        
         result = {
-            "padding": padding_strategy,
+            "padding": tok_kwargs.pop("padding", True),
             "truncation": True,
             "return_tensors": "pt",
             **tok_kwargs,
