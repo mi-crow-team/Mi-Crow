@@ -26,6 +26,8 @@ export type SaeRunInfo = {
 export type StoreInfo = {
   artifact_base_path: string;
   activation_datasets: Record<string, ActivationRunInfo[]>;
+  wandb_project?: string | null;
+  wandb_entity?: string | null;
 };
 
 export type TrainJobStatus = {

@@ -106,6 +106,19 @@ export function TrainingModal({ sae, onClose }: TrainingModalProps) {
                       </span>
                     </div>
                   )}
+                  {metadata.training.wandb_url && (
+                    <div>
+                      <span className="text-slate-600">Weights & Biases:</span>{" "}
+                      <a
+                        href={metadata.training.wandb_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 underline"
+                      >
+                        View run on wandb.ai
+                      </a>
+                    </div>
+                  )}
                   {metadata.training.config && (
                     <div className="space-y-1">
                       <span className="text-slate-600">Training Config:</span>

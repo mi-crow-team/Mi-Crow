@@ -143,6 +143,72 @@ class TestControllerHandleForward:
         # Should not raise
         controller._handle_forward(module, (input_tensor,), None)
 
+    def test_handle_forward_modifies_output_tensor_in_place(self):
+        """Test that _handle_forward modifies output tensor in-place."""
+        controller = ConcreteController(hook_type=HookType.FORWARD)
+        module = nn.Linear(10, 5)
+        input_tensor = torch.randn(2, 10)
+        output_tensor = torch.randn(2, 5)
+        original_value = output_tensor.clone()
+        
+        controller._handle_forward(module, (input_tensor,), output_tensor)
+        
+        # Output tensor should be modified in-place (doubled)
+        assert torch.allclose(output_tensor, original_value * 2.0)
+        assert not torch.allclose(output_tensor, original_value)
+
+    def test_handle_forward_modifies_tuple_output_in_place(self):
+        """Test that _handle_forward modifies first tensor in tuple output."""
+        controller = ConcreteController(hook_type=HookType.FORWARD)
+        module = nn.Linear(10, 5)
+        input_tensor = torch.randn(2, 10)
+        output_tensor = torch.randn(2, 5)
+        other_tensor = torch.randn(2, 3)
+        output_tuple = (output_tensor, other_tensor)
+        original_value = output_tensor.clone()
+        
+        controller._handle_forward(module, (input_tensor,), output_tuple)
+        
+        # First tensor in tuple should be modified in-place
+        assert torch.allclose(output_tuple[0], original_value * 2.0)
+        assert not torch.allclose(output_tuple[0], original_value)
+        # Second tensor should be unchanged
+        assert torch.allclose(output_tuple[1], other_tensor)
+
+    def test_handle_forward_modifies_list_output_in_place(self):
+        """Test that _handle_forward modifies first tensor in list output."""
+        controller = ConcreteController(hook_type=HookType.FORWARD)
+        module = nn.Linear(10, 5)
+        input_tensor = torch.randn(2, 10)
+        output_tensor = torch.randn(2, 5)
+        output_list = [output_tensor]
+        original_value = output_tensor.clone()
+        
+        controller._handle_forward(module, (input_tensor,), output_list)
+        
+        # First tensor in list should be replaced
+        assert torch.allclose(output_list[0], original_value * 2.0)
+        assert not torch.allclose(output_list[0], original_value)
+
+    def test_handle_forward_modifies_object_with_last_hidden_state(self):
+        """Test that _handle_forward modifies object with last_hidden_state attribute."""
+        controller = ConcreteController(hook_type=HookType.FORWARD)
+        module = nn.Linear(10, 5)
+        input_tensor = torch.randn(2, 10)
+        
+        class OutputObject:
+            def __init__(self):
+                self.last_hidden_state = torch.randn(2, 5)
+        
+        output_obj = OutputObject()
+        original_value = output_obj.last_hidden_state.clone()
+        
+        controller._handle_forward(module, (input_tensor,), output_obj)
+        
+        # last_hidden_state should be modified
+        assert torch.allclose(output_obj.last_hidden_state, original_value * 2.0)
+        assert not torch.allclose(output_obj.last_hidden_state, original_value)
+
 
 class TestMockController:
     """Tests for MockController utility."""

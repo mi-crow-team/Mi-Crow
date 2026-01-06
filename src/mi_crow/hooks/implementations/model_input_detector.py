@@ -164,7 +164,7 @@ class ModelInputDetector(Detector):
         as PyTorch's pre_forward hook doesn't receive kwargs.
         
         Args:
-            encodings: Dictionary of encoded inputs (e.g., from lm.forwards() or lm.tokenize())
+            encodings: Dictionary of encoded inputs (e.g., from lm.inference.execute_inference() or lm.tokenize())
             module: Optional module for extracting special token IDs. If None, will use DummyModule.
             
         Raises:
@@ -203,7 +203,7 @@ class ModelInputDetector(Detector):
         
         Note: For HuggingFace models called with **kwargs, the input tuple may be empty.
         In such cases, use set_inputs_from_encodings() to manually set inputs from
-        the encodings dictionary returned by lm.forwards().
+        the encodings dictionary returned by lm.inference.execute_inference().
         
         Args:
             module: The PyTorch module being hooked (typically the root model)

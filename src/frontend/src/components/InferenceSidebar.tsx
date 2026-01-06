@@ -11,6 +11,7 @@ type InferenceSidebarProps = {
   onSelectHistory: (entry: InferenceHistoryEntry) => void;
   selectedHistoryEntry: InferenceHistoryEntry | null;
   onCloseHistoryModal: () => void;
+  onDeleteHistory?: (entry: InferenceHistoryEntry) => void;
   settings: {
     loadConcepts: boolean;
     saveTopTexts: boolean;
@@ -24,6 +25,7 @@ export function InferenceSidebar({
   onSelectHistory,
   selectedHistoryEntry,
   onCloseHistoryModal,
+  onDeleteHistory,
   settings,
   onSettingsChange,
 }: InferenceSidebarProps) {
@@ -73,10 +75,13 @@ export function InferenceSidebar({
                   const status = entry.status || (entry.outputs.length > 0 ? "completed" : "failed");
                   const isCompleted = status === "completed";
                   return (
-                    <button
+                    <div
                       key={entry.id}
-                      onClick={() => onSelectHistory(entry)}
-                      className="w-full text-left p-2 rounded-md border border-slate-200 bg-white hover:bg-mi_crow-50 hover:border-mi_crow-300 transition text-xs"
+                      className="group rounded-md border border-slate-200 bg-white hover:bg-mi_crow-50 hover:border-mi_crow-300 transition text-xs"
+                    >
+                      <button
+                        onClick={() => onSelectHistory(entry)}
+                        className="w-full text-left p-2"
                     >
                       <div className="flex items-center justify-between mb-1">
                         <div className="font-medium text-slate-900 truncate">
@@ -98,6 +103,20 @@ export function InferenceSidebar({
                         {entry.prompts.length} prompt{entry.prompts.length !== 1 ? "s" : ""}
                       </div>
                     </button>
+                      {onDeleteHistory && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteHistory(entry);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-red-600 hover:text-red-800 text-xs px-2 py-1 rounded hover:bg-red-50 float-right -mt-8 mr-2"
+                          title="Delete"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
                   );
                 })}
               </div>

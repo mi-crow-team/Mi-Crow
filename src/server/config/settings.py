@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     cors_origins: list[str] = Field(default_factory=lambda: ["*"])
     artifact_base_path: Path = Field(default_factory=get_default_artifact_path)
     api_key: str | None = Field(default=None, description="Optional API key for protected endpoints")
+    wandb_api_key: str | None = Field(default=None, description="Wandb API key for experiment tracking")
+    wandb_project: str | None = Field(default=None, description="Default wandb project name for training")
 
     model_config = SettingsConfigDict(env_prefix="SERVER_", case_sensitive=False)
 

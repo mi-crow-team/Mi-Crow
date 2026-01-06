@@ -24,7 +24,7 @@ lm = LanguageModel.from_huggingface(
 )
 ```
 
-The model is automatically tokenized and ready for inference. You can access layers through `lm.layers` and run inference with `lm.forwards()`.
+The model is automatically tokenized and ready for inference. You can access layers through `lm.layers` and run inference with `lm.inference.execute_inference()`.
 
 ## Sparse Autoencoders (SAE)
 
@@ -81,7 +81,7 @@ After training an SAE, you can discover concepts by:
 sae.concepts.enable_text_tracking(top_k=10)
 
 # Run inference on a dataset
-outputs = lm.forwards(dataset_texts)
+outputs, encodings = lm.inference.execute_inference(dataset_texts)
 
 # Get top activating texts for each neuron
 top_texts = sae.concepts.get_top_texts()
@@ -101,7 +101,7 @@ sae.concepts.manipulate_concept(neuron_idx=42, scale=1.5)
 sae.concepts.manipulate_concept(neuron_idx=42, scale=0.5)
 
 # Run inference with modified behavior
-outputs = lm.forwards(["Your prompt here"])
+outputs, encodings = lm.inference.execute_inference(["Your prompt here"])
 ```
 
 ## Hooks System Overview

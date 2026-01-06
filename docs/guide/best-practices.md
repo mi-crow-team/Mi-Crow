@@ -190,7 +190,7 @@ hook_id = lm.layers.register_hook("layer_0", detector)
 assert hook_id in lm.layers.context._hook_id_map
 
 # Check hook executes
-outputs = lm.forwards(["test"])
+outputs, encodings = lm.inference.execute_inference(["test"])
 activations = detector.get_captured()
 assert activations is not None, "Hook didn't execute!"
 ```

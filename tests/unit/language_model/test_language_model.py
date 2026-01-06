@@ -77,16 +77,16 @@ class TestLanguageModelForwards:
         # Mock the inference engine
         mock_output = MagicMock()
         mock_encodings = {"input_ids": torch.tensor([[1, 2, 3]])}
-        with patch.object(lm._inference_engine, 'execute_inference') as mock_execute:
+        with patch.object(lm.inference, 'execute_inference') as mock_execute:
             mock_execute.return_value = (mock_output, mock_encodings)
-            output, encodings = lm.forwards(["Hello"])
+            output, encodings = lm.inference.execute_inference(["Hello"])
             
             assert output is not None
             assert encodings is not None
             mock_execute.assert_called_once()
 
-    def test_forwards_multiple_texts(self, temp_store):
-        """Test forward pass with multiple texts."""
+    def test_inference_multiple_texts(self, temp_store):
+        """Test inference with multiple texts."""
         from unittest.mock import patch, MagicMock
         import torch
         
@@ -95,56 +95,13 @@ class TestLanguageModelForwards:
         # Mock the inference engine
         mock_output = MagicMock()
         mock_encodings = {"input_ids": torch.tensor([[1, 2], [3, 4]])}
-        with patch.object(lm._inference_engine, 'execute_inference') as mock_execute:
+        with patch.object(lm.inference, 'execute_inference') as mock_execute:
             mock_execute.return_value = (mock_output, mock_encodings)
-            output, encodings = lm.forwards(["Hello", "World"])
+            output, encodings = lm.inference.execute_inference(["Hello", "World"])
             
             assert output is not None
             assert encodings is not None
             mock_execute.assert_called_once()
-
-
-class TestLanguageModelGenerate:
-    """Tests for generate method."""
-
-    def test_generate_single_text(self, temp_store):
-        """Test generation with single text."""
-        from unittest.mock import patch, MagicMock
-        import torch
-        
-        lm = create_language_model_from_mock(temp_store)
-        
-        # Mock the inference engine and tokenizer
-        mock_output = MagicMock()
-        mock_encodings = {"input_ids": torch.tensor([[1, 2, 3]])}
-        with patch.object(lm._inference_engine, 'execute_inference') as mock_execute, \
-             patch.object(lm._inference_engine, 'extract_logits') as mock_extract, \
-             patch.object(lm.tokenizer, 'decode') as mock_decode:
-            
-            mock_execute.return_value = (mock_output, mock_encodings)
-            mock_extract.return_value = torch.randn(1, 3, 1000)  # [batch, seq, vocab]
-            mock_decode.return_value = "Generated text"
-            
-            result = lm.generate(["Hello"])
-            
-            assert isinstance(result, list)
-            assert len(result) == 1
-            assert result[0] == "Generated text"
-
-    def test_generate_empty_texts_raises_error(self, temp_store):
-        """Test that empty texts list raises ValueError."""
-        lm = create_language_model_from_mock(temp_store)
-        
-        with pytest.raises(ValueError, match="Texts list cannot be empty"):
-            lm.generate([])
-
-    def test_generate_without_tokenizer_raises_error(self, temp_store):
-        """Test that missing tokenizer raises ValueError."""
-        lm = create_language_model_from_mock(temp_store)
-        lm.context.tokenizer = None
-
-        with pytest.raises(ValueError, match="Tokenizer is required"):
-            lm.generate(["hello"])
 
 
 class TestLanguageModelHooks:
@@ -294,9 +251,9 @@ class TestLanguageModelInferenceControllerRestoration:
         controller.enable()
         lm.layers.register_hook(0, controller)
         
-        with patch.object(lm._inference_engine, '_run_model_forward', side_effect=RuntimeError("Test error")):
+        with patch.object(lm.inference, '_run_model_forward', side_effect=RuntimeError("Test error")):
             with pytest.raises(RuntimeError):
-                lm.forwards(["test"])
+                lm.inference.execute_inference(["test"])
         
         assert controller.enabled is True
 
@@ -312,10 +269,10 @@ class TestLanguageModelInferenceControllerRestoration:
         mock_output = MagicMock()
         mock_encodings = {"input_ids": torch.tensor([[1, 2, 3]])}
         
-        with patch.object(lm._inference_engine, 'execute_inference') as mock_execute:
+        with patch.object(lm.inference, 'execute_inference') as mock_execute:
             mock_execute.return_value = (mock_output, mock_encodings)
             
-            lm.forwards(["test"], with_controllers=False)
+            lm.inference.execute_inference(["test"], with_controllers=False)
             
             mock_execute.assert_called_once_with(
                 ["test"],

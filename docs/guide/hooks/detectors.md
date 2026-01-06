@@ -34,7 +34,7 @@ detector = LayerActivationDetector(
 hook_id = lm.layers.register_hook("transformer.h.0.attn.c_attn", detector)
 
 # Run inference
-outputs = lm.forwards(["Hello, world!"])
+outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 
 # Access captured activations
 activations = detector.get_captured()
@@ -69,7 +69,7 @@ detector = ModelInputDetector()
 hook_id = lm.layers.register_hook("input", detector)
 
 # Run inference
-outputs = lm.forwards(["Hello, world!"])
+outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 
 # Access inputs
 inputs = detector.tensor_metadata.get("inputs")
@@ -94,7 +94,7 @@ detector = ModelOutputDetector()
 hook_id = lm.layers.register_hook("output", detector)
 
 # Run inference
-outputs = lm.forwards(["Hello, world!"])
+outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 
 # Access outputs
 model_outputs = detector.tensor_metadata.get("outputs")
@@ -227,7 +227,7 @@ hook_id = lm.layers.register_hook("transformer.h.0.attn.c_attn", detector)
 
 # Analyze multiple examples
 for text in dataset:
-    lm.forwards([text])
+    lm.inference.execute_inference([text])
     activations = detector.get_captured()
     print(f"Mean activation: {activations.mean().item()}")
     detector.clear_captured()
@@ -244,7 +244,7 @@ for layer_name in ["layer_0", "layer_5", "layer_10"]:
     lm.layers.register_hook(layer_name, det)
 
 # Run inference and inspect
-outputs = lm.forwards(["Debug this"])
+outputs, encodings = lm.inference.execute_inference(["Debug this"])
 
 for name, det in detectors.items():
     acts = det.get_captured()
@@ -260,7 +260,7 @@ hook_id = lm.layers.register_hook("transformer.h.0.attn.c_attn", detector)
 
 all_activations = []
 for batch in dataset:
-    lm.forwards(batch)
+    lm.inference.execute_inference(batch)
     acts = detector.get_captured()
     all_activations.append(acts.detach().cpu())
     detector.clear_captured()

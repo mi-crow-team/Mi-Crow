@@ -237,7 +237,7 @@ class TestLanguageModelActivations:
         from mi_crow.datasets import TextDataset
 
         activations = LanguageModelActivations(mock_language_model.context)
-        mock_language_model._inference_engine.execute_inference = Mock()
+        mock_language_model.inference.execute_inference = Mock()
         mock_language_model.save_detector_metadata = Mock()
 
         hf_dataset = Dataset.from_dict({"text": ["text1", "text2"]})
@@ -254,7 +254,7 @@ class TestLanguageModelActivations:
             verbose=True,
         )
 
-        mock_language_model._inference_engine.execute_inference.assert_called_once()
+        mock_language_model.inference.execute_inference.assert_called_once()
         mock_language_model.save_detector_metadata.assert_called_once_with("test_run", 0, unified=False)
 
     def test_convert_activations_to_dtype(self, mock_language_model):
@@ -325,7 +325,7 @@ class TestLanguageModelActivations:
         layer_names = mock_language_model.layers.get_layer_names()
         layer_sig = layer_names[0] if layer_names else 0
 
-        mock_language_model._inference_engine.execute_inference = Mock()
+        mock_language_model.inference.execute_inference = Mock()
         mock_language_model.save_detector_metadata = Mock()
 
         with patch("torch.inference_mode"):
@@ -334,7 +334,7 @@ class TestLanguageModelActivations:
             )
 
         assert run_name == "test_run"
-        assert mock_language_model._inference_engine.execute_inference.called
+        assert mock_language_model.inference.execute_inference.called
         assert mock_language_model.save_detector_metadata.called
 
     def test_save_activations_dataset_model_not_initialized(self, mock_language_model, temp_store):
@@ -359,7 +359,7 @@ class TestLanguageModelActivations:
         layer_names = mock_language_model.layers.get_layer_names()
         layer_sig = layer_names[0] if layer_names else 0
         
-        mock_language_model._inference_engine.execute_inference = Mock()
+        mock_language_model.inference.execute_inference = Mock()
         mock_language_model.save_detector_metadata = Mock()
         
         with patch("torch.inference_mode"):
@@ -368,7 +368,7 @@ class TestLanguageModelActivations:
             )
         
         assert run_name == "test_run"
-        assert mock_language_model._inference_engine.execute_inference.call_count == 2
+        assert mock_language_model.inference.execute_inference.call_count == 2
         assert mock_language_model.save_detector_metadata.call_count == 2
 
     def test_save_activations_no_batching(self, mock_language_model, temp_store):
@@ -379,7 +379,7 @@ class TestLanguageModelActivations:
         layer_names = mock_language_model.layers.get_layer_names()
         layer_sig = layer_names[0] if layer_names else 0
         
-        mock_language_model._inference_engine.execute_inference = Mock()
+        mock_language_model.inference.execute_inference = Mock()
         mock_language_model.save_detector_metadata = Mock()
         
         with patch("torch.inference_mode"):
@@ -388,7 +388,7 @@ class TestLanguageModelActivations:
             )
         
         assert run_name == "test_run"
-        assert mock_language_model._inference_engine.execute_inference.call_count == 1
+        assert mock_language_model.inference.execute_inference.call_count == 1
         assert mock_language_model.save_detector_metadata.call_count == 1
 
     def test_save_activations_empty_texts(self, mock_language_model, temp_store):
@@ -414,7 +414,7 @@ class TestLanguageModelActivations:
         else:
             layer_sigs = ["layer_0", "layer_1"]
 
-        mock_language_model._inference_engine.execute_inference = Mock()
+        mock_language_model.inference.execute_inference = Mock()
         mock_language_model.save_detector_metadata = Mock()
 
         with patch.object(activations, "_setup_detector", return_value=(Mock(), "hook_id")) as mock_setup, patch.object(
@@ -425,7 +425,7 @@ class TestLanguageModelActivations:
             )
 
         assert run_name == "test_run_multi"
-        assert mock_language_model._inference_engine.execute_inference.call_count == 2
+        assert mock_language_model.inference.execute_inference.call_count == 2
         assert mock_language_model.save_detector_metadata.call_count == 2
         assert mock_setup.call_count == len(layer_sigs)
         assert mock_cleanup.call_count == len(layer_sigs)
@@ -461,7 +461,7 @@ class TestLanguageModelActivations:
         detector = Mock()
         detector.tensor_metadata = {"activations": torch.tensor([1.0, 2.0], dtype=torch.float32)}
         mock_language_model.layers.get_detectors = Mock(return_value=[detector])
-        mock_language_model._inference_engine.execute_inference = Mock()
+        mock_language_model.inference.execute_inference = Mock()
         mock_language_model.save_detector_metadata = Mock()
 
         with patch("torch.inference_mode"):
@@ -483,16 +483,16 @@ class TestLanguageModelActivations:
         layer_names = mock_language_model.layers.get_layer_names()
         layer_sig = layer_names[0] if layer_names else 0
 
-        mock_language_model._inference_engine.execute_inference = Mock()
+        mock_language_model.inference.execute_inference = Mock()
         mock_language_model.save_detector_metadata = Mock()
 
         with patch("torch.inference_mode"):
             activations.save_activations_dataset(dataset, layer_sig, max_length=128)
 
         # Verify max_length was passed
-        call_kwargs = mock_language_model._inference_engine.execute_inference.call_args[1]
+        call_kwargs = mock_language_model.inference.execute_inference.call_args[1]
         assert (
-            "tok_kwargs" in call_kwargs or len(mock_language_model._inference_engine.execute_inference.call_args[0]) > 0
+            "tok_kwargs" in call_kwargs or len(mock_language_model.inference.execute_inference.call_args[0]) > 0
         )
 
     def test_save_activations_dataset_cleanup_on_error(self, mock_language_model, temp_store):
@@ -509,7 +509,7 @@ class TestLanguageModelActivations:
         layer_names = mock_language_model.layers.get_layer_names()
         layer_sig = layer_names[0] if layer_names else 0
 
-        mock_language_model._inference_engine.execute_inference = Mock(side_effect=RuntimeError("error"))
+        mock_language_model.inference.execute_inference = Mock(side_effect=RuntimeError("error"))
         mock_language_model.layers.unregister_hook = Mock()
 
         with patch("torch.inference_mode"):
@@ -537,7 +537,7 @@ class TestLanguageModelActivations:
         else:
             layer_sigs = ["layer_0", "layer_1"]
 
-        mock_language_model._inference_engine.execute_inference = Mock()
+        mock_language_model.inference.execute_inference = Mock()
         mock_language_model.save_detector_metadata = Mock()
 
         with patch.object(activations, "_setup_detector", return_value=(Mock(), "hook_id")) as mock_setup, patch.object(
@@ -548,7 +548,7 @@ class TestLanguageModelActivations:
             )
 
         assert run_name == "test_run_multi"
-        assert mock_language_model._inference_engine.execute_inference.called
+        assert mock_language_model.inference.execute_inference.called
         assert mock_language_model.save_detector_metadata.called
         assert mock_setup.call_count == len(layer_sigs)
         assert mock_cleanup.call_count == len(layer_sigs)

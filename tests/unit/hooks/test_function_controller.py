@@ -190,3 +190,75 @@ class TestFunctionControllerIntegration:
         assert result is not None
         assert torch.allclose(result, output_tensor * 0.5)
 
+    def test_function_controller_modifies_output_in_place_forward_hook(self):
+        """Test that FunctionController modifies output in-place for FORWARD hooks."""
+        def scale_by_two(x):
+            return x * 2.0
+        
+        controller = FunctionController(
+            layer_signature="layer_0",
+            function=scale_by_two,
+            hook_type=HookType.FORWARD
+        )
+        module = nn.Linear(10, 5)
+        input_tensor = torch.randn(2, 10)
+        output_tensor = torch.randn(2, 5)
+        original_value = output_tensor.clone()
+        
+        controller._handle_forward(module, (input_tensor,), output_tensor)
+        
+        # Output tensor should be modified in-place
+        assert torch.allclose(output_tensor, original_value * 2.0)
+        assert not torch.allclose(output_tensor, original_value)
+
+    def test_function_controller_modifies_tuple_output_in_place(self):
+        """Test that FunctionController modifies tuple output in-place."""
+        def add_one(x):
+            return x + 1.0
+        
+        controller = FunctionController(
+            layer_signature="layer_0",
+            function=add_one,
+            hook_type=HookType.FORWARD
+        )
+        module = nn.Linear(10, 5)
+        input_tensor = torch.randn(2, 10)
+        output_tensor = torch.randn(2, 5)
+        other_tensor = torch.randn(2, 3)
+        output_tuple = (output_tensor, other_tensor)
+        original_value = output_tensor.clone()
+        
+        controller._handle_forward(module, (input_tensor,), output_tuple)
+        
+        # First tensor in tuple should be modified in-place
+        assert torch.allclose(output_tuple[0], original_value + 1.0)
+        assert not torch.allclose(output_tuple[0], original_value)
+        # Second tensor should be unchanged
+        assert torch.allclose(output_tuple[1], other_tensor)
+
+    def test_function_controller_modifies_object_with_last_hidden_state(self):
+        """Test that FunctionController modifies object with last_hidden_state."""
+        def multiply_by_three(x):
+            return x * 3.0
+        
+        controller = FunctionController(
+            layer_signature="layer_0",
+            function=multiply_by_three,
+            hook_type=HookType.FORWARD
+        )
+        module = nn.Linear(10, 5)
+        input_tensor = torch.randn(2, 10)
+        
+        class OutputObject:
+            def __init__(self):
+                self.last_hidden_state = torch.randn(2, 5)
+        
+        output_obj = OutputObject()
+        original_value = output_obj.last_hidden_state.clone()
+        
+        controller._handle_forward(module, (input_tensor,), output_obj)
+        
+        # last_hidden_state should be modified
+        assert torch.allclose(output_obj.last_hidden_state, original_value * 3.0)
+        assert not torch.allclose(output_obj.last_hidden_state, original_value)
+

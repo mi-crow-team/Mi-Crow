@@ -34,7 +34,7 @@ detector = LayerActivationDetector("transformer.h.0.attn.c_attn")
 hook_id = lm.layers.register_hook("transformer.h.0.attn.c_attn", detector)
 
 # Run inference
-outputs = lm.forwards(["Hello, world!"])
+outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 
 # Inspect activations
 activations = detector.get_captured()
@@ -63,7 +63,7 @@ controller = FunctionController(
 hook_id = lm.layers.register_hook("transformer.h.0.attn.c_attn", controller)
 
 # Run inference with modification
-outputs = lm.forwards(["Hello, world!"])
+outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 
 # Cleanup
 lm.layers.unregister_hook(hook_id)
@@ -143,7 +143,7 @@ late_controller = FunctionController("transformer.h.10.attn.c_attn", lambda x: x
 hook2 = lm.layers.register_hook("transformer.h.10.attn.c_attn", late_controller)
 
 # Both apply during forward pass
-outputs = lm.forwards(["Hello, world!"])
+outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 
 # Cleanup
 lm.layers.unregister_hook(hook1)
@@ -187,7 +187,7 @@ Compare behavior with and without interventions:
 
 ```python
 # Get baseline
-baseline_outputs = lm.forwards(
+baseline_outputs, _ = lm.inference.execute_inference(
     ["Your prompt"],
     with_controllers=False  # Disable all controllers
 )
@@ -201,7 +201,7 @@ controller = FunctionController("layer_0", lambda x: x * 1.5)
 hook_id = lm.layers.register_hook("layer_0", controller)
 
 # Get modified output
-intervention_outputs = lm.forwards(
+intervention_outputs, _ = lm.inference.execute_inference(
     ["Your prompt"],
     with_controllers=True  # Enable controllers
 )
@@ -302,7 +302,7 @@ class HookContext:
 
 # Usage
 with HookContext(lm.layers, controller, "layer_0") as hook:
-    outputs = lm.forwards(["Hello, world!"])
+    outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 # Hook automatically unregistered
 ```
 
@@ -313,7 +313,7 @@ hook_id = None
 try:
     controller = FunctionController("layer_0", lambda x: x * 1.5)
     hook_id = lm.layers.register_hook("layer_0", controller)
-    outputs = lm.forwards(["Hello, world!"])
+    outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 finally:
     if hook_id:
         lm.layers.unregister_hook(hook_id)

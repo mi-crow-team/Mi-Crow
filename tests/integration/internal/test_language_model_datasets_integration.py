@@ -17,7 +17,7 @@ class TestLanguageModelDatasetsIntegration:
         
         # Process texts from dataset
         texts = list(dataset.iter_items())
-        output, encodings = lm.forwards(texts)
+        output, encodings = lm.inference.execute_inference(texts)
         
         assert output is not None
         assert encodings is not None
@@ -32,7 +32,7 @@ class TestLanguageModelDatasetsIntegration:
         
         # Process in batches
         for batch in dataset.iter_batches(batch_size=2):
-            output, encodings = lm.forwards(batch)
+            output, encodings = lm.inference.execute_inference(batch)
             assert output is not None
 
     def test_streaming_dataset_with_inference(self, temp_store):
@@ -48,6 +48,6 @@ class TestLanguageModelDatasetsIntegration:
         
         # Process streaming dataset
         for text in dataset.iter_items():
-            output, encodings = lm.forwards([text])
+            output, encodings = lm.inference.execute_inference([text])
             assert output is not None
 

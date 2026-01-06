@@ -120,7 +120,7 @@ def test_e2e_activation_control_amplification():
     print("\n🔍 Running inference with controller enabled...")
     test_text = "The cat sat on the mat."
     
-    output_with_controller = model.forwards([test_text])
+    output_with_controller = model.inference.execute_inference([test_text])
     
     assert output_with_controller is not None
     print("✅ Inference with controller completed")
@@ -133,7 +133,7 @@ def test_e2e_activation_control_amplification():
     print("✅ Controller disabled")
     
     print("\n🔍 Running inference with controller disabled...")
-    output_without_controller = model.forwards([test_text])
+    output_without_controller = model.inference.execute_inference([test_text])
     
     assert output_without_controller is not None
     print("✅ Inference without controller completed")
@@ -189,7 +189,7 @@ def test_e2e_activation_control_with_controllers_parameter():
     # Step 1: Run with controllers disabled temporarily
     print("\n🔍 Running inference with with_controllers=False...")
     controller.clear_captures()
-    output_no_controllers = model.forwards([test_text], with_controllers=False)
+    output_no_controllers = model.inference.execute_inference([test_text], with_controllers=False)
     
     assert output_no_controllers is not None
     # Controller should not have captured anything since it was disabled
@@ -200,7 +200,7 @@ def test_e2e_activation_control_with_controllers_parameter():
     # Step 2: Run with controllers enabled
     print("\n🔍 Running inference with with_controllers=True...")
     controller.clear_captures()
-    output_with_controllers = model.forwards([test_text], with_controllers=True)
+    output_with_controllers = model.inference.execute_inference([test_text], with_controllers=True)
     
     assert output_with_controllers is not None
     # Controller should have captured activations
@@ -260,7 +260,7 @@ def test_e2e_multiple_controllers():
     
     print("\n🔍 Running inference with both controllers...")
     test_text = "The quick brown fox jumps over the lazy dog."
-    output = model.forwards([test_text])
+    output = model.inference.execute_inference([test_text])
     
     assert output is not None
     print("✅ Inference with multiple controllers completed")
@@ -273,7 +273,7 @@ def test_e2e_multiple_controllers():
     print("✅ First controller disabled, second still enabled")
     
     print("\n🔍 Running inference with only second controller...")
-    output = model.forwards([test_text])
+    output = model.inference.execute_inference([test_text])
     
     assert output is not None
     print("✅ Inference with partial controllers completed")

@@ -124,7 +124,7 @@ During inference, the hook automatically executes:
 
 ```python
 # Hook executes automatically during forward pass
-outputs = lm.forwards(["Hello, world!"])
+outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 ```
 
 The hook's `_hook_fn` method is called for each forward pass.
@@ -138,13 +138,13 @@ You can temporarily disable hooks without unregistering:
 detector.disable()
 
 # Hook won't execute
-outputs = lm.forwards(["Hello, world!"])
+outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 
 # Re-enable
 detector.enable()
 
 # Hook executes again
-outputs = lm.forwards(["Hello, world!"])
+outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 ```
 
 ### 5. Cleanup
@@ -238,7 +238,7 @@ Hooks have built-in error handling:
 from mi_crow.hooks.hook import HookError
 
 try:
-    outputs = lm.forwards(["Hello, world!"])
+    outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 except HookError as e:
     print(f"Hook {e.hook_id} failed: {e.original_error}")
 ```
@@ -279,7 +279,7 @@ hook_id = lm.layers.register_hook("transformer.h.0.attn.c_attn", detector)
 
 try:
     # 4. Use hook (runs automatically)
-    outputs = lm.forwards(["Hello, world!"])
+    outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
     
     # 5. Access hook data
     activations = detector.tensor_metadata.get("activations")
@@ -299,7 +299,7 @@ hook1_id = lm.layers.register_hook("layer_0", detector1)
 hook2_id = lm.layers.register_hook("layer_10", detector2)
 
 # All hooks execute during forward pass
-outputs = lm.forwards(["Hello, world!"])
+outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 
 # Cleanup all
 lm.layers.unregister_hook(hook1_id)

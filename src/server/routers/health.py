@@ -9,29 +9,40 @@ router = APIRouter(tags=["health"])
 
 @router.get("/health")
 def health() -> dict[str, str]:
-    """Basic health check endpoint."""
     return {"status": "ok"}
 
 
 @router.get("/health/metrics")
 def health_metrics(job_manager=Depends(get_job_manager)) -> dict[str, dict[str, int]]:
-    """Health check with job metrics."""
-    counts = {"total": 0, "pending": 0, "running": 0, "completed": 0, "failed": 0, "timed_out": 0}
-    try:
-        # Access jobs through public interface if available, otherwise use internal
-        jobs = getattr(job_manager, "_jobs", {})
-        for job in jobs.values():
-            counts["total"] += 1
-            status = job.get("status", "unknown")
-            if status in counts:
-                counts[status] += 1
-    except Exception:
-        pass
-    return {"jobs": counts}
+    counts = job_manager.get_job_counts()
+    response_counts = {
+        "total": counts.get("total", 0),
+        "pending": counts.get("pending", 0),
+        "running": counts.get("running", 0),
+        "completed": counts.get("completed", 0),
+        "failed": counts.get("failed", 0),
+        "timed_out": counts.get("timed_out", 0),
+    }
+    return {"jobs": response_counts}
+
+
+@router.get("/health/debug")
+def health_debug(job_manager=Depends(get_job_manager)) -> dict:
+    with job_manager._lock:
+        jobs_data = {
+            job_id: {
+                "type": job.get("type"),
+                "status": job.get("status"),
+                "started_at": job.get("started_at"),
+                "finished_at": job.get("finished_at"),
+            }
+            for job_id, job in job_manager._jobs.items()
+        }
+    counts = job_manager.get_job_counts()
+    return {"job_counts": counts, "jobs": jobs_data, "total_jobs_in_dict": len(jobs_data)}
 
 
 @router.get("/hooks")
 def list_hooks(hook_factory=Depends(get_hook_factory)) -> dict[str, list[str]]:
-    """List available hooks."""
     return {"available": hook_factory.available_hooks()}
 

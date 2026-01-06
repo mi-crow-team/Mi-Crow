@@ -17,7 +17,7 @@ class TestLanguageModelStoreIntegration:
         detector = create_activation_detector(layer_signature=0)
         
         lm.layers.register_hook(0, detector)
-        lm.forwards(["Hello world"])
+        lm.inference.execute_inference(["Hello world"])
         
         # Check that activations were captured
         captured = detector.get_captured()

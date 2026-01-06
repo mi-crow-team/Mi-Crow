@@ -1,7 +1,10 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { InferenceHistoryEntry } from "@/lib/types";
 import { Modal } from "./ui";
+import { api } from "@/lib/api";
+import type { ConceptDictionaryResponse } from "@/lib/api/types";
 
 type HistoryModalProps = {
   entry: InferenceHistoryEntry;
@@ -9,9 +12,43 @@ type HistoryModalProps = {
 };
 
 export function HistoryModal({ entry, onClose }: HistoryModalProps) {
+  const [concepts, setConcepts] = useState<Record<number, string>>({});
+  const [loadingConcepts, setLoadingConcepts] = useState(false);
+
+  useEffect(() => {
+    if (entry.settings.conceptConfigPath && entry.model_id && entry.sae_id) {
+      loadConcepts();
+    } else {
+      setConcepts({});
+    }
+  }, [entry.settings.conceptConfigPath, entry.model_id, entry.sae_id]);
+
+  const loadConcepts = async () => {
+    if (!entry.model_id || !entry.sae_id) return;
+    setLoadingConcepts(true);
+    try {
+      const data: ConceptDictionaryResponse = await api.getConceptDictionary(entry.model_id, entry.sae_id);
+      const conceptMap: Record<number, string> = {};
+      for (const [neuronIdxStr, concept] of Object.entries(data.concepts)) {
+        conceptMap[parseInt(neuronIdxStr)] = concept.name;
+      }
+      setConcepts(conceptMap);
+    } catch (e: unknown) {
+      console.error("Failed to load concepts:", e);
+      setConcepts({});
+    } finally {
+      setLoadingConcepts(false);
+    }
+  };
+
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
     return date.toLocaleString();
+  };
+
+  const formatNeuronDisplay = (neuronId: number): string => {
+    const conceptName = concepts[neuronId];
+    return conceptName ? `${neuronId} (${conceptName})` : `${neuronId}`;
   };
 
   const status = entry.status || (entry.outputs.length > 0 ? "completed" : "failed");
@@ -96,7 +133,9 @@ export function HistoryModal({ entry, onClose }: HistoryModalProps) {
               {entry.top_neurons.map((t, idx) => (
                 <div key={idx} className="bg-slate-50 border border-slate-200 p-3 rounded text-xs">
                   <div className="font-semibold text-slate-900">Prompt #{t.prompt_index + 1}</div>
-                  <div className="text-slate-700">Neurons: {t.neuron_ids.join(", ")}</div>
+                  <div className="text-slate-700">
+                    Neurons: {t.neuron_ids.map((id) => formatNeuronDisplay(id)).join(", ")}
+                  </div>
                   <div className="text-slate-600 text-xs">
                     Activations: {t.activations.map((a) => a.toFixed(3)).join(", ")}
                   </div>
@@ -116,7 +155,7 @@ export function HistoryModal({ entry, onClose }: HistoryModalProps) {
                   <div className="space-y-1 mt-1">
                     {p.tokens.map((tok, j) => (
                       <div key={j} className="text-slate-700">
-                        Token {tok.token_index}: {tok.neuron_ids.join(", ")}
+                        Token {tok.token_index}: {tok.neuron_ids.map((id) => formatNeuronDisplay(id)).join(", ")}
                       </div>
                     ))}
                   </div>

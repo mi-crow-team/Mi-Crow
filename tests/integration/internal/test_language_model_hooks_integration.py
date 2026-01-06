@@ -17,7 +17,7 @@ class TestLanguageModelDetectorIntegration:
         detector = create_mock_detector(layer_signature=0)
         
         lm.layers.register_hook(0, detector)
-        lm.forwards(["Hello world"])
+        lm.inference.execute_inference(["Hello world"])
         
         assert detector.processed_count > 0
         assert "count" in detector.metadata
@@ -30,7 +30,7 @@ class TestLanguageModelDetectorIntegration:
         
         lm.layers.register_hook(0, detector1)
         lm.layers.register_hook(0, detector2)
-        lm.forwards(["Hello"])
+        lm.inference.execute_inference(["Hello"])
         
         assert detector1.processed_count > 0
         assert detector2.processed_count > 0
@@ -42,13 +42,13 @@ class TestLanguageModelDetectorIntegration:
         
         lm.layers.register_hook(0, detector)
         detector.disable()
-        lm.forwards(["Hello"])
+        lm.inference.execute_inference(["Hello"])
         
         # Should not process when disabled
         initial_count = detector.processed_count
         
         detector.enable()
-        lm.forwards(["Hello"])
+        lm.inference.execute_inference(["Hello"])
         
         assert detector.processed_count > initial_count
 
@@ -67,9 +67,9 @@ class TestLanguageModelControllerIntegration:
         lm.layers.register_hook(0, controller)
         mock_output = MagicMock()
         mock_encodings = {"input_ids": torch.tensor([[1, 2, 3]])}
-        with patch.object(lm._inference_engine, 'execute_inference') as mock_execute:
+        with patch.object(lm.inference, 'execute_inference') as mock_execute:
             mock_execute.return_value = (mock_output, mock_encodings)
-            output, _ = lm.forwards(["Hello"])
+            output, _ = lm.inference.execute_inference(["Hello"])
         
         # Controller should be registered
         controllers = lm.layers.get_controllers()
@@ -88,9 +88,9 @@ class TestLanguageModelControllerIntegration:
         
         mock_output = MagicMock()
         mock_encodings = {"input_ids": torch.tensor([[1, 2, 3]])}
-        with patch.object(lm._inference_engine, 'execute_inference') as mock_execute:
+        with patch.object(lm.inference, 'execute_inference') as mock_execute:
             mock_execute.return_value = (mock_output, mock_encodings)
-            lm.forwards(["Hello"], with_controllers=False)
+            lm.inference.execute_inference(["Hello"], with_controllers=False)
         
         # Controller count should not change (not actually called in mocked scenario)
         assert controller.modified_count == initial_count
@@ -107,7 +107,7 @@ class TestLanguageModelMultipleHooksIntegration:
         
         lm.layers.register_hook(0, detector)
         lm.layers.register_hook(1, controller)
-        lm.forwards(["Hello"])
+        lm.inference.execute_inference(["Hello"])
         
         assert detector.processed_count > 0
         assert controller in lm.layers.get_controllers()

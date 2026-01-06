@@ -32,13 +32,13 @@ lm.attach_sae(sae, layer_signature="layer_0")
 sae.concepts.enable_text_tracking(top_k=10)
 
 # Run inference - SAE decodes activations
-outputs = lm.forwards(["Hello, world!"])
+outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 
 # Manipulate concepts (controller functionality)
 sae.concepts.manipulate_concept(neuron_idx=42, scale=1.5)
 
 # Run again - activations are modified
-outputs = lm.forwards(["Hello, world!"])
+outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 ```
 
 The SAE automatically handles the dual role - you don't need to manage it as separate hooks.
@@ -59,7 +59,7 @@ for i in [0, 5, 10]:
     lm.layers.register_hook(layer_name, det)
 
 # Process activations sequentially
-outputs = lm.forwards(["Hello, world!"])
+outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 
 # Analyze across layers
 for i, det in detectors.items():
@@ -78,7 +78,7 @@ hook1 = lm.layers.register_hook("layer_0", early_controller)
 hook2 = lm.layers.register_hook("layer_10", late_controller)
 
 # Both modifications apply in sequence
-outputs = lm.forwards(["Hello, world!"])
+outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 
 lm.layers.unregister_hook(hook1)
 lm.layers.unregister_hook(hook2)
@@ -261,7 +261,7 @@ try:
     
     # Process all batches
     for batch in dataset:
-        outputs = lm.forwards(batch)
+        outputs, encodings = lm.inference.execute_inference(batch)
         # Access data after batch
 finally:
     # Cleanup once

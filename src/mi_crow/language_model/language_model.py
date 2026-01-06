@@ -72,7 +72,7 @@ class LanguageModel:
     
     Provides a unified interface for working with language models, including:
     - Model initialization and configuration
-    - Inference operations
+    - Inference operations through the inference property
     - Hook management (detectors and controllers)
     - Model persistence
     - Activation tracking
@@ -105,7 +105,6 @@ class LanguageModel:
         self.lm_tokenizer = LanguageModelTokenizer(self.context)
         self.activations = LanguageModelActivations(self.context)
         self.inference = InferenceEngine(self)
-        self._inference_engine = self.inference
 
         self._input_tracker: "InputTracker | None" = None
 
@@ -146,86 +145,6 @@ class LanguageModel:
             Tokenized encodings
         """
         return self.lm_tokenizer.tokenize(texts, **kwargs)
-
-    def forwards(
-            self,
-            texts: Sequence[str],
-            tok_kwargs: Dict | None = None,
-            autocast: bool = True,
-            autocast_dtype: torch.dtype | None = None,
-            with_controllers: bool = True,
-    ) -> Tuple[Any, Any]:
-        """
-        Run forward pass on texts.
-        
-        Args:
-            texts: Input texts to process
-            tok_kwargs: Optional tokenizer keyword arguments
-            autocast: Whether to use automatic mixed precision
-            autocast_dtype: Optional dtype for autocast
-            with_controllers: Whether to use controllers during inference
-            
-        Returns:
-            Tuple of (model_output, encodings)
-        """
-        return self._inference_engine.execute_inference(
-            texts,
-            tok_kwargs=tok_kwargs,
-            autocast=autocast,
-            autocast_dtype=autocast_dtype,
-            with_controllers=with_controllers
-        )
-
-    def generate(
-            self,
-            texts: Sequence[str],
-            tok_kwargs: Dict | None = None,
-            autocast: bool = True,
-            autocast_dtype: torch.dtype | None = None,
-            with_controllers: bool = True,
-            skip_special_tokens: bool = True,
-    ) -> Sequence[str]:
-        """
-        Run inference and automatically decode the output with the tokenizer.
-        
-        Args:
-            texts: Input texts to process
-            tok_kwargs: Optional tokenizer keyword arguments
-            autocast: Whether to use automatic mixed precision
-            autocast_dtype: Optional dtype for autocast
-            with_controllers: Whether to use controllers during inference
-            skip_special_tokens: Whether to skip special tokens when decoding
-            
-        Returns:
-            Sequence of decoded text strings
-            
-        Raises:
-            ValueError: If texts is empty or tokenizer is None
-        """
-        if not texts:
-            raise ValueError("Texts list cannot be empty")
-
-        if self.tokenizer is None:
-            raise ValueError("Tokenizer is required for decoding but is None")
-
-        output, enc = self._inference_engine.execute_inference(
-            texts,
-            tok_kwargs=tok_kwargs,
-            autocast=autocast,
-            autocast_dtype=autocast_dtype,
-            with_controllers=with_controllers
-        )
-
-        logits = self._inference_engine.extract_logits(output)
-        predicted_token_ids = logits.argmax(dim=-1)
-
-        decoded_texts = []
-        for i in range(predicted_token_ids.shape[0]):
-            token_ids = predicted_token_ids[i].cpu().tolist()
-            decoded_text = self.tokenizer.decode(token_ids, skip_special_tokens=skip_special_tokens)
-            decoded_texts.append(decoded_text)
-
-        return decoded_texts
 
     def get_input_tracker(self) -> "InputTracker | None":
         """

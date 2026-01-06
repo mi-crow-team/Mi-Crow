@@ -21,7 +21,7 @@ lm = LanguageModel.from_huggingface(
 
 # Run inference
 texts = ["Hello, world!", "How are you?"]
-outputs = lm.forwards(texts)
+outputs, encodings = lm.inference.execute_inference(texts)
 
 print(outputs.logits.shape)  # (batch_size, seq_len, vocab_size)
 ```
@@ -98,7 +98,7 @@ lm.attach_sae(sae, layer_signature="transformer.h.0.attn.c_attn")
 sae.concepts.enable_text_tracking(top_k=5)
 
 # Run inference with SAE attached
-outputs = lm.forwards(["The cat sat on the mat."])
+outputs, encodings = lm.inference.execute_inference(["The cat sat on the mat."])
 
 # Get top texts for each neuron
 top_texts = sae.concepts.get_top_texts()
@@ -138,7 +138,7 @@ history = trainer.train(store, run_id, "transformer.h.0.attn.c_attn", config)
 # Step 3: Use SAE
 lm.attach_sae(sae, "transformer.h.0.attn.c_attn")
 sae.concepts.enable_text_tracking(top_k=3)
-outputs = lm.forwards(["The cat sat on the mat."])
+outputs, encodings = lm.inference.execute_inference(["The cat sat on the mat."])
 top_texts = sae.concepts.get_top_texts()
 
 print("Quick start complete!")

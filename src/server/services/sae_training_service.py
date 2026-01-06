@@ -16,6 +16,8 @@ from server.utils import SAERegistry, generate_id, write_json
 from mi_crow.store.local_store import LocalStore
 from mi_crow.mechanistic.sae.sae import Sae
 from mi_crow.mechanistic.sae.sae_trainer import SaeTrainingConfig
+from mi_crow.mechanistic.sae.modules.topk_sae import TopKSaeTrainingConfig
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -34,9 +36,39 @@ class SAETrainingService:
         """Get SAE class by name."""
         return self._sae_registry_class.get_class(name)
 
-    def _build_training_config(self, payload: TrainSAERequest) -> SaeTrainingConfig:
-        """Build training config from payload."""
+    def _build_training_config(self, payload: TrainSAERequest, sae_class: str, sae_kwargs: dict) -> SaeTrainingConfig:
+        """Build training config from payload.
+        
+        Adds wandb API key from settings or environment if available.
+        For TopKSae, uses TopKSaeTrainingConfig and includes k parameter.
+        """
         merged = {**payload.hyperparams, **payload.training_config}
+        
+        if self._settings.wandb_api_key and "wandb_api_key" not in merged:
+            merged["wandb_api_key"] = self._settings.wandb_api_key
+        elif "wandb_api_key" not in merged:
+            env_wandb_key = os.getenv("WANDB_API_KEY")
+            if env_wandb_key:
+                merged["wandb_api_key"] = env_wandb_key
+        
+        if "wandb_project" not in merged or not merged.get("wandb_project"):
+            if self._settings.wandb_project:
+                merged["wandb_project"] = self._settings.wandb_project
+            else:
+                env_wandb_project = os.getenv("WANDB_PROJECT") or os.getenv("SERVER_WANDB_PROJECT")
+                if env_wandb_project:
+                    merged["wandb_project"] = env_wandb_project
+        
+        if sae_class == "TopKSae":
+            if "k" not in sae_kwargs:
+                raise ValueError("TopKSae requires 'k' parameter in sae_kwargs")
+            merged["k"] = sae_kwargs["k"]
+            try:
+                return TopKSaeTrainingConfig(**merged)
+            except TypeError as exc:
+                from server.exceptions import ValidationError
+                raise ValidationError(f"Invalid TopKSae training config: {exc}") from exc
+        
         try:
             return SaeTrainingConfig(**merged)
         except TypeError as exc:
@@ -63,7 +95,6 @@ class SAETrainingService:
             raise ValueError("layer is required when multiple layers are present")
         
         sae_class = payload.sae_class or "TopKSae"
-        config = self._build_training_config(payload)
         store = LocalStore(base_path=store_path)
         
         batch_indices = [b.get("batch_index") for b in manifest.get("batches", []) if "batch_index" in b]
@@ -84,13 +115,12 @@ class SAETrainingService:
             if "k" not in sae_kwargs:
                 raise ValueError("TopKSae requires 'k' parameter in sae_kwargs")
         elif sae_class == "L1Sae":
-            # L1Sae doesn't require any special kwargs for now
             pass
+        
+        config = self._build_training_config(payload, sae_class, sae_kwargs)
         
         idempotency_key = f"{payload.model_id}:{activations_path}:{payload.hyperparams}:{layer}:{sae_class}"
 
-        # We'll create the closure after getting job_id from submit
-        # For now, use a workaround with a callable that gets job_id from job_manager
         def _create_training_func(job_id: str):
             """Create training function with job_id in closure."""
             def _run():
@@ -135,6 +165,7 @@ class SAETrainingService:
                         "result": train_result,
                         "config": config.__dict__,
                         "duration_sec": time.time() - start,
+                        "wandb_url": train_result.get("wandb_url"),
                     },
                     "created_at": datetime.now(timezone.utc).isoformat(),
                     "sae_path": str(sae_path),
@@ -158,23 +189,19 @@ class SAETrainingService:
                 return {"sae_id": run_id, "sae_path": str(sae_path), "metadata_path": str(metadata_path)}
             return _run
 
-        # Check if job already exists
         if idempotency_key and idempotency_key in self._job_id_map:
             existing_job_id = self._job_id_map[idempotency_key]
             return TrainSAEResponse(job_id=existing_job_id, status="pending")
 
-        # Create wrapper that gets job_id from idempotency mapping
         def _run_wrapper():
-            # Get job_id from idempotency mapping (set by job_manager before calling)
+            """Wrapper that gets job_id from idempotency mapping."""
             job_id = self._job_id_map.get(idempotency_key) if idempotency_key else None
-            # Fallback: try to get from job_manager's internal state
             if not job_id and idempotency_key:
                 idempotency_dict = getattr(self._job_manager, "_idempotency", {})
                 job_id = idempotency_dict.get(idempotency_key)
             if not job_id:
                 raise RuntimeError("job_id not available in training closure")
             
-            # Create and call the actual training function
             training_func = _create_training_func(job_id)
             return training_func()
 
@@ -185,7 +212,6 @@ class SAETrainingService:
             timeout_sec=3600,
         )
         
-        # Store mapping after submit (thread starts after this, so it's safe)
         if idempotency_key:
             self._job_id_map[idempotency_key] = job_id
         

@@ -30,9 +30,9 @@ class TestSAELanguageModelIntegration:
         # Run inference
         mock_output = MagicMock()
         mock_encodings = {"input_ids": torch.tensor([[1, 2, 3]])}
-        with patch.object(lm._inference_engine, 'execute_inference') as mock_execute:
+        with patch.object(lm.inference, 'execute_inference') as mock_execute:
             mock_execute.return_value = (mock_output, mock_encodings)
-            output, _ = lm.forwards(["Hello"])
+            output, _ = lm.inference.execute_inference(["Hello"])
         
         assert output is not None
 
@@ -44,9 +44,9 @@ class TestSAELanguageModelIntegration:
         lm.layers.register_hook(0, sae)
         mock_output = MagicMock()
         mock_encodings = {"input_ids": torch.tensor([[1, 2, 3]])}
-        with patch.object(lm._inference_engine, 'execute_inference') as mock_execute:
+        with patch.object(lm.inference, 'execute_inference') as mock_execute:
             mock_execute.return_value = (mock_output, mock_encodings)
-            output, _ = lm.forwards(["Hello"])
+            output, _ = lm.inference.execute_inference(["Hello"])
         
         assert output is not None
 

@@ -17,7 +17,7 @@ export default function OpsPage() {
     modelId && modelLoaded ? `/sae/saes?model_id=${modelId}` : null,
     () => api.listSaes(modelId)
   );
-  const { data: health, mutate: refreshHealth } = useSWR<any>("/health/metrics", api.health);
+  const { data: health, mutate: refreshHealth } = useSWR<{ jobs: Record<string, number> }>("/health/metrics", api.health);
   const [apiKey, setApiKey] = useState("");
   const [msg, setMsg] = useState("");
 
@@ -113,11 +113,62 @@ export default function OpsPage() {
       </Card>
 
       <SectionTitle>Health</SectionTitle>
-      <Card className="text-sm text-slate-200">
-        {health ? <pre className="whitespace-pre-wrap text-slate-100">{JSON.stringify(health, null, 2)}</pre> : "Loading..."}
-        <Button variant="ghost" onClick={() => refreshHealth()}>
-          Refresh
-        </Button>
+      <Card className="space-y-4">
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-slate-300">Server health metrics and status</p>
+          <Button variant="ghost" onClick={() => refreshHealth()}>
+            Refresh
+          </Button>
+        </div>
+        {health ? (
+          <div className="space-y-4">
+            {health.jobs && (
+              <div>
+                <h3 className="text-sm font-semibold text-slate-200 mb-3">Job Status</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
+                    <div className="text-xs text-slate-400 mb-1">Total Jobs</div>
+                    <div className="text-lg font-semibold text-slate-100">
+                      {health.jobs.total || 0}
+                    </div>
+                  </div>
+                  <div className="bg-mi_crow-900/30 rounded-lg p-3 border border-mi_crow-700">
+                    <div className="text-xs text-mi_crow-300 mb-1">Pending</div>
+                    <div className="text-lg font-semibold text-mi_crow-200">
+                      {health.jobs.pending || 0}
+                    </div>
+                  </div>
+                  <div className="bg-blue-900/30 rounded-lg p-3 border border-blue-700">
+                    <div className="text-xs text-blue-300 mb-1">Running</div>
+                    <div className="text-lg font-semibold text-blue-200">
+                      {health.jobs.running || 0}
+                    </div>
+                  </div>
+                  <div className="bg-green-900/30 rounded-lg p-3 border border-green-700">
+                    <div className="text-xs text-green-300 mb-1">Completed</div>
+                    <div className="text-lg font-semibold text-green-200">
+                      {health.jobs.completed || 0}
+                    </div>
+                  </div>
+                  <div className="bg-red-900/30 rounded-lg p-3 border border-red-700">
+                    <div className="text-xs text-red-300 mb-1">Failed</div>
+                    <div className="text-lg font-semibold text-red-200">
+                      {health.jobs.failed || 0}
+                    </div>
+                  </div>
+                  <div className="bg-orange-900/30 rounded-lg p-3 border border-orange-700">
+                    <div className="text-xs text-orange-300 mb-1">Timed Out</div>
+                    <div className="text-lg font-semibold text-orange-200">
+                      {health.jobs.timed_out || 0}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <p className="text-sm text-slate-400">Loading health metrics...</p>
+        )}
       </Card>
 
       <SectionTitle>Activation runs</SectionTitle>

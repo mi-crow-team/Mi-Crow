@@ -60,7 +60,7 @@ export default function InferencePage() {
 
   // Use custom hooks for state management
   const inferenceState = useInferenceState(saes);
-  const { history, selectedHistoryEntry, setSelectedHistoryEntry, saveToHistory, clearHistory } = useInferenceHistory();
+  const { history, selectedHistoryEntry, setSelectedHistoryEntry, saveToHistory, clearHistory, deleteHistoryEntry } = useInferenceHistory();
   const conceptManipulation = useConceptManipulation();
   
   // Destructure inference state for easier access
@@ -223,12 +223,19 @@ export default function InferencePage() {
     });
   };
 
+  const handleDeleteHistory = (entry: InferenceHistoryEntry) => {
+    if (confirm(`Are you sure you want to delete inference run ${entry.id}?`)) {
+      deleteHistoryEntry(entry);
+    }
+  };
+
   const sidebar = (
     <InferenceSidebar
       history={history}
       onSelectHistory={setSelectedHistoryEntry}
       selectedHistoryEntry={selectedHistoryEntry}
       onCloseHistoryModal={() => setSelectedHistoryEntry(null)}
+      onDeleteHistory={handleDeleteHistory}
       settings={{
         loadConcepts,
         saveTopTexts,

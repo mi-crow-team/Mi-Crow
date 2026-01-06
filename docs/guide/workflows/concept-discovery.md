@@ -70,7 +70,7 @@ texts = [
 dataset = TextDataset(texts=texts)
 
 # Run inference - text tracking happens automatically
-outputs = lm.forwards(dataset.texts)
+outputs, encodings = lm.inference.execute_inference(dataset.texts)
 ```
 
 During inference:
@@ -233,7 +233,7 @@ test_texts = [
     "Dogs are friendly animals."
 ]
 
-outputs = lm.forwards(test_texts)
+outputs, encodings = lm.inference.execute_inference(test_texts)
 
 # Check which concepts activated
 # (Implementation depends on SAE concept API)
@@ -283,7 +283,7 @@ import numpy as np
 sae.concepts.enable_text_tracking(top_k=10)
 
 # And run inference
-outputs = lm.forwards(dataset.texts)
+outputs, encodings = lm.inference.execute_inference(dataset.texts)
 ```
 
 ### Too Many/Few Examples

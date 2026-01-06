@@ -259,7 +259,7 @@ hook_id = lm.layers.register_hook("transformer.h.0.attn.c_attn", detector)
 
 # Process dataset
 for batch in dataset:
-    outputs = lm.forwards(batch)
+    outputs, encodings = lm.inference.execute_inference(batch)
     activations = detector.get_captured()
     # Save manually
     detector.clear_captured()

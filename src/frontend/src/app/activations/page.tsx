@@ -12,6 +12,14 @@ import { RunHistorySidebar } from "@/components/RunHistorySidebar";
 
 type DatasetMode = "hf" | "local";
 
+function formatLayerName(layerName: string, maxLength: number = 20): string {
+  if (layerName.length <= maxLength) {
+    return layerName;
+  }
+  // Replace dots with underscores for long names
+  return layerName.replace(/\./g, "_");
+}
+
 export default function ActivationsPage() {
   const { models, modelId: selectedModel, setModelId: setSelectedModel, modelLoaded, setModelLoaded, loadModel, isLoading: isLoadingModel } =
     useModelLoader();
@@ -426,11 +434,25 @@ export default function ActivationsPage() {
     ),
   ];
 
+  const handleDeleteActivation = async (run: ActivationRunInfo) => {
+    if (!selectedModel || !run.run_id) return;
+    if (!confirm(`Are you sure you want to delete activation run ${run.run_id}?`)) return;
+    try {
+      await api.deleteActivation(selectedModel, run.run_id);
+      refreshRuns();
+    } catch (e: unknown) {
+      const error = e instanceof Error ? e.message : String(e);
+      alert(`Failed to delete activation run: ${error}`);
+    }
+  };
+
   const sidebar = (
     <RunHistorySidebar
       title="Activation runs"
       items={activationRunsForSidebar}
       emptyMessage="No activation runs yet for this model."
+      getItemKey={(r) => r.run_id}
+      onDelete={handleDeleteActivation}
       renderItem={(r) => {
         const isInProgress = !r.samples && !r.tokens;
         const startedAt =
@@ -467,7 +489,7 @@ export default function ActivationsPage() {
                 <span className="text-slate-600">Started:</span> <span className="text-slate-900">{startedAt}</span>
               </div>
               <div className="text-slate-700">
-                <span className="text-slate-600">Layers:</span> <span className="text-slate-900">{r.layers?.length ? r.layers.join(", ") : "-"}</span>
+                <span className="text-slate-600">Layers:</span> <span className="text-slate-900">{r.layers?.length ? r.layers.map(formatLayerName).join(", ") : "-"}</span>
               </div>
               <div className="text-slate-700">
                 <span className="text-slate-600">Samples:</span> <span className="text-slate-900">{r.samples ?? "-"}</span> | <span className="text-slate-600">Tokens:</span> <span className="text-slate-900">{r.tokens ?? "-"}</span>
@@ -541,7 +563,7 @@ export default function ActivationsPage() {
                 <div>
                   <span className="text-slate-600">Layers:</span>{" "}
                   <span className="text-slate-900">
-                    {selectedRun.layers?.length ? selectedRun.layers.join(", ") : "-"}
+                    {selectedRun.layers?.length ? selectedRun.layers.map(formatLayerName).join(", ") : "-"}
                   </span>
                 </div>
                 <div>

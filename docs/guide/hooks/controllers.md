@@ -34,7 +34,7 @@ controller = FunctionController(
 
 # Register and use
 hook_id = lm.layers.register_hook("transformer.h.0.attn.c_attn", controller)
-outputs = lm.forwards(["Hello, world!"])
+outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 ```
 
 **Function Requirements**:
@@ -282,12 +282,12 @@ hook_id = lm.layers.register_hook("layer_0", controller)
 
 ```python
 # A/B testing: with and without intervention
-baseline_outputs = lm.forwards(["prompt"], with_controllers=False)
+baseline_outputs, _ = lm.inference.execute_inference(["prompt"], with_controllers=False)
 
 # Apply intervention
 controller = FunctionController("layer_0", lambda x: x * 1.5)
 hook_id = lm.layers.register_hook("layer_0", controller)
-intervention_outputs = lm.forwards(["prompt"], with_controllers=True)
+intervention_outputs, _ = lm.inference.execute_inference(["prompt"], with_controllers=True)
 
 # Compare
 difference = intervention_outputs.logits - baseline_outputs.logits

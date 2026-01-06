@@ -86,7 +86,7 @@ layers = lm.layers.list_layers()
 assert "layer_0" in layers, "Layer doesn't exist!"
 
 # 4. Ensure hook stays registered during inference
-outputs = lm.forwards(["test"])
+outputs, encodings = lm.inference.execute_inference(["test"])
 activations = detector.get_captured()  # Check before unregistering
 ```
 

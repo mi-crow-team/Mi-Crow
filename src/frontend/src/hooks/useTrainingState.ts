@@ -24,6 +24,10 @@ export interface TrainingState {
   monitoring: number;
   memoryEfficient: boolean;
   saeK: number | undefined;
+  useWandb: boolean;
+  wandbProject: string;
+  wandbEntity: string;
+  wandbName: string;
 }
 
 export interface TrainingStateActions {
@@ -47,6 +51,10 @@ export interface TrainingStateActions {
   setMonitoring: (monitoring: number) => void;
   setMemoryEfficient: (efficient: boolean) => void;
   setSaeK: (k: number | undefined) => void;
+  setUseWandb: (use: boolean) => void;
+  setWandbProject: (project: string) => void;
+  setWandbEntity: (entity: string) => void;
+  setWandbName: (name: string) => void;
 }
 
 export function useTrainingState(
@@ -73,6 +81,10 @@ export function useTrainingState(
   const [monitoring, setMonitoring] = useState(1);
   const [memoryEfficient, setMemoryEfficient] = useState(false);
   const [saeK, setSaeK] = useState<number | undefined>();
+  const [useWandb, setUseWandb] = useState(false);
+  const [wandbProject, setWandbProject] = useState("");
+  const [wandbEntity, setWandbEntity] = useState("");
+  const [wandbName, setWandbName] = useState("");
 
   const selectedRun = useMemo(
     () => runs?.runs?.find((r) => r.run_id === activationRun),
@@ -117,6 +129,10 @@ export function useTrainingState(
     monitoring,
     memoryEfficient,
     saeK,
+    useWandb,
+    wandbProject,
+    wandbEntity,
+    wandbName,
     setActivationRun,
     setLayer,
     setSaeClass,
@@ -137,6 +153,10 @@ export function useTrainingState(
     setMonitoring,
     setMemoryEfficient,
     setSaeK,
+    setUseWandb,
+    setWandbProject,
+    setWandbEntity,
+    setWandbName,
   };
 }
 

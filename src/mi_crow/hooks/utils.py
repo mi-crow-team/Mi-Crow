@@ -74,3 +74,41 @@ def extract_tensor_from_output(output: HOOK_FUNCTION_OUTPUT) -> torch.Tensor | N
     
     return None
 
+
+def apply_modification_to_output(
+    output: HOOK_FUNCTION_OUTPUT,
+    modified_tensor: torch.Tensor
+) -> None:
+    """
+    Apply a modified tensor to an output object in-place.
+    
+    Handles various output formats:
+    - Plain tensors: modifies the tensor directly (in-place)
+    - Tuples/lists of tensors: replaces first tensor
+    - Objects with last_hidden_state attribute: sets last_hidden_state
+    
+    Args:
+        output: Output object to modify
+        modified_tensor: Modified tensor to apply
+    """
+    if output is None:
+        return
+    
+    if isinstance(output, torch.Tensor):
+        output.data.copy_(modified_tensor.data)
+        return
+    
+    if isinstance(output, (tuple, list)):
+        for i, item in enumerate(output):
+            if isinstance(item, torch.Tensor):
+                if isinstance(output, tuple):
+                    item.data.copy_(modified_tensor.data)
+                else:
+                    output[i] = modified_tensor
+                break
+        return
+    
+    if hasattr(output, "last_hidden_state"):
+        output.last_hidden_state = modified_tensor
+        return
+

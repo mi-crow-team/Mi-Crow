@@ -35,7 +35,6 @@ class SaeTrainingConfig:
     monitoring: int = 1  # 0=silent, 1=basic, 2=detailed (overcomplete parameter)
     scheduler: Optional[Any] = None  # Learning rate scheduler (overcomplete parameter)
     max_nan_fallbacks: int = 5  # For train_sae_amp (overcomplete parameter)
-    # Wandb configuration
     use_wandb: bool = False  # Enable wandb logging
     wandb_project: Optional[str] = None  # Wandb project name (defaults to "sae-training" if not set)
     wandb_entity: Optional[str] = None  # Wandb entity/team name
@@ -44,6 +43,7 @@ class SaeTrainingConfig:
     wandb_config: Optional[dict[str, Any]] = None  # Additional config to log to wandb
     wandb_mode: str = "online"  # Wandb mode: "online", "offline", or "disabled"
     wandb_slow_metrics_frequency: int = 50  # Log slow metrics (L0, dead features) every N epochs (default: 50)
+    wandb_api_key: Optional[str] = None  # Wandb API key (can also be set via WANDB_API_KEY env var)
     memory_efficient: bool = False  # Enable memory-efficient processing (moves tensors to CPU, clears cache)
 
 
@@ -88,8 +88,13 @@ class SaeTrainer:
         if cfg.memory_efficient:
             self._clear_memory()
 
+        wandb_url = None
         if wandb_run is not None:
             self._log_to_wandb(wandb_run, history, cfg)
+            try:
+                wandb_url = wandb_run.url
+            except (AttributeError, RuntimeError):
+                pass
 
         if cfg.verbose:
             self.logger.info(f"[SaeTrainer] Training completed, processing {len(history['loss'])} epochs of results")
@@ -112,7 +117,8 @@ class SaeTrainer:
 
         return {
             "history": history,
-            "training_run_id": training_run_id
+            "training_run_id": training_run_id,
+            "wandb_url": wandb_url
         }
 
     def _ensure_overcomplete_available(self) -> None:
@@ -122,12 +128,19 @@ class SaeTrainer:
             raise ImportError("overcomplete.sae.train module not available. Cannot use overcomplete training.")
 
     def _initialize_wandb(self, cfg: SaeTrainingConfig, run_id: str) -> Any:
+        """Initialize wandb run if enabled in config."""
         if not cfg.use_wandb:
             return None
 
         try:
             import wandb
-            wandb_project = cfg.wandb_project or "sae-training"
+            import os
+            
+            wandb_api_key = getattr(cfg, 'wandb_api_key', None) or os.getenv('WANDB_API_KEY')
+            if wandb_api_key:
+                os.environ['WANDB_API_KEY'] = wandb_api_key
+            
+            wandb_project = cfg.wandb_project or os.getenv('WANDB_PROJECT') or os.getenv('SERVER_WANDB_PROJECT') or "sae-training"
             wandb_name = cfg.wandb_name or run_id
             wandb_mode = cfg.wandb_mode.lower() if cfg.wandb_mode else "online"
 
