@@ -92,17 +92,27 @@ wandb
 outputs
 /store/
 /examples/store/
+/experiments/store/
 /playground/store/
 /tests/unit/store
 /tests/store
 
-# experiments
+# Github instructions
+.github/instructions/
+
+# Experiments
 .llm_context/
 .local_results/
 results/
 # Exclude data store directories but NOT src/mi_crow/store/ (package code)
 /experiments/*/store/
 /experiments/store/
+
+.local_results/
+# All csv files from experiments/pl_dataset_curation folder
+/experiments/pl_dataset_curation/*.csv
+# Dataset CSV files
+data/
 
 # frontend
 src/frontend/node_modules/

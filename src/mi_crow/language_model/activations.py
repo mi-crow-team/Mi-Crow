@@ -1,4 +1,5 @@
 import datetime
+import gc
 from typing import TYPE_CHECKING, Any, Dict, Sequence
 
 import torch
@@ -219,6 +220,10 @@ class LanguageModelActivations:
             batch_index,
             unified=not save_in_batches,
         )
+        
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
         if verbose:
             logger.info(f"Saved batch {batch_index} for run={run_name}")
@@ -264,7 +269,7 @@ class LanguageModelActivations:
         max_length: int | None = None,
         autocast: bool = True,
         autocast_dtype: torch.dtype | None = None,
-        free_cuda_cache_every: int | None = 0,
+        free_cuda_cache_every: int | None = None,
         verbose: bool = False,
         save_in_batches: bool = True,
         save_attention_mask: bool = False,
@@ -304,6 +309,9 @@ class LanguageModelActivations:
 
         device = get_device_from_model(model)
         device_type = str(device.type)
+
+        if free_cuda_cache_every is None:
+            free_cuda_cache_every = 5 if device_type == "cuda" else 0
 
         options = {
             "dtype": str(dtype) if dtype is not None else None,
@@ -351,6 +359,7 @@ class LanguageModelActivations:
                         save_in_batches=save_in_batches,
                     )
                     batch_counter += 1
+                    
                     self._manage_cuda_cache(batch_counter, free_cuda_cache_every, device_type, verbose)
         finally:
             for hook_id in hook_ids:

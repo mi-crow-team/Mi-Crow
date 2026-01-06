@@ -52,12 +52,19 @@ class InferenceEngine:
         """
         if tok_kwargs is None:
             tok_kwargs = {}
-        return {
-            "padding": True,
+        
+        padding_strategy = tok_kwargs.pop("padding", True)
+        if padding_strategy is True and "max_length" in tok_kwargs:
+            padding_strategy = "longest"
+        
+        result = {
+            "padding": padding_strategy,
             "truncation": True,
             "return_tensors": "pt",
             **tok_kwargs,
         }
+        
+        return result
     
     def _setup_trackers(self, texts: Sequence[str]) -> None:
         """
