@@ -2,7 +2,7 @@ from typing import List
 from unittest.mock import patch
 
 import pytest
-from datasets import Dataset, IterableDatasetDict
+from datasets import Dataset, IterableDataset, IterableDatasetDict
 
 from mi_crow.datasets.loading_strategy import LoadingStrategy
 from mi_crow.datasets.text_dataset import TextDataset
@@ -199,7 +199,7 @@ class TestTextDatasetExtractTexts:
         result = text_ds.extract_texts_from_batch(batch)
 
         assert result == batch
-        assert result is batch  # Should be the same object
+        assert result is batch
 
     def test_extract_texts_from_batch_empty_batch(self, temp_store):
         """Test extract_texts_from_batch with empty batch."""
@@ -229,10 +229,164 @@ class TestTextDatasetExtractTexts:
             store=temp_store,
             loading_strategy=LoadingStrategy.STREAMING,
         )
-
         texts = text_ds.get_all_texts()
-
         assert texts == ["a", "b"]
+
+
+class TestTextDatasetFromDisk:
+    """Tests for from_disk factory method."""
+
+    def test_from_disk_success(self, temp_store, tmp_path):
+        """Test from_disk loads dataset successfully."""
+        from datasets import Dataset
+        
+        ds = Dataset.from_dict({"text": ["text1", "text2", "text3"]})
+        dataset_dir = tmp_path / "datasets"
+        dataset_dir.mkdir(parents=True)
+        ds.save_to_disk(str(dataset_dir))
+        
+        temp_store.base_path = tmp_path
+        
+        loaded_ds = TextDataset.from_disk(temp_store)
+        
+        assert len(loaded_ds) == 3
+        assert loaded_ds[0] == "text1"
+
+    def test_from_disk_none_store_raises(self, tmp_path):
+        """Test from_disk raises error when store is None."""
+        with pytest.raises(ValueError, match="store cannot be None"):
+            TextDataset.from_disk(None)
+
+    def test_from_disk_streaming_strategy_raises(self, temp_store):
+        """Test from_disk raises error for STREAMING strategy."""
+        with pytest.raises(ValueError, match="STREAMING loading strategy not supported"):
+            TextDataset.from_disk(temp_store, loading_strategy=LoadingStrategy.STREAMING)
+
+    def test_from_disk_missing_directory_raises(self, temp_store, tmp_path):
+        """Test from_disk raises error when dataset directory doesn't exist."""
+        temp_store.base_path = tmp_path
+        temp_store.dataset_prefix = "datasets"
+        
+        with pytest.raises(FileNotFoundError, match="Dataset directory not found"):
+            TextDataset.from_disk(temp_store)
+
+    def test_from_disk_no_arrow_files_raises(self, temp_store, tmp_path):
+        """Test from_disk raises error when no Arrow files found."""
+        from pathlib import Path
+        
+        dataset_dir = tmp_path / "datasets"
+        dataset_dir.mkdir(parents=True)
+        (dataset_dir / "not_arrow.txt").write_text("test")
+        
+        temp_store.base_path = tmp_path
+        
+        with pytest.raises(FileNotFoundError, match="No Arrow files found"):
+            TextDataset.from_disk(temp_store)
+
+    def test_from_disk_load_error_raises_runtime_error(self, temp_store, tmp_path):
+        """Test from_disk raises RuntimeError when load_from_disk fails."""
+        from unittest.mock import patch
+        from pathlib import Path
+        
+        dataset_dir = tmp_path / "datasets"
+        dataset_dir.mkdir(parents=True)
+        (dataset_dir / "data.arrow").touch()
+        
+        temp_store.base_path = tmp_path
+        
+        with patch('mi_crow.datasets.text_dataset.load_from_disk', side_effect=Exception("Load error")):
+            with pytest.raises(RuntimeError, match="Failed to load dataset"):
+                TextDataset.from_disk(temp_store)
+
+    def test_from_disk_with_custom_text_field(self, temp_store, tmp_path):
+        """Test from_disk with custom text field."""
+        from datasets import Dataset
+        
+        ds = Dataset.from_dict({"text": ["text1", "text2"]})
+        dataset_dir = tmp_path / "datasets"
+        dataset_dir.mkdir(parents=True)
+        ds.save_to_disk(str(dataset_dir))
+        
+        temp_store.base_path = tmp_path
+        
+        loaded_ds = TextDataset.from_disk(temp_store, text_field="text")
+        assert len(loaded_ds) == 2
+
+
+class TestTextDatasetFromHuggingfaceStreaming:
+    """Tests for from_huggingface with streaming."""
+
+    def test_from_huggingface_streaming_with_filters_raises(self, temp_store):
+        """Test from_huggingface raises error when streaming with filters."""
+        from unittest.mock import patch
+        
+        with patch('mi_crow.datasets.text_dataset.load_dataset') as mock_load:
+            mock_ds = IterableDataset.from_generator(lambda: iter([{"text": "a"}]))
+            mock_load.return_value = mock_ds
+            
+            with pytest.raises((NotImplementedError, RuntimeError), match="filters and limit are not supported when streaming"):
+                TextDataset.from_huggingface(
+                    "test/dataset",
+                    temp_store,
+                    streaming=True,
+                    filters={"key": "value"}
+                )
+
+    def test_from_huggingface_streaming_with_limit_raises(self, temp_store):
+        """Test from_huggingface raises error when streaming with limit."""
+        from unittest.mock import patch
+        
+        with patch('mi_crow.datasets.text_dataset.load_dataset') as mock_load:
+            mock_ds = IterableDataset.from_generator(lambda: iter([{"text": "a"}]))
+            mock_load.return_value = mock_ds
+            
+            with pytest.raises((NotImplementedError, RuntimeError), match="filters and limit are not supported when streaming"):
+                TextDataset.from_huggingface(
+                    "test/dataset",
+                    temp_store,
+                    streaming=True,
+                    limit=10
+                )
+
+    def test_from_huggingface_streaming_with_stratify_raises(self, temp_store):
+        """Test from_huggingface raises error when streaming with stratify."""
+        from unittest.mock import patch
+        
+        with patch('mi_crow.datasets.text_dataset.load_dataset') as mock_load:
+            mock_ds = IterableDataset.from_generator(lambda: iter([{"text": "a"}]))
+            mock_load.return_value = mock_ds
+            
+            with pytest.raises(NotImplementedError, match="Stratification and drop_na are not supported for streaming"):
+                TextDataset.from_huggingface(
+                    "test/dataset",
+                    temp_store,
+                    streaming=True,
+                    stratify_by="key"
+                )
+
+    def test_from_huggingface_streaming_with_drop_na_raises(self, temp_store):
+        """Test from_huggingface raises error when streaming with drop_na."""
+        from unittest.mock import patch
+        
+        with patch('mi_crow.datasets.text_dataset.load_dataset') as mock_load:
+            mock_ds = IterableDataset.from_generator(lambda: iter([{"text": "a"}]))
+            mock_load.return_value = mock_ds
+            
+            with pytest.raises(NotImplementedError, match="Stratification and drop_na are not supported for streaming"):
+                TextDataset.from_huggingface(
+                    "test/dataset",
+                    temp_store,
+                    streaming=True,
+                    drop_na=True
+                )
+
+    def test_from_huggingface_load_error_raises_runtime_error(self, temp_store):
+        """Test from_huggingface raises RuntimeError when load_dataset fails."""
+        from unittest.mock import patch
+        
+        with patch('mi_crow.datasets.text_dataset.load_dataset', side_effect=Exception("Load error")):
+            with pytest.raises(RuntimeError, match="Failed to load text dataset from HuggingFace Hub"):
+                TextDataset.from_huggingface("test/dataset", temp_store)
 
     def test_extract_texts_from_batch_integration_with_iter_batches(self, temp_store):
         """Test extract_texts_from_batch works with iter_batches output."""
