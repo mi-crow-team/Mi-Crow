@@ -42,7 +42,6 @@ class TestLanguageModelTokenize:
         from unittest.mock import patch
         lm = create_language_model_from_mock(temp_store)
         
-        # Mock the tokenizer.tokenize method to avoid complex transformers interactions
         with patch.object(lm.lm_tokenizer, 'tokenize') as mock_tokenize:
             mock_tokenize.return_value = {"input_ids": [[1, 2, 3]]}
             result = lm.tokenize(["Hello"])
@@ -55,7 +54,6 @@ class TestLanguageModelTokenize:
         from unittest.mock import patch
         lm = create_language_model_from_mock(temp_store)
         
-        # Mock the tokenizer.tokenize method
         with patch.object(lm.lm_tokenizer, 'tokenize') as mock_tokenize:
             mock_tokenize.return_value = {"input_ids": [[1, 2], [3, 4]]}
             result = lm.tokenize(["Hello", "World"])
@@ -74,34 +72,74 @@ class TestLanguageModelForwards:
         
         lm = create_language_model_from_mock(temp_store)
         
-        # Mock the inference engine
         mock_output = MagicMock()
         mock_encodings = {"input_ids": torch.tensor([[1, 2, 3]])}
-        with patch.object(lm.inference, 'execute_inference') as mock_execute:
+        with patch.object(lm._inference_engine, 'execute_inference') as mock_execute:
             mock_execute.return_value = (mock_output, mock_encodings)
-            output, encodings = lm.inference.execute_inference(["Hello"])
+            output, encodings = lm.forwards(["Hello"])
             
             assert output is not None
             assert encodings is not None
             mock_execute.assert_called_once()
 
-    def test_inference_multiple_texts(self, temp_store):
-        """Test inference with multiple texts."""
+    def test_forwards_multiple_texts(self, temp_store):
+        """Test forward pass with multiple texts."""
         from unittest.mock import patch, MagicMock
         import torch
         
         lm = create_language_model_from_mock(temp_store)
         
-        # Mock the inference engine
         mock_output = MagicMock()
         mock_encodings = {"input_ids": torch.tensor([[1, 2], [3, 4]])}
-        with patch.object(lm.inference, 'execute_inference') as mock_execute:
+        with patch.object(lm._inference_engine, 'execute_inference') as mock_execute:
             mock_execute.return_value = (mock_output, mock_encodings)
-            output, encodings = lm.inference.execute_inference(["Hello", "World"])
+            output, encodings = lm.forwards(["Hello", "World"])
             
             assert output is not None
             assert encodings is not None
             mock_execute.assert_called_once()
+
+
+class TestLanguageModelGenerate:
+    """Tests for generate method."""
+
+    def test_generate_single_text(self, temp_store):
+        """Test generation with single text."""
+        from unittest.mock import patch, MagicMock
+        import torch
+        
+        lm = create_language_model_from_mock(temp_store)
+        
+        mock_output = MagicMock()
+        mock_encodings = {"input_ids": torch.tensor([[1, 2, 3]])}
+        with patch.object(lm._inference_engine, 'execute_inference') as mock_execute, \
+             patch.object(lm._inference_engine, 'extract_logits') as mock_extract, \
+             patch.object(lm.tokenizer, 'decode') as mock_decode:
+            
+            mock_execute.return_value = (mock_output, mock_encodings)
+            mock_extract.return_value = torch.randn(1, 3, 1000)
+            mock_decode.return_value = "Generated text"
+            
+            result = lm.generate(["Hello"])
+            
+            assert isinstance(result, list)
+            assert len(result) == 1
+            assert result[0] == "Generated text"
+
+    def test_generate_empty_texts_raises_error(self, temp_store):
+        """Test that empty texts list raises ValueError."""
+        lm = create_language_model_from_mock(temp_store)
+        
+        with pytest.raises(ValueError, match="Texts list cannot be empty"):
+            lm.generate([])
+
+    def test_generate_without_tokenizer_raises_error(self, temp_store):
+        """Test that missing tokenizer raises ValueError."""
+        lm = create_language_model_from_mock(temp_store)
+        lm.context.tokenizer = None
+
+        with pytest.raises(ValueError, match="Tokenizer is required"):
+            lm.generate(["hello"])
 
 
 class TestLanguageModelHooks:
@@ -148,6 +186,100 @@ class TestLanguageModelMetadata:
 
         lm.save_detector_metadata("run", 0)
         store.put_detector_metadata.assert_called_once()
+
+    def test_save_detector_metadata_unified(self, temp_store):
+        """Test save_detector_metadata with unified=True."""
+        lm = create_language_model_from_mock(temp_store)
+        store = MagicMock()
+        lm.context.store = store
+
+        detector = create_mock_detector(layer_signature=1)
+        detector.metadata = {"key": "value"}
+        detector.tensor_metadata = {"activations": torch.ones(1)}
+        lm.layers.register_hook(1, detector)
+
+        result = lm.save_detector_metadata("run", None, unified=True)
+        store.put_run_detector_metadata.assert_called_once()
+        store.put_detector_metadata.assert_not_called()
+
+    def test_save_detector_metadata_batch_idx_required_when_not_unified(self, temp_store):
+        """Test save_detector_metadata requires batch_idx when unified=False."""
+        lm = create_language_model_from_mock(temp_store)
+        store = MagicMock()
+        lm.context.store = store
+
+        with pytest.raises(ValueError, match="batch_idx must be provided when unified is False"):
+            lm.save_detector_metadata("run", None, unified=False)
+
+    def test_clear_detectors(self, temp_store):
+        """Test clear_detectors clears all detector metadata."""
+        from mi_crow.hooks.implementations.layer_activation_detector import LayerActivationDetector
+        
+        lm = create_language_model_from_mock(temp_store)
+        detector = LayerActivationDetector(layer_signature=0)
+        detector.metadata = {"key": "value"}
+        detector.tensor_metadata = {"activations": torch.ones(2, 3)}
+        lm.layers.register_hook(0, detector)
+
+        lm.clear_detectors()
+
+        assert len(detector.metadata) == 0
+        assert len(detector.tensor_metadata) == 0
+
+    def test_clear_detectors_calls_clear_captured(self, temp_store):
+        """Test clear_detectors calls clear_captured if available."""
+        from mi_crow.hooks.implementations.layer_activation_detector import LayerActivationDetector
+        
+        lm = create_language_model_from_mock(temp_store)
+        detector = LayerActivationDetector(layer_signature=0)
+        detector.tensor_metadata = {"activations": torch.ones(2, 3)}
+        lm.layers.register_hook(0, detector)
+
+        detector.process_activations(None, None, torch.ones(2, 3))
+        assert detector.get_captured() is not None
+
+        lm.clear_detectors()
+
+        assert detector.get_captured() is None
+
+    def test_save_model(self, temp_store):
+        """Test save_model method."""
+        from unittest.mock import patch
+        lm = create_language_model_from_mock(temp_store)
+        
+        with patch('mi_crow.language_model.language_model.save_model') as mock_save:
+            mock_save.return_value = temp_store.base_path / "model.pt"
+            result = lm.save_model()
+            
+            mock_save.assert_called_once_with(lm, None)
+            assert result == temp_store.base_path / "model.pt"
+
+    def test_save_model_with_path(self, temp_store):
+        """Test save_model with custom path."""
+        from unittest.mock import patch
+        lm = create_language_model_from_mock(temp_store)
+        custom_path = temp_store.base_path / "custom" / "model.pt"
+        
+        with patch('mi_crow.language_model.language_model.save_model') as mock_save:
+            mock_save.return_value = custom_path
+            result = lm.save_model(custom_path)
+            
+            mock_save.assert_called_once_with(lm, custom_path)
+            assert result == custom_path
+
+    def test_from_local(self, temp_store):
+        """Test from_local class method."""
+        from unittest.mock import patch
+        from pathlib import Path
+        
+        with patch('mi_crow.language_model.language_model.load_model_from_saved_file') as mock_load:
+            mock_lm = create_language_model_from_mock(temp_store)
+            mock_load.return_value = mock_lm
+            
+            result = LanguageModel.from_local("path/to/model.pt", temp_store)
+            
+            mock_load.assert_called_once_with(LanguageModel, "path/to/model.pt", temp_store, None)
+            assert result == mock_lm
 
 
 class TestLanguageModelModelId:
@@ -251,9 +383,9 @@ class TestLanguageModelInferenceControllerRestoration:
         controller.enable()
         lm.layers.register_hook(0, controller)
         
-        with patch.object(lm.inference, '_run_model_forward', side_effect=RuntimeError("Test error")):
+        with patch.object(lm._inference_engine, '_run_model_forward', side_effect=RuntimeError("Test error")):
             with pytest.raises(RuntimeError):
-                lm.inference.execute_inference(["test"])
+                lm.forwards(["test"])
         
         assert controller.enabled is True
 
@@ -269,15 +401,18 @@ class TestLanguageModelInferenceControllerRestoration:
         mock_output = MagicMock()
         mock_encodings = {"input_ids": torch.tensor([[1, 2, 3]])}
         
-        with patch.object(lm.inference, 'execute_inference') as mock_execute:
+        with patch.object(lm._inference_engine, 'execute_inference') as mock_execute:
             mock_execute.return_value = (mock_output, mock_encodings)
             
-            lm.inference.execute_inference(["test"], with_controllers=False)
+            lm.forwards(["test"], with_controllers=False)
             
-            mock_execute.assert_called_once()
-            call_args = mock_execute.call_args
-            assert call_args[0][0] == ["test"]
-            assert call_args[1]["with_controllers"] is False
+            mock_execute.assert_called_once_with(
+                ["test"],
+                tok_kwargs=None,
+                autocast=True,
+                autocast_dtype=None,
+                with_controllers=False
+            )
 
 
 class TestLanguageModelSpecialTokenExtraction:
@@ -306,7 +441,6 @@ class TestLanguageModelSpecialTokenExtraction:
         from tests.unit.fixtures.tokenizers import create_mock_tokenizer
         
         tokenizer = create_mock_tokenizer()
-        # Remove all_special_ids so function falls back to checking individual attributes
         tokenizer.all_special_ids = None
         tokenizer.eos_token_id = [4, 2]
         
