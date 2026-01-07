@@ -8,7 +8,7 @@ import torch
 from datasets import load_dataset
 
 from mi_crow.hooks.implementations.layer_activation_detector import LayerActivationDetector
-from mi_crow.language_model.utils import get_device_from_model, move_tensors_to_device
+from mi_crow.language_model.utils import move_tensors_to_device
 
 
 class ActivationExtractor:
@@ -63,7 +63,7 @@ class ActivationExtractor:
         run_id: Optional[str] = None,
     ) -> Dict[str, any]:
         out_dir.mkdir(parents=True, exist_ok=True)
-        device = get_device_from_model(self.lm.model)
+        device = torch.device(self.lm.context.device)
         handles = self._register_detectors()
         total = 0
         total_tokens = 0

@@ -5,7 +5,7 @@ from typing import Dict, List, Sequence
 
 import torch
 from mi_crow.hooks.hook import Hook
-from mi_crow.language_model.utils import get_device_from_model, move_tensors_to_device
+from mi_crow.language_model.utils import move_tensors_to_device
 
 from server.hook_factory import HookFactory
 from server.schemas import HookPayload, InferenceInput, InferenceOutput
@@ -55,7 +55,7 @@ class InferenceService:
     def _apply_generation(
         self, lm, prompt: str, generation, return_options, hooks_payload: Sequence[HookPayload]
     ) -> InferenceOutput:
-        device = get_device_from_model(lm.model)
+        device = torch.device(lm.context.device)
         enc = lm.tokenizer([prompt], return_tensors="pt")
         enc = move_tensors_to_device(enc, device)
 

@@ -70,14 +70,17 @@ class LayerActivationDetector(Detector):
             tensor = extract_tensor_from_output(output)
 
             if tensor is not None:
-                tensor_cpu = tensor.detach().to("cpu")
-                # Store current batch's tensor (overwrites previous)
+                if tensor.is_cuda:
+                    tensor_cpu = tensor.detach().cpu(non_blocking=True)
+                else:
+                    tensor_cpu = tensor.detach()
                 self.tensor_metadata['activations'] = tensor_cpu
-                # Store activations shape to metadata
                 self.metadata['activations_shape'] = tuple(tensor_cpu.shape)
         except Exception as e:
+            layer_sig = str(self.layer_signature) if self.layer_signature is not None else 'unknown'
             raise RuntimeError(
-                f"Error extracting activations in LayerActivationDetector {self.id}: {e}"
+                f"Error extracting activations in LayerActivationDetector {self.id} "
+                f"(layer={layer_sig}): {e}"
             ) from e
 
     def get_captured(self) -> torch.Tensor | None:

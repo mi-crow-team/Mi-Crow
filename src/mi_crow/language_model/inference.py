@@ -8,7 +8,7 @@ from typing import Sequence, Any, Dict, List, TYPE_CHECKING
 import torch
 from torch import nn
 
-from mi_crow.language_model.utils import get_device_from_model, move_tensors_to_device, extract_logits_from_output
+from mi_crow.language_model.utils import move_tensors_to_device, extract_logits_from_output
 from mi_crow.utils import get_logger
 
 if TYPE_CHECKING:
@@ -190,7 +190,7 @@ class InferenceEngine:
         tok_kwargs = self._prepare_tokenizer_kwargs(tok_kwargs)
         enc = self.lm.tokenize(texts, **tok_kwargs)
 
-        device = get_device_from_model(self.lm.model)
+        device = torch.device(self.lm.context.device)
         device_type = str(device.type)
         enc = move_tensors_to_device(enc, device)
 
@@ -476,7 +476,7 @@ class InferenceEngine:
         if store is None:
             raise ValueError("Store must be provided or set on the language model")
         
-        device = get_device_from_model(model)
+        device = torch.device(self.lm.context.device)
         device_type = str(device.type)
         
         options = {

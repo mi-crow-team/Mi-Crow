@@ -103,16 +103,26 @@ class ModelOutputDetector(Detector):
             logits, hidden_state = self._extract_output_tensor(output)
             
             if self.save_output_logits and logits is not None:
-                self.tensor_metadata['output_logits'] = logits.detach().to("cpu")
-                self.metadata['output_logits_shape'] = tuple(logits.shape)
+                if logits.is_cuda:
+                    logits_cpu = logits.detach().cpu(non_blocking=True)
+                else:
+                    logits_cpu = logits.detach()
+                self.tensor_metadata['output_logits'] = logits_cpu
+                self.metadata['output_logits_shape'] = tuple(logits_cpu.shape)
             
             if self.save_output_hidden_state and hidden_state is not None:
-                self.tensor_metadata['output_hidden_state'] = hidden_state.detach().to("cpu")
-                self.metadata['output_hidden_state_shape'] = tuple(hidden_state.shape)
+                if hidden_state.is_cuda:
+                    hidden_state_cpu = hidden_state.detach().cpu(non_blocking=True)
+                else:
+                    hidden_state_cpu = hidden_state.detach()
+                self.tensor_metadata['output_hidden_state'] = hidden_state_cpu
+                self.metadata['output_hidden_state_shape'] = tuple(hidden_state_cpu.shape)
                 
         except Exception as e:
+            layer_sig = str(self.layer_signature) if self.layer_signature is not None else 'unknown'
             raise RuntimeError(
-                f"Error extracting outputs in ModelOutputDetector {self.id}: {e}"
+                f"Error extracting outputs in ModelOutputDetector {self.id} "
+                f"(layer={layer_sig}): {e}"
             ) from e
 
     def get_captured_output_logits(self) -> torch.Tensor | None:

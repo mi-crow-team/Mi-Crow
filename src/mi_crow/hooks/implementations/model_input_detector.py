@@ -217,20 +217,30 @@ class ModelInputDetector(Detector):
             if self.save_input_ids:
                 input_ids = self._extract_input_ids(input)
                 if input_ids is not None:
-                    self.tensor_metadata['input_ids'] = input_ids.detach().to("cpu")
-                    self.metadata['input_ids_shape'] = tuple(input_ids.shape)
+                    if input_ids.is_cuda:
+                        input_ids_cpu = input_ids.detach().cpu(non_blocking=True)
+                    else:
+                        input_ids_cpu = input_ids.detach()
+                    self.tensor_metadata['input_ids'] = input_ids_cpu
+                    self.metadata['input_ids_shape'] = tuple(input_ids_cpu.shape)
             
             if self.save_attention_mask:
                 input_ids = self._extract_input_ids(input)
                 if input_ids is not None:
                     original_attention_mask = self._extract_attention_mask(input)
                     combined_mask = self._create_combined_attention_mask(input_ids, original_attention_mask, module)
-                    self.tensor_metadata['attention_mask'] = combined_mask.detach().to("cpu")
-                    self.metadata['attention_mask_shape'] = tuple(combined_mask.shape)
+                    if combined_mask.is_cuda:
+                        combined_mask_cpu = combined_mask.detach().cpu(non_blocking=True)
+                    else:
+                        combined_mask_cpu = combined_mask.detach()
+                    self.tensor_metadata['attention_mask'] = combined_mask_cpu
+                    self.metadata['attention_mask_shape'] = tuple(combined_mask_cpu.shape)
                 
         except Exception as e:
+            layer_sig = str(self.layer_signature) if self.layer_signature is not None else 'unknown'
             raise RuntimeError(
-                f"Error extracting inputs in ModelInputDetector {self.id}: {e}"
+                f"Error extracting inputs in ModelInputDetector {self.id} "
+                f"(layer={layer_sig}): {e}"
             ) from e
 
     def get_captured_input_ids(self) -> torch.Tensor | None:

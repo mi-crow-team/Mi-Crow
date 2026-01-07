@@ -320,19 +320,22 @@ class LanguageModelLayers:
 
         layer_signature, hook_type, hook = self.context._hook_id_map[hook_id]
 
-        # Find and remove from registry
-        if layer_signature in self.context._hook_registry:
-            if hook_type in self.context._hook_registry[layer_signature]:
-                hooks_list = self.context._hook_registry[layer_signature][hook_type]
-                for i, (h, handle) in enumerate(hooks_list):
-                    if h.id == hook_id:
-                        # Remove PyTorch hook
-                        handle.remove()
-                        # Remove from our list
-                        hooks_list.pop(i)
-                        break
+        if layer_signature not in self.context._hook_registry:
+            del self.context._hook_id_map[hook_id]
+            return True
+        
+        hook_types = self.context._hook_registry[layer_signature]
+        if hook_type not in hook_types:
+            del self.context._hook_id_map[hook_id]
+            return True
+        
+        hooks_list = hook_types[hook_type]
+        for i, (h, handle) in enumerate(hooks_list):
+            if h.id == hook_id:
+                handle.remove()
+                hooks_list.pop(i)
+                break
 
-        # Remove from ID map
         del self.context._hook_id_map[hook_id]
         return True
 

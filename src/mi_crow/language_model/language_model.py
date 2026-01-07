@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import gc
 from collections import defaultdict
 from pathlib import Path
 from typing import Sequence, Any, Dict, List, TYPE_CHECKING, Set, Tuple
-import gc
 
 import torch
 from torch import nn, Tensor
@@ -85,6 +85,7 @@ class LanguageModel:
             tokenizer: PreTrainedTokenizerBase,
             store: Store,
             model_id: str | None = None,
+            device: str | torch.device | None = None,
     ):
         """
         Initialize LanguageModel.
@@ -94,6 +95,7 @@ class LanguageModel:
             tokenizer: HuggingFace tokenizer
             store: Store instance for persistence
             model_id: Optional model identifier (auto-extracted if not provided)
+            device: Optional device string or torch.device (defaults to 'cpu' if None)
         """
         self.context = LanguageModelContext(self)
         self.context.model = model
@@ -101,6 +103,12 @@ class LanguageModel:
         self.context.model_id = initialize_model_id(model, model_id)
         self.context.store = store
         self.context.special_token_ids = _extract_special_token_ids(tokenizer)
+        
+        if device is None:
+            device = "cpu"
+        elif isinstance(device, torch.device):
+            device = str(device)
+        self.context.device = device
 
         self.layers = LanguageModelLayers(self.context)
         self.lm_tokenizer = LanguageModelTokenizer(self.context)
@@ -183,12 +191,9 @@ class LanguageModel:
         """
         detectors = self.layers.get_detectors()
         for detector in detectors:
-            # Clear generic accumulated metadata
             detector.metadata.clear()
             detector.tensor_metadata.clear()
 
-            # Allow detector implementations to provide more specialized
-            # clearing logic (e.g. ModelInputDetector, ModelOutputDetector).
             clear_captured = getattr(detector, "clear_captured", None)
             if callable(clear_captured):
                 clear_captured()
@@ -285,7 +290,7 @@ class LanguageModel:
             store: Store,
             tokenizer_params: dict = None,
             model_params: dict = None,
-            device: str | None = None,
+            device: str | torch.device | None = None,
     ) -> "LanguageModel":
         """
         Load a language model from HuggingFace Hub.
@@ -300,6 +305,7 @@ class LanguageModel:
             model_params: Optional model parameters
             device: Target device ("cuda", "cpu", "mps"). If "cuda" and CUDA is available,
                 model will be loaded directly to GPU using device_map="auto"
+                (via the HuggingFace factory helpers).
             
         Returns:
             LanguageModel instance
@@ -307,7 +313,13 @@ class LanguageModel:
         return create_from_huggingface(cls, model_name, store, tokenizer_params, model_params, device)
 
     @classmethod
-    def from_local_torch(cls, model_path: str, tokenizer_path: str, store: Store) -> "LanguageModel":
+    def from_local_torch(
+            cls,
+            model_path: str,
+            tokenizer_path: str,
+            store: Store,
+            device: str | torch.device | None = None,
+    ) -> "LanguageModel":
         """
         Load a language model from local HuggingFace paths.
         
@@ -315,14 +327,21 @@ class LanguageModel:
             model_path: Path to the model directory or file
             tokenizer_path: Path to the tokenizer directory or file
             store: Store instance for persistence
+            device: Optional device string or torch.device (defaults to 'cpu' if None)
             
         Returns:
             LanguageModel instance
         """
-        return create_from_local_torch(cls, model_path, tokenizer_path, store)
+        return create_from_local_torch(cls, model_path, tokenizer_path, store, device)
 
     @classmethod
-    def from_local(cls, saved_path: Path | str, store: Store, model_id: str | None = None) -> "LanguageModel":
+    def from_local(
+            cls,
+            saved_path: Path | str,
+            store: Store,
+            model_id: str | None = None,
+            device: str | torch.device | None = None,
+    ) -> "LanguageModel":
         """
         Load a language model from a saved file (created by save_model).
         
@@ -331,6 +350,7 @@ class LanguageModel:
             store: Store instance for persistence
             model_id: Optional model identifier. If not provided, will use the model_id from saved metadata.
                      If provided, will be used to load the model architecture from HuggingFace.
+            device: Optional device string or torch.device (defaults to 'cpu' if None)
                      
         Returns:
             LanguageModel instance
@@ -339,4 +359,4 @@ class LanguageModel:
             FileNotFoundError: If the saved file doesn't exist
             ValueError: If the saved file format is invalid or model_id is required but not provided
         """
-        return load_model_from_saved_file(cls, saved_path, store, model_id)
+        return load_model_from_saved_file(cls, saved_path, store, model_id, device)

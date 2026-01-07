@@ -39,7 +39,7 @@ def create_from_huggingface(
         store: Store,
         tokenizer_params: dict | None = None,
         model_params: dict | None = None,
-        device: str | None = None,
+        device: str | torch.device | None = None,
 ) -> "LanguageModel":
     """
     Load a language model from HuggingFace Hub.
@@ -54,8 +54,7 @@ def create_from_huggingface(
         tokenizer_params: Optional tokenizer parameters
         model_params: Optional model parameters
         device: Target device ("cuda", "cpu", "mps"). If "cuda" and CUDA is available,
-            model will be loaded directly to GPU using device_map="auto"
-    
+            model will be loaded directly to GPU using ``device_map=\"auto\"``.
     Returns:
         LanguageModel instance
     
@@ -87,14 +86,15 @@ def create_from_huggingface(
             f"Failed to load model '{model_name}' from HuggingFace. Error: {e}"
         ) from e
 
-    return cls(model, tokenizer, store)
+    return cls(model, tokenizer, store, device=device)
 
 
 def create_from_local_torch(
         cls: type["LanguageModel"],
         model_path: str,
         tokenizer_path: str,
-        store: Store
+        store: Store,
+        device: str | torch.device | None = None,
 ) -> "LanguageModel":
     """
     Load a language model from local HuggingFace paths.
@@ -104,6 +104,7 @@ def create_from_local_torch(
         model_path: Path to the model directory or file
         tokenizer_path: Path to the tokenizer directory or file
         store: Store instance for persistence
+        device: Optional device string or torch.device (defaults to 'cpu' if None)
         
     Returns:
         LanguageModel instance
@@ -133,5 +134,5 @@ def create_from_local_torch(
             f"model_path={model_path!r}, tokenizer_path={tokenizer_path!r}. Error: {e}"
         ) from e
 
-    return cls(model, tokenizer, store)
+    return cls(model, tokenizer, store, device=device)
 
