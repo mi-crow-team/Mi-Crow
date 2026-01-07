@@ -16,11 +16,17 @@ mi-crow provides a unified interface for working with language models through th
 ```python
 from mi_crow.language_model import LanguageModel
 from mi_crow.store import LocalStore
+import torch
 
 store = LocalStore(base_path="./store")
+
+# Use GPU when available
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
 lm = LanguageModel.from_huggingface(
     "gpt2",  # Or any HuggingFace model
-    store=store
+    store=store,
+    device=device,
 )
 ```
 

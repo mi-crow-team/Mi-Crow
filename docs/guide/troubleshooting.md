@@ -287,14 +287,26 @@ if dead_ratio > 0.1:
 ### CUDA Issues
 
 ```python
-# Check CUDA availability
 import torch
+from mi_crow.language_model import LanguageModel
+from mi_crow.store import LocalStore
+
+# Check CUDA availability
 print(f"CUDA available: {torch.cuda.is_available()}")
 print(f"CUDA version: {torch.version.cuda}")
 
-# Check device
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# Always choose device based on availability
+device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
+
+store = LocalStore(base_path="./store")
+
+# This will raise a clear ValueError if you force device=\"cuda\" but CUDA is not available
+lm = LanguageModel.from_huggingface(
+    "sshleifer/tiny-gpt2",
+    store=store,
+    device=device,
+)
 ```
 
 ### MPS (Apple Silicon)
@@ -378,8 +390,14 @@ print(f"PyTorch: {torch.__version__}")
 # 2. Add complexity until issue appears
 # 3. Document exact steps
 
-# Minimal example
-lm = LanguageModel.from_huggingface("sshleifer/tiny-gpt2", store=store)
+import torch
+from mi_crow.language_model import LanguageModel
+from mi_crow.store import LocalStore
+
+store = LocalStore(base_path="./store")
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+lm = LanguageModel.from_huggingface("sshleifer/tiny-gpt2", store=store, device=device)
 layers = lm.layers.list_layers()
 print(layers)
 ```

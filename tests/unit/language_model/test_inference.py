@@ -196,12 +196,12 @@ class TestInferenceEngine:
         mock_language_model.tokenize = Mock(return_value=mock_enc)
         mock_language_model.context.model = Mock(return_value=mock_output)
         mock_language_model.context.model.eval = Mock()
+        mock_language_model.context.model.parameters = Mock(return_value=iter([]))
         mock_language_model.layers.get_controllers = Mock(return_value=[])
         
-        with patch("mi_crow.language_model.inference.get_device_from_model", return_value=torch.device("cpu")):
-            with patch("mi_crow.language_model.inference.move_tensors_to_device", return_value=mock_enc):
-                with patch("torch.inference_mode"):
-                    output, enc = engine.execute_inference(texts)
+        with patch("mi_crow.language_model.inference.move_tensors_to_device", return_value=mock_enc):
+            with patch("torch.inference_mode"):
+                output, enc = engine.execute_inference(texts)
         
         assert output == mock_output
         assert enc == mock_enc
@@ -234,11 +234,11 @@ class TestInferenceEngine:
         mock_language_model.tokenize = Mock(return_value={"input_ids": torch.tensor([[1]])})
         mock_language_model.context.model = Mock(return_value=Mock())
         mock_language_model.context.model.eval = Mock()
+        mock_language_model.context.model.parameters = Mock(return_value=iter([]))
         
-        with patch("mi_crow.language_model.inference.get_device_from_model", return_value=torch.device("cpu")):
-            with patch("mi_crow.language_model.inference.move_tensors_to_device", return_value={"input_ids": torch.tensor([[1]])}):
-                with patch("torch.inference_mode"):
-                    engine.execute_inference(texts, with_controllers=False)
+        with patch("mi_crow.language_model.inference.move_tensors_to_device", return_value={"input_ids": torch.tensor([[1]])}):
+            with patch("torch.inference_mode"):
+                engine.execute_inference(texts, with_controllers=False)
         
         controller.disable.assert_called_once()
         controller.enable.assert_called_once()
@@ -292,13 +292,13 @@ class TestInferenceEngine:
         mock_language_model.tokenize = Mock(return_value=mock_enc)
         mock_language_model.context.model = Mock(return_value=mock_output)
         mock_language_model.context.model.eval = Mock()
+        mock_language_model.context.model.parameters = Mock(return_value=iter([]))
         mock_language_model.layers.get_controllers = Mock(return_value=[])
         mock_language_model.save_detector_metadata = Mock()
         
-        with patch("mi_crow.language_model.inference.get_device_from_model", return_value=torch.device("cpu")):
-            with patch("mi_crow.language_model.inference.move_tensors_to_device", return_value=mock_enc):
-                with patch("torch.inference_mode"):
-                    output, enc = engine.infer_texts(texts, run_name="test_run")
+        with patch("mi_crow.language_model.inference.move_tensors_to_device", return_value=mock_enc):
+            with patch("torch.inference_mode"):
+                output, enc = engine.infer_texts(texts, run_name="test_run")
         
         assert output == mock_output
         assert enc == mock_enc
@@ -318,13 +318,13 @@ class TestInferenceEngine:
         mock_language_model.tokenize = Mock(side_effect=[mock_enc1, mock_enc2])
         mock_language_model.context.model = Mock(side_effect=[mock_output1, mock_output2])
         mock_language_model.context.model.eval = Mock()
+        mock_language_model.context.model.parameters = Mock(return_value=iter([]))
         mock_language_model.layers.get_controllers = Mock(return_value=[])
         mock_language_model.save_detector_metadata = Mock()
         
-        with patch("mi_crow.language_model.inference.get_device_from_model", return_value=torch.device("cpu")):
-            with patch("mi_crow.language_model.inference.move_tensors_to_device", side_effect=[mock_enc1, mock_enc2]):
-                with patch("torch.inference_mode"):
-                    outputs, encodings = engine.infer_texts(texts, run_name="test_run", batch_size=2)
+        with patch("mi_crow.language_model.inference.move_tensors_to_device", side_effect=[mock_enc1, mock_enc2]):
+            with patch("torch.inference_mode"):
+                outputs, encodings = engine.infer_texts(texts, run_name="test_run", batch_size=2)
         
         assert len(outputs) == 2
         assert len(encodings) == 2
@@ -341,13 +341,13 @@ class TestInferenceEngine:
         mock_language_model.tokenize = Mock(return_value=mock_enc)
         mock_language_model.context.model = Mock(return_value=mock_output)
         mock_language_model.context.model.eval = Mock()
+        mock_language_model.context.model.parameters = Mock(return_value=iter([]))
         mock_language_model.layers.get_controllers = Mock(return_value=[])
         mock_language_model.save_detector_metadata = Mock()
         
-        with patch("mi_crow.language_model.inference.get_device_from_model", return_value=torch.device("cpu")):
-            with patch("mi_crow.language_model.inference.move_tensors_to_device", return_value=mock_enc):
-                with patch("torch.inference_mode"):
-                    output, enc = engine.infer_texts(texts)
+        with patch("mi_crow.language_model.inference.move_tensors_to_device", return_value=mock_enc):
+            with patch("torch.inference_mode"):
+                output, enc = engine.infer_texts(texts)
         
         assert output == mock_output
         assert enc == mock_enc
@@ -370,13 +370,13 @@ class TestInferenceEngine:
         mock_language_model.tokenize = Mock(return_value=mock_enc)
         mock_language_model.context.model = Mock(return_value=mock_output)
         mock_language_model.context.model.eval = Mock()
+        mock_language_model.context.model.parameters = Mock(return_value=iter([]))
         mock_language_model.layers.get_controllers = Mock(return_value=[])
         mock_language_model.save_detector_metadata = Mock()
         
-        with patch("mi_crow.language_model.inference.get_device_from_model", return_value=torch.device("cpu")):
-            with patch("mi_crow.language_model.inference.move_tensors_to_device", return_value=mock_enc):
-                with patch("torch.inference_mode"):
-                    run_name = engine.infer_dataset(dataset, run_name="test_run", batch_size=2)
+        with patch("mi_crow.language_model.inference.move_tensors_to_device", return_value=mock_enc):
+            with patch("torch.inference_mode"):
+                run_name = engine.infer_dataset(dataset, run_name="test_run", batch_size=2)
         
         assert run_name == "test_run"
         assert mock_language_model.save_detector_metadata.call_count == 2
@@ -396,10 +396,9 @@ class TestInferenceEngine:
         mock_language_model.layers.get_controllers = Mock(return_value=[])
         mock_language_model.save_detector_metadata = Mock()
 
-        with patch("mi_crow.language_model.inference.get_device_from_model", return_value=torch.device("cpu")):
-            with patch("mi_crow.language_model.inference.move_tensors_to_device", return_value=mock_enc):
-                with patch("torch.inference_mode"):
-                    engine.infer_texts(texts, run_name="run_unified", save_in_batches=False)
+        with patch("mi_crow.language_model.inference.move_tensors_to_device", return_value=mock_enc):
+            with patch("torch.inference_mode"):
+                engine.infer_texts(texts, run_name="run_unified", save_in_batches=False)
 
         mock_language_model.save_detector_metadata.assert_called_once_with("run_unified", 0, unified=True)
 
@@ -419,14 +418,13 @@ class TestInferenceEngine:
         mock_language_model.save_detector_metadata = Mock()
         mock_language_model.clear_detectors = Mock()
 
-        with patch("mi_crow.language_model.inference.get_device_from_model", return_value=torch.device("cpu")):
-            with patch("mi_crow.language_model.inference.move_tensors_to_device", return_value=mock_enc):
-                with patch("torch.inference_mode"):
-                    engine.infer_texts(
-                        texts,
-                        run_name="test_run",
-                        clear_detectors_before=True,
-                    )
+        with patch("mi_crow.language_model.inference.move_tensors_to_device", return_value=mock_enc):
+            with patch("torch.inference_mode"):
+                engine.infer_texts(
+                    texts,
+                    run_name="test_run",
+                    clear_detectors_before=True,
+                )
 
         mock_language_model.clear_detectors.assert_called_once()
 
@@ -451,15 +449,14 @@ class TestInferenceEngine:
         mock_language_model.save_detector_metadata = Mock()
         mock_language_model.clear_detectors = Mock()
 
-        with patch("mi_crow.language_model.inference.get_device_from_model", return_value=torch.device("cpu")):
-            with patch("mi_crow.language_model.inference.move_tensors_to_device", return_value=mock_enc):
-                with patch("torch.inference_mode"):
-                    engine.infer_dataset(
-                        dataset,
-                        run_name="test_run",
-                        batch_size=2,
-                        clear_detectors_before=True,
-                    )
+        with patch("mi_crow.language_model.inference.move_tensors_to_device", return_value=mock_enc):
+            with patch("torch.inference_mode"):
+                engine.infer_dataset(
+                    dataset,
+                    run_name="test_run",
+                    batch_size=2,
+                    clear_detectors_before=True,
+                )
 
         mock_language_model.clear_detectors.assert_called_once()
 
@@ -592,13 +589,13 @@ class TestInferenceEngine:
         mock_language_model.tokenize = Mock(return_value=mock_enc)
         mock_language_model.context.model = Mock(return_value=mock_output)
         mock_language_model.context.model.eval = Mock()
+        mock_language_model.context.model.parameters = Mock(return_value=iter([]))
         mock_language_model.layers.get_controllers = Mock(return_value=[])
         mock_language_model.save_detector_metadata = Mock()
 
-        with patch("mi_crow.language_model.inference.get_device_from_model", return_value=torch.device("cpu")):
-            with patch("mi_crow.language_model.inference.move_tensors_to_device", return_value=mock_enc):
-                with patch("torch.inference_mode"):
-                    run_name = engine.infer_dataset(ds, run_name="run-empty", batch_size=2)
+        with patch("mi_crow.language_model.inference.move_tensors_to_device", return_value=mock_enc):
+            with patch("torch.inference_mode"):
+                run_name = engine.infer_dataset(ds, run_name="run-empty", batch_size=2)
 
         assert run_name == "run-empty"
         # Only one non-empty batch should be processed
@@ -618,8 +615,7 @@ class TestInferenceEngine:
         # Patch tokenize to avoid real tokenizer logic
         lm.tokenize = Mock(return_value=enc)
 
-        with patch("mi_crow.language_model.inference.get_device_from_model", return_value=torch.device("cpu")), \
-             patch("mi_crow.language_model.inference.move_tensors_to_device", return_value=enc):
+        with patch("mi_crow.language_model.inference.move_tensors_to_device", return_value=enc):
             # Full forward (no early stop) – should return final logits
             full_output, _ = engine.infer_texts(texts)
             # Early stop after first flattened layer (index 0)

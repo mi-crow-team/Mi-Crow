@@ -101,6 +101,25 @@ class TestCreateFromHuggingface:
             with pytest.raises(RuntimeError, match="Failed to load model"):
                 create_from_huggingface(LanguageModel, "test/model", temp_store)
 
+    def test_create_from_huggingface_cuda_not_available_raises(self, temp_store, monkeypatch):
+        """Requesting CUDA when it is not available should raise a clear ValueError."""
+        model = nn.Linear(10, 5)
+        
+        with patch("mi_crow.language_model.initialization.AutoTokenizer") as mock_tokenizer_class, \
+             patch("mi_crow.language_model.initialization.AutoModelForCausalLM") as mock_model_class, \
+             patch("mi_crow.language_model.initialization.torch.cuda.is_available", return_value=False):
+            
+            mock_tokenizer = MagicMock()
+            mock_model = MagicMock()
+            mock_tokenizer_class.from_pretrained.return_value = mock_tokenizer
+            mock_model_class.from_pretrained.return_value = mock_model
+            
+            msg = "Requested device 'cuda' but CUDA is not available"
+            with pytest.raises(ValueError, match=msg):
+                # We bypass create_from_huggingface's own cuda logic by directly
+                # constructing a LanguageModel with device='cuda'.
+                LanguageModel(model, mock_tokenizer, temp_store, device="cuda")
+
 
 class TestCreateFromLocalTorch:
     """Tests for create_from_local_torch function."""
@@ -159,4 +178,32 @@ class TestCreateFromLocalTorch:
             mock_tokenizer_class.from_pretrained.side_effect = Exception("boom")
             with pytest.raises(RuntimeError):
                 create_from_local_torch(LanguageModel, str(model_path), str(tokenizer_path), temp_store)
+
+    def test_create_from_local_torch_sets_device_map_for_cuda(self, temp_store, tmp_path):
+        """create_from_local_torch should set device_map='auto' when device='cuda' and CUDA is available."""
+        model_path = tmp_path / "model"
+        tokenizer_path = tmp_path / "tokenizer"
+        model_path.mkdir()
+        tokenizer_path.mkdir()
+        
+        with patch("mi_crow.language_model.initialization.AutoTokenizer") as mock_tokenizer_class, \
+             patch("mi_crow.language_model.initialization.AutoModelForCausalLM") as mock_model_class, \
+             patch("mi_crow.language_model.initialization.torch.cuda.is_available", return_value=True):
+            
+            mock_tokenizer = MagicMock()
+            mock_model = MagicMock()
+            mock_tokenizer_class.from_pretrained.return_value = mock_tokenizer
+            mock_model_class.from_pretrained.return_value = mock_model
+            
+            create_from_local_torch(
+                LanguageModel,
+                str(model_path),
+                str(tokenizer_path),
+                temp_store,
+                device="cuda",
+            )
+            
+            mock_model_class.from_pretrained.assert_called_once()
+            _, kwargs = mock_model_class.from_pretrained.call_args
+            assert kwargs.get("device_map") == "auto"
 

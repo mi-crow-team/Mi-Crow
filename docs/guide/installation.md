@@ -121,11 +121,17 @@ Test with a simple model load:
 ```python
 from mi_crow.language_model import LanguageModel
 from mi_crow.store import LocalStore
+import torch
 
 store = LocalStore(base_path="./store")
+
+# Use GPU when available, otherwise CPU
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
 lm = LanguageModel.from_huggingface(
     "sshleifer/tiny-gpt2",
-    store=store
+    store=store,
+    device=device,
 )
 print("Installation successful!")
 ```

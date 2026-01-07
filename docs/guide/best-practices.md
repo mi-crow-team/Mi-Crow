@@ -13,14 +13,18 @@ This guide covers best practices for using mi-crow effectively in your research.
 ### Scale Gradually
 
 ```python
+import torch
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
 # Start with tiny model
-lm = LanguageModel.from_huggingface("sshleifer/tiny-gpt2", store=store)
+lm = LanguageModel.from_huggingface("sshleifer/tiny-gpt2", store=store, device=device)
 
 # Then move to small
-lm = LanguageModel.from_huggingface("gpt2", store=store)
+lm = LanguageModel.from_huggingface("gpt2", store=store, device=device)
 
 # Finally use larger models
-lm = LanguageModel.from_huggingface("gpt2-large", store=store)
+lm = LanguageModel.from_huggingface("gpt2-large", store=store, device=device)
 ```
 
 ### Consider Your Goals

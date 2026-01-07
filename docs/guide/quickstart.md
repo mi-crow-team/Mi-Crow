@@ -9,14 +9,19 @@ Let's start with the simplest possible example: loading a model and running infe
 ```python
 from mi_crow.language_model import LanguageModel
 from mi_crow.store import LocalStore
+import torch
 
 # Create a store for saving data
 store = LocalStore(base_path="./store")
 
-# Load a small model for testing
+# Choose device: use GPU when available, otherwise CPU
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+# Load a small model for testing on the chosen device
 lm = LanguageModel.from_huggingface(
     "sshleifer/tiny-gpt2",
-    store=store
+    store=store,
+    device=device,
 )
 
 # Run inference
@@ -118,7 +123,11 @@ from mi_crow.mechanistic.sae.train import SaeTrainer, SaeTrainingConfig
 
 # Setup
 store = LocalStore(base_path="./store")
-lm = LanguageModel.from_huggingface("sshleifer/tiny-gpt2", store=store)
+
+# Choose device: GPU if available, otherwise CPU
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+lm = LanguageModel.from_huggingface("sshleifer/tiny-gpt2", store=store, device=device)
 
 # Step 1: Save activations
 dataset = TextDataset(texts=["The cat sat on the mat."] * 50)

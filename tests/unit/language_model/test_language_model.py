@@ -236,7 +236,7 @@ class TestLanguageModelMetadata:
             
             result = LanguageModel.from_local("path/to/model.pt", temp_store)
             
-            mock_load.assert_called_once_with(LanguageModel, "path/to/model.pt", temp_store, None)
+            mock_load.assert_called_once_with(LanguageModel, "path/to/model.pt", temp_store, None, None)
             assert result == mock_lm
 
 

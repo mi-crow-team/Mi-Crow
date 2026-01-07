@@ -125,9 +125,13 @@ def create_from_local_torch(
     if not tokenizer_path_obj.exists():
         raise FileNotFoundError(f"Tokenizer path does not exist: {tokenizer_path}")
 
+    model_kwargs: dict = {}
+    if device == "cuda" and torch.cuda.is_available():
+        model_kwargs["device_map"] = "auto"
+    
     try:
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
-        model = AutoModelForCausalLM.from_pretrained(model_path)
+        model = AutoModelForCausalLM.from_pretrained(model_path, **model_kwargs)
     except Exception as e:
         raise RuntimeError(
             f"Failed to load model from local paths. "
