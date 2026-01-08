@@ -63,7 +63,6 @@ export default function ActivationsPage() {
   const [paths, setPaths] = useState("/path/to/file.txt");
   const [layerSel, setLayerSel] = useState<string[]>([]);
   const [batchSize, setBatchSize] = useState(4);
-  const [shardSize, setShardSize] = useState(64);
   const [sampleLimit, setSampleLimit] = useState<number | undefined>();
   const [status, setStatus] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -94,7 +93,7 @@ export default function ActivationsPage() {
             layers: layerSel,
             dataset: { type: "hf" as const, name: hfName, split: hfSplit, text_field: hfField },
             batch_size: batchSize,
-            shard_size: shardSize,
+            shard_size: batchSize,
             sample_limit: sampleLimit,
             run_id: runId,
           }
@@ -103,7 +102,7 @@ export default function ActivationsPage() {
             layers: layerSel,
             dataset: { type: "local" as const, paths: paths.split(",").map((p) => p.trim()) },
             batch_size: batchSize,
-            shard_size: shardSize,
+            shard_size: batchSize,
             sample_limit: sampleLimit,
             run_id: runId,
           };
@@ -401,10 +400,7 @@ export default function ActivationsPage() {
                 onChange={(e) => setBatchSize(Number(e.target.value))}
                 min={1}
               />
-            </div>
-            <div className="space-y-1">
-              <Label>Shard size</Label>
-              <Input type="number" value={shardSize} onChange={(e) => setShardSize(Number(e.target.value))} min={1} />
+              <p className="text-xs text-slate-500">Also used as shard size</p>
             </div>
             <div className="space-y-1">
               <Label>Sample limit (optional)</Label>
@@ -470,26 +466,21 @@ export default function ActivationsPage() {
             }}
             className="w-full text-left"
           >
-            <div className="flex items-center justify-between mb-1">
-              <div className="font-semibold text-slate-900 truncate" title={r.run_id}>
+            <div className="space-y-1 text-xs">
+              <div className="font-semibold text-slate-900 truncate mb-1" title={r.run_id}>
                 {r.run_id}
               </div>
-              <span
-                className={`px-2 py-0.5 rounded text-xs font-medium ${
-                  isCompleted
-                    ? "bg-green-100 text-green-700"
-                    : "bg-mi_crow-100 text-mi_crow-700"
-                }`}
-              >
-                {isCompleted ? "✓ Done" : "⏳ In Progress"}
-              </span>
-            </div>
-            <div className="space-y-1 text-xs">
               <div className="text-slate-700">
                 <span className="text-slate-600">Started:</span> <span className="text-slate-900">{startedAt}</span>
               </div>
-              <div className="text-slate-700">
-                <span className="text-slate-600">Layers:</span> <span className="text-slate-900">{r.layers?.length ? r.layers.map(formatLayerName).join(", ") : "-"}</span>
+              <div className="text-slate-700 min-w-0 flex items-start gap-1">
+                <span className="text-slate-600 flex-shrink-0">Layers:</span>
+                <span 
+                  className="text-slate-900 truncate min-w-0" 
+                  title={r.layers?.length ? r.layers.join(", ") : "-"}
+                >
+                  {r.layers?.length ? r.layers.map(formatLayerName).join(", ") : "-"}
+                </span>
               </div>
               <div className="text-slate-700">
                 <span className="text-slate-600">Samples:</span> <span className="text-slate-900">{r.samples ?? "-"}</span> | <span className="text-slate-600">Tokens:</span> <span className="text-slate-900">{r.tokens ?? "-"}</span>
@@ -506,6 +497,17 @@ export default function ActivationsPage() {
                   </span>
                 </div>
               )}
+              <div className="flex justify-end mt-4">
+                <span
+                  className={`px-2 py-0.5 rounded text-xs font-medium ${
+                    isCompleted
+                      ? "bg-green-100 text-green-700"
+                      : "bg-mi_crow-100 text-mi_crow-700"
+                  }`}
+                >
+                  {isCompleted ? "✓ Done" : "⏳ In Progress"}
+                </span>
+              </div>
             </div>
           </button>
         );

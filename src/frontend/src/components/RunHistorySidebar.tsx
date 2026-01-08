@@ -30,24 +30,22 @@ export function RunHistorySidebar<T>({
           {items.map((item, idx) => {
             const key = getItemKey ? getItemKey(item, idx) : idx;
             return (
-              <div key={key} className="rounded-md border border-slate-200/60 bg-white/80 p-2 shadow-sm group">
-                <div className="flex items-start gap-2">
-                  <div className="flex-1 min-w-0">
-              {renderItem(item, idx)}
-            </div>
-                  {onDelete && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(item, idx);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity text-red-600 hover:text-red-800 text-xs px-2 py-1 rounded hover:bg-red-50"
-                      title="Delete"
-                    >
-                      ✕
-                    </button>
-                  )}
+              <div key={key} className="rounded-md border border-slate-200/60 bg-white/80 p-2 shadow-sm group relative">
+                {onDelete && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(item, idx);
+                    }}
+                    className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity text-red-600 hover:text-red-800 text-xs px-1.5 py-0.5 rounded hover:bg-red-50 z-10"
+                    title="Delete"
+                  >
+                    ✕
+                  </button>
+                )}
+                <div className="flex-1 min-w-0">
+                  {renderItem(item, idx)}
                 </div>
               </div>
             );

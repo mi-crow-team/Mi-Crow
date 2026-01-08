@@ -767,16 +767,18 @@ export default function TrainingPage() {
               className="w-full text-left hover:opacity-80 transition"
             >
               <div className="space-y-1 text-xs">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="font-semibold text-slate-900 truncate">{item.job_id}</div>
-                  <span className="px-2 py-0.5 rounded text-xs font-medium bg-mi_crow-100 text-mi_crow-700">
-                    ⏳ {item.status === "pending" ? "Pending" : "Running"}
-                  </span>
+                <div className="font-semibold text-slate-900 truncate mb-1">
+                  {item.job_id}
                 </div>
                 <div className="text-slate-700">
                   <span className="text-slate-600">Started:</span>{" "}
                   <span className="text-slate-900">
                     {new Date(item.created_at).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-end mt-4">
+                  <span className="px-2 py-0.5 rounded text-xs font-medium bg-mi_crow-100 text-mi_crow-700">
+                    ⏳ {item.status === "pending" ? "Pending" : "Running"}
                   </span>
                 </div>
               </div>
@@ -788,14 +790,11 @@ export default function TrainingPage() {
             <button
               type="button"
               onClick={() => setSelectedSae(s)}
-              className="w-full text-left hover:opacity-80 transition"
+              className="w-full text-left hover:opacity-80 transition relative"
             >
               <div className="space-y-1 text-xs">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="font-semibold text-slate-900 truncate">{s.sae_id}</div>
-                  <span className="px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
-                    ✓ Trained
-                  </span>
+                <div className="font-semibold text-slate-900 truncate mb-1">
+                  {s.sae_id}
                 </div>
                 <div className="text-slate-700">
                   <span className="text-slate-600">Layer:</span>{" "}
@@ -812,6 +811,11 @@ export default function TrainingPage() {
                     <span className="text-slate-900 font-mono text-xs">{s.sae_path}</span>
                   </div>
                 )}
+                <div className="flex justify-end mt-4">
+                  <span className="px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
+                    ✓ Trained
+                  </span>
+                </div>
               </div>
             </button>
           );
