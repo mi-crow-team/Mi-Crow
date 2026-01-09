@@ -119,6 +119,12 @@ Both scripts support the following environment variables:
 - `BATCH_SIZE_TRAIN`: Training batch size (default: `32`)
 - `LR`: Learning rate (default: `1e-3`)
 - `L1_LAMBDA`: L1 regularization strength (default: `1e-4`)
+- `USE_WANDB`: Enable wandb logging (default: `false`, set to `true` to enable)
+- `WANDB_PROJECT`: Wandb project name (default: `sae-training` or `SERVER_WANDB_PROJECT` env var)
+- `WANDB_ENTITY`: Wandb entity/team name (optional)
+- `WANDB_NAME`: Custom wandb run name (optional, defaults to run_id)
+- `WANDB_MODE`: Wandb mode - `online`, `offline`, or `disabled` (default: `online`)
+- `WANDB_API_KEY`: Wandb API key (optional, can also be set via `wandb login` or `WANDB_API_KEY` env var)
 
 ## Usage
 
@@ -157,6 +163,12 @@ EPOCHS=20 \
 BATCH_SIZE_TRAIN=64 \
 N_LATENTS_MULTIPLIER=8 \
 STORE_DIR=/scratch/user/sae_store \
+uv run python 02_train_sae.py
+
+# With wandb enabled
+USE_WANDB=true \
+WANDB_PROJECT="sae-experiments" \
+WANDB_ENTITY="your-team" \
 uv run python 02_train_sae.py
 
 # With custom run_id
@@ -232,6 +244,12 @@ export BATCH_SIZE_TRAIN=64
 export N_LATENTS_MULTIPLIER=8
 export TOP_K=8
 export DEVICE=cuda
+
+# Wandb configuration (optional)
+# export USE_WANDB=true
+# export WANDB_PROJECT="sae-training"
+# export WANDB_ENTITY="your-wandb-entity"
+# export WANDB_API_KEY="your-api-key"  # Or use: wandb login
 
 # Run script
 cd /path/to/experiments/slurm_sae_pipeline

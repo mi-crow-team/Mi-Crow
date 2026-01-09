@@ -39,6 +39,17 @@ dataset = HuggingFaceDataset(
     split="train",
     text_field="text"
 )
+
+# For large datasets, you can sample a subset
+dataset = TextDataset.from_huggingface(
+    "roneneldan/TinyStories",
+    split="train",
+    store=store,
+    text_field="text"
+)
+
+# Randomly sample 1000 items (useful for testing or smaller experiments)
+sampled_dataset = dataset.random_sample(1000, seed=42)
 ```
 
 ### Step 3: Find Layer Name
@@ -138,6 +149,32 @@ run_id = lm.activations.save(
 - Start small and increase if memory allows
 
 ### Processing Large Datasets
+
+#### Option 1: Random Sampling
+
+For large datasets, use `random_sample()` to create a manageable subset:
+
+```python
+# Load full dataset
+dataset = TextDataset.from_huggingface(
+    "large-dataset",
+    split="train",
+    store=store
+)
+
+# Sample a subset for activation saving
+sampled_dataset = dataset.random_sample(10000, seed=42)
+run_id = lm.activations.save(
+    layer_signature="layer_0",
+    dataset=sampled_dataset,
+    sample_limit=10000,
+    batch_size=16
+)
+```
+
+#### Option 2: Process in Chunks
+
+Alternatively, process the dataset in chunks:
 
 ```python
 # Process in chunks

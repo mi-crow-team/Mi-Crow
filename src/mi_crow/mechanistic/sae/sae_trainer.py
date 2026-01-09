@@ -3,11 +3,19 @@
 from dataclasses import dataclass
 from typing import Any, Optional, TYPE_CHECKING
 from datetime import datetime
+from pathlib import Path
 import json
 import logging
 import gc
+import os
 
 import torch
+
+try:
+    from dotenv import load_dotenv
+    DOTENV_AVAILABLE = True
+except ImportError:
+    DOTENV_AVAILABLE = False
 
 from mi_crow.store.store_dataloader import StoreDataloader
 from mi_crow.utils import get_logger
@@ -45,6 +53,8 @@ class SaeTrainingConfig:
     wandb_slow_metrics_frequency: int = 50  # Log slow metrics (L0, dead features) every N epochs (default: 50)
     wandb_api_key: Optional[str] = None  # Wandb API key (can also be set via WANDB_API_KEY env var)
     memory_efficient: bool = False  # Enable memory-efficient processing (moves tensors to CPU, clears cache)
+    snapshot_every_n_epochs: Optional[int] = None  # Save model snapshot every N epochs (None = disabled)
+    snapshot_base_path: Optional[str] = None  # Base path for snapshots (defaults to training_run_id/snapshots)
 
 
 class SaeTrainer:
@@ -77,31 +87,72 @@ class SaeTrainer:
         cfg = config or SaeTrainingConfig()
 
         wandb_run = self._initialize_wandb(cfg, run_id)
+        if wandb_run is not None and cfg.verbose:
+            try:
+                self.logger.info(f"[SaeTrainer] Wandb run initialized: {wandb_run.name} (id: {wandb_run.id})")
+                self.logger.info(f"[SaeTrainer] Wandb project: {wandb_run.project}, entity: {wandb_run.entity}")
+                self.logger.info(f"[SaeTrainer] Wandb mode: {wandb_run.mode}")
+            except Exception:
+                pass
         device = self._setup_device(cfg)
         optimizer = self._create_optimizer(cfg)
         criterion = self._create_criterion(cfg)
         dataloader = self._create_dataloader(store, run_id, layer_signature, cfg, device)
         monitoring = self._configure_logging(cfg, run_id)
 
-        logs = self._run_training(cfg, dataloader, criterion, optimizer, device, monitoring)
+        if training_run_id is None:
+            training_run_id = f"training_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
+        logs = self._run_training(cfg, dataloader, criterion, optimizer, device, monitoring, store, training_run_id, run_id, layer_signature)
         history = self._process_training_logs(logs, cfg)
+
+        if cfg.verbose and history.get("loss"):
+            num_epochs = len(history["loss"])
+            for epoch_idx in range(num_epochs):
+                epoch = epoch_idx + 1
+                loss = history["loss"][epoch_idx]
+                recon_mse = history["recon_mse"][epoch_idx] if epoch_idx < len(history["recon_mse"]) else None
+                l1_val = history["l1"][epoch_idx] if epoch_idx < len(history["l1"]) else None
+                r2_val = history["r2"][epoch_idx] if epoch_idx < len(history["r2"]) else None
+                self.logger.info(
+                    "[SaeTrainer] Epoch %d: loss=%.6f recon_mse=%s l1=%s r2=%s",
+                    epoch,
+                    float(loss),
+                    f"{float(recon_mse):.6f}" if recon_mse is not None else "n/a",
+                    f"{float(l1_val):.6f}" if l1_val is not None else "n/a",
+                    f"{float(r2_val):.6f}" if r2_val is not None else "n/a",
+                )
+
         if cfg.memory_efficient:
             self._clear_memory()
 
         wandb_url = None
         if wandb_run is not None:
+            if cfg.verbose:
+                self.logger.info(f"[SaeTrainer] Logging metrics to wandb (history keys: {list(history.keys())}, num epochs: {len(history.get('loss', []))})")
             self._log_to_wandb(wandb_run, history, cfg)
             try:
                 wandb_url = wandb_run.url
-            except (AttributeError, RuntimeError):
-                pass
+                if cfg.verbose:
+                    self.logger.info(f"[SaeTrainer] Wandb run URL: {wandb_url}")
+            except (AttributeError, RuntimeError) as e:
+                if cfg.verbose:
+                    self.logger.warning(f"[SaeTrainer] Could not get wandb URL: {e}")
+            
+            # Ensure wandb run is finished and synced
+            try:
+                import wandb
+                if wandb.run is not None:
+                    wandb.finish()
+                    if cfg.verbose:
+                        self.logger.info("[SaeTrainer] Wandb run finished and synced")
+            except Exception as e:
+                if cfg.verbose:
+                    self.logger.warning(f"[SaeTrainer] Error finishing wandb run: {e}")
 
         if cfg.verbose:
             self.logger.info(f"[SaeTrainer] Training completed, processing {len(history['loss'])} epochs of results")
             self.logger.info("[SaeTrainer] Completed training")
-
-        if training_run_id is None:
-            training_run_id = f"training_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
         if cfg.verbose:
             self.logger.info(f"[SaeTrainer] Saving training outputs to store/runs/{training_run_id}/")
@@ -136,39 +187,207 @@ class SaeTrainer:
             import wandb
             import os
             
-            wandb_api_key = getattr(cfg, 'wandb_api_key', None) or os.getenv('WANDB_API_KEY')
-            if wandb_api_key:
-                os.environ['WANDB_API_KEY'] = wandb_api_key
+            # Load .env file if available
+            if DOTENV_AVAILABLE:
+                # Try to find .env file in project root
+                current_dir = Path(__file__).parent
+                project_root = current_dir
+                # Walk up to find project root (pyproject.toml or .git)
+                for _ in range(10):  # Limit depth
+                    if (project_root / "pyproject.toml").exists() or (project_root / ".git").exists():
+                        break
+                    if project_root == project_root.parent:
+                        break
+                    project_root = project_root.parent
+                
+                env_file = project_root / ".env"
+                if env_file.exists():
+                    load_dotenv(env_file, override=True)
+                    # #region agent log
+                    try:
+                        with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
+                            f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:195","message":"Loaded .env file","data":{"env_file":str(env_file)},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
+                    except: pass
+                    # #endregion
             
+            # Get API key from config, environment, or .env (already loaded)
+            wandb_api_key = getattr(cfg, 'wandb_api_key', None) or os.getenv('WANDB_API_KEY')
+            # #region agent log
+            try:
+                with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
+                    f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:225","message":"API key check","data":{"has_api_key_in_cfg":bool(getattr(cfg,'wandb_api_key',None)),"has_api_key_in_env":bool(os.getenv('WANDB_API_KEY')),"has_api_key":bool(wandb_api_key)},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
+            except: pass
+            # #endregion
             wandb_project = cfg.wandb_project or os.getenv('WANDB_PROJECT') or os.getenv('SERVER_WANDB_PROJECT') or "sae-training"
             wandb_name = cfg.wandb_name or run_id
             wandb_mode = cfg.wandb_mode.lower() if cfg.wandb_mode else "online"
+            
+            # Login with API key before init if available
+            if wandb_api_key:
+                # Clean API key (strip whitespace and quotes)
+                wandb_api_key = wandb_api_key.strip().strip('"').strip("'")
+                os.environ['WANDB_API_KEY'] = wandb_api_key
+                # #region agent log
+                try:
+                    with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
+                        f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:224","message":"Before wandb.login()","data":{"has_api_key":True,"api_key_len":len(wandb_api_key)},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
+                except: pass
+                # #endregion
+                # Login with API key before init
+                try:
+                    # Ensure API key is in environment
+                    os.environ['WANDB_API_KEY'] = wandb_api_key
+                    login_result = wandb.login(key=wandb_api_key, relogin=True)
+                    # #region agent log
+                    try:
+                        with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
+                            f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:238","message":"After wandb.login()","data":{"login_success":True,"login_result":str(login_result) if login_result else None,"env_has_key":bool(os.getenv('WANDB_API_KEY'))},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
+                    except: pass
+                    # #endregion
+                    # Verify login by checking API - but don't fail if this doesn't work
+                    # Some API keys work for login but fail API verification
+                    try:
+                        api = wandb.Api()
+                        # Try to access user info to verify authentication
+                        user = api.viewer()
+                        # #region agent log
+                        try:
+                            with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
+                                f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:247","message":"wandb.Api() viewer check","data":{"api_works":True,"username":getattr(user,'username',None) if user else None},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
+                        except: pass
+                        # #endregion
+                    except Exception as api_error:
+                        # #region agent log
+                        try:
+                            with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
+                                f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:253","message":"wandb.Api() failed","data":{"error":str(api_error)},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
+                        except: pass
+                        # #endregion
+                        # Don't fail here - API verification might fail even if login works
+                        # The key issue is whether wandb.init() works
+                        self.logger.warning(f"[SaeTrainer] Wandb API check failed after login: {api_error}")
+                        self.logger.warning("[SaeTrainer] This might indicate an invalid API key, but continuing anyway")
+                except Exception as login_error:
+                    # #region agent log
+                    try:
+                        with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
+                            f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:233","message":"wandb.login() failed","data":{"error":str(login_error)},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
+                    except: pass
+                    # #endregion
+                    self.logger.warning(f"[SaeTrainer] Wandb login failed: {login_error}")
+                    # Fall back to offline mode if login fails
+                    wandb_mode = "offline"
+            
+            # #region agent log
+            try:
+                with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
+                    f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:245","message":"Before wandb.init()","data":{"wandb_project":wandb_project,"wandb_name":wandb_name,"wandb_mode":wandb_mode,"wandb_entity":cfg.wandb_entity},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
+            except: pass
+            # #endregion
 
-            return wandb.init(
-                project=wandb_project,
-                entity=cfg.wandb_entity,
-                name=wandb_name,
-                mode=wandb_mode,
-                config={
-                    "run_id": run_id,
-                    "epochs": cfg.epochs,
-                    "batch_size": cfg.batch_size,
-                    "lr": cfg.lr,
-                    "l1_lambda": cfg.l1_lambda,
-                    "device": str(cfg.device),
-                    "dtype": str(cfg.dtype) if cfg.dtype else None,
-                    "use_amp": cfg.use_amp,
-                    "clip_grad": cfg.clip_grad,
-                    "max_batches_per_epoch": cfg.max_batches_per_epoch,
-                    **(cfg.wandb_config or {}),
-                },
-                tags=cfg.wandb_tags or [],
-            )
+            try:
+                # Ensure WANDB_API_KEY is set in environment before init
+                if wandb_api_key:
+                    os.environ['WANDB_API_KEY'] = wandb_api_key
+                # #region agent log
+                try:
+                    with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
+                        f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:320","message":"Before wandb.init() - env check","data":{"env_has_wandb_api_key":bool(os.getenv('WANDB_API_KEY')),"wandb_mode":wandb_mode},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
+                except: pass
+                # #endregion
+                wandb_run = wandb.init(
+                    project=wandb_project,
+                    entity=cfg.wandb_entity,
+                    name=wandb_name,
+                    mode=wandb_mode,
+                    settings=wandb.Settings(_disable_stats=True) if wandb_mode == "offline" else None,
+                    config={
+                        "run_id": run_id,
+                        "epochs": cfg.epochs,
+                        "batch_size": cfg.batch_size,
+                        "lr": cfg.lr,
+                        "l1_lambda": cfg.l1_lambda,
+                        "device": str(cfg.device),
+                        "dtype": str(cfg.dtype) if cfg.dtype else None,
+                        "use_amp": cfg.use_amp,
+                        "clip_grad": cfg.clip_grad,
+                        "max_batches_per_epoch": cfg.max_batches_per_epoch,
+                        **(cfg.wandb_config or {}),
+                    },
+                    tags=cfg.wandb_tags or [],
+                )
+            except Exception as init_error:
+                # #region agent log
+                try:
+                    import traceback
+                    with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
+                        f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:263","message":"wandb.init() failed, retrying in offline mode","data":{"error":str(init_error),"error_type":type(init_error).__name__},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
+                except: pass
+                # #endregion
+                # If init fails with auth error (401), try offline mode
+                if "401" in str(init_error) or "PERMISSION_ERROR" in str(init_error) or "not logged in" in str(init_error).lower():
+                    self.logger.warning(f"[SaeTrainer] Wandb init failed with auth error, retrying in offline mode: {init_error}")
+                    try:
+                        wandb_run = wandb.init(
+                            project=wandb_project,
+                            entity=cfg.wandb_entity,
+                            name=wandb_name,
+                            mode="offline",
+                            config={
+                                "run_id": run_id,
+                                "epochs": cfg.epochs,
+                                "batch_size": cfg.batch_size,
+                                "lr": cfg.lr,
+                                "l1_lambda": cfg.l1_lambda,
+                                "device": str(cfg.device),
+                                "dtype": str(cfg.dtype) if cfg.dtype else None,
+                                "use_amp": cfg.use_amp,
+                                "clip_grad": cfg.clip_grad,
+                                "max_batches_per_epoch": cfg.max_batches_per_epoch,
+                                **(cfg.wandb_config or {}),
+                            },
+                            tags=cfg.wandb_tags or [],
+                        )
+                        self.logger.info("[SaeTrainer] Wandb initialized in offline mode - sync later with: wandb sync")
+                    except Exception as offline_error:
+                        # #region agent log
+                        try:
+                            with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
+                                f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:295","message":"wandb.init() failed even in offline mode","data":{"error":str(offline_error)},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
+                        except: pass
+                        # #endregion
+                        self.logger.warning(f"[SaeTrainer] Wandb init failed even in offline mode: {offline_error}")
+                        return None
+                else:
+                    # Re-raise if it's not an auth error
+                    raise
+            
+            # #region agent log
+            try:
+                with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
+                    f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:300","message":"After wandb.init()","data":{"wandb_run_is_none":wandb_run is None,"wandb_run_type":type(wandb_run).__name__ if wandb_run else None,"wandb_run_id":getattr(wandb_run,'id',None) if wandb_run else None,"wandb_run_mode":getattr(wandb_run,'mode',None) if wandb_run else None},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
+            except: pass
+            # #endregion
+            
+            return wandb_run
         except ImportError:
+            # #region agent log
+            try:
+                with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
+                    f.write(json.dumps({"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"A","location":"sae_trainer.py:214","message":"ImportError in _initialize_wandb","data":{"error":"wandb not installed"},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
+            except: pass
+            # #endregion
             self.logger.warning("[SaeTrainer] wandb not installed, skipping wandb logging")
             self.logger.warning("[SaeTrainer] Install with: pip install wandb")
             return None
         except Exception as e:
+            # #region agent log
+            try:
+                import traceback
+                with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
+                    f.write(json.dumps({"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"A","location":"sae_trainer.py:220","message":"Exception in _initialize_wandb","data":{"error":str(e),"error_type":type(e).__name__,"traceback":traceback.format_exc()},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
+            except: pass
+            # #endregion
             self.logger.warning(f"[SaeTrainer] Unexpected error initializing wandb: {e}")
             self.logger.warning("[SaeTrainer] Continuing training without wandb logging")
             return None
@@ -235,11 +454,30 @@ class SaeTrainer:
 
         return monitoring
 
-    def _run_training(self, cfg: SaeTrainingConfig, dataloader: StoreDataloader, criterion, optimizer: torch.optim.Optimizer,
-                     device: torch.device, monitoring: int) -> dict[str, Any]:
+    def _run_training(
+            self, 
+            cfg: SaeTrainingConfig, 
+            dataloader: StoreDataloader, 
+            criterion, 
+            optimizer: torch.optim.Optimizer,
+            device: torch.device, 
+            monitoring: int,
+            store: "Store",
+            training_run_id: str,
+            run_id: str,
+            layer_signature: str | int
+    ) -> dict[str, Any]:
         from overcomplete.sae.train import train_sae, train_sae_amp
 
         device_str = str(device)
+        
+        should_save_snapshots = cfg.snapshot_every_n_epochs is not None and cfg.snapshot_every_n_epochs > 0
+        
+        if should_save_snapshots:
+            return self._run_training_with_snapshots(
+                cfg, dataloader, criterion, optimizer, device, monitoring, 
+                store, training_run_id, run_id, layer_signature
+            )
         
         try:
             if cfg.use_amp and device.type in ("cuda", "cpu"):
@@ -282,6 +520,173 @@ class SaeTrainer:
             import traceback
             self.logger.error(f"[SaeTrainer] Traceback: {traceback.format_exc()}")
             raise
+
+    def _run_training_with_snapshots(
+            self,
+            cfg: SaeTrainingConfig,
+            dataloader: StoreDataloader,
+            criterion,
+            optimizer: torch.optim.Optimizer,
+            device: torch.device,
+            monitoring: int,
+            store: "Store",
+            training_run_id: str,
+            run_id: str,
+            layer_signature: str | int
+    ) -> dict[str, Any]:
+        """
+        Run training epoch by epoch, saving snapshots every N epochs.
+        
+        This method runs training in a loop, one epoch at a time, to enable
+        snapshot saving between epochs.
+        """
+        from overcomplete.sae.train import train_sae, train_sae_amp
+        
+        device_str = str(device)
+        snapshot_freq = cfg.snapshot_every_n_epochs
+        
+        if cfg.verbose:
+            self.logger.info(f"[SaeTrainer] Running training with snapshots every {snapshot_freq} epochs")
+        
+        all_logs: dict[str, Any] = {}
+        
+        try:
+            for epoch in range(1, cfg.epochs + 1):
+                if cfg.verbose:
+                    self.logger.info(f"[SaeTrainer] Training epoch {epoch}/{cfg.epochs}")
+                
+                if cfg.use_amp and device.type in ("cuda", "cpu"):
+                    epoch_logs = train_sae_amp(
+                        model=self.sae.sae_engine,
+                        dataloader=dataloader,
+                        criterion=criterion,
+                        optimizer=optimizer,
+                        scheduler=cfg.scheduler,
+                        nb_epochs=1,
+                        clip_grad=cfg.clip_grad,
+                        monitoring=monitoring,
+                        device=device_str,
+                        max_nan_fallbacks=cfg.max_nan_fallbacks
+                    )
+                else:
+                    epoch_logs = train_sae(
+                        model=self.sae.sae_engine,
+                        dataloader=dataloader,
+                        criterion=criterion,
+                        optimizer=optimizer,
+                        scheduler=cfg.scheduler,
+                        nb_epochs=1,
+                        clip_grad=cfg.clip_grad,
+                        monitoring=monitoring,
+                        device=device_str
+                    )
+                
+                self._merge_epoch_logs(all_logs, epoch_logs)
+                
+                if epoch % snapshot_freq == 0 or epoch == cfg.epochs:
+                    self._save_snapshot(store, training_run_id, run_id, layer_signature, epoch, cfg)
+                
+                if cfg.memory_efficient and epoch % 5 == 0:
+                    self._clear_memory()
+            
+            if cfg.verbose:
+                self.logger.info(
+                    f"[SaeTrainer] Training with snapshots completed, processing {len(all_logs.get('avg_loss', []))} epoch results...")
+            
+            return all_logs
+        except Exception as e:
+            self.logger.error(f"[SaeTrainer] Error during training with snapshots: {e}")
+            import traceback
+            self.logger.error(f"[SaeTrainer] Traceback: {traceback.format_exc()}")
+            raise
+
+    def _merge_epoch_logs(self, all_logs: dict[str, Any], epoch_logs: dict[str, Any]) -> None:
+        """
+        Merge single-epoch logs into accumulated logs.
+        
+        Handles all fields that overcomplete's training functions may return,
+        including avg_loss, r2, z, and dead_features.
+        
+        Args:
+            all_logs: Accumulated logs dictionary to update
+            epoch_logs: Single epoch logs from overcomplete training
+        """
+        for key, value in epoch_logs.items():
+            if key not in all_logs:
+                all_logs[key] = []
+            
+            if isinstance(value, list):
+                all_logs[key].extend(value)
+            else:
+                all_logs[key].append(value)
+
+    def _save_snapshot(
+            self,
+            store: "Store",
+            training_run_id: str,
+            run_id: str,
+            layer_signature: str | int,
+            epoch: int,
+            config: SaeTrainingConfig
+    ) -> None:
+        """
+        Save a snapshot of the current model state.
+        
+        Args:
+            store: Store instance
+            training_run_id: Training run ID
+            run_id: Original activation run ID
+            layer_signature: Layer signature
+            epoch: Current epoch number
+            config: Training configuration
+        """
+        try:
+            snapshot_base = config.snapshot_base_path
+            if snapshot_base is None:
+                run_path = store._run_key(training_run_id)
+                snapshot_dir = run_path / "snapshots"
+            else:
+                snapshot_dir = Path(snapshot_base)
+            
+            snapshot_dir.mkdir(parents=True, exist_ok=True)
+            
+            snapshot_path = snapshot_dir / f"model_epoch_{epoch}.pt"
+            
+            sae_state_dict = self.sae.sae_engine.state_dict()
+            
+            mi_crow_metadata = {
+                "concepts_state": {
+                    'multiplication': self.sae.concepts.multiplication.data.cpu().clone(),
+                    'bias': self.sae.concepts.bias.data.cpu().clone(),
+                },
+                "n_latents": self.sae.context.n_latents,
+                "n_inputs": self.sae.context.n_inputs,
+                "device": self.sae.context.device,
+                "layer_signature": self.sae.context.lm_layer_signature,
+                "model_id": self.sae.context.model_id,
+            }
+            
+            if hasattr(self.sae, 'k'):
+                mi_crow_metadata["k"] = self.sae.k
+            
+            payload = {
+                "sae_state_dict": sae_state_dict,
+                "mi_crow_metadata": mi_crow_metadata,
+                "epoch": epoch,
+                "training_run_id": training_run_id,
+                "activation_run_id": run_id,
+                "layer_signature": str(layer_signature),
+            }
+            
+            torch.save(payload, snapshot_path)
+            
+            if config.verbose:
+                self.logger.info(f"[SaeTrainer] Saved snapshot to: {snapshot_path}")
+        except Exception as e:
+            self.logger.warning(f"[SaeTrainer] Failed to save snapshot at epoch {epoch}: {e}")
+            if config.verbose:
+                import traceback
+                self.logger.warning(f"[SaeTrainer] Traceback: {traceback.format_exc()}")
 
     def _process_training_logs(self, logs: dict[str, Any], cfg: SaeTrainingConfig) -> dict[str, list[float]]:
         history: dict[str, list[float]] = {
@@ -434,19 +839,61 @@ class SaeTrainer:
         return l0, dead_features_pct
 
     def _log_to_wandb(self, wandb_run: Any, history: dict[str, list[float]], cfg: SaeTrainingConfig) -> None:
+        # #region agent log
         try:
+            with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
+                f.write(json.dumps({"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"B","location":"sae_trainer.py:668","message":"_log_to_wandb entry","data":{"wandb_run_is_none":wandb_run is None,"history_has_loss":bool(history.get("loss"))},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
+        except: pass
+        # #endregion
+        try:
+            if not history.get("loss"):
+                self.logger.warning("[SaeTrainer] No loss data in history, skipping wandb logging")
+                return
+            
             num_epochs = len(history["loss"])
             slow_metrics_freq = cfg.wandb_slow_metrics_frequency
+            
+            if cfg.verbose:
+                self.logger.info(f"[SaeTrainer] Logging {num_epochs} epochs to wandb")
 
             for epoch in range(1, num_epochs + 1):
                 epoch_idx = epoch - 1
                 should_log_slow = (epoch % slow_metrics_freq == 0) or (epoch == num_epochs)
 
                 metrics = self._build_epoch_metrics(history, epoch, epoch_idx, cfg, should_log_slow)
-                wandb_run.log(metrics)
+                if cfg.verbose:
+                    self.logger.info(f"[SaeTrainer] Logging epoch {epoch} metrics to wandb: {list(metrics.keys())}")
+                # #region agent log
+                try:
+                    with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
+                        f.write(json.dumps({"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"B","location":"sae_trainer.py:687","message":"Before wandb_run.log()","data":{"epoch":epoch,"metrics_keys":list(metrics.keys())},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
+                except: pass
+                # #endregion
+                log_result = wandb_run.log(metrics)
+                # #region agent log
+                try:
+                    with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
+                        f.write(json.dumps({"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"B","location":"sae_trainer.py:688","message":"After wandb_run.log()","data":{"log_result":str(log_result) if log_result else None},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
+                except: pass
+                # #endregion
 
             final_metrics = self._build_final_metrics(history, num_epochs)
+            # #region agent log
+            try:
+                with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
+                    f.write(json.dumps({"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"B","location":"sae_trainer.py:689","message":"Before wandb_run.summary.update()","data":{"final_metrics_keys":list(final_metrics.keys())},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
+            except: pass
+            # #endregion
             wandb_run.summary.update(final_metrics)
+            # #region agent log
+            try:
+                with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
+                    f.write(json.dumps({"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"B","location":"sae_trainer.py:690","message":"After wandb_run.summary.update()","data":{"updated":True},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
+            except: pass
+            # #endregion
+            
+            if cfg.verbose:
+                self.logger.info(f"[SaeTrainer] Updated wandb summary with final metrics: {list(final_metrics.keys())}")
 
             if cfg.verbose:
                 try:
@@ -455,7 +902,15 @@ class SaeTrainer:
                 except (AttributeError, RuntimeError):
                     self.logger.info("[SaeTrainer] Metrics logged to wandb (offline mode)")
         except Exception as e:
+            # #region agent log
+            try:
+                with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
+                    f.write(json.dumps({"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"B","location":"sae_trainer.py:701","message":"_log_to_wandb exception","data":{"error":str(e)},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
+            except: pass
+            # #endregion
             self.logger.warning(f"[SaeTrainer] Failed to log metrics to wandb: {e}")
+            import traceback
+            self.logger.warning(f"[SaeTrainer] Traceback: {traceback.format_exc()}")
 
     def _build_epoch_metrics(self, history: dict[str, list[float]], epoch: int, epoch_idx: int, 
                              cfg: SaeTrainingConfig, should_log_slow: bool) -> dict[str, Any]:

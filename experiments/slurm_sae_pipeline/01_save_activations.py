@@ -17,11 +17,17 @@ Usage:
 """
 
 import argparse
+import json
 import logging
 import os
 import torch
 from pathlib import Path
 from datetime import datetime
+
+import requests
+from dotenv import load_dotenv
+
+from config import PipelineConfig
 
 from mi_crow.datasets import TextDataset
 from mi_crow.language_model.language_model import LanguageModel
@@ -36,34 +42,117 @@ logging.basicConfig(
 
 logger = get_logger(__name__)
 
-# Model configuration
-MODEL_ID = os.getenv("MODEL_ID", "speakleash/Bielik-1.5B-v3.0-Instruct")  # Bielik 1.5B Instruct
+script_dir = Path(__file__).parent
+project_root = script_dir
+while project_root != project_root.parent:
+    if (project_root / "pyproject.toml").exists() or (project_root / ".git").exists():
+        break
+    project_root = project_root.parent
 
-# Dataset configuration
-HF_DATASET = os.getenv("HF_DATASET", "chrisociepa/wikipedia-pl-20230401")
-DATA_SPLIT = os.getenv("DATA_SPLIT", "train")
-TEXT_FIELD = os.getenv("TEXT_FIELD", "text")
-DATA_LIMIT = int(os.getenv("DATA_LIMIT", "25000"))  # 25K random rows
-MAX_LENGTH = int(os.getenv("MAX_LENGTH", "1000"))  # 1000 tokens max
-BATCH_SIZE_SAVE = int(os.getenv("BATCH_SIZE_SAVE", "16"))
+env_file = project_root / ".env"
+if env_file.exists():
+    load_dotenv(env_file, override=True)
 
-# Layer configuration - adjust layer number based on model architecture
-# Default: llamaforcausallm_model_layers_16_post_attention_layernorm (middle layer for 32-layer model)
-# You can set LAYER_SIGNATURE directly or use LAYER_NUM to construct it
-LAYER_SIGNATURE = os.getenv("LAYER_SIGNATURE", None)
-if LAYER_SIGNATURE is None:
-    LAYER_NUM = int(os.getenv("LAYER_NUM", "16"))  # Middle layer for 32-layer model
-    LAYER_SIGNATURE = f"llamaforcausallm_model_layers_{LAYER_NUM}_post_attention_layernorm"
 
-# Storage configuration - use SLURM environment variables if available
-STORE_DIR = Path(os.getenv("STORE_DIR", os.getenv("SCRATCH", str(Path(__file__).parent / "store"))))
-DEVICE = os.getenv("DEVICE", "cuda" if torch.cuda.is_available() else "cpu")
+def _download_polemo2_from_api(split: str, output_file: Path, limit: int = None) -> int:
+    """Download polemo2 dataset from HuggingFace datasets server API.
+    
+    Args:
+        split: Dataset split to download (train, val, test)
+        output_file: Path to save the JSONL file
+        limit: Optional limit on number of rows to download
+        
+    Returns:
+        Number of rows downloaded
+    """
+    base_url = "https://datasets-server.huggingface.co/rows"
+    dataset = "clarin-pl%2Fpolemo2-official"
+    config = "all_sentence"
+    batch_size = 100
+    
+    all_rows = []
+    offset = 0
+    
+    logger.info(f"📥 Downloading polemo2-official {split} split from HuggingFace datasets server...")
+    
+    while True:
+        url = f"{base_url}?dataset={dataset}&config={config}&split={split}&offset={offset}&length={batch_size}"
+        
+        try:
+            response = requests.get(url, timeout=30)
+            response.raise_for_status()
+            data = response.json()
+            
+            rows = data.get("rows", [])
+            if not rows:
+                break
+                
+            # Extract text from each row
+            for row in rows:
+                row_data = row.get("row", {})
+                text = row_data.get("text", "")
+                if text:
+                    all_rows.append({"text": text})
+            
+            logger.info(f"   Downloaded {len(all_rows)} rows so far...")
+            
+            if limit and len(all_rows) >= limit:
+                all_rows = all_rows[:limit]
+                break
+                
+            if len(rows) < batch_size:
+                break
+                
+            offset += batch_size
+            
+        except requests.exceptions.RequestException as e:
+            logger.error(f"❌ Error downloading dataset: {e}")
+            raise
+    
+    # Save to JSONL file
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_file, "w", encoding="utf-8") as f:
+        for row in all_rows:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+    
+    logger.info(f"✅ Downloaded {len(all_rows)} rows to {output_file}")
+    return len(all_rows)
 
 
 def main():
     parser = argparse.ArgumentParser(description="Save activations from Bielik model")
     parser.add_argument("--run_id", type=str, default=None, help="Custom run ID (default: auto-generated)")
+    parser.add_argument("--config", type=str, default=None, help="Path to config JSON file (default: config.json in script directory)")
     args = parser.parse_args()
+    
+    # Load config.json into Pydantic model
+    if args.config:
+        config_file = Path(args.config)
+    else:
+        config_file = script_dir / "config.json"
+    
+    cfg = PipelineConfig.from_json_file(config_file)
+    
+    # Model configuration
+    MODEL_ID = cfg.model.model_id
+    
+    # Dataset configuration
+    HF_DATASET = cfg.dataset.hf_dataset
+    DATA_SPLIT = cfg.dataset.data_split
+    TEXT_FIELD = cfg.dataset.text_field
+    DATA_LIMIT = cfg.dataset.data_limit
+    MAX_LENGTH = cfg.dataset.max_length
+    BATCH_SIZE_SAVE = cfg.dataset.batch_size_save
+    
+    # Layer configuration
+    LAYER_SIGNATURE = cfg.layer.layer_signature
+    if LAYER_SIGNATURE is None:
+        LAYER_NUM = cfg.layer.layer_num
+        LAYER_SIGNATURE = f"llamaforcausallm_model_layers_{LAYER_NUM}_post_attention_layernorm"
+    
+    # Storage configuration
+    STORE_DIR = Path(cfg.storage.store_dir or str(script_dir / "store"))
+    DEVICE = cfg.storage.device or ("cuda" if torch.cuda.is_available() else "cpu")
     
     if args.run_id:
         RUN_ID = args.run_id
@@ -109,25 +198,37 @@ def main():
         return
 
     logger.info("📥 Loading dataset...")
-    # Load dataset (we'll shuffle and sample after loading)
-    # Load more than needed to ensure we have enough for random sampling
-    dataset = TextDataset.from_huggingface(
-        HF_DATASET,
-        split=DATA_SPLIT,
-        store=store,
-        text_field=TEXT_FIELD,
-        limit=None,  # Load all, then sample randomly
-    )
+    # Special handling for datasets with old loading scripts (like polemo2-official)
+    if "polemo2-official" in HF_DATASET:
+        logger.info("📥 Using HuggingFace datasets server API for polemo2-official...")
+        # Download dataset to local file
+        cache_dir = script_dir / "cache"
+        cache_dir.mkdir(exist_ok=True)
+        jsonl_file = cache_dir / f"polemo2_{DATA_SPLIT}.jsonl"
+        
+        # Download if file doesn't exist or is empty
+        if not jsonl_file.exists() or jsonl_file.stat().st_size == 0:
+            _download_polemo2_from_api(DATA_SPLIT, jsonl_file, limit=DATA_LIMIT * 2)  # Download more than needed for sampling
+        
+        # Load from local JSONL file
+        dataset = TextDataset.from_json(
+            jsonl_file,
+            store=store,
+            text_field=TEXT_FIELD,
+        )
+    else:
+        dataset = TextDataset.from_huggingface(
+            HF_DATASET,
+            split=DATA_SPLIT,
+            store=store,
+            text_field=TEXT_FIELD,
+            limit=None,
+        )
     logger.info(f"✅ Loaded {len(dataset)} text samples from dataset")
     
-    # Randomly sample DATA_LIMIT rows
     if len(dataset) > DATA_LIMIT:
         logger.info(f"📊 Randomly sampling {DATA_LIMIT} rows from {len(dataset)} total rows...")
-        sampled_texts = dataset.sample(DATA_LIMIT)
-        # Create a new dataset from sampled texts
-        from datasets import Dataset
-        sampled_ds = Dataset.from_dict({"text": [t for t in sampled_texts if t is not None]})
-        dataset = TextDataset(sampled_ds, store=store, text_field=TEXT_FIELD)
+        dataset = dataset.random_sample(DATA_LIMIT)
         logger.info(f"✅ Sampled {len(dataset)} text samples")
     else:
         logger.info(f"📊 Using all {len(dataset)} available rows (less than requested {DATA_LIMIT})")
@@ -151,7 +252,6 @@ def main():
     logger.info(f"📁 Run name: {run_name}")
     logger.info(f"📦 Saved {len(batches)} batches to store")
     
-    # Save run ID for training script
     run_id_file = STORE_DIR / "run_id.txt"
     with open(run_id_file, "w") as f:
         f.write(run_name)

@@ -71,14 +71,16 @@ class TopKSae(Sae):
             For loaded models, `k` is restored from saved metadata.
             A temporary default k=1 is used for engine initialization and will be
             overridden with the actual k value from config during training.
+            The `k` value is not stored as an instance variable - it only exists in the config.
         """
-        # Set temporary default k for engine initialization (base class calls _initialize_sae_engine)
-        # This will be overridden with the actual k from config during training
-        self.k: int = 1
         super().__init__(n_latents, n_inputs, hook_id, device, store, *args, **kwargs)
 
-    def _initialize_sae_engine(self) -> OvercompleteSAE:
-        """Initialize the SAE engine with the current k value.
+    def _initialize_sae_engine(self, k: int = 1) -> OvercompleteSAE:
+        """
+        Initialize the SAE engine with the specified k value.
+        
+        Args:
+            k: Number of top activations to keep (default: 1 for initialization)
         
         Note:
             k should be set from TopKSaeTrainingConfig during training.
@@ -87,7 +89,7 @@ class TopKSae(Sae):
         return OvercompleteTopkSAE(
             input_shape=self.context.n_inputs,
             nb_concepts=self.context.n_latents,
-            top_k=self.k,
+            top_k=k,
             device=self.context.device
         )
 
@@ -143,8 +145,7 @@ class TopKSae(Sae):
         Train TopKSAE using activations from a Store.
         
         This method delegates to the SaeTrainer composite class.
-        If k is provided in the config and differs from the current k, the SAE engine
-        will be reinitialized with the config's k value.
+        The SAE engine will be reinitialized with the k value from config.
         
         Args:
             store: Store instance containing activations
@@ -170,15 +171,13 @@ class TopKSae(Sae):
                 "Example: TopKSaeTrainingConfig(k=10, epochs=100, ...)"
             )
         
-        # Set k from config and initialize/reinitialize the engine if needed
-        if self.k != config.k:
-            if self.k is None:
-                logger.info(f"Initializing SAE engine with k={config.k}")
-            else:
-                logger.info(f"Reinitializing SAE engine with k={config.k} (was k={self.k})")
-            self.k = config.k
-            # Initialize or reinitialize the SAE engine with k from config
-            self.sae_engine = self._initialize_sae_engine()
+        # Reinitialize engine with k from config
+        logger.info(f"Initializing SAE engine with k={config.k}")
+        self.sae_engine = self._initialize_sae_engine(k=config.k)
+        if hasattr(config, 'device') and config.device:
+            device = torch.device(config.device)
+            self.sae_engine.to(device)
+            self.context.device = str(device)
         
         return self.trainer.train(store, run_id, layer_signature, config, training_run_id)
 
@@ -323,13 +322,14 @@ class TopKSae(Sae):
                 result[0] = reconstructed
             return tuple(result)
 
-    def save(self, name: str, path: str | Path | None = None) -> None:
+    def save(self, name: str, path: str | Path | None = None, k: int | None = None) -> None:
         """
         Save model using overcomplete's state dict + our metadata.
         
         Args:
             name: Model name
             path: Directory path to save to (defaults to current directory)
+            k: Top-K value to save (if None, attempts to get from engine or raises error)
         """
         if path is None:
             path = Path.cwd()
@@ -340,6 +340,16 @@ class TopKSae(Sae):
         # Save overcomplete model state dict
         sae_state_dict = self.sae_engine.state_dict()
 
+        # Get k value - prefer parameter, then try to get from engine
+        if k is None:
+            if hasattr(self.sae_engine, 'top_k'):
+                k = self.sae_engine.top_k
+            else:
+                raise ValueError(
+                    "k parameter must be provided to save() method. "
+                    "The engine does not expose top_k attribute."
+                )
+
         mi_crow_metadata = {
             "concepts_state": {
                 'multiplication': self.concepts.multiplication.data,
@@ -347,7 +357,7 @@ class TopKSae(Sae):
             },
             "n_latents": self.context.n_latents,
             "n_inputs": self.context.n_inputs,
-            "k": self.k,
+            "k": k,
             "device": self.context.device,
             "layer_signature": self.context.lm_layer_signature,
             "model_id": self.context.model_id,
@@ -403,9 +413,7 @@ class TopKSae(Sae):
             device=device
         )
         
-        # Set k from saved metadata and reinitialize engine with correct k
-        topk_sae.k = k
-        topk_sae.sae_engine = topk_sae._initialize_sae_engine()
+        topk_sae.sae_engine = topk_sae._initialize_sae_engine(k=k)
 
         # Load overcomplete model state dict
         if "sae_state_dict" in payload:

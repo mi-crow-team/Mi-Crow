@@ -151,7 +151,11 @@ class SAETrainingService:
                 )
                 
                 sae_name = "sae"
-                sae.save(name=sae_name, path=folder)
+                # Get k from config for TopKSae
+                k_value = None
+                if sae_class == "TopKSae" and hasattr(config, 'k'):
+                    k_value = config.k
+                sae.save(name=sae_name, path=folder, k=k_value)
                 sae_path = folder / f"{sae_name}.pt"
                 metadata = {
                     "sae_id": run_id,

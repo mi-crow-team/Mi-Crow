@@ -21,6 +21,10 @@ import os
 import torch
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+from config import PipelineConfig
+
 from mi_crow.language_model.language_model import LanguageModel
 from mi_crow.mechanistic.sae.modules.topk_sae import TopKSae, TopKSaeTrainingConfig
 from mi_crow.store.local_store import LocalStore
@@ -28,31 +32,64 @@ from mi_crow.utils import get_logger
 
 logger = get_logger(__name__)
 
-# Model configuration
-MODEL_ID = os.getenv("MODEL_ID", "speakleash/Bielik-1.5B-v3.0-Instruct")  # Bielik 1.5B Instruct
+# Load .env file from project root (only for wandb)
+script_dir = Path(__file__).parent
+project_root = script_dir
+while project_root != project_root.parent:
+    if (project_root / "pyproject.toml").exists() or (project_root / ".git").exists():
+        break
+    project_root = project_root.parent
 
-# Storage configuration - use SLURM environment variables if available
-STORE_DIR = Path(os.getenv("STORE_DIR", os.getenv("SCRATCH", str(Path(__file__).parent / "store"))))
-DEVICE = os.getenv("DEVICE", "cuda" if torch.cuda.is_available() else "cpu")
-
-# SAE configuration
-N_LATENTS_MULTIPLIER = int(os.getenv("N_LATENTS_MULTIPLIER", "4"))  # Overcompleteness factor
-TOP_K = int(os.getenv("TOP_K", "8"))  # Sparsity parameter
-
-# Training configuration
-EPOCHS = int(os.getenv("EPOCHS", "10"))
-BATCH_SIZE_TRAIN = int(os.getenv("BATCH_SIZE_TRAIN", "32"))
-LR = float(os.getenv("LR", "1e-3"))
-L1_LAMBDA = float(os.getenv("L1_LAMBDA", "1e-4"))
-
-# Data type configuration
-DTYPE = torch.float16 if DEVICE == "cuda" and torch.cuda.is_available() else None
+env_file = project_root / ".env"
+if env_file.exists():
+    load_dotenv(env_file, override=True)
 
 
 def main():
     parser = argparse.ArgumentParser(description="Train SAE on saved activations")
     parser.add_argument("--run_id", type=str, default=None, help="Run ID to use (default: read from run_id.txt)")
+    parser.add_argument("--config", type=str, default=None, help="Path to config JSON file (default: config.json in script directory)")
     args = parser.parse_args()
+    
+    # Load config.json into Pydantic model
+    if args.config:
+        config_file = Path(args.config)
+    else:
+        config_file = script_dir / "config.json"
+    
+    cfg = PipelineConfig.from_json_file(config_file)
+    
+    # Model configuration
+    MODEL_ID = cfg.model.model_id
+    
+    # Storage configuration
+    STORE_DIR = Path(cfg.storage.store_dir or str(script_dir / "store"))
+    DEVICE = cfg.storage.device or ("cuda" if torch.cuda.is_available() else "cpu")
+    
+    # SAE configuration
+    N_LATENTS_MULTIPLIER = cfg.sae.n_latents_multiplier
+    TOP_K = cfg.sae.top_k
+    
+    # Training configuration
+    EPOCHS = cfg.training.epochs
+    BATCH_SIZE_TRAIN = cfg.training.batch_size_train
+    LR = cfg.training.lr
+    L1_LAMBDA = cfg.training.l1_lambda
+    SNAPSHOT_EVERY_N_EPOCHS = cfg.training.snapshot_every_n_epochs
+    SNAPSHOT_BASE_PATH = cfg.training.snapshot_base_path
+    
+    # Wandb configuration (only from .env)
+    USE_WANDB = os.getenv("USE_WANDB", "false").lower() in ("true", "1", "yes")
+    WANDB_PROJECT = os.getenv("WANDB_PROJECT")
+    WANDB_ENTITY = os.getenv("WANDB_ENTITY")
+    WANDB_NAME = os.getenv("WANDB_NAME")
+    WANDB_MODE = os.getenv("WANDB_MODE", "online")
+    WANDB_API_KEY = os.getenv("WANDB_API_KEY")
+    if WANDB_API_KEY:
+        WANDB_API_KEY = WANDB_API_KEY.strip().strip('"').strip("'")
+    
+    # Data type configuration
+    DTYPE = torch.float16 if DEVICE == "cuda" and torch.cuda.is_available() else None
     
     logger.info("🚀 Starting SAE Training")
     logger.info(f"📱 Using device: {DEVICE}")
@@ -156,6 +193,36 @@ def main():
     logger.info(f"   Dtype: {DTYPE}")
     logger.info(f"   Monitoring: detailed (level 2)")
     logger.info(f"   Memory efficient: True")
+    logger.info(f"   Snapshots: {'every ' + str(SNAPSHOT_EVERY_N_EPOCHS) + ' epochs' if SNAPSHOT_EVERY_N_EPOCHS else 'disabled'}")
+    logger.info(f"   Wandb: {'enabled' if USE_WANDB else 'disabled'}")
+    if USE_WANDB:
+        logger.info(f"   Wandb project: {WANDB_PROJECT}")
+        if WANDB_ENTITY:
+            logger.info(f"   Wandb entity: {WANDB_ENTITY}")
+        if WANDB_NAME:
+            logger.info(f"   Wandb name: {WANDB_NAME}")
+        logger.info(f"   Wandb mode: {WANDB_MODE}")
+        
+        if WANDB_API_KEY:
+            try:
+                import wandb
+                # Ensure API key is clean (strip any remaining whitespace/newlines)
+                clean_api_key = WANDB_API_KEY.strip()
+                # Validate API key length (wandb API keys are 40 characters)
+                if len(clean_api_key) != 40:
+                    logger.warning(f"⚠️  Invalid WANDB_API_KEY length: expected 40 characters, got {len(clean_api_key)}")
+                    logger.warning("   Wandb will run in offline mode or use existing credentials")
+                else:
+                    os.environ['WANDB_API_KEY'] = clean_api_key
+                    wandb.login(key=clean_api_key)
+                    logger.info("✅ Wandb login successful")
+            except ImportError:
+                logger.warning("⚠️  wandb not installed, skipping wandb login")
+            except Exception as e:
+                logger.warning(f"⚠️  Wandb login failed: {e}")
+                logger.warning("   Wandb will run in offline mode or use existing credentials")
+        else:
+            logger.info("ℹ️  No WANDB_API_KEY in .env file, wandb will use existing credentials if available")
 
     use_amp = DEVICE != "cpu"
     if not use_amp:
@@ -175,6 +242,25 @@ def main():
         clip_grad=1.0,
         monitoring=2,
         memory_efficient=True,
+        snapshot_every_n_epochs=SNAPSHOT_EVERY_N_EPOCHS,
+        snapshot_base_path=SNAPSHOT_BASE_PATH,
+        # Wandb configuration
+        use_wandb=USE_WANDB,
+        wandb_project=WANDB_PROJECT,
+        wandb_entity=WANDB_ENTITY,
+        wandb_name=WANDB_NAME or RUN_ID,  # Use run_id if WANDB_NAME not set
+        wandb_mode=WANDB_MODE,
+        wandb_api_key=WANDB_API_KEY,
+        wandb_tags=["topk-sae", "sae-training", MODEL_ID.split("/")[-1], f"layer-{layer_signature}"],
+        wandb_config={
+            "model_id": MODEL_ID,
+            "layer_signature": layer_signature,
+            "n_inputs": n_inputs,
+            "n_latents": n_latents,
+            "n_latents_multiplier": N_LATENTS_MULTIPLIER,
+            "top_k": TOP_K,
+            "run_id": RUN_ID,
+        },
     )
 
     logger.info("📦 Checking dataloader...")
@@ -201,6 +287,7 @@ def main():
 
     result = sae.train(store, RUN_ID, layer_signature, config)
     training_run_id = result.get('training_run_id')
+    wandb_url = result.get('wandb_url')
 
     logger.info("✅ Training function returned!")
 
@@ -209,6 +296,10 @@ def main():
         logger.info(f"   - Model: store/runs/{training_run_id}/model.pt")
         logger.info(f"   - History: store/runs/{training_run_id}/history.json")
         logger.info(f"   - Metadata: store/runs/{training_run_id}/meta.json")
+        if SNAPSHOT_EVERY_N_EPOCHS:
+            logger.info(f"   - Snapshots: store/runs/{training_run_id}/snapshots/")
+        if wandb_url:
+            logger.info(f"   - Wandb URL: {wandb_url}")
     else:
         logger.warning("⚠️  No training_run_id returned from training")
 

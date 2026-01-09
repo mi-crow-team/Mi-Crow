@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import random
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Sequence, Union
 
@@ -214,6 +215,48 @@ class TextDataset(BaseDataset):
         if self._loading_strategy == LoadingStrategy.STREAMING:
             return list(self.iter_items())
         return list(self._ds["text"])
+
+    def random_sample(self, n: int, seed: Optional[int] = None) -> "TextDataset":
+        """Create a new TextDataset with n randomly sampled items.
+
+        Args:
+            n: Number of items to sample
+            seed: Optional random seed for reproducibility
+
+        Returns:
+            New TextDataset instance with sampled items
+
+        Raises:
+            NotImplementedError: If loading_strategy is STREAMING
+            ValueError: If n <= 0
+        """
+        if self._loading_strategy == LoadingStrategy.STREAMING:
+            raise NotImplementedError(
+                "random_sample() not supported for STREAMING datasets. Use iter_items() and sample manually."
+            )
+        
+        if n <= 0:
+            raise ValueError(f"n must be > 0, got: {n}")
+        
+        dataset_len = len(self)
+        if n >= dataset_len:
+            if seed is not None:
+                random.seed(seed)
+            indices = list(range(dataset_len))
+            random.shuffle(indices)
+            sampled_ds = self._ds.select(indices)
+        else:
+            if seed is not None:
+                random.seed(seed)
+            indices = random.sample(range(dataset_len), n)
+            sampled_ds = self._ds.select(indices)
+        
+        return TextDataset(
+            sampled_ds,
+            store=self._store,
+            loading_strategy=self._loading_strategy,
+            text_field=self._text_field,
+        )
 
     @classmethod
     def from_huggingface(

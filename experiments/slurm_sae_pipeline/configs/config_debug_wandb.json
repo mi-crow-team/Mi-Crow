@@ -1,0 +1,31 @@
+{
+  "model": {
+    "model_id": "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+  },
+  "dataset": {
+    "hf_dataset": "roneneldan/TinyStories",
+    "data_split": "train",
+    "text_field": "text",
+    "data_limit": 1,
+    "max_length": 32,
+    "batch_size_save": 1
+  },
+  "layer": {
+    "layer_num": 0,
+    "layer_signature": null
+  },
+  "storage": {
+    "store_dir": null,
+    "device": null
+  },
+  "sae": {
+    "n_latents_multiplier": 2,
+    "top_k": 4
+  },
+  "training": {
+    "epochs": 1,
+    "batch_size_train": 1,
+    "lr": 0.001,
+    "l1_lambda": 0.0001
+  }
+}
