@@ -203,21 +203,9 @@ class SaeTrainer:
                 env_file = project_root / ".env"
                 if env_file.exists():
                     load_dotenv(env_file, override=True)
-                    # #region agent log
-                    try:
-                        with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
-                            f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:195","message":"Loaded .env file","data":{"env_file":str(env_file)},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
-                    except: pass
-                    # #endregion
             
             # Get API key from config, environment, or .env (already loaded)
             wandb_api_key = getattr(cfg, 'wandb_api_key', None) or os.getenv('WANDB_API_KEY')
-            # #region agent log
-            try:
-                with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
-                    f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:225","message":"API key check","data":{"has_api_key_in_cfg":bool(getattr(cfg,'wandb_api_key',None)),"has_api_key_in_env":bool(os.getenv('WANDB_API_KEY')),"has_api_key":bool(wandb_api_key)},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
-            except: pass
-            # #endregion
             wandb_project = cfg.wandb_project or os.getenv('WANDB_PROJECT') or os.getenv('SERVER_WANDB_PROJECT') or "sae-training"
             wandb_name = cfg.wandb_name or run_id
             wandb_mode = cfg.wandb_mode.lower() if cfg.wandb_mode else "online"
@@ -227,74 +215,20 @@ class SaeTrainer:
                 # Clean API key (strip whitespace and quotes)
                 wandb_api_key = wandb_api_key.strip().strip('"').strip("'")
                 os.environ['WANDB_API_KEY'] = wandb_api_key
-                # #region agent log
-                try:
-                    with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
-                        f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:224","message":"Before wandb.login()","data":{"has_api_key":True,"api_key_len":len(wandb_api_key)},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
-                except: pass
-                # #endregion
                 # Login with API key before init
                 try:
                     # Ensure API key is in environment
                     os.environ['WANDB_API_KEY'] = wandb_api_key
-                    login_result = wandb.login(key=wandb_api_key, relogin=True)
-                    # #region agent log
-                    try:
-                        with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
-                            f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:238","message":"After wandb.login()","data":{"login_success":True,"login_result":str(login_result) if login_result else None,"env_has_key":bool(os.getenv('WANDB_API_KEY'))},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
-                    except: pass
-                    # #endregion
-                    # Verify login by checking API - but don't fail if this doesn't work
-                    # Some API keys work for login but fail API verification
-                    try:
-                        api = wandb.Api()
-                        # Try to access user info to verify authentication
-                        user = api.viewer()
-                        # #region agent log
-                        try:
-                            with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
-                                f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:247","message":"wandb.Api() viewer check","data":{"api_works":True,"username":getattr(user,'username',None) if user else None},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
-                        except: pass
-                        # #endregion
-                    except Exception as api_error:
-                        # #region agent log
-                        try:
-                            with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
-                                f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:253","message":"wandb.Api() failed","data":{"error":str(api_error)},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
-                        except: pass
-                        # #endregion
-                        # Don't fail here - API verification might fail even if login works
-                        # The key issue is whether wandb.init() works
-                        self.logger.warning(f"[SaeTrainer] Wandb API check failed after login: {api_error}")
-                        self.logger.warning("[SaeTrainer] This might indicate an invalid API key, but continuing anyway")
+                    wandb.login(key=wandb_api_key, relogin=True)
                 except Exception as login_error:
-                    # #region agent log
-                    try:
-                        with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
-                            f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:233","message":"wandb.login() failed","data":{"error":str(login_error)},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
-                    except: pass
-                    # #endregion
                     self.logger.warning(f"[SaeTrainer] Wandb login failed: {login_error}")
                     # Fall back to offline mode if login fails
                     wandb_mode = "offline"
-            
-            # #region agent log
-            try:
-                with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
-                    f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:245","message":"Before wandb.init()","data":{"wandb_project":wandb_project,"wandb_name":wandb_name,"wandb_mode":wandb_mode,"wandb_entity":cfg.wandb_entity},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
-            except: pass
-            # #endregion
 
             try:
                 # Ensure WANDB_API_KEY is set in environment before init
                 if wandb_api_key:
                     os.environ['WANDB_API_KEY'] = wandb_api_key
-                # #region agent log
-                try:
-                    with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
-                        f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:320","message":"Before wandb.init() - env check","data":{"env_has_wandb_api_key":bool(os.getenv('WANDB_API_KEY')),"wandb_mode":wandb_mode},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
-                except: pass
-                # #endregion
                 wandb_run = wandb.init(
                     project=wandb_project,
                     entity=cfg.wandb_entity,
@@ -317,13 +251,6 @@ class SaeTrainer:
                     tags=cfg.wandb_tags or [],
                 )
             except Exception as init_error:
-                # #region agent log
-                try:
-                    import traceback
-                    with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
-                        f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:263","message":"wandb.init() failed, retrying in offline mode","data":{"error":str(init_error),"error_type":type(init_error).__name__},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
-                except: pass
-                # #endregion
                 # If init fails with auth error (401), try offline mode
                 if "401" in str(init_error) or "PERMISSION_ERROR" in str(init_error) or "not logged in" in str(init_error).lower():
                     self.logger.warning(f"[SaeTrainer] Wandb init failed with auth error, retrying in offline mode: {init_error}")
@@ -350,44 +277,18 @@ class SaeTrainer:
                         )
                         self.logger.info("[SaeTrainer] Wandb initialized in offline mode - sync later with: wandb sync")
                     except Exception as offline_error:
-                        # #region agent log
-                        try:
-                            with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
-                                f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:295","message":"wandb.init() failed even in offline mode","data":{"error":str(offline_error)},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
-                        except: pass
-                        # #endregion
                         self.logger.warning(f"[SaeTrainer] Wandb init failed even in offline mode: {offline_error}")
                         return None
                 else:
                     # Re-raise if it's not an auth error
                     raise
             
-            # #region agent log
-            try:
-                with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
-                    f.write(json.dumps({"sessionId":"debug-session","runId":"post-fix","hypothesisId":"A","location":"sae_trainer.py:300","message":"After wandb.init()","data":{"wandb_run_is_none":wandb_run is None,"wandb_run_type":type(wandb_run).__name__ if wandb_run else None,"wandb_run_id":getattr(wandb_run,'id',None) if wandb_run else None,"wandb_run_mode":getattr(wandb_run,'mode',None) if wandb_run else None},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
-            except: pass
-            # #endregion
-            
             return wandb_run
         except ImportError:
-            # #region agent log
-            try:
-                with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
-                    f.write(json.dumps({"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"A","location":"sae_trainer.py:214","message":"ImportError in _initialize_wandb","data":{"error":"wandb not installed"},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
-            except: pass
-            # #endregion
             self.logger.warning("[SaeTrainer] wandb not installed, skipping wandb logging")
             self.logger.warning("[SaeTrainer] Install with: pip install wandb")
             return None
         except Exception as e:
-            # #region agent log
-            try:
-                import traceback
-                with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
-                    f.write(json.dumps({"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"A","location":"sae_trainer.py:220","message":"Exception in _initialize_wandb","data":{"error":str(e),"error_type":type(e).__name__,"traceback":traceback.format_exc()},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
-            except: pass
-            # #endregion
             self.logger.warning(f"[SaeTrainer] Unexpected error initializing wandb: {e}")
             self.logger.warning("[SaeTrainer] Continuing training without wandb logging")
             return None
@@ -839,12 +740,6 @@ class SaeTrainer:
         return l0, dead_features_pct
 
     def _log_to_wandb(self, wandb_run: Any, history: dict[str, list[float]], cfg: SaeTrainingConfig) -> None:
-        # #region agent log
-        try:
-            with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
-                f.write(json.dumps({"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"B","location":"sae_trainer.py:668","message":"_log_to_wandb entry","data":{"wandb_run_is_none":wandb_run is None,"history_has_loss":bool(history.get("loss"))},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
-        except: pass
-        # #endregion
         try:
             if not history.get("loss"):
                 self.logger.warning("[SaeTrainer] No loss data in history, skipping wandb logging")
@@ -863,34 +758,10 @@ class SaeTrainer:
                 metrics = self._build_epoch_metrics(history, epoch, epoch_idx, cfg, should_log_slow)
                 if cfg.verbose:
                     self.logger.info(f"[SaeTrainer] Logging epoch {epoch} metrics to wandb: {list(metrics.keys())}")
-                # #region agent log
-                try:
-                    with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
-                        f.write(json.dumps({"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"B","location":"sae_trainer.py:687","message":"Before wandb_run.log()","data":{"epoch":epoch,"metrics_keys":list(metrics.keys())},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
-                except: pass
-                # #endregion
-                log_result = wandb_run.log(metrics)
-                # #region agent log
-                try:
-                    with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
-                        f.write(json.dumps({"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"B","location":"sae_trainer.py:688","message":"After wandb_run.log()","data":{"log_result":str(log_result) if log_result else None},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
-                except: pass
-                # #endregion
+                wandb_run.log(metrics)
 
             final_metrics = self._build_final_metrics(history, num_epochs)
-            # #region agent log
-            try:
-                with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
-                    f.write(json.dumps({"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"B","location":"sae_trainer.py:689","message":"Before wandb_run.summary.update()","data":{"final_metrics_keys":list(final_metrics.keys())},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
-            except: pass
-            # #endregion
             wandb_run.summary.update(final_metrics)
-            # #region agent log
-            try:
-                with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
-                    f.write(json.dumps({"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"B","location":"sae_trainer.py:690","message":"After wandb_run.summary.update()","data":{"updated":True},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
-            except: pass
-            # #endregion
             
             if cfg.verbose:
                 self.logger.info(f"[SaeTrainer] Updated wandb summary with final metrics: {list(final_metrics.keys())}")
@@ -902,12 +773,6 @@ class SaeTrainer:
                 except (AttributeError, RuntimeError):
                     self.logger.info("[SaeTrainer] Metrics logged to wandb (offline mode)")
         except Exception as e:
-            # #region agent log
-            try:
-                with open('/Users/adam/Projects/Inzynierka/codebase/.cursor/debug.log', 'a') as f:
-                    f.write(json.dumps({"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"B","location":"sae_trainer.py:701","message":"_log_to_wandb exception","data":{"error":str(e)},"timestamp":int(datetime.now().timestamp()*1000)})+"\n")
-            except: pass
-            # #endregion
             self.logger.warning(f"[SaeTrainer] Failed to log metrics to wandb: {e}")
             import traceback
             self.logger.warning(f"[SaeTrainer] Traceback: {traceback.format_exc()}")
