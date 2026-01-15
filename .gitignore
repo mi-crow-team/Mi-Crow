@@ -111,6 +111,7 @@ results/
 .local_results/
 # All csv files from experiments/pl_dataset_curation folder
 /experiments/pl_dataset_curation/*.csv
+/experiments/pl_dataset_curation/*.md
 # Dataset CSV files
 data/
 

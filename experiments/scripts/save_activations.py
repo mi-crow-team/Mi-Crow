@@ -96,6 +96,8 @@ def _get_layer_signature(lm: LanguageModel, layer_num: int) -> str:
         layer_num = len(layer_names) - 1
     return layer_names[layer_num]
 
+    # TODO POPRAWIĆ NIE TEN LAYER
+
 
 def _get_effective_max_length(lm: LanguageModel, reserved_tokens: int = 0) -> int:
     """Calculate safe max input length for the model."""
