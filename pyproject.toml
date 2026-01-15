@@ -54,6 +54,12 @@ addopts = "--maxfail=1 -q --cov=mi_crow --cov-report=term-missing --cov-report=x
 testpaths = ["tests"]
 pythonpath = ["src"]
 norecursedirs = ["experiments", "playground", "examples", "presentations", "site", "htmlcov", ".git", "__pycache__", "*.egg-info"]
+markers = [
+    "unit: Unit tests (fast, isolated, mocked)",
+    "integration: Integration tests (real dependencies)",
+    "e2e: End-to-end tests (full workflows)",
+    "slow: Slow running tests",
+]
 
 [tool.coverage.run]
 branch = true

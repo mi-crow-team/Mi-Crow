@@ -28,14 +28,36 @@ from tests.unit.fixtures.datasets import create_sample_dataset
 from tests.unit.fixtures.language_models import create_language_model_from_mock
 
 def pytest_collection_modifyitems(config, items):
+    """
+    Automatically add markers based on test file location and support --unit/--integration/--e2e flags.
+    
+    Uses marker-based selection when markers are present, falls back to path-based for backward compatibility.
+    """
+    # Auto-add markers based on file path if not already marked
+    for item in items:
+        path_str = str(item.path).replace("\\", "/")
+        
+        # Only add marker if test doesn't already have one
+        if not any(mark.name in ("unit", "integration", "e2e") for mark in item.iter_markers()):
+            if "/tests/unit/" in path_str:
+                item.add_marker(pytest.mark.unit)
+            elif "/tests/integration/" in path_str:
+                item.add_marker(pytest.mark.integration)
+            elif "/tests/e2e/" in path_str:
+                item.add_marker(pytest.mark.e2e)
+    
+    # Support --unit, --integration, --e2e flags (backward compatibility)
+    # Prefer marker-based selection if markers are present
     if config.getoption("--unit"):
         selected = []
         deselected = []
         for item in items:
-            # item.path is already a Path object
-            # Convert to string and normalize separators for checking
+            # Check for marker first, then fall back to path
+            has_unit_marker = any(mark.name == "unit" for mark in item.iter_markers())
             path_str = str(item.path).replace("\\", "/")
-            if "/tests/unit/" in path_str:
+            is_unit_path = "/tests/unit/" in path_str
+            
+            if has_unit_marker or is_unit_path:
                 selected.append(item)
             else:
                 deselected.append(item)
@@ -45,10 +67,11 @@ def pytest_collection_modifyitems(config, items):
         selected = []
         deselected = []
         for item in items:
-            # item.path is already a Path object
-            # Convert to string and normalize separators for checking
+            has_integration_marker = any(mark.name == "integration" for mark in item.iter_markers())
             path_str = str(item.path).replace("\\", "/")
-            if "/tests/integration/" in path_str:
+            is_integration_path = "/tests/integration/" in path_str
+            
+            if has_integration_marker or is_integration_path:
                 selected.append(item)
             else:
                 deselected.append(item)
@@ -58,10 +81,11 @@ def pytest_collection_modifyitems(config, items):
         selected = []
         deselected = []
         for item in items:
-            # item.path is already a Path object
-            # Convert to string and normalize separators for checking
+            has_e2e_marker = any(mark.name == "e2e" for mark in item.iter_markers())
             path_str = str(item.path).replace("\\", "/")
-            if "/tests/e2e/" in path_str:
+            is_e2e_path = "/tests/e2e/" in path_str
+            
+            if has_e2e_marker or is_e2e_path:
                 selected.append(item)
             else:
                 deselected.append(item)

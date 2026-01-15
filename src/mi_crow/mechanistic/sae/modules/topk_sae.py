@@ -71,7 +71,6 @@ class TopKSae(Sae):
             For loaded models, `k` is restored from saved metadata.
             A temporary default k=1 is used for engine initialization and will be
             overridden with the actual k value from config during training.
-            The `k` value is not stored as an instance variable - it only exists in the config.
         """
         super().__init__(n_latents, n_inputs, hook_id, device, store, *args, **kwargs)
 
