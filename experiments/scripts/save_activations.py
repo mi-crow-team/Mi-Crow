@@ -85,18 +85,30 @@ def _timestamp() -> str:
 
 
 def _get_layer_signature(lm: LanguageModel, layer_num: int) -> str:
-    """Get the layer signature for a given layer number."""
-    layer_names = lm.layers.get_layer_names()
-    if layer_num >= len(layer_names):
-        logger.warning(
-            "Layer number %d exceeds available layers (%d). Using last layer.",
-            layer_num,
-            len(layer_names) - 1,
-        )
-        layer_num = len(layer_names) - 1
-    return layer_names[layer_num]
+    """Get the layer signature for a given layer number.
 
-    # TODO POPRAWIĆ NIE TEN LAYER
+    Constructs the layer signature in the format: llamaforcausallm_model_layers_{layer_num}
+    and validates it exists in the model.
+    """
+    # Construct the expected layer signature
+    layer_signature = f"llamaforcausallm_model_layers_{layer_num}"
+
+    # Verify it exists in the model
+    layer_names = lm.layers.get_layer_names()
+    if layer_signature not in layer_names:
+        logger.error(
+            "Layer '%s' not found in model. Available layers matching pattern:",
+            layer_signature,
+        )
+        # Show matching layers for debugging
+        matching = [name for name in layer_names if "llamaforcausallm_model_layers_" in name]
+        for name in matching[:10]:  # Show first 10
+            logger.error("  - %s", name)
+        if len(matching) > 10:
+            logger.error("  ... and %d more", len(matching) - 10)
+        raise ValueError(f"Layer '{layer_signature}' not found in model")
+
+    return layer_signature
 
 
 def _get_effective_max_length(lm: LanguageModel, reserved_tokens: int = 0) -> int:
