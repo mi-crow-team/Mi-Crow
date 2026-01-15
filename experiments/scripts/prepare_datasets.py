@@ -116,7 +116,7 @@ def prepare_wgmix_test(seed: int) -> None:
         name="wildguardtest",
         split="test",
         text_field="prompt",
-        category_field="prompt_harm_label",
+        category_field=["prompt_harm_label", "subcategory"],
         drop_na=True,
     )
 

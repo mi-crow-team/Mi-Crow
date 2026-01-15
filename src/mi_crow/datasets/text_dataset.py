@@ -23,6 +23,7 @@ class TextDataset(BaseDataset):
         store: Store,
         loading_strategy: LoadingStrategy = LoadingStrategy.DISK,
         text_field: str = "text",
+        skip_save: bool = False,
     ):
         """
         Initialize text dataset.
@@ -35,6 +36,19 @@ class TextDataset(BaseDataset):
 
         Raises:
             ValueError: If text_field is empty or not found in dataset
+
+        Note:
+            The "field_name" column containing text will be renamed to "text" internally.
+            TextDataset always uses "text" as the internal field name.
+
+        Example:
+            >>> from mi_crow.store.local_store import LocalStore
+            >>> from mi_crow.datasets.text_dataset import TextDataset
+            >>> from datasets import load_dataset
+            >>> ds = load_dataset("wikipedia", split="train[:1%]")
+            >>> store = LocalStore("store/my_texts")
+            >>> text_dataset = TextDataset(ds, store, text_field="field_name")
+
         """
         self._validate_text_field(text_field)
 
@@ -52,7 +66,7 @@ class TextDataset(BaseDataset):
             ds.set_format("python", columns=["text"])
 
         self._text_field = text_field
-        super().__init__(ds, store=store, loading_strategy=loading_strategy)
+        super().__init__(ds, store=store, loading_strategy=loading_strategy, skip_save=skip_save)
 
     def _validate_text_field(self, text_field: str) -> None:
         """Validate text_field parameter.
@@ -347,38 +361,28 @@ class TextDataset(BaseDataset):
         store: Store,
         *,
         loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
-        text_field: str = "text",
     ) -> "TextDataset":
         """
         Load text dataset from already-saved Arrow files on disk.
 
-        Use this when you've previously saved a dataset and want to reload it
-        without re-downloading from HuggingFace or re-applying transformations.
+        IMPORTANT: This method will NOT overwrite the original dataset on disk.
+        It loads the data in read-only mode for use in analysis/inference.
+
+        Note:
+            This method expects the text column to be named "text".
+            If you saved data with ClassificationDataset, load it with
+            ClassificationDataset.from_disk() instead to preserve labels.
 
         Args:
             store: Store instance pointing to where the dataset was saved
             loading_strategy: Loading strategy (MEMORY or DISK only)
-            text_field: Name of the column containing text
 
         Returns:
             TextDataset instance loaded from disk
 
         Raises:
             FileNotFoundError: If dataset directory doesn't exist or contains no Arrow files
-
-        Example:
-            # First: save dataset
-            dataset_store = LocalStore("store/my_texts")
-            dataset = TextDataset.from_huggingface(
-                "wikipedia",
-                store=dataset_store,
-                limit=1000
-            )
-            # Dataset saved to: store/my_texts/datasets/*.arrow
-
-            # Later: reload from disk
-            dataset_store = LocalStore("store/my_texts")
-            dataset = TextDataset.from_disk(store=dataset_store)
+            ValueError: If dataset doesn't have a 'text' column
         """
 
         if store is None:
@@ -408,12 +412,21 @@ class TextDataset(BaseDataset):
         except Exception as e:
             raise RuntimeError(f"Failed to load dataset from {dataset_dir}. Error: {e}") from e
 
-        # Create TextDataset with the loaded dataset and field name
+        # Verify 'text' column exists
+        if "text" not in ds.column_names:
+            raise ValueError(
+                f"Dataset must have a 'text' column for TextDataset.from_disk(). "
+                f"Found columns: {ds.column_names}. "
+                f"If this was saved with ClassificationDataset, use ClassificationDataset.from_disk() instead."
+            )
+
+        # CRITICAL: Use skip_save=True to prevent overwriting the original dataset
         return cls(
             ds,
             store=store,
             loading_strategy=loading_strategy,
-            text_field=text_field,
+            text_field="text",
+            skip_save=True,
         )
 
     @classmethod

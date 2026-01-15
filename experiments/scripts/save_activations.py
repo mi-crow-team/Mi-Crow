@@ -32,7 +32,7 @@ from time import perf_counter
 
 import torch
 
-from mi_crow.datasets import TextDataset
+from mi_crow.datasets.classification_dataset import ClassificationDataset
 from mi_crow.language_model.language_model import LanguageModel
 from mi_crow.store import LocalStore
 from mi_crow.utils import get_logger, set_seed
@@ -60,21 +60,25 @@ DATASET_CONFIGS = {
     "wgmix_train": {
         "store_path": "store/datasets/wgmix_train",
         "text_field": "prompt",
+        "category_field": ["prompt_harm_label", "subcategory"],
         "description": "WildGuardMix Train (English)",
     },
     "wgmix_test": {
         "store_path": "store/datasets/wgmix_test",
         "text_field": "prompt",
+        "category_field": ["prompt_harm_label", "subcategory"],
         "description": "WildGuardMix Test (English)",
     },
     "plmix_train": {
         "store_path": "store/datasets/plmix_train",
         "text_field": "text",
+        "category_field": "text_harm_label",
         "description": "PL Mix Train (Polish)",
     },
     "plmix_test": {
         "store_path": "store/datasets/plmix_test",
         "text_field": "text",
+        "category_field": "text_harm_label",
         "description": "PL Mix Test (Polish)",
     },
 }
@@ -193,12 +197,10 @@ def main() -> int:
 
     dataset_store_path = dataset_config["store_path"]
     text_field = dataset_config["text_field"]
+    category_field = dataset_config.get("category_field", None)
 
     dataset_store = LocalStore(base_path=dataset_store_path)
-    dataset = TextDataset.from_disk(
-        store=dataset_store, 
-        text_field=text_field,
-    )
+    dataset = ClassificationDataset.from_disk(store=dataset_store, text_field=text_field, category_field=category_field)
 
     dataset_load_s = perf_counter() - dataset_t0
     logger.info("✅ Dataset loaded: %d samples (%.2fs)", len(dataset), dataset_load_s)

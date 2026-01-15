@@ -24,6 +24,7 @@ class ClassificationDataset(BaseDataset):
         loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
         text_field: str = "text",
         category_field: Union[str, List[str]] = "category",
+        skip_save: bool = False,
     ):
         """
         Initialize classification dataset.
@@ -63,7 +64,7 @@ class ClassificationDataset(BaseDataset):
 
         self._text_field = text_field
         self._category_field = category_field  # Keep original for backward compatibility
-        super().__init__(ds, store=store, loading_strategy=loading_strategy)
+        super().__init__(ds, store=store, loading_strategy=loading_strategy, skip_save=skip_save)
 
     def _validate_text_field(self, text_field: str) -> None:
         """Validate text_field parameter.
@@ -517,13 +518,14 @@ class ClassificationDataset(BaseDataset):
         except Exception as e:
             raise RuntimeError(f"Failed to load dataset from {dataset_dir}. Error: {e}") from e
 
-        # Create ClassificationDataset with the loaded dataset and field names
+        # CRITICAL: Use skip_save=True to prevent overwriting the original dataset
         return cls(
             ds,
             store=store,
             loading_strategy=loading_strategy,
             text_field=text_field,
             category_field=category_field,
+            skip_save=True,
         )
 
     @classmethod

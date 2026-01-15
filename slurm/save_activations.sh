@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -A mi2lab-normal
-#SBATCH -p short,long
+#SBATCH -p short,long,debug
 #SBATCH -t 04:00:00
 #SBATCH -N 1
 #SBATCH -c 2

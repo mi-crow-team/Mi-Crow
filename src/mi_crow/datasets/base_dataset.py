@@ -31,6 +31,7 @@ class BaseDataset(ABC):
         ds: Dataset | IterableDataset,
         store: Store,
         loading_strategy: LoadingStrategy = LoadingStrategy.MEMORY,
+        skip_save: bool = False,
     ):
         """
         Initialize dataset.
@@ -39,6 +40,7 @@ class BaseDataset(ABC):
             ds: HuggingFace Dataset or IterableDataset
             store: Store instance for caching/persistence
             loading_strategy: How to load data (MEMORY, DISK, or STREAMING)
+            skip_save: If True, skip saving dataset to disk (use when loading from disk)
 
         Raises:
             ValueError: If store is None, loading_strategy is invalid, or dataset operations fail
@@ -57,13 +59,21 @@ class BaseDataset(ABC):
             self._is_iterable = False
             if is_iterable_input:
                 ds = Dataset.from_generator(lambda: iter(ds))
-            self._ds = self._save_and_load_dataset(ds, use_memory_mapping=False)
+            if skip_save:
+                # When loading from disk, don't re-save
+                self._ds = ds
+            else:
+                self._ds = self._save_and_load_dataset(ds, use_memory_mapping=False)
         elif loading_strategy == LoadingStrategy.DISK:
             # DISK: Save to disk, use memory-mapped Arrow files (supports len/getitem)
             self._is_iterable = False
             if is_iterable_input:
                 ds = Dataset.from_generator(lambda: iter(ds))
-            self._ds = self._save_and_load_dataset(ds, use_memory_mapping=True)
+            if skip_save:
+                # When loading from disk, don't re-save
+                self._ds = ds
+            else:
+                self._ds = self._save_and_load_dataset(ds, use_memory_mapping=True)
         elif loading_strategy == LoadingStrategy.STREAMING:
             # STREAMING: Convert to IterableDataset, don't save to disk (no len/getitem)
             if not is_iterable_input:
