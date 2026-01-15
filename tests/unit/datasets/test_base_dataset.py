@@ -1401,3 +1401,121 @@ class TestBaseDatasetSourceLoaders:
             Path(json_path).unlink()
 
 
+class TestBaseDatasetErrorHandling:
+    """Tests for error handling in BaseDataset."""
+
+    def test_save_and_load_dataset_oserror(self, temp_store):
+        """Test that OSError is properly raised and wrapped."""
+        ds = Dataset.from_dict({"text": ["a", "b"]})
+        
+        with patch("mi_crow.datasets.base_dataset.Dataset.save_to_disk") as mock_save:
+            mock_save.side_effect = OSError("Permission denied")
+            
+            with pytest.raises(OSError, match="Failed to save/load dataset"):
+                dataset = ConcreteBaseDataset(ds, temp_store, LoadingStrategy.MEMORY)
+
+    def test_save_and_load_dataset_runtime_error(self, temp_store):
+        """Test that generic exceptions are wrapped as RuntimeError."""
+        ds = Dataset.from_dict({"text": ["a", "b"]})
+        
+        with patch("mi_crow.datasets.base_dataset.load_from_disk") as mock_load:
+            mock_load.side_effect = ValueError("Invalid dataset format")
+            
+            with pytest.raises(RuntimeError, match="Failed to process dataset"):
+                dataset = ConcreteBaseDataset(ds, temp_store, LoadingStrategy.MEMORY)
+
+    def test_stratified_sample_empty_dataset(self):
+        """Test stratified sample with empty dataset returns empty dataset."""
+        ds = Dataset.from_dict({"text": [], "label": []})
+        
+        result = BaseDataset._stratified_sample(ds, stratify_by="label", sample_size=10, seed=42)
+        
+        assert len(result) == 0
+
+    def test_stratified_sample_none_sample_size(self):
+        """Test stratified sample with None sample_size uses total_rows."""
+        data = {
+            "text": ["a"] * 5 + ["b"] * 5,
+            "label": ["A"] * 5 + ["B"] * 5,
+        }
+        ds = Dataset.from_dict(data)
+        
+        result = BaseDataset._stratified_sample(ds, stratify_by="label", sample_size=None, seed=42)
+        
+        assert len(result) == 10
+
+    def test_stratified_sample_remaining_zero_early_break(self):
+        """Test stratified sample with remaining=0 breaks early."""
+        data = {
+            "text": ["a"] * 3 + ["b"] * 3,
+            "label": ["A"] * 3 + ["B"] * 3,
+        }
+        ds = Dataset.from_dict(data)
+        
+        # Sample size that exactly matches allocation
+        result = BaseDataset._stratified_sample(ds, stratify_by="label", sample_size=6, seed=42)
+        
+        assert len(result) == 6
+
+    def test_stratified_sample_available_zero_continues(self):
+        """Test stratified sample continues when available=0."""
+        data = {
+            "text": ["a"] * 2 + ["b"] * 2 + ["c"] * 2,
+            "label": ["A"] * 2 + ["B"] * 2 + ["C"] * 2,
+        }
+        ds = Dataset.from_dict(data)
+        
+        # Small sample size to trigger edge cases
+        result = BaseDataset._stratified_sample(ds, stratify_by="label", sample_size=2, seed=42)
+        
+        assert len(result) == 2
+
+    def test_stratified_sample_count_zero_skips(self):
+        """Test stratified sample skips labels with count=0."""
+        data = {
+            "text": ["a"] * 5 + ["b"] * 3,
+            "label": ["A"] * 5 + ["B"] * 3,
+        }
+        ds = Dataset.from_dict(data)
+        
+        # Sample size that might result in count=0 for some labels
+        result = BaseDataset._stratified_sample(ds, stratify_by="label", sample_size=1, seed=42)
+        
+        assert len(result) == 1
+        assert result[0]["label"] in ["A", "B"]
+
+    def test_from_disk_none_store_raises_error(self):
+        """Test that None store raises ValueError."""
+        with pytest.raises(ValueError, match="store cannot be None"):
+            ConcreteBaseDataset.from_disk(None)
+
+    def test_from_disk_streaming_strategy_raises_error(self, temp_store):
+        """Test that STREAMING strategy raises ValueError."""
+        with pytest.raises(ValueError, match="STREAMING loading strategy not supported"):
+            ConcreteBaseDataset.from_disk(temp_store, loading_strategy=LoadingStrategy.STREAMING)
+
+    def test_from_disk_directory_not_found_raises_error(self, temp_store):
+        """Test that missing directory raises FileNotFoundError."""
+        with pytest.raises(FileNotFoundError, match="Dataset directory not found"):
+            ConcreteBaseDataset.from_disk(temp_store)
+
+    def test_from_disk_no_arrow_files_raises_error(self, temp_store):
+        """Test that directory without arrow files raises FileNotFoundError."""
+        dataset_dir = Path(temp_store.base_path) / temp_store.dataset_prefix
+        dataset_dir.mkdir(parents=True, exist_ok=True)
+        
+        with pytest.raises(FileNotFoundError, match="No Arrow files found"):
+            ConcreteBaseDataset.from_disk(temp_store)
+
+    def test_from_disk_load_failure_raises_runtime_error(self, temp_store):
+        """Test that load failure raises RuntimeError."""
+        ds = Dataset.from_dict({"text": ["a", "b"]})
+        dataset = ConcreteBaseDataset(ds, temp_store, LoadingStrategy.MEMORY)
+        
+        with patch("mi_crow.datasets.base_dataset.load_from_disk") as mock_load:
+            mock_load.side_effect = Exception("Corrupted dataset")
+            
+            with pytest.raises(RuntimeError, match="Failed to load dataset"):
+                ConcreteBaseDataset.from_disk(temp_store)
+
+
