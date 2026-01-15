@@ -114,6 +114,9 @@ class BaseDataset(ABC):
             OSError: If file system operations fail
             RuntimeError: If dataset operations fail
         """
+        if len(ds) == 0:
+            return ds
+        
         if self._has_valid_dataset_dir():
             try:
                 self._dataset_dir.mkdir(parents=True, exist_ok=True)
