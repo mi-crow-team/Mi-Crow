@@ -11,19 +11,22 @@
     "batch_size_save": 8
   },
   "layer": {
-    "layer_num": 12,
-    "layer_signature": null
+    "layer_num": null,
+    "layer_signature": [
+      "llamaforcausallm_model_layers_15_post_attention_layernorm",
+      "llamaforcausallm_model_layers_20_post_attention_layernorm"
+    ]
   },
   "storage": {
-    "store_dir": null,
-    "device": null
+    "store_dir": "/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/experiments/slurm_sae_pipeline/store",
+    "device": "cpu"
   },
   "sae": {
     "n_latents_multiplier": 4,
-    "top_k": 8
+    "top_k": 64
   },
   "training": {
-    "epochs": 1,
+    "epochs": 3,
     "batch_size_train": 16,
     "lr": 0.001,
     "l1_lambda": 0.0001
