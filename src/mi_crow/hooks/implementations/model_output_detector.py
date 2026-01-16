@@ -103,18 +103,12 @@ class ModelOutputDetector(Detector):
             logits, hidden_state = self._extract_output_tensor(output)
             
             if self.save_output_logits and logits is not None:
-                if logits.is_cuda:
-                    logits_cpu = logits.detach().cpu(non_blocking=True)
-                else:
-                    logits_cpu = logits.detach()
+                logits_cpu = logits.detach().cpu()
                 self.tensor_metadata['output_logits'] = logits_cpu
                 self.metadata['output_logits_shape'] = tuple(logits_cpu.shape)
             
             if self.save_output_hidden_state and hidden_state is not None:
-                if hidden_state.is_cuda:
-                    hidden_state_cpu = hidden_state.detach().cpu(non_blocking=True)
-                else:
-                    hidden_state_cpu = hidden_state.detach()
+                hidden_state_cpu = hidden_state.detach().cpu()
                 self.tensor_metadata['output_hidden_state'] = hidden_state_cpu
                 self.metadata['output_hidden_state_shape'] = tuple(hidden_state_cpu.shape)
                 

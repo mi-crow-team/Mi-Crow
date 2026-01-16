@@ -61,7 +61,8 @@ class TestHuggingFaceIntegration:
 
 
 
-        assert lm.model == mock_model
+        assert lm.model is not None
+        mock_model.to.assert_called_once()
 
 
         assert lm.tokenizer == mock_tokenizer

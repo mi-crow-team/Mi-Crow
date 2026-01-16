@@ -94,7 +94,10 @@ class Controller(Hook):
         modified_tensor = self.modify_activations(module, input_tensor, output_tensor)
         
         if modified_tensor is not None and isinstance(modified_tensor, torch.Tensor):
-            apply_modification_to_output(output, modified_tensor)
+            target_device = None
+            if self.context is not None and hasattr(self.context, 'device') and self.context.device:
+                target_device = torch.device(self.context.device)
+            apply_modification_to_output(output, modified_tensor, target_device=target_device)
 
     def _hook_fn(
             self,

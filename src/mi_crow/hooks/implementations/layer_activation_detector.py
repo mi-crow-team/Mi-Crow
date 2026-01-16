@@ -70,10 +70,7 @@ class LayerActivationDetector(Detector):
             tensor = extract_tensor_from_output(output)
 
             if tensor is not None:
-                if tensor.is_cuda:
-                    tensor_cpu = tensor.detach().cpu(non_blocking=True)
-                else:
-                    tensor_cpu = tensor.detach()
+                tensor_cpu = tensor.detach().cpu()
                 self.tensor_metadata['activations'] = tensor_cpu
                 self.metadata['activations_shape'] = tuple(tensor_cpu.shape)
         except Exception as e:

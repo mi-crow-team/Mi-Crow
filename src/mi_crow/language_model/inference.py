@@ -9,6 +9,7 @@ import torch
 from torch import nn
 
 from mi_crow.language_model.utils import move_tensors_to_device, extract_logits_from_output
+from mi_crow.language_model.device_manager import sync_model_to_context_device
 from mi_crow.utils import get_logger
 
 if TYPE_CHECKING:
@@ -192,27 +193,10 @@ class InferenceEngine:
 
         device = torch.device(self.lm.context.device)
         device_type = str(device.type)
+
+        sync_model_to_context_device(self.lm)
+
         enc = move_tensors_to_device(enc, device)
-
-        model = self.lm.model
-        model_device = None
-        try:
-            param_iter = getattr(model, "parameters", None)
-            if callable(param_iter):
-                first_param = next(param_iter(), None)
-                if first_param is not None:
-                    model_device = first_param.device
-        except Exception:
-            model_device = None
-
-        if model_device is not None and model_device != device:
-            logger.warning(
-                "LanguageModel context.device (%s) differs from model parameters device (%s). "
-                "Inputs will be moved to context.device; pass the desired device to "
-                "LanguageModel.from_huggingface or from_local_torch instead of moving the model manually.",
-                self.lm.context.device,
-                str(model_device),
-            )
 
         self.lm.model.eval()
 

@@ -69,7 +69,7 @@ class Sae(Controller, Detector, abc.ABC):
         """Set the LanguageModelContext for this hook and sync to AutoencoderContext.
         
         When the hook is registered, this method is called with the LanguageModelContext.
-        It automatically syncs relevant values to the AutoencoderContext.
+        It automatically syncs relevant values to the AutoencoderContext, including device.
         
         Args:
             context: The LanguageModelContext instance from the LanguageModel
@@ -84,6 +84,8 @@ class Sae(Controller, Detector, abc.ABC):
                 self._autoencoder_context.store = context.store
             if self.layer_signature is not None:
                 self._autoencoder_context.lm_layer_signature = self.layer_signature
+            if context.device is not None:
+                self._autoencoder_context.device = context.device
 
     @abc.abstractmethod
     def _initialize_sae_engine(self) -> OvercompleteSAE:
