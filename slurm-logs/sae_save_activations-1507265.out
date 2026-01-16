@@ -1,0 +1,15 @@
+Node: pascal
+PWD:  /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow
+Config: /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/experiments/slurm_sae_pipeline/configs/config_bielik12_polemo2.json
+uv not found, installing...
+no checksums to verify
+installing to /home2/faculty/akaniasty/.local/bin
+  uv
+  uvx
+everything's installed!
+
+To add $HOME/.local/bin to your PATH, either restart your shell or run:
+
+    source $HOME/.local/bin/env (sh, bash, zsh)
+    source $HOME/.local/bin/env.fish (fish)
+ERROR: uv still not available after installation attempt

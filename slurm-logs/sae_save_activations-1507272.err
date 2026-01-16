@@ -1,0 +1,59 @@
+downloading uv 0.9.23 x86_64-unknown-linux-gnu
+Resolved 234 packages in 3ms
+   Building mi-crow @ file:///mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow
+Downloading tokenizers (3.1MiB)
+Downloading transformers (11.4MiB)
+Downloading nvidia-cuda-cupti-cu12 (9.8MiB)
+Downloading babel (9.7MiB)
+Downloading hf-xet (3.2MiB)
+Downloading torch (858.1MiB)
+Downloading nvidia-curand-cu12 (60.7MiB)
+Downloading debugpy (4.1MiB)
+Downloading jupyterlab (11.8MiB)
+Downloading notebook (13.8MiB)
+Downloading nvidia-cuda-nvrtc-cu12 (84.0MiB)
+Downloading ruff (13.1MiB)
+Downloading torchvision (7.7MiB)
+Downloading nvidia-cusolver-cu12 (255.1MiB)
+Downloading triton (162.6MiB)
+Downloading virtualenv (5.7MiB)
+Downloading nvidia-nvjitlink-cu12 (37.4MiB)
+Downloading fonttools (4.7MiB)
+Downloading nvidia-nvshmem-cu12 (118.9MiB)
+Downloading sympy (6.0MiB)
+Downloading wandb (21.8MiB)
+Downloading matplotlib (8.3MiB)
+Downloading scikit-learn (8.5MiB)
+Downloading numpy (15.6MiB)
+Downloading nvidia-cusparselt-cu12 (273.9MiB)
+Downloading pillow (6.7MiB)
+Downloading opencv-python (60.1MiB)
+Downloading scipy (34.0MiB)
+Downloading pandas (11.8MiB)
+Downloading nvidia-cublas-cu12 (566.8MiB)
+Downloading nvidia-cufft-cu12 (184.2MiB)
+Downloading nvidia-cudnn-cu12 (674.0MiB)
+Downloading scikit-image (12.9MiB)
+Downloading nvidia-cusparse-cu12 (274.9MiB)
+Downloading nvidia-nccl-cu12 (307.4MiB)
+Downloading pyarrow (45.5MiB)
+      Built mi-crow @ file:///mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow
+ Downloaded tokenizers
+ Downloaded hf-xet
+ Downloaded debugpy
+ Downloaded fonttools
+ Downloaded virtualenv
+ Downloaded sympy
+ Downloaded pillow
+ Downloaded torchvision
+ Downloaded matplotlib
+ Downloaded scikit-learn
+ Downloaded nvidia-cuda-cupti-cu12
+ Downloaded babel
+ Downloaded transformers
+ Downloaded jupyterlab
+ Downloaded pandas
+ Downloaded scikit-image
+ Downloaded ruff
+ Downloaded notebook
+slurmstepd: error: *** JOB 1507272 ON pascal CANCELLED AT 2026-01-09T22:16:35 ***
