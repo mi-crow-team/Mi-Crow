@@ -147,8 +147,16 @@ def main():
     # Layer configuration
     LAYER_SIGNATURE = cfg.layer.layer_signature
     if LAYER_SIGNATURE is None:
+        if cfg.layer.layer_num is None:
+            raise ValueError("Either layer_signature or layer_num must be provided in config")
         LAYER_NUM = cfg.layer.layer_num
         LAYER_SIGNATURE = f"llamaforcausallm_model_layers_{LAYER_NUM}_post_attention_layernorm"
+    
+    # Normalize to list for consistent handling
+    if isinstance(LAYER_SIGNATURE, str):
+        LAYER_SIGNATURES = [LAYER_SIGNATURE]
+    else:
+        LAYER_SIGNATURES = LAYER_SIGNATURE
     
     # Storage configuration
     STORE_DIR = Path(cfg.storage.store_dir or str(script_dir / "store"))
@@ -166,7 +174,10 @@ def main():
     logger.info(f"📊 Data limit: {DATA_LIMIT}")
     logger.info(f"💾 Run ID: {RUN_ID}")
     logger.info(f"📁 Store directory: {STORE_DIR}")
-    logger.info(f"🎯 Target layer: {LAYER_SIGNATURE}")
+    if len(LAYER_SIGNATURES) == 1:
+        logger.info(f"🎯 Target layer: {LAYER_SIGNATURES[0]}")
+    else:
+        logger.info(f"🎯 Target layers ({len(LAYER_SIGNATURES)}): {', '.join(LAYER_SIGNATURES)}")
 
     STORE_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -184,17 +195,21 @@ def main():
     logger.info(f"✅ Model loaded: {lm.model_id}")
     logger.info(f"📱 Device: {DEVICE}")
     logger.info(f"📁 Store location: {lm.store.base_path}")
-    logger.info(f"🎯 Target layer: {LAYER_SIGNATURE}")
+    if len(LAYER_SIGNATURES) == 1:
+        logger.info(f"🎯 Target layer: {LAYER_SIGNATURES[0]}")
+    else:
+        logger.info(f"🎯 Target layers ({len(LAYER_SIGNATURES)}): {', '.join(LAYER_SIGNATURES)}")
     logger.info(f"📍 Layer type: resid_mid (after attention, before MLP)")
 
-    # Verify layer exists
+    # Verify layers exist
     available_layers = lm.layers.get_layer_names()
-    if LAYER_SIGNATURE not in available_layers:
-        logger.warning(f"⚠️  Layer '{LAYER_SIGNATURE}' not found in model")
+    missing_layers = [layer for layer in LAYER_SIGNATURES if layer not in available_layers]
+    if missing_layers:
+        logger.warning(f"⚠️  Layer(s) not found in model: {', '.join(missing_layers)}")
         logger.info("Available layers (first 10):")
         for layer in available_layers[:10]:
             logger.info(f"  - {layer}")
-        logger.error("❌ Please set LAYER_NUM environment variable to a valid layer number")
+        logger.error(f"❌ Please use valid layer signatures")
         return
 
     logger.info("📥 Loading dataset...")
@@ -239,7 +254,7 @@ def main():
     
     run_name = lm.activations.save_activations_dataset(
         dataset,
-        layer_signature=LAYER_SIGNATURE,
+        layer_signature=LAYER_SIGNATURES if len(LAYER_SIGNATURES) > 1 else LAYER_SIGNATURES[0],
         run_name=RUN_ID,
         batch_size=BATCH_SIZE_SAVE,
         max_length=MAX_LENGTH,

@@ -23,8 +23,8 @@ class DatasetConfig(BaseModel):
 
 class LayerConfig(BaseModel):
     """Layer configuration."""
-    layer_num: int = Field(..., description="Layer number")
-    layer_signature: Optional[str] = Field(default=None, description="Layer signature (auto-generated if None)")
+    layer_num: Optional[int] = Field(default=None, description="Layer number (used if layer_signature is None)")
+    layer_signature: Optional[str | list[str]] = Field(default=None, description="Layer signature(s) - can be a string or list of strings (auto-generated from layer_num if None)")
 
 
 class StorageConfig(BaseModel):
