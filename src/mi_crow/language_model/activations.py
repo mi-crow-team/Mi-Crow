@@ -62,30 +62,30 @@ class LanguageModelActivations:
     def _setup_attention_mask_detector(self, run_name: str) -> tuple[ModelInputDetector, str]:
         """
         Create and register an attention mask detector.
-        
+
         Args:
             run_name: Run name for hook ID
-            
+
         Returns:
             Tuple of (detector, hook_id)
         """
         attention_mask_layer_sig = "attention_masks"
         root_model = self.context.model
-        
+
         if attention_mask_layer_sig not in self.context.language_model.layers.name_to_layer:
             self.context.language_model.layers.name_to_layer[attention_mask_layer_sig] = root_model
-        
+
         detector = ModelInputDetector(
             layer_signature=attention_mask_layer_sig,
             hook_id=f"attention_mask_detector_{run_name}",
             save_input_ids=False,
             save_attention_mask=True,
         )
-        
+
         hook_id = self.context.language_model.layers.register_hook(
             attention_mask_layer_sig, detector, HookType.PRE_FORWARD
         )
-        
+
         return detector, hook_id
 
     def _setup_activation_hooks(
@@ -96,12 +96,12 @@ class LanguageModelActivations:
     ) -> tuple[list[str], str | None]:
         """
         Setup activation hooks for saving.
-        
+
         Args:
             layer_sig_list: List of layer signatures to hook
             run_name: Run name for hook IDs
             save_attention_mask: Whether to setup attention mask detector
-            
+
         Returns:
             Tuple of (hook_ids list, attention_mask_hook_id or None)
         """
@@ -123,7 +123,7 @@ class LanguageModelActivations:
     ) -> None:
         """
         Teardown activation hooks.
-        
+
         Args:
             hook_ids: List of hook IDs to cleanup
             attention_mask_hook_id: Optional attention mask hook ID to cleanup
@@ -136,10 +136,10 @@ class LanguageModelActivations:
     def _validate_save_prerequisites(self) -> tuple[nn.Module, Store]:
         """
         Validate prerequisites for saving activations.
-        
+
         Returns:
             Tuple of (model, store)
-            
+
         Raises:
             ValueError: If model or store is not initialized
         """
@@ -162,13 +162,13 @@ class LanguageModelActivations:
     ) -> tuple[str, Dict[str, Any], list[str]]:
         """
         Prepare metadata for activation saving.
-        
+
         Args:
             layer_signature: Layer signature(s) to save
             dataset: Optional dataset
             run_name: Optional run name
             options: Options dictionary
-            
+
         Returns:
             Tuple of (run_name, metadata, layer_sig_list)
         """
@@ -260,6 +260,7 @@ class LanguageModelActivations:
             verbose: Whether to log
         """
         from mi_crow.language_model.inference import InferenceEngine
+
         InferenceEngine._save_run_metadata(store, run_name, meta, verbose)
 
     def _process_batch(
@@ -308,7 +309,12 @@ class LanguageModelActivations:
             batch_index,
             unified=not save_in_batches,
         )
-        
+
+        # CRITICAL: Synchronize CUDA before cleanup to ensure async CPU transfers complete
+        # Without this, GPU tensors from non_blocking=True transfers aren't freed
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
+
         gc.collect()
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
@@ -398,9 +404,7 @@ class LanguageModelActivations:
             "batch_size": int(batch_size),
         }
 
-        run_name, meta, layer_sig_list = self._prepare_save_metadata(
-            layer_signature, dataset, run_name, options
-        )
+        run_name, meta, layer_sig_list = self._prepare_save_metadata(layer_signature, dataset, run_name, options)
 
         if verbose:
             logger.info(
@@ -410,9 +414,7 @@ class LanguageModelActivations:
 
         self._save_run_metadata(store, run_name, meta, verbose)
 
-        hook_ids, attention_mask_hook_id = self._setup_activation_hooks(
-            layer_sig_list, run_name, save_attention_mask
-        )
+        hook_ids, attention_mask_hook_id = self._setup_activation_hooks(layer_sig_list, run_name, save_attention_mask)
 
         batch_counter = 0
 
@@ -432,15 +434,15 @@ class LanguageModelActivations:
                         save_in_batches=save_in_batches,
                     )
                     batch_counter += 1
-                    
+
                     self._manage_cuda_cache(batch_counter, free_cuda_cache_every, device_type, verbose)
         finally:
             self._teardown_activation_hooks(hook_ids, attention_mask_hook_id)
             if verbose:
                 logger.info(f"Completed save_activations_dataset: run={run_name}, batches_saved={batch_counter}")
-        
+
         return run_name
-    
+
     def save_activations(
         self,
         texts: Sequence[str],
@@ -496,9 +498,7 @@ class LanguageModelActivations:
             "batch_size": int(batch_size),
         }
 
-        run_name, meta, layer_sig_list = self._prepare_save_metadata(
-            layer_signature, None, run_name, options
-        )
+        run_name, meta, layer_sig_list = self._prepare_save_metadata(layer_signature, None, run_name, options)
 
         if verbose:
             logger.info(
@@ -508,18 +508,16 @@ class LanguageModelActivations:
 
         self._save_run_metadata(store, run_name, meta, verbose)
 
-        hook_ids, attention_mask_hook_id = self._setup_activation_hooks(
-            layer_sig_list, run_name, save_attention_mask
-        )
+        hook_ids, attention_mask_hook_id = self._setup_activation_hooks(layer_sig_list, run_name, save_attention_mask)
 
         batch_counter = 0
 
         try:
             with torch.inference_mode():
                 for i in range(0, len(texts), batch_size):
-                    batch_texts = texts[i:i + batch_size]
+                    batch_texts = texts[i : i + batch_size]
                     batch_index = i // batch_size
-                    
+
                     self._process_batch(
                         batch_texts,
                         run_name,
@@ -537,5 +535,5 @@ class LanguageModelActivations:
             self._teardown_activation_hooks(hook_ids, attention_mask_hook_id)
             if verbose:
                 logger.info(f"Completed save_activations: run={run_name}, batches_saved={batch_counter}")
-        
+
         return run_name
