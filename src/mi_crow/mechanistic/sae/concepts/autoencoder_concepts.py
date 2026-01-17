@@ -34,6 +34,7 @@ class AutoencoderConcepts:
 
         # Top texts tracking
         self._top_texts_heaps: list[list[tuple[float, tuple[float, str, int]]]] | None = None
+        self._top_texts_heaps_negative: list[list[tuple[float, tuple[float, str, int]]]] | None = None
         self._text_tracking_k: int = 5
         self._text_tracking_negative: bool = False
 
@@ -98,6 +99,8 @@ class AutoencoderConcepts:
         """Ensure heaps are initialized for the given number of neurons."""
         if self._top_texts_heaps is None:
             self._top_texts_heaps = [[] for _ in range(n_neurons)]
+        if self._text_tracking_negative and self._top_texts_heaps_negative is None:
+            self._top_texts_heaps_negative = [[] for _ in range(n_neurons)]
 
     def _decode_token(self, text: str, token_idx: int) -> str:
         """
@@ -181,12 +184,10 @@ class AutoencoderConcepts:
             T = 1
             token_indices = torch.zeros(BT, dtype=torch.long, device='cpu')
 
-        # For each neuron, find the maximum activation per text
-        # This ensures we only track the best activation for each text, not every token position
         for j in range(n_neurons):
-            heap = self._top_texts_heaps[j]
+            heap_positive = self._top_texts_heaps[j]
+            heap_negative = self._top_texts_heaps_negative[j] if self._text_tracking_negative else None
 
-            # For each text in the batch, find the max activation and its token position
             texts_processed = 0
             texts_added = 0
             texts_updated = 0
@@ -198,75 +199,103 @@ class AutoencoderConcepts:
                 text = texts[batch_idx]
                 texts_processed += 1
 
-                # Get activations for this text (all token positions)
                 if original_shape is not None and len(original_shape) == 3:
-                    # 3D case: [B, T, D] -> get slice for this batch
                     start_idx = batch_idx * T
                     end_idx = start_idx + T
-                    text_activations = latents[start_idx:end_idx, j]  # [T]
-                    text_token_indices = token_indices[start_idx:end_idx]  # [T]
+                    text_activations = latents[start_idx:end_idx, j]
+                    text_token_indices = token_indices[start_idx:end_idx]
                 else:
-                    # 2D case: [B, D] -> single token
-                    text_activations = latents[batch_idx:batch_idx + 1, j]  # [1]
-                    text_token_indices = token_indices[batch_idx:batch_idx + 1]  # [1]
+                    text_activations = latents[batch_idx:batch_idx + 1, j]
+                    text_token_indices = token_indices[batch_idx:batch_idx + 1]
 
-                # Find the maximum activation (or minimum if tracking negative)
+                max_idx_positive = torch.argmax(text_activations)
+                max_score_positive = float(text_activations[max_idx_positive].item())
+                adj_positive = max_score_positive
+
                 if self._text_tracking_negative:
-                    # For negative tracking, find the most negative (minimum) value
-                    max_idx = torch.argmin(text_activations)
-                    max_score = float(text_activations[max_idx].item())
-                    adj = -max_score  # Negate for heap ordering
-                else:
-                    # For positive tracking, find the maximum value
-                    max_idx = torch.argmax(text_activations)
-                    max_score = float(text_activations[max_idx].item())
-                    adj = max_score
+                    min_idx_negative = torch.argmin(text_activations)
+                    min_score_negative = float(text_activations[min_idx_negative].item())
+                    adj_negative = -min_score_negative
 
-                # Skip if score is zero (no activation)
-                if max_score == 0.0:
+                if max_score_positive == 0.0:
                     continue
 
-                token_idx = int(text_token_indices[max_idx].item())
+                token_idx_positive = int(text_token_indices[max_idx_positive].item())
 
-                # Check if we already have this text in the heap
-                # If so, only update if this activation is better
-                existing_entry = None
-                heap_texts = []
-                for heap_idx, (heap_adj, (heap_score, heap_text, heap_token_idx)) in enumerate(heap):
-                    heap_texts.append(heap_text[:50] if len(heap_text) > 50 else heap_text)
+                existing_entry_positive = None
+                for heap_idx, (heap_adj, (heap_score, heap_text, heap_token_idx)) in enumerate(heap_positive):
                     if heap_text == text:
-                        existing_entry = (heap_idx, heap_adj, heap_score, heap_token_idx)
+                        existing_entry_positive = (heap_idx, heap_adj, heap_score, heap_token_idx)
                         break
 
-                if existing_entry is not None:
-                    # Update existing entry if this activation is better
-                    heap_idx, heap_adj, heap_score, heap_token_idx = existing_entry
-                    if adj > heap_adj:
-                        # Replace with better activation
-                        heap[heap_idx] = (adj, (max_score, text, token_idx))
-                        heapq.heapify(heap)  # Re-heapify after modification
+                if existing_entry_positive is not None:
+                    heap_idx, heap_adj, heap_score, heap_token_idx = existing_entry_positive
+                    if adj_positive > heap_adj:
+                        heap_positive[heap_idx] = (adj_positive, (max_score_positive, text, token_idx_positive))
+                        heapq.heapify(heap_positive)
                         texts_updated += 1
                     else:
                         texts_skipped_duplicate += 1
                 else:
-                    # New text, add to heap
-                    if len(heap) < self._text_tracking_k:
-                        heapq.heappush(heap, (adj, (max_score, text, token_idx)))
+                    if len(heap_positive) < self._text_tracking_k:
+                        heapq.heappush(heap_positive, (adj_positive, (max_score_positive, text, token_idx_positive)))
                         texts_added += 1
                     else:
-                        # Compare with smallest adjusted score; replace if better
-                        if adj > heap[0][0]:
-                            heapq.heapreplace(heap, (adj, (max_score, text, token_idx)))
+                        if adj_positive > heap_positive[0][0]:
+                            heapq.heapreplace(heap_positive, (adj_positive, (max_score_positive, text, token_idx_positive)))
                             texts_added += 1
 
+                if self._text_tracking_negative and heap_negative is not None:
+                    if min_score_negative == 0.0:
+                        continue
+
+                    token_idx_negative = int(text_token_indices[min_idx_negative].item())
+
+                    existing_entry_negative = None
+                    for heap_idx, (heap_adj, (heap_score, heap_text, heap_token_idx)) in enumerate(heap_negative):
+                        if heap_text == text:
+                            existing_entry_negative = (heap_idx, heap_adj, heap_score, heap_token_idx)
+                            break
+
+                    if existing_entry_negative is not None:
+                        heap_idx, heap_adj, heap_score, heap_token_idx = existing_entry_negative
+                        if adj_negative > heap_adj:
+                            heap_negative[heap_idx] = (adj_negative, (min_score_negative, text, token_idx_negative))
+                            heapq.heapify(heap_negative)
+                        else:
+                            pass
+                    else:
+                        if len(heap_negative) < self._text_tracking_k:
+                            heapq.heappush(heap_negative, (adj_negative, (min_score_negative, text, token_idx_negative)))
+                        else:
+                            if adj_negative > heap_negative[0][0]:
+                                heapq.heapreplace(heap_negative, (adj_negative, (min_score_negative, text, token_idx_negative)))
+
     def get_top_texts_for_neuron(self, neuron_idx: int, top_m: int | None = None) -> list[NeuronText]:
-        """Get top texts for a specific neuron."""
+        """Get top texts for a specific neuron (positive activations)."""
         if self._top_texts_heaps is None or neuron_idx < 0 or neuron_idx >= len(self._top_texts_heaps):
             return []
         heap = self._top_texts_heaps[neuron_idx]
         items = [val for (_, val) in heap]
-        reverse = not self._text_tracking_negative
-        items_sorted = sorted(items, key=lambda s_t: s_t[0], reverse=reverse)
+        items_sorted = sorted(items, key=lambda s_t: s_t[0], reverse=True)
+        if top_m is not None:
+            items_sorted = items_sorted[: top_m]
+
+        neuron_texts = []
+        for score, text, token_idx in items_sorted:
+            token_str = self._decode_token(text, token_idx)
+            neuron_texts.append(NeuronText(score=score, text=text, token_idx=token_idx, token_str=token_str))
+        return neuron_texts
+
+    def get_bottom_texts_for_neuron(self, neuron_idx: int, top_m: int | None = None) -> list[NeuronText]:
+        """Get bottom texts for a specific neuron (negative activations)."""
+        if not self._text_tracking_negative:
+            return []
+        if self._top_texts_heaps_negative is None or neuron_idx < 0 or neuron_idx >= len(self._top_texts_heaps_negative):
+            return []
+        heap = self._top_texts_heaps_negative[neuron_idx]
+        items = [val for (_, val) in heap]
+        items_sorted = sorted(items, key=lambda s_t: s_t[0], reverse=False)
         if top_m is not None:
             items_sorted = items_sorted[: top_m]
 
@@ -277,16 +306,24 @@ class AutoencoderConcepts:
         return neuron_texts
 
     def get_all_top_texts(self) -> list[list[NeuronText]]:
-        """Get top texts for all neurons."""
+        """Get top texts for all neurons (positive activations)."""
         if self._top_texts_heaps is None:
             return []
         return [self.get_top_texts_for_neuron(i) for i in range(len(self._top_texts_heaps))]
 
+    def get_all_bottom_texts(self) -> list[list[NeuronText]]:
+        """Get bottom texts for all neurons (negative activations)."""
+        if not self._text_tracking_negative or self._top_texts_heaps_negative is None:
+            return []
+        return [self.get_bottom_texts_for_neuron(i) for i in range(len(self._top_texts_heaps_negative))]
+
     def reset_top_texts(self) -> None:
         """Reset all tracked top texts."""
         self._top_texts_heaps = None
+        self._top_texts_heaps_negative = None
 
     def export_top_texts_to_json(self, filepath: Path | str) -> Path:
+        """Export top texts (positive activations) to JSON file."""
         if self._top_texts_heaps is None:
             raise ValueError("No top texts available. Enable text tracking and run inference first.")
 
@@ -294,6 +331,33 @@ class AutoencoderConcepts:
         filepath.parent.mkdir(parents=True, exist_ok=True)
 
         all_texts = self.get_all_top_texts()
+        export_data = {}
+
+        for neuron_idx, neuron_texts in enumerate(all_texts):
+            export_data[neuron_idx] = [
+                {
+                    "text": nt.text,
+                    "score": nt.score,
+                    "token_str": nt.token_str,
+                    "token_idx": nt.token_idx
+                }
+                for nt in neuron_texts
+            ]
+
+        with filepath.open("w", encoding="utf-8") as f:
+            json.dump(export_data, f, ensure_ascii=False, indent=2)
+
+        return filepath
+
+    def export_bottom_texts_to_json(self, filepath: Path | str) -> Path:
+        """Export bottom texts (negative activations) to JSON file."""
+        if not self._text_tracking_negative or self._top_texts_heaps_negative is None:
+            raise ValueError("No bottom texts available. Enable negative text tracking and run inference first.")
+
+        filepath = Path(filepath)
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+
+        all_texts = self.get_all_bottom_texts()
         export_data = {}
 
         for neuron_idx, neuron_texts in enumerate(all_texts):

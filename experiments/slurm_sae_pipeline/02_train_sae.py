@@ -49,6 +49,7 @@ def main():
     parser = argparse.ArgumentParser(description="Train SAE on saved activations")
     parser.add_argument("--run_id", type=str, default=None, help="Run ID to use (default: read from run_id.txt)")
     parser.add_argument("--config", type=str, default=None, help="Path to config JSON file (default: config.json in script directory)")
+    parser.add_argument("--layer", type=int, default=None, help="Layer index to use from layer_signatures list (0-based, default: use first layer)")
     args = parser.parse_args()
     
     # Load config.json into Pydantic model
@@ -145,13 +146,24 @@ def main():
         if not layer_signatures:
             logger.error("❌ Error: No layer signatures found in metadata")
             return
-        layer_signature = layer_signatures[0]
         num_layers = len(layer_signatures)
+        
+        # Select layer based on --layer argument
+        if args.layer is not None:
+            if args.layer < 0 or args.layer >= len(layer_signatures):
+                logger.error(f"❌ Error: Layer index {args.layer} out of range. Available: 0-{len(layer_signatures)-1}")
+                return
+            layer_signature = layer_signatures[args.layer]
+            logger.info(f"🎯 Using layer index {args.layer}: {layer_signature}")
+        else:
+            layer_signature = layer_signatures[0]
+            if len(layer_signatures) > 1:
+                logger.warning(f"⚠️  Multiple layers in config ({len(layer_signatures)}), using first: {layer_signature}")
+                logger.warning(f"   Use --layer N to select a different layer (0-{len(layer_signatures)-1})")
+            logger.info(f"🎯 Target layer: {layer_signature}")
     except Exception as e:
         logger.error(f"❌ Error: Could not get layer signature from metadata: {e}")
         return
-
-    logger.info(f"🎯 Target layer: {layer_signature}")
 
     # Get activation dimension from a sample batch
     sample_batch = store.get_run_batch(RUN_ID, batches[0])

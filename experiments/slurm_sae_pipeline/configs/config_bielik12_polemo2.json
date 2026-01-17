@@ -13,8 +13,8 @@
   "layer": {
     "layer_num": null,
     "layer_signature": [
-      "llamaforcausallm_model_layers_15_post_attention_layernorm",
-      "llamaforcausallm_model_layers_20_post_attention_layernorm"
+      "llamaforcausallm_model_layers_15",
+      "llamaforcausallm_model_layers_20"
     ]
   },
   "storage": {

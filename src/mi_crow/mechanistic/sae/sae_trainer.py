@@ -101,7 +101,7 @@ class SaeTrainer:
         monitoring = self._configure_logging(cfg, run_id)
 
         if training_run_id is None:
-            training_run_id = f"training_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            training_run_id = f"sae_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
         logs = self._run_training(cfg, dataloader, criterion, optimizer, device, monitoring, store, training_run_id, run_id, layer_signature)
         history = self._process_training_logs(logs, cfg)
