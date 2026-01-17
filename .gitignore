@@ -109,6 +109,7 @@ results/
 /experiments/store/
 
 .local_results/
+.local_activations/
 # All csv files from experiments/pl_dataset_curation folder
 /experiments/pl_dataset_curation/*.csv
 /experiments/pl_dataset_curation/*.md

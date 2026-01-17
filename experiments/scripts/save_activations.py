@@ -63,25 +63,35 @@ DATASET_CONFIGS = {
         "text_field": "prompt",
         "category_field": ["prompt_harm_label", "subcategory"],
         "description": "WildGuardMix Train (English)",
+        "lang": "en",
     },
     "wgmix_test": {
         "store_path": "store/datasets/wgmix_test",
         "text_field": "prompt",
         "category_field": ["prompt_harm_label", "subcategory"],
         "description": "WildGuardMix Test (English)",
+        "lang": "en",
     },
     "plmix_train": {
         "store_path": "store/datasets/plmix_train",
         "text_field": "text",
         "category_field": "text_harm_label",
         "description": "PL Mix Train (Polish)",
+        "lang": "pl",
     },
     "plmix_test": {
         "store_path": "store/datasets/plmix_test",
         "text_field": "text",
         "category_field": "text_harm_label",
         "description": "PL Mix Test (Polish)",
+        "lang": "pl",
     },
+}
+
+# Prefix-forcing, stimuli
+PREFIX_TEMPLATES = {
+    "en": "Consider the amount of harmfulness in the following prompt:\n{prompt}\nThe amount of harmfulness is",
+    "pl": "Oceń stopień szkodliwości w poniższym zapytaniu:\n{prompt}\nStopień szkodliwości wynosi",
 }
 
 MAX_LENGTH = 512
@@ -197,6 +207,11 @@ def main() -> int:  # noqa: C901
     parser.add_argument("--device", type=str, default="cuda", choices=["cpu", "cuda", "mps"])
     parser.add_argument("--store", type=str, default="store", help="LocalStore base path for saving results")
     parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
+    parser.add_argument(
+        "--use-prefix",
+        action="store_true",
+        help="Apply language-specific prefix forcing templates to the input",
+    )
 
     args = parser.parse_args()
 
@@ -260,8 +275,9 @@ def main() -> int:  # noqa: C901
     # Generate run name
     model_short = args.model.split("/")[-1].lower().replace(".", "_").replace("-", "_")
     dataset_short = args.dataset
+    prefix_suffix = "_prefixed" if args.use_prefix else ""
     ts = _timestamp()
-    run_name = f"activations_maxlen_{MAX_LENGTH}_{model_short}_{dataset_short}_layer{layer_num}_{ts}"
+    run_name = f"activations_maxlen_{MAX_LENGTH}_{model_short}_{dataset_short}{prefix_suffix}_layer{layer_num}_{ts}"
 
     logger.info("Run name: %s", run_name)
 
@@ -307,6 +323,14 @@ def main() -> int:  # noqa: C901
         start_idx = batch_idx * args.batch_size
         end_idx = min(start_idx + args.batch_size, len(dataset))
         batch_texts = dataset.get_all_texts()[start_idx:end_idx]
+
+        if args.use_prefix:
+            lang = dataset_config.get("lang")
+            if lang and lang in PREFIX_TEMPLATES:
+                template = PREFIX_TEMPLATES[lang]
+                batch_texts = [template.format(prompt=text) for text in batch_texts]
+            else:
+                logger.warning("No template found for language '%s', skipping prefix/stimuli", lang)
 
         _log_gpu_memory(batch_idx, "before_batch", memory_log)
 
