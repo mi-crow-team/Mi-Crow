@@ -84,7 +84,7 @@ DATASET_CONFIGS = {
     },
 }
 
-MAX_LENGTH = 1024
+MAX_LENGTH = 512
 
 
 def _timestamp() -> str:
