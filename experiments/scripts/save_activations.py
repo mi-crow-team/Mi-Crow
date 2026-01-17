@@ -84,6 +84,8 @@ DATASET_CONFIGS = {
     },
 }
 
+MAX_LENGTH = 512
+
 
 def _timestamp() -> str:
     return datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -245,7 +247,7 @@ def main() -> int:  # noqa: C901
     # Get effective max length
     effective_max_length = _get_effective_max_length(lm)
     logger.info("Effective max input length: %d", effective_max_length)
-    max_length = min(effective_max_length, 1024)
+    max_length = min(effective_max_length, MAX_LENGTH)
     logger.info("Using max length: %d", max_length)
 
     model_load_s = perf_counter() - model_t0
@@ -338,6 +340,7 @@ def main() -> int:  # noqa: C901
                 dtype=None,
                 verbose=True,
                 save_in_batches=True,
+                stop_after_layer=layer_signature,
             )
             _log_gpu_memory(batch_idx, "after_batch", memory_log)
         except torch.cuda.OutOfMemoryError as e:

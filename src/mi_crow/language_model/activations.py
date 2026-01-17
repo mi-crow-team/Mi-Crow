@@ -274,6 +274,7 @@ class LanguageModelActivations:
         dtype: torch.dtype | None,
         verbose: bool,
         save_in_batches: bool = True,
+        stop_after_layer: str | int | None = None,
     ) -> None:
         """Process a single batch of texts.
 
@@ -286,6 +287,7 @@ class LanguageModelActivations:
             autocast_dtype: Optional dtype for autocast
             dtype: Optional dtype to convert activations to
             verbose: Whether to log progress
+            stop_after_layer: Optional layer signature to stop after (avoids lm_head)
         """
         if not texts:
             return
@@ -299,6 +301,7 @@ class LanguageModelActivations:
             tok_kwargs=tok_kwargs,
             autocast=autocast,
             autocast_dtype=autocast_dtype,
+            stop_after_layer=stop_after_layer,
         )
 
         if dtype is not None:
@@ -417,6 +420,8 @@ class LanguageModelActivations:
         hook_ids, attention_mask_hook_id = self._setup_activation_hooks(layer_sig_list, run_name, save_attention_mask)
 
         batch_counter = 0
+        # Stop after the last layer in the list to avoid computing lm_head
+        stop_after = layer_sig_list[-1] if layer_sig_list else None
 
         try:
             with torch.inference_mode():
@@ -432,6 +437,7 @@ class LanguageModelActivations:
                         dtype,
                         verbose,
                         save_in_batches=save_in_batches,
+                        stop_after_layer=stop_after,
                     )
                     batch_counter += 1
 
@@ -511,6 +517,8 @@ class LanguageModelActivations:
         hook_ids, attention_mask_hook_id = self._setup_activation_hooks(layer_sig_list, run_name, save_attention_mask)
 
         batch_counter = 0
+        # Stop after the last layer in the list to avoid computing lm_head
+        stop_after = layer_sig_list[-1] if layer_sig_list else None
 
         try:
             with torch.inference_mode():
@@ -528,6 +536,7 @@ class LanguageModelActivations:
                         dtype,
                         verbose,
                         save_in_batches=save_in_batches,
+                        stop_after_layer=stop_after,
                     )
                     batch_counter += 1
                     self._manage_cuda_cache(batch_counter, free_cuda_cache_every, device_type, verbose)
