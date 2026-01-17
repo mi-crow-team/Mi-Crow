@@ -223,7 +223,8 @@ def main():
         
         # Download if file doesn't exist or is empty
         if not jsonl_file.exists() or jsonl_file.stat().st_size == 0:
-            _download_polemo2_from_api(DATA_SPLIT, jsonl_file, limit=DATA_LIMIT * 2)  # Download more than needed for sampling
+            download_limit = None if DATA_LIMIT is None else DATA_LIMIT * 2  # Download more than needed for sampling if limit is set
+            _download_polemo2_from_api(DATA_SPLIT, jsonl_file, limit=download_limit)
         
         # Load from local JSONL file
         dataset = TextDataset.from_json(
@@ -241,12 +242,15 @@ def main():
         )
     logger.info(f"✅ Loaded {len(dataset)} text samples from dataset")
     
-    if len(dataset) > DATA_LIMIT:
-        logger.info(f"📊 Randomly sampling {DATA_LIMIT} rows from {len(dataset)} total rows...")
-        dataset = dataset.random_sample(DATA_LIMIT)
-        logger.info(f"✅ Sampled {len(dataset)} text samples")
+    if DATA_LIMIT is not None:
+        if len(dataset) > DATA_LIMIT:
+            logger.info(f"📊 Randomly sampling {DATA_LIMIT} rows from {len(dataset)} total rows...")
+            dataset = dataset.random_sample(DATA_LIMIT)
+            logger.info(f"✅ Sampled {len(dataset)} text samples")
+        else:
+            logger.info(f"📊 Using all {len(dataset)} available rows (less than requested {DATA_LIMIT})")
     else:
-        logger.info(f"📊 Using all {len(dataset)} available rows (less than requested {DATA_LIMIT})")
+        logger.info(f"📊 Using all {len(dataset)} available rows (no data limit)")
 
     logger.info("💾 Saving activations...")
     logger.info(f"   Batch size: {BATCH_SIZE_SAVE}")

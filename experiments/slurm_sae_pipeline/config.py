@@ -16,7 +16,7 @@ class DatasetConfig(BaseModel):
     hf_dataset: str = Field(..., description="HuggingFace dataset name")
     data_split: str = Field(default="train", description="Dataset split to use")
     text_field: str = Field(default="text", description="Field name containing text")
-    data_limit: int = Field(..., description="Maximum number of samples to use")
+    data_limit: Optional[int] = Field(default=None, description="Maximum number of samples to use (None = use all)")
     max_length: int = Field(..., description="Maximum sequence length")
     batch_size_save: int = Field(..., description="Batch size for saving activations")
 

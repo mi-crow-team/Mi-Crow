@@ -121,3 +121,8 @@ src/frontend/build/
 src/frontend/.next/
 
 mi_crow_server
+slurm-logs/
+
+# uv package manager
+.uv-bin/
+.uv-cache/

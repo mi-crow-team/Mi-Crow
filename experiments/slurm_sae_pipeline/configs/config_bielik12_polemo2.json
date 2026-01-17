@@ -6,9 +6,9 @@
     "hf_dataset": "clarin-pl/polemo2-official",
     "data_split": "train",
     "text_field": "text",
-    "data_limit": 2000,
+    "data_limit": null,
     "max_length": 256,
-    "batch_size_save": 8
+    "batch_size_save": 64
   },
   "layer": {
     "layer_num": null,
@@ -19,7 +19,7 @@
   },
   "storage": {
     "store_dir": "/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/experiments/slurm_sae_pipeline/store",
-    "device": "cpu"
+    "device": "cuda"
   },
   "sae": {
     "n_latents_multiplier": 4,
@@ -27,8 +27,10 @@
   },
   "training": {
     "epochs": 3,
-    "batch_size_train": 16,
+    "batch_size_train": 64,
     "lr": 0.001,
-    "l1_lambda": 0.0001
+    "l1_lambda": 0.0001,
+    "snapshot_every_n_epochs": 1,
+    "snapshot_base_path": null
   }
 }

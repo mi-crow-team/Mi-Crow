@@ -1,0 +1,94 @@
+#!/bin/bash
+#SBATCH -A mi2lab-normal
+#SBATCH -p short,long,debug
+#SBATCH -t 04:00:00
+#SBATCH -N 1
+#SBATCH -c 2
+#SBATCH --mem=24G
+#SBATCH --gres=gpu:1
+#SBATCH --job-name=save-activations
+#SBATCH --output=/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/slurm-logs/sae_save_activations-%j.out
+#SBATCH --error=/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/slurm-logs/sae_save_activations-%j.err
+#SBATCH --export=ALL
+#SBATCH --mail-user=adam.master111@gmail.com
+#SBATCH --mail-type FAIL,END
+
+set -euo pipefail
+
+REPO_DIR="/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow"
+STORE_DIR="${STORE_DIR:-$REPO_DIR/experiments/slurm_sae_pipeline/store}"
+LOG_DIR="${LOG_DIR:-$REPO_DIR/slurm-logs}"
+CONFIG_FILE="${CONFIG_FILE:-$REPO_DIR/experiments/slurm_sae_pipeline/configs/config_bielik12_polemo2.json}"
+
+mkdir -p "$LOG_DIR"
+cd "$REPO_DIR"
+
+echo "=== Job Information ==="
+echo "Node: $(hostname -s)"
+echo "PWD: $(pwd)"
+echo "Date: $(date)"
+echo "GPU: $(nvidia-smi -L 2>/dev/null || echo 'No GPU available')"
+echo ""
+
+# Setup uv (project-local installation)
+UV_BIN="$REPO_DIR/.uv-bin/uv"
+if [[ ! -f "$UV_BIN" ]]; then
+    echo "Installing uv to project directory..."
+    mkdir -p "$REPO_DIR/.uv-bin"
+    
+    # Try to copy from ~/.local/bin if available
+    if [[ -f "$HOME/.local/bin/uv" ]]; then
+        cp "$HOME/.local/bin/uv" "$UV_BIN"
+        chmod +x "$UV_BIN"
+    else
+        # Install uv
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        # Copy to project directory
+        if [[ -f "$HOME/.cargo/bin/uv" ]]; then
+            cp "$HOME/.cargo/bin/uv" "$UV_BIN"
+            chmod +x "$UV_BIN"
+        elif [[ -f "$HOME/.local/bin/uv" ]]; then
+            cp "$HOME/.local/bin/uv" "$UV_BIN"
+            chmod +x "$UV_BIN"
+        fi
+    fi
+fi
+
+export PATH="$REPO_DIR/.uv-bin:$PATH"
+export UV_HTTP_TIMEOUT=300
+export UV_CACHE_DIR="$REPO_DIR/.uv-cache"
+mkdir -p "$UV_CACHE_DIR"
+
+echo "Using uv: $(command -v uv)"
+echo "uv version: $(uv --version)"
+echo ""
+
+# Setup Python environment
+echo "Setting up Python environment..."
+export OMP_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+
+# HuggingFace authentication check
+if [[ -z "${HF_TOKEN:-}" ]] && [[ ! -f "${HF_HOME:-$HOME/.cache/huggingface}/token" ]]; then
+    echo "⚠️  Warning: HF_TOKEN not set and no HuggingFace token file found."
+    echo "   The job may fail if the model requires authentication."
+    echo "   Set HF_TOKEN environment variable or run 'huggingface-cli login'"
+    echo ""
+fi
+
+# Sync dependencies
+echo "Syncing dependencies with uv..."
+uv sync --frozen
+echo ""
+
+# Run the script
+echo "=== Starting Activation Saving ==="
+echo "Config file: $CONFIG_FILE"
+echo "Store directory: $STORE_DIR"
+echo ""
+
+uv run python "$REPO_DIR/experiments/slurm_sae_pipeline/01_save_activations.py" \
+    --config "$CONFIG_FILE"
+
+echo ""
+echo "=== Job completed at $(date) ==="
