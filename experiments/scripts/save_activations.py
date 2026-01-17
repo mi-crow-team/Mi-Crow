@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import gc
+import json
 from datetime import datetime
 from pathlib import Path
 from time import perf_counter
@@ -133,7 +134,36 @@ def _get_effective_max_length(lm: LanguageModel, reserved_tokens: int = 0) -> in
     return max(1, max_len - reserved_tokens)
 
 
-def main() -> int:
+def _log_gpu_memory(batch_idx: int, stage: str, memory_log: list) -> None:
+    """Log GPU memory usage to tracking list."""
+    if not torch.cuda.is_available():
+        return
+
+    mem_allocated = torch.cuda.memory_allocated() / 1024**3  # GB
+    mem_reserved = torch.cuda.memory_reserved() / 1024**3  # GB
+    mem_free = (torch.cuda.get_device_properties(0).total_memory - torch.cuda.memory_allocated()) / 1024**3
+
+    memory_log.append(
+        {
+            "batch": batch_idx,
+            "stage": stage,
+            "allocated_gb": round(mem_allocated, 2),
+            "reserved_gb": round(mem_reserved, 2),
+            "free_gb": round(mem_free, 2),
+        }
+    )
+
+    logger.info(
+        "[Batch %d - %s] GPU Memory: %.2f GB allocated, %.2f GB reserved, %.2f GB free",
+        batch_idx,
+        stage,
+        mem_allocated,
+        mem_reserved,
+        mem_free,
+    )
+
+
+def main() -> int:  # noqa: C901
     parser = argparse.ArgumentParser(description="Save activations and attention masks for models on datasets")
 
     # Model and dataset selection
@@ -233,24 +263,110 @@ def main() -> int:
 
     logger.info("Run name: %s", run_name)
 
+    # Initialize memory tracking
+    memory_log = []
+    _log_gpu_memory(-1, "after_model_load", memory_log)
+
+    # Setup activation hooks
+    from mi_crow.hooks import HookType
+    from mi_crow.hooks.implementations.layer_activation_detector import LayerActivationDetector
+    from mi_crow.hooks.implementations.model_input_detector import ModelInputDetector
+
+    # Register activation detector for target layer
+    activation_detector = LayerActivationDetector(
+        layer_signature=layer_signature, hook_id=f"detector_{run_name}_{layer_signature}"
+    )
+    activation_hook_id = lm.layers.register_hook(layer_signature, activation_detector, HookType.FORWARD)
+
+    # Register attention mask detector
+    attention_mask_layer_sig = "attention_masks"
+    if attention_mask_layer_sig not in lm.layers.name_to_layer:
+        lm.layers.name_to_layer[attention_mask_layer_sig] = lm.context.model
+
+    attention_mask_detector = ModelInputDetector(
+        layer_signature=attention_mask_layer_sig,
+        hook_id=f"attention_mask_detector_{run_name}",
+        save_input_ids=False,
+        save_attention_mask=True,
+    )
+    attention_mask_hook_id = lm.layers.register_hook(
+        attention_mask_layer_sig, attention_mask_detector, HookType.PRE_FORWARD
+    )
+
     # Save activations with attention masks
     logger.info("Saving activations with attention masks...")
     save_t0 = perf_counter()
 
-    actual_run_name = lm.activations.save_activations_dataset(
-        dataset,
-        layer_signature=layer_signature,
-        run_name=run_name,
-        batch_size=args.batch_size,
-        max_length=max_length,
-        autocast=False,
-        verbose=True,
-        save_attention_mask=True,
-    )
+    # Process batches with memory monitoring
+    num_batches = (len(dataset) + args.batch_size - 1) // args.batch_size
+    logger.info("Processing %d batches of size %d", num_batches, args.batch_size)
+
+    for batch_idx in range(num_batches):
+        start_idx = batch_idx * args.batch_size
+        end_idx = min(start_idx + args.batch_size, len(dataset))
+        batch_texts = dataset.get_all_texts()[start_idx:end_idx]
+
+        _log_gpu_memory(batch_idx, "before_batch", memory_log)
+
+        # Log batch sequence lengths
+        if lm.context.tokenizer:
+            batch_encodings = lm.context.tokenizer(
+                batch_texts,
+                padding=False,
+                truncation=True,
+                max_length=max_length,
+                return_tensors=None,
+            )
+            seq_lengths = [len(ids) for ids in batch_encodings["input_ids"]]
+            logger.info(
+                "[Batch %d] Sequence lengths: min=%d, max=%d, mean=%.1f, samples=%d",
+                batch_idx,
+                min(seq_lengths),
+                max(seq_lengths),
+                sum(seq_lengths) / len(seq_lengths),
+                len(batch_texts),
+            )
+
+        try:
+            lm.activations._process_batch(
+                batch_texts,
+                run_name=run_name,
+                batch_index=batch_idx,
+                max_length=max_length,
+                autocast=False,
+                autocast_dtype=None,
+                dtype=None,
+                verbose=True,
+                save_in_batches=True,
+            )
+            _log_gpu_memory(batch_idx, "after_batch", memory_log)
+        except torch.cuda.OutOfMemoryError as e:
+            _log_gpu_memory(batch_idx, "OOM_error", memory_log)
+            logger.error("OOM on batch %d: %s", batch_idx, str(e))
+            # Save memory log before crashing
+            memory_log_path = Path(results_store.base_path) / "runs" / f"{run_name}_memory_log.json"
+            memory_log_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(memory_log_path, "w") as f:
+                json.dump(memory_log, f, indent=2)
+            logger.info("Memory log saved to: %s", memory_log_path)
+            raise
+
+    # Cleanup hooks
+    lm.layers.unregister_hook(activation_hook_id)
+    lm.layers.unregister_hook(attention_mask_hook_id)
+
+    actual_run_name = run_name
 
     save_s = perf_counter() - save_t0
     logger.info("✅ Saved activations with attention masks (%.2fs)", save_s)
     logger.info("Actual run name: %s", actual_run_name)
+
+    # Save memory log
+    memory_log_path = Path(results_store.base_path) / "runs" / f"{run_name}_memory_log.json"
+    memory_log_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(memory_log_path, "w") as f:
+        json.dump(memory_log, f, indent=2)
+    logger.info("Memory log saved to: %s", memory_log_path)
 
     # Get save location
     run_dir = Path(results_store.base_path) / "runs" / actual_run_name
