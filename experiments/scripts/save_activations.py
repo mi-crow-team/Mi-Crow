@@ -84,7 +84,7 @@ DATASET_CONFIGS = {
     },
 }
 
-MAX_LENGTH = 512
+MAX_LENGTH = 1024
 
 
 def _timestamp() -> str:
@@ -261,7 +261,7 @@ def main() -> int:  # noqa: C901
     model_short = args.model.split("/")[-1].lower().replace(".", "_").replace("-", "_")
     dataset_short = args.dataset
     ts = _timestamp()
-    run_name = f"activations_{model_short}_{dataset_short}_layer{layer_num}_{ts}"
+    run_name = f"activations_maxlen_{MAX_LENGTH}_{model_short}_{dataset_short}_layer{layer_num}_{ts}"
 
     logger.info("Run name: %s", run_name)
 
