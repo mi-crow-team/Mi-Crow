@@ -324,6 +324,8 @@ class LanguageModelActivations:
             torch.cuda.synchronize()
 
         gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
         if verbose:
             logger.info(f"Saved batch {batch_index} for run={run_name}")
