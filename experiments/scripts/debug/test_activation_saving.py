@@ -24,14 +24,13 @@ def main():
 
     # Configuration
     model_id = "speakleash/Bielik-1.5B-v3.0-Instruct"
-    dataset_id = "allenai/wildguardmix"
     limit = 500
     batch_size = 64
     target_layer = 15  # Middle layer for testing stop_after_last_layer
 
     logger.info(f"Starting test on {device}")
     logger.info(f"Model: {model_id}")
-    logger.info(f"Dataset: {dataset_id} (limit={limit})")
+    logger.info(f"Dataset: allenai/wildguardmixtrain (limit={limit})")
 
     # 1. Setup Stores
     results_store = LocalStore(base_path="store/debug_test")
@@ -40,8 +39,10 @@ def main():
     logger.info("Loading dataset from HF...")
     t0 = perf_counter()
     dataset = TextDataset.from_huggingface(
-        repo_id=dataset_id,
+        repo_id="allenai/wildguardmix",
         store=results_store,
+        name="wildguardtrain",
+        split="train",
         text_field="prompt",
         limit=limit,
         loading_strategy=LoadingStrategy.MEMORY,
