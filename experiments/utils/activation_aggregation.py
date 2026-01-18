@@ -1,4 +1,33 @@
 """
+Behavior with Large CUDA Activations:
+
+When `aggregate_activations_batch` is called with large activation tensors
+residing on CUDA (GPU), the function processes each sequence in the batch
+individually by calling `aggregate_activations_single` in a Python loop.
+For each sequence, a much smaller aggregated activation (of shape `[d_model]`)
+is produced, and the results are stacked into a final tensor of shape
+`[batch_size, d_model]`.
+
+Memory Usage and CUDA Space:
+
+- The original large activation tensor (`activations`) remains in CUDA memory
+for the duration of the function call and is not automatically freed by this
+function.
+- The function does not modify or delete the input tensor; it only reads from
+it and constructs a new, smaller tensor for the output.
+- The memory occupied by the original activations will only be freed when there
+are no more references to the tensor in your Python program and after Python's
+garbage collector releases it. If you want to explicitly free CUDA memory, you
+can use `del activations` followed by `torch.cuda.empty_cache()`, but this is
+not handled by the aggregation function itself.
+- The output tensor (aggregated activations) will also reside on CUDA if
+the input was on CUDA.
+
+In summary, the original large activations will continue to occupy CUDA
+memory until you explicitly delete them or they go out of scope and are
+garbage collected. The aggregation function itself does not free or move the
+original activations.
+---
 Activation aggregation helpers for LLM experiments
 
 This module provides utilities for aggregating the sequence dimension of LLM activations using attention masks.
