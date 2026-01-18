@@ -55,8 +55,7 @@ def main():
     lm = LanguageModel.from_huggingface(model_id, store=results_store, device=device)
     logger.info(f"Model loaded in {perf_counter() - model_t0:.2f}s")
 
-    layer_names = lm.layers.get_layer_names()
-    layer_signature = layer_names["llamaforcausallm_model_layers_15"]
+    layer_signature = "llamaforcausallm_model_layers_15"
     logger.info(f"Target layer signature: {layer_signature}")
 
     # 4. Save Activations (Test new optimizations)
