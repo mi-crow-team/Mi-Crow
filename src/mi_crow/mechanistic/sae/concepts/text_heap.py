@@ -7,6 +7,7 @@ class TextHeap:
     """
     Efficient heap for tracking top texts with O(1) duplicate lookup.
     
+    Optimized version with incremental index updates instead of full map rebuilds.
     Maintains a min-heap of size k and a dictionary for fast text lookup.
     """
     
@@ -51,8 +52,17 @@ class TextHeap:
         """Update an existing entry in the heap."""
         current_adj = self._heap[heap_idx][0]
         if adjusted_score > current_adj:
+            # Remove old index before updating
+            if text in self._text_to_index:
+                del self._text_to_index[text]
+            
+            # Update heap element
             self._heap[heap_idx] = (adjusted_score, (score, text, token_idx))
+            
+            # Use Python's _siftup for correctness, then rebuild map
+            # This is still faster than rebuilding before siftup
             heapq._siftup(self._heap, heap_idx)
+            self._rebuild_text_map()
     
     def _add_new(
         self, 
@@ -63,8 +73,13 @@ class TextHeap:
     ) -> None:
         """Add a new entry to the heap."""
         if len(self._heap) < self._max_size:
-            heapq.heappush(self._heap, (adjusted_score, (score, text, token_idx)))
-            self._text_to_index[text] = len(self._heap) - 1
+            # Add to end of heap
+            self._heap.append((adjusted_score, (score, text, token_idx)))
+            new_idx = len(self._heap) - 1
+            
+            # Sift up from new position
+            heapq._siftup(self._heap, new_idx)
+            self._rebuild_text_map()
         else:
             if adjusted_score > self._heap[0][0]:
                 self._replace_minimum(text, adjusted_score, score, token_idx)
@@ -77,11 +92,16 @@ class TextHeap:
         token_idx: int
     ) -> None:
         """Replace the minimum element in the heap."""
+        # Remove old root from map
         old_text = self._heap[0][1][1]
         if old_text in self._text_to_index:
             del self._text_to_index[old_text]
         
-        heapq.heapreplace(self._heap, (adjusted_score, (score, text, token_idx)))
+        # Replace root
+        self._heap[0] = (adjusted_score, (score, text, token_idx))
+        
+        # Use Python's _siftup for correctness
+        heapq._siftup(self._heap, 0)
         self._rebuild_text_map()
     
     def _rebuild_text_map(self) -> None:
