@@ -1,0 +1,261 @@
+{
+  "n_size": 10240,
+  "concepts": {
+    "4681": {
+      "name": "legitymizacja_prawna",
+      "score": 0.728
+    },
+    "3841": {
+      "name": "wiarygodność_średnia",
+      "score": 0.654
+    },
+    "4451": {
+      "name": "obowiązek_osobisty",
+      "score": 0.882
+    },
+    "5502": {
+      "name": "wpływ_ukryty",
+      "score": 0.87
+    },
+    "5238": {
+      "name": "koherencja_pragmatyczna",
+      "score": 0.547
+    },
+    "8849": {
+      "name": "wiarygodność_zerowa",
+      "score": 0.932
+    },
+    "1320": {
+      "name": "koherencja_stylistyczna",
+      "score": 0.786
+    },
+    "2267": {
+      "name": "konieczność_pragmatyczna",
+      "score": 0.873
+    },
+    "2471": {
+      "name": "władza_nieformalna",
+      "score": 0.818
+    },
+    "3788": {
+      "name": "konieczność_absolutna",
+      "score": 0.696
+    },
+    "6275": {
+      "name": "ocena_racjonalna",
+      "score": 0.83
+    },
+    "2503": {
+      "name": "manipulacja_językowa",
+      "score": 0.934
+    },
+    "3505": {
+      "name": "intencja_informacyjna",
+      "score": 0.622
+    },
+    "1052": {
+      "name": "strategia_narracyjna",
+      "score": 0.864
+    },
+    "6797": {
+      "name": "postawa_negatywna",
+      "score": 0.742
+    },
+    "6678": {
+      "name": "autorytet_ekspercki",
+      "score": 0.718
+    },
+    "5421": {
+      "name": "możliwość_rzeczywista",
+      "score": 0.696
+    },
+    "8890": {
+      "name": "ocena_wartościująca",
+      "score": 0.829
+    },
+    "7633": {
+      "name": "postawa_pozytywna",
+      "score": 0.621
+    },
+    "6812": {
+      "name": "intencja_emocjonalna",
+      "score": 0.883
+    },
+    "1020": {
+      "name": "możliwość_fizyczna",
+      "score": 0.874
+    },
+    "3388": {
+      "name": "obowiązek_prawny",
+      "score": 0.539
+    },
+    "6883": {
+      "name": "wartość_epistemologiczna",
+      "score": 0.897
+    },
+    "6381": {
+      "name": "modalność_aletyczna",
+      "score": 0.61
+    },
+    "9569": {
+      "name": "możliwość_logiczna",
+      "score": 0.709
+    },
+    "320": {
+      "name": "modalność_epistemiczna",
+      "score": 0.775
+    },
+    "9432": {
+      "name": "relewancja_wysoka",
+      "score": 0.671
+    },
+    "6232": {
+      "name": "perspektywa_zbiorowa",
+      "score": 0.513
+    },
+    "7814": {
+      "name": "koherencja_semantyczna",
+      "score": 0.883
+    },
+    "96": {
+      "name": "możliwość_hipotetyczna",
+      "score": 0.582
+    },
+    "5763": {
+      "name": "wartość_pragmatyczna",
+      "score": 0.595
+    },
+    "4892": {
+      "name": "retoryka_oceniająca",
+      "score": 0.859
+    },
+    "6389": {
+      "name": "legitymizacja_moralna",
+      "score": 0.653
+    },
+    "6865": {
+      "name": "niepewność",
+      "score": 0.896
+    },
+    "8818": {
+      "name": "relewancja_średnia",
+      "score": 0.816
+    },
+    "8947": {
+      "name": "prawdopodobieństwo_niskie",
+      "score": 0.624
+    },
+    "9883": {
+      "name": "wpływ_bezpośredni",
+      "score": 0.505
+    },
+    "3613": {
+      "name": "autorytet_osobisty",
+      "score": 0.927
+    },
+    "7999": {
+      "name": "autorytet_moralny",
+      "score": 0.539
+    },
+    "3595": {
+      "name": "postawa_neutralna",
+      "score": 0.824
+    },
+    "4471": {
+      "name": "wpływ_jawny",
+      "score": 0.72
+    },
+    "7140": {
+      "name": "wpływ_pośredni",
+      "score": 0.841
+    },
+    "7956": {
+      "name": "strategia_argumentacyjna",
+      "score": 0.811
+    },
+    "475": {
+      "name": "wartość_estetyczna",
+      "score": 0.791
+    },
+    "6371": {
+      "name": "prawdopodobieństwo_średnie",
+      "score": 0.721
+    },
+    "5507": {
+      "name": "intencja_perswazyjna",
+      "score": 0.857
+    },
+    "6624": {
+      "name": "legitymizacja_osobista",
+      "score": 0.542
+    },
+    "2704": {
+      "name": "prawdopodobieństwo_wysokie",
+      "score": 0.6
+    },
+    "7657": {
+      "name": "spójność_strukturalna",
+      "score": 0.811
+    },
+    "2091": {
+      "name": "obowiązek_moralny",
+      "score": 0.638
+    },
+    "10195": {
+      "name": "strategia_deskryptywna",
+      "score": 0.762
+    },
+    "8751": {
+      "name": "perspektywa_podmiotowa",
+      "score": 0.713
+    },
+    "441": {
+      "name": "postawa_mówcy",
+      "score": 0.739
+    },
+    "6455": {
+      "name": "władza_ekspercka",
+      "score": 0.691
+    },
+    "9697": {
+      "name": "perspektywa_indywidualna",
+      "score": 0.836
+    },
+    "9246": {
+      "name": "spójność_tematyczna",
+      "score": 0.649
+    },
+    "444": {
+      "name": "relewancja_zerowa",
+      "score": 0.816
+    },
+    "1375": {
+      "name": "władza_formalna",
+      "score": 0.622
+    },
+    "7022": {
+      "name": "wartość_etyczna",
+      "score": 0.613
+    },
+    "2223": {
+      "name": "pewność_niska",
+      "score": 0.554
+    },
+    "7564": {
+      "name": "perswazja_etyczna",
+      "score": 0.587
+    },
+    "2977": {
+      "name": "pewność_średnia",
+      "score": 0.554
+    },
+    "823": {
+      "name": "ocena_intuicyjna",
+      "score": 0.741
+    },
+    "4262": {
+      "name": "konieczność_względna",
+      "score": 0.843
+    }
+  }
+}

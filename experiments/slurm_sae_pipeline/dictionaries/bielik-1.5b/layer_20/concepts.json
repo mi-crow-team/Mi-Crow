@@ -1,0 +1,261 @@
+{
+  "n_size": 6144,
+  "concepts": {
+    "5979": {
+      "name": "warunki_niemożliwe",
+      "score": 0.526
+    },
+    "5651": {
+      "name": "zdania_podrzędne",
+      "score": 0.729
+    },
+    "1647": {
+      "name": "akcje_mentalne",
+      "score": 0.883
+    },
+    "5840": {
+      "name": "liczba_pojedyncza",
+      "score": 0.531
+    },
+    "2553": {
+      "name": "aspekt_niedokonany",
+      "score": 0.531
+    },
+    "3268": {
+      "name": "akcje_fizyczne",
+      "score": 0.888
+    },
+    "5502": {
+      "name": "osoba_druga",
+      "score": 0.682
+    },
+    "5323": {
+      "name": "strona_czynna",
+      "score": 0.924
+    },
+    "3059": {
+      "name": "relacje_społeczne",
+      "score": 0.756
+    },
+    "3588": {
+      "name": "tryb_warunkowy",
+      "score": 0.761
+    },
+    "4239": {
+      "name": "relacje_przyjacielskie",
+      "score": 0.518
+    },
+    "3698": {
+      "name": "obiekty_abstrakcyjne",
+      "score": 0.537
+    },
+    "991": {
+      "name": "strona_bierna",
+      "score": 0.796
+    },
+    "2030": {
+      "name": "akcje_emocjonalne",
+      "score": 0.754
+    },
+    "1840": {
+      "name": "emocje_gniew",
+      "score": 0.642
+    },
+    "524": {
+      "name": "cel_jawny",
+      "score": 0.617
+    },
+    "2769": {
+      "name": "konsekwencja_działania",
+      "score": 0.801
+    },
+    "172": {
+      "name": "osoba_trzecia",
+      "score": 0.641
+    },
+    "4819": {
+      "name": "emocje_zaskoczenie",
+      "score": 0.62
+    },
+    "4537": {
+      "name": "emocje_smutek",
+      "score": 0.559
+    },
+    "1885": {
+      "name": "zdania_złożone",
+      "score": 0.79
+    },
+    "4820": {
+      "name": "cel_ukryty",
+      "score": 0.706
+    },
+    "1804": {
+      "name": "semantyka_pozytywna",
+      "score": 0.918
+    },
+    "58": {
+      "name": "emocje_strach",
+      "score": 0.921
+    },
+    "581": {
+      "name": "porównania_niższości",
+      "score": 0.504
+    },
+    "5798": {
+      "name": "relacje_zawodowe",
+      "score": 0.78
+    },
+    "5169": {
+      "name": "tryb_rozkazujący",
+      "score": 0.753
+    },
+    "482": {
+      "name": "czas_działania",
+      "score": 0.545
+    },
+    "1875": {
+      "name": "strona_zwrotna",
+      "score": 0.742
+    },
+    "552": {
+      "name": "przyczyna_działania",
+      "score": 0.728
+    },
+    "257": {
+      "name": "tryb_oznajmujący",
+      "score": 0.56
+    },
+    "2706": {
+      "name": "warunki_rzeczywiste",
+      "score": 0.657
+    },
+    "580": {
+      "name": "zdania_współrzędne",
+      "score": 0.531
+    },
+    "4211": {
+      "name": "miejsce_działania",
+      "score": 0.61
+    },
+    "1949": {
+      "name": "negacja_częściowa",
+      "score": 0.628
+    },
+    "2281": {
+      "name": "negacja_podwójna",
+      "score": 0.697
+    },
+    "5480": {
+      "name": "obiekty_konkretne",
+      "score": 0.744
+    },
+    "3976": {
+      "name": "porównania_najwyższości",
+      "score": 0.636
+    },
+    "1755": {
+      "name": "pytania_szczegółowe",
+      "score": 0.943
+    },
+    "4417": {
+      "name": "pytania_retoryczne",
+      "score": 0.863
+    },
+    "1083": {
+      "name": "akcje_komunikacyjne",
+      "score": 0.738
+    },
+    "5925": {
+      "name": "relacje_rodzinne",
+      "score": 0.801
+    },
+    "4677": {
+      "name": "pytania_alternatywne",
+      "score": 0.75
+    },
+    "4720": {
+      "name": "czas_przyszły",
+      "score": 0.919
+    },
+    "3872": {
+      "name": "aspekt_dokonany",
+      "score": 0.547
+    },
+    "1990": {
+      "name": "przyczyny_bezpośrednie",
+      "score": 0.895
+    },
+    "3874": {
+      "name": "czas_teraźniejszy",
+      "score": 0.619
+    },
+    "3334": {
+      "name": "warunek_działania",
+      "score": 0.9
+    },
+    "1559": {
+      "name": "porównania_wyższości",
+      "score": 0.834
+    },
+    "772": {
+      "name": "warunki_nierzeczywiste",
+      "score": 0.57
+    },
+    "794": {
+      "name": "negacja_implikowana",
+      "score": 0.627
+    },
+    "5398": {
+      "name": "obiekty_żywotne",
+      "score": 0.595
+    },
+    "3531": {
+      "name": "semantyka_negatywna",
+      "score": 0.654
+    },
+    "2902": {
+      "name": "liczba_mnoga",
+      "score": 0.809
+    },
+    "3469": {
+      "name": "przyczyny_pośrednie",
+      "score": 0.884
+    },
+    "3367": {
+      "name": "skutki_nieoczekiwane",
+      "score": 0.727
+    },
+    "3825": {
+      "name": "osoba_pierwsza",
+      "score": 0.613
+    },
+    "5972": {
+      "name": "negacja_pełna",
+      "score": 0.909
+    },
+    "443": {
+      "name": "porównania_równości",
+      "score": 0.523
+    },
+    "5516": {
+      "name": "skutki_oczekiwane",
+      "score": 0.785
+    },
+    "5353": {
+      "name": "emocje_obrzydzenie",
+      "score": 0.873
+    },
+    "5293": {
+      "name": "obiekty_nieżywotne",
+      "score": 0.52
+    },
+    "806": {
+      "name": "zdania_pojedyncze",
+      "score": 0.65
+    },
+    "496": {
+      "name": "czas_przeszły",
+      "score": 0.559
+    }
+  }
+}

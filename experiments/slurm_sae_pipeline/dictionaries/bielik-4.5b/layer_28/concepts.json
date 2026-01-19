@@ -1,0 +1,261 @@
+{
+  "n_size": 10240,
+  "concepts": {
+    "4291": {
+      "name": "rejestr_niski",
+      "score": 0.854
+    },
+    "2647": {
+      "name": "domena_ekonomiczna",
+      "score": 0.773
+    },
+    "7239": {
+      "name": "relacje_przyczynowe",
+      "score": 0.645
+    },
+    "9038": {
+      "name": "kontekst_informalny",
+      "score": 0.699
+    },
+    "7007": {
+      "name": "procesy_społeczne",
+      "score": 0.804
+    },
+    "9189": {
+      "name": "presupozycje",
+      "score": 0.73
+    },
+    "158": {
+      "name": "domena_naukowa",
+      "score": 0.857
+    },
+    "1832": {
+      "name": "relacje_czasowe",
+      "score": 0.932
+    },
+    "1232": {
+      "name": "kolokacje_neutralne",
+      "score": 0.831
+    },
+    "2442": {
+      "name": "terminologia_fachowa",
+      "score": 0.796
+    },
+    "8938": {
+      "name": "rejestr_wysoki",
+      "score": 0.628
+    },
+    "590": {
+      "name": "synekdochy",
+      "score": 0.799
+    },
+    "6049": {
+      "name": "implikatury",
+      "score": 0.779
+    },
+    "9543": {
+      "name": "wartości_moralne",
+      "score": 0.542
+    },
+    "9052": {
+      "name": "synonimia_częściowa",
+      "score": 0.928
+    },
+    "2426": {
+      "name": "styl_urzędowy",
+      "score": 0.606
+    },
+    "7041": {
+      "name": "relacje_hierarchiczne",
+      "score": 0.64
+    },
+    "2088": {
+      "name": "struktury_organizacyjne",
+      "score": 0.863
+    },
+    "685": {
+      "name": "domena_prawna",
+      "score": 0.566
+    },
+    "5050": {
+      "name": "terminologia_ogólna",
+      "score": 0.521
+    },
+    "5974": {
+      "name": "wartości_emocjonalne",
+      "score": 0.943
+    },
+    "653": {
+      "name": "domena_techniczna",
+      "score": 0.775
+    },
+    "5862": {
+      "name": "eufemizmy",
+      "score": 0.846
+    },
+    "3441": {
+      "name": "frazeologia_neutralna",
+      "score": 0.705
+    },
+    "4088": {
+      "name": "kontekst_akademicki",
+      "score": 0.899
+    },
+    "1684": {
+      "name": "rejestr_specjalistyczny",
+      "score": 0.759
+    },
+    "5794": {
+      "name": "terminologia_specjalistyczna",
+      "score": 0.823
+    },
+    "9173": {
+      "name": "terminologia_techniczna",
+      "score": 0.673
+    },
+    "6658": {
+      "name": "frazeologia_ustabilizowana",
+      "score": 0.68
+    },
+    "10168": {
+      "name": "kontradykcja",
+      "score": 0.566
+    },
+    "2532": {
+      "name": "antonimia_gradientowa",
+      "score": 0.809
+    },
+    "3878": {
+      "name": "procesy_techniczne",
+      "score": 0.902
+    },
+    "2662": {
+      "name": "metafory_live",
+      "score": 0.887
+    },
+    "2900": {
+      "name": "sarkazm",
+      "score": 0.898
+    },
+    "6755": {
+      "name": "procesy_fizyczne",
+      "score": 0.85
+    },
+    "406": {
+      "name": "styl_potoczny",
+      "score": 0.598
+    },
+    "2938": {
+      "name": "procesy_mentalne",
+      "score": 0.862
+    },
+    "5442": {
+      "name": "domena_społeczna",
+      "score": 0.813
+    },
+    "6745": {
+      "name": "struktury_mentalne",
+      "score": 0.709
+    },
+    "4065": {
+      "name": "kontekst_formalny",
+      "score": 0.751
+    },
+    "4371": {
+      "name": "styl_naukowy",
+      "score": 0.913
+    },
+    "2608": {
+      "name": "wartości_pragmatyczne",
+      "score": 0.555
+    },
+    "1771": {
+      "name": "metafory_dead",
+      "score": 0.56
+    },
+    "6267": {
+      "name": "wartości_estetyczne",
+      "score": 0.709
+    },
+    "634": {
+      "name": "struktury_językowe",
+      "score": 0.739
+    },
+    "7711": {
+      "name": "struktury_społeczne",
+      "score": 0.752
+    },
+    "3644": {
+      "name": "frazeologia_zmienna",
+      "score": 0.643
+    },
+    "3269": {
+      "name": "domena_polityczna",
+      "score": 0.84
+    },
+    "7541": {
+      "name": "ironia",
+      "score": 0.699
+    },
+    "5728": {
+      "name": "rejestr_średni",
+      "score": 0.867
+    },
+    "5000": {
+      "name": "synonimia_pełna",
+      "score": 0.901
+    },
+    "3728": {
+      "name": "kolokacje_swobodne",
+      "score": 0.692
+    },
+    "3652": {
+      "name": "metonimie",
+      "score": 0.908
+    },
+    "387": {
+      "name": "domena_kulturalna",
+      "score": 0.701
+    },
+    "3164": {
+      "name": "kontekst_codzienny",
+      "score": 0.572
+    },
+    "6528": {
+      "name": "normy_etyczne",
+      "score": 0.888
+    },
+    "5378": {
+      "name": "pojęcia_konkretne",
+      "score": 0.703
+    },
+    "4564": {
+      "name": "hiperonimia",
+      "score": 0.838
+    },
+    "1137": {
+      "name": "normy_prawne",
+      "score": 0.878
+    },
+    "4573": {
+      "name": "kolokacje_ekspresywne",
+      "score": 0.625
+    },
+    "5753": {
+      "name": "meronimia",
+      "score": 0.85
+    },
+    "8346": {
+      "name": "normy_językowe",
+      "score": 0.718
+    },
+    "6548": {
+      "name": "entailment",
+      "score": 0.608
+    },
+    "8785": {
+      "name": "normy_społeczne",
+      "score": 0.698
+    }
+  }
+}
