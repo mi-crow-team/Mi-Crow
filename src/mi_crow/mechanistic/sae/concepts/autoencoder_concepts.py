@@ -150,6 +150,11 @@ class AutoencoderConcepts:
         """
         Update top texts heaps from latents and texts.
         
+        Optimized version that:
+        - Only processes active neurons (non-zero activations)
+        - Vectorizes argmax/argmin operations
+        - Eliminates per-neuron tensor slicing
+        
         Args:
             latents: Latent activations tensor, shape [B*T, n_latents] or [B, n_latents] (already flattened)
             texts: List of texts corresponding to the batch
@@ -175,39 +180,66 @@ class AutoencoderConcepts:
                 # Use the actual number of texts as batch size
                 B = original_B
                 T = BT // B if B > 0 else 1
-            # Create token indices: [0, 1, 2, ..., T-1, 0, 1, 2, ..., T-1, ...]
-            token_indices = torch.arange(T, device='cpu').unsqueeze(0).expand(B, T).contiguous().view(B * T)
         else:
             # Original was [B, D], latents are [B, n_latents]
-            # All tokens are at index 0
             T = 1
-            token_indices = torch.zeros(BT, dtype=torch.long, device='cpu')
 
-        for j in range(n_neurons):
+        # OPTIMIZATION 1: Find active neurons (have any non-zero activation across batch)
+        # Shape: [n_neurons] - boolean mask
+        active_neurons_mask = (latents.abs().sum(dim=0) > 0)
+        active_neuron_indices = torch.nonzero(active_neurons_mask, as_tuple=False).flatten().tolist()
+        
+        if not active_neuron_indices:
+            return  # No active neurons, skip
+
+        # OPTIMIZATION 2: Vectorize argmax/argmin for all neurons at once
+        if original_shape is not None and len(original_shape) == 3:
+            # Reshape to [B, T, n_neurons]
+            latents_3d = latents.view(B, T, n_neurons)
+            # For each text, find max/min across tokens for each neuron
+            # Shape: [B, n_neurons] - max activation per text per neuron
+            max_activations, max_token_indices_3d = latents_3d.max(dim=1)  # [B, n_neurons]
+            min_activations, min_token_indices_3d = latents_3d.min(dim=1)  # [B, n_neurons]
+            # max_token_indices_3d is already the token index (0 to T-1)
+            max_token_indices = max_token_indices_3d
+            min_token_indices = min_token_indices_3d
+        else:
+            # Shape: [B, n_neurons]
+            latents_2d = latents.view(B, n_neurons)
+            max_activations = latents_2d  # [B, n_neurons]
+            max_token_indices = torch.zeros(B, n_neurons, dtype=torch.long, device=latents.device)
+            min_activations = latents_2d
+            min_token_indices = torch.zeros(B, n_neurons, dtype=torch.long, device=latents.device)
+
+        # Convert to numpy for faster CPU access (already on CPU from l1_sae.py)
+        max_activations_np = max_activations.cpu().numpy()
+        min_activations_np = min_activations.cpu().numpy()
+        max_token_indices_np = max_token_indices.cpu().numpy()
+        min_token_indices_np = min_token_indices.cpu().numpy()
+
+        # OPTIMIZATION 3: Only process active neurons
+        for j in active_neuron_indices:
             heap_positive = self._text_heaps_positive[j]
             heap_negative = self._text_heaps_negative[j] if self._text_tracking_negative else None
 
+            # OPTIMIZATION 4: Batch process all texts for this neuron
             for batch_idx in range(original_B):
                 if batch_idx >= len(texts):
                     continue
 
                 text = texts[batch_idx]
-                text_activations, text_token_indices = self._extract_activations(
-                    latents, token_indices, batch_idx, j, original_shape, T
-                )
-
-                max_idx_positive = torch.argmax(text_activations)
-                max_score_positive = float(text_activations[max_idx_positive].item())
-                token_idx_positive = int(text_token_indices[max_idx_positive].item())
+                
+                # Use pre-computed max/min (no tensor slicing needed!)
+                max_score_positive = float(max_activations_np[batch_idx, j])
+                token_idx_positive = int(max_token_indices_np[batch_idx, j])
 
                 if max_score_positive > 0.0:
                     heap_positive.update(text, max_score_positive, token_idx_positive)
 
                 if self._text_tracking_negative and heap_negative is not None:
-                    min_idx_negative = torch.argmin(text_activations)
-                    min_score_negative = float(text_activations[min_idx_negative].item())
+                    min_score_negative = float(min_activations_np[batch_idx, j])
                     if min_score_negative != 0.0:
-                        token_idx_negative = int(text_token_indices[min_idx_negative].item())
+                        token_idx_negative = int(min_token_indices_np[batch_idx, j])
                         heap_negative.update(text, min_score_negative, token_idx_negative, adjusted_score=-min_score_negative)
     
     def _extract_activations(

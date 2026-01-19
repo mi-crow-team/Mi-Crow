@@ -91,6 +91,7 @@ fi
 echo "SAE paths: $SAE_PATHS"
 echo ""
 
+export PYTHONUNBUFFERED=1
 uv run python "$REPO_DIR/experiments/slurm_sae_pipeline/03_run_inference.py" \
     --config "$CONFIG_FILE" \
     --sae_paths $SAE_PATHS \

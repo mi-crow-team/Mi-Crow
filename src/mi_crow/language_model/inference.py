@@ -189,7 +189,9 @@ class InferenceEngine:
             raise ValueError("Tokenizer must be initialized before running inference")
 
         tok_kwargs = self._prepare_tokenizer_kwargs(tok_kwargs)
+        logger.debug(f"[DEBUG] About to tokenize {len(texts)} texts...")
         enc = self.lm.tokenize(texts, **tok_kwargs)
+        logger.debug(f"[DEBUG] Tokenization completed, shape: {enc['input_ids'].shape if isinstance(enc, dict) else 'N/A'}")
 
         device = torch.device(self.lm.context.device)
         device_type = str(device.type)

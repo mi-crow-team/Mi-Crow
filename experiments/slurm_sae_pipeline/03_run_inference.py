@@ -322,8 +322,7 @@ def main():
     for sae, hook_id, layer_sig in sae_hooks:
         sae.context.text_tracking_negative = TRACK_BOTH
         sae.concepts._text_tracking_negative = TRACK_BOTH
-        sae.concepts._top_texts_heaps = None
-        sae.concepts._top_texts_heaps_negative = None
+        sae.concepts.reset_top_texts()
         sae.concepts.enable_text_tracking()
     
     logger.info("🚀 Running inference to collect texts...")
@@ -335,21 +334,32 @@ def main():
     
     with torch.inference_mode():
         batch_count = 0
+        logger.info("[DEBUG] Starting batch loop...")
         for batch in dataset.iter_batches(BATCH_SIZE):
+            logger.info(f"[DEBUG] Got batch {batch_count+1}, extracting texts...")
             texts = dataset.extract_texts_from_batch(batch)
-            lm.inference.infer_texts(
-                texts,
-                run_name=None,
-                batch_size=None,
-                tok_kwargs={
-                    "max_length": MAX_LENGTH,
-                    "padding": True,
-                    "truncation": True,
-                    "add_special_tokens": True
-                },
-                autocast=False,
-                stop_after_layer=stop_after_layer,
-            )
+            logger.info(f"[DEBUG] Extracted {len(texts)} texts, starting inference...")
+            import time
+            t0 = time.time()
+            try:
+                lm.inference.infer_texts(
+                    texts,
+                    run_name=None,
+                    batch_size=None,
+                    tok_kwargs={
+                        "max_length": MAX_LENGTH,
+                        "padding": True,
+                        "truncation": True,
+                        "add_special_tokens": True
+                    },
+                    autocast=False,
+                    stop_after_layer=stop_after_layer,
+                    verbose=True,
+                )
+                logger.info(f"[DEBUG] Inference completed in {time.time()-t0:.2f}s")
+            except Exception as e:
+                logger.error(f"[DEBUG] Inference failed after {time.time()-t0:.2f}s: {e}", exc_info=True)
+                raise
             
             batch_count += 1
             if batch_count % 10 == 0:
