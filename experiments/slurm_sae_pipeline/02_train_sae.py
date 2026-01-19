@@ -20,6 +20,7 @@ import argparse
 import os
 import torch
 from pathlib import Path
+from datetime import datetime
 
 from dotenv import load_dotenv
 
@@ -109,8 +110,7 @@ def main():
 
     logger.info("📥 Loading language model...")
     store = LocalStore(base_path=STORE_DIR)
-    lm = LanguageModel.from_huggingface(MODEL_ID, store=store)
-    lm.model.to(DEVICE)
+    lm = LanguageModel.from_huggingface(MODEL_ID, store=store, device=DEVICE)
     lm.model.eval()  # Set to evaluation mode
 
     logger.info(f"✅ Model loaded: {lm.model_id}")
@@ -305,7 +305,10 @@ def main():
 
     logger.info("🚀 Starting training (this may take a while)...")
 
-    result = sae.train(store, RUN_ID, layer_signature, config)
+    layer_safe_name = layer_signature.replace("/", "_").replace("\\", "_")
+    custom_training_run_id = f"sae_{layer_safe_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    
+    result = sae.train(store, RUN_ID, layer_signature, config, training_run_id=custom_training_run_id)
     training_run_id = result.get('training_run_id')
     wandb_url = result.get('wandb_url')
 

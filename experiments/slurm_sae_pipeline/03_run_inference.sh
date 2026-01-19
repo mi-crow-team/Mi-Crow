@@ -6,6 +6,7 @@
 #SBATCH -c 2
 #SBATCH --mem=24G
 #SBATCH --gres=gpu:h100:1
+#SBATCH --exclude=hopper-2,dgx-2,dgx-3,sr-1,sr-2
 #SBATCH --job-name=sae-run-inference
 #SBATCH --output=/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/slurm-logs/sae_run_inference-%j.out
 #SBATCH --error=/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/slurm-logs/sae_run_inference-%j.err
@@ -22,6 +23,7 @@ CONFIG_FILE="${CONFIG_FILE:-$REPO_DIR/experiments/slurm_sae_pipeline/configs/con
 
 mkdir -p "$LOG_DIR"
 cd "$REPO_DIR"
+NVIDIA_SMI_LOG="$LOG_DIR/nvidia-smi-%j.log"
 
 echo "=== Job Information ==="
 echo "Node: $(hostname -s)"
@@ -29,6 +31,11 @@ echo "PWD: $(pwd)"
 echo "Date: $(date)"
 echo "GPU: $(nvidia-smi -L 2>/dev/null || echo 'No GPU available')"
 echo ""
+
+echo "Logging GPU usage to $NVIDIA_SMI_LOG"
+nvidia-smi --query-gpu=timestamp,index,name,utilization.gpu,utilization.memory,memory.used,memory.total --format=csv -l 60 > "$NVIDIA_SMI_LOG" &
+SMI_PID=$!
+trap "kill $SMI_PID 2>/dev/null || true" EXIT
 
 UV_BIN="$REPO_DIR/.uv-bin/uv"
 if [[ ! -f "$UV_BIN" ]]; then
@@ -87,8 +94,10 @@ echo ""
 uv run python "$REPO_DIR/experiments/slurm_sae_pipeline/03_run_inference.py" \
     --config "$CONFIG_FILE" \
     --sae_paths $SAE_PATHS \
+    ${TRACK_BOTH:+--track_both} \
     ${TOP_K:+--top_k $TOP_K} \
     ${BATCH_SIZE:+--batch_size $BATCH_SIZE} \
+    ${DUMP_EVERY_N_BATCHES:+--dump_every_n_batches $DUMP_EVERY_N_BATCHES} \
     ${DATA_LIMIT:+--data_limit $DATA_LIMIT}
 
 echo "✅ SAE inference completed!"

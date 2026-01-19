@@ -19,7 +19,8 @@ REPO_DIR="/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow"
 STORE_DIR="${STORE_DIR:-$REPO_DIR/experiments/slurm_sae_pipeline/store}"
 LOG_DIR="${LOG_DIR:-$REPO_DIR/slurm-logs}"
 CONFIG_FILE="${CONFIG_FILE:-$REPO_DIR/experiments/slurm_sae_pipeline/configs/config_bielik12_polemo2.json}"
-RUN_ID="${RUN_ID:-activations_20260117_014020}"
+RUN_ID="${RUN_ID:-}"
+LAYER="${LAYER:-}"
 
 mkdir -p "$LOG_DIR"
 cd "$REPO_DIR"
@@ -79,6 +80,7 @@ fi
 
 uv run python "$REPO_DIR/experiments/slurm_sae_pipeline/02_train_sae.py" \
     --config "$CONFIG_FILE" \
-    --run_id "$RUN_ID"
+    ${RUN_ID:+--run_id "$RUN_ID"} \
+    ${LAYER:+--layer "$LAYER"}
 
 echo "✅ SAE training completed!"

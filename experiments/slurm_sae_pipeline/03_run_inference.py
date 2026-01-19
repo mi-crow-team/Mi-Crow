@@ -112,8 +112,10 @@ def main():
     parser.add_argument("--config", type=str, default=None, help="Path to config JSON file (default: config.json in script directory)")
     parser.add_argument("--top_k", type=int, default=5, help="Number of texts to track per neuron (default: 5, e.g., use --top_k 10 to track 10 texts)")
     parser.add_argument("--track_both", action="store_true", help="Track both positive (top) and negative (bottom) activations (saves both top_texts and bottom_texts files). If not set, only tracks positive (top) activations.")
-    parser.add_argument("--batch_size", type=int, default=None, help="Batch size for inference (default: from config or 16)")
+    parser.add_argument("--batch_size", type=int, default=None, help="Batch size for inference (default: 32, capped even if config is higher)")
+    parser.add_argument("--stop_after_layer", type=str, default=None, help="Optional layer signature or index to stop forward pass after (saves memory)")
     parser.add_argument("--data_limit", type=int, default=None, help="Limit number of samples (default: from config or None)")
+    parser.add_argument("--dump_every_n_batches", type=int, default=250, help="Dump current heaps to JSON every N batches (0 disables)")
     args = parser.parse_args()
     
     if args.config:
@@ -130,7 +132,8 @@ def main():
     TEXT_FIELD = cfg.dataset.text_field
     DATA_LIMIT = args.data_limit or cfg.dataset.data_limit
     MAX_LENGTH = cfg.dataset.max_length
-    BATCH_SIZE = args.batch_size or cfg.dataset.batch_size_save or 16
+    default_batch = cfg.dataset.batch_size_save or 32
+    BATCH_SIZE = args.batch_size or min(default_batch, 32)
     
     LAYER_SIGNATURE = cfg.layer.layer_signature
     if LAYER_SIGNATURE is None:
@@ -143,6 +146,11 @@ def main():
         LAYER_SIGNATURES = [LAYER_SIGNATURE]
     else:
         LAYER_SIGNATURES = LAYER_SIGNATURE
+
+    stop_after_layer = args.stop_after_layer
+    if stop_after_layer is None and LAYER_SIGNATURES:
+        # Stop after the last SAE-attached layer to avoid unnecessary forward passes
+        stop_after_layer = LAYER_SIGNATURES[-1]
     
     STORE_DIR = Path(cfg.storage.store_dir or str(script_dir / "store"))
     DEVICE = cfg.storage.device or ("cuda" if torch.cuda.is_available() else "cpu")
@@ -309,6 +317,8 @@ def main():
     inference_run_dir = STORE_DIR / "runs" / inference_run_id
     inference_run_dir.mkdir(parents=True, exist_ok=True)
     
+    dump_every_n_batches = args.dump_every_n_batches
+
     for sae, hook_id, layer_sig in sae_hooks:
         sae.context.text_tracking_negative = TRACK_BOTH
         sae.concepts._text_tracking_negative = TRACK_BOTH
@@ -338,11 +348,22 @@ def main():
                     "add_special_tokens": True
                 },
                 autocast=False,
+                stop_after_layer=stop_after_layer,
             )
             
             batch_count += 1
             if batch_count % 10 == 0:
                 logger.info(f"   Processed {batch_count} batches...")
+
+            if dump_every_n_batches and dump_every_n_batches > 0 and (batch_count % dump_every_n_batches == 0):
+                logger.info(f"💾 Dumping heaps at batch {batch_count} to: {inference_run_dir}")
+                for i, (sae, hook_id, layer_sig) in enumerate(sae_hooks):
+                    layer_safe = layer_sig.replace("/", "_")
+                    dump_top_path = inference_run_dir / f"top_texts_layer_{i}_{layer_safe}_batch_{batch_count}.json"
+                    sae.concepts.export_top_texts_to_json(dump_top_path)
+                    if TRACK_BOTH:
+                        dump_bottom_path = inference_run_dir / f"bottom_texts_layer_{i}_{layer_safe}_batch_{batch_count}.json"
+                        sae.concepts.export_bottom_texts_to_json(dump_bottom_path)
     
     logger.info("✅ Inference completed")
     
