@@ -15,6 +15,7 @@ Usage:
 """
 
 import argparse
+import gc
 import json
 import os
 import torch
@@ -374,6 +375,32 @@ def main():
                     if TRACK_BOTH:
                         dump_bottom_path = inference_run_dir / f"bottom_texts_layer_{i}_{layer_safe}_batch_{batch_count}.json"
                         sae.concepts.export_bottom_texts_to_json(dump_bottom_path)
+            
+            # MEMORY LEAK FIX: Clear accumulated tensors and metadata after each batch
+            for sae, hook_id, layer_sig in sae_hooks:
+                # Clear tensor_metadata to free GPU/CPU memory
+                if 'neurons' in sae.tensor_metadata:
+                    del sae.tensor_metadata['neurons']
+                if 'activations' in sae.tensor_metadata:
+                    del sae.tensor_metadata['activations']
+                # Clear metadata batch_items list
+                if 'batch_items' in sae.metadata:
+                    del sae.metadata['batch_items']
+            
+            # Clear ModelInputDetector state
+            if hasattr(input_detector, 'clear_captured'):
+                input_detector.clear_captured()
+            
+            # Force garbage collection and clear CUDA cache
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            
+            # Log memory usage periodically
+            if batch_count % 10 == 0 and torch.cuda.is_available():
+                mem_allocated = torch.cuda.memory_allocated() / 1e9
+                mem_reserved = torch.cuda.memory_reserved() / 1e9
+                logger.info(f"💾 CUDA memory: {mem_allocated:.2f} GB allocated, {mem_reserved:.2f} GB reserved")
     
     logger.info("✅ Inference completed")
     

@@ -169,7 +169,7 @@ def main():
     sample_batch = store.get_run_batch(RUN_ID, batches[0])
     if isinstance(sample_batch, dict):
         if num_layers == 1:
-            activations = sample_batch.get("activations")
+        activations = sample_batch.get("activations")
         else:
             activations = sample_batch.get(f"activations_{layer_signature}")
     elif isinstance(sample_batch, list):

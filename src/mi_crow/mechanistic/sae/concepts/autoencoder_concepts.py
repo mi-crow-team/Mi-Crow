@@ -182,6 +182,7 @@ class AutoencoderConcepts:
                 T = BT // B if B > 0 else 1
         else:
             # Original was [B, D], latents are [B, n_latents]
+            B = original_B
             T = 1
 
         # OPTIMIZATION 1: Find active neurons (have any non-zero activation across batch)
