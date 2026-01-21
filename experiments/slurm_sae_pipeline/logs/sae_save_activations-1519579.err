@@ -1,0 +1,182 @@
+Audited 188 packages in 134ms
+2026-01-17 01:40:20,182 [INFO] __main__: 🚀 Starting Activation Saving
+01:40:20 [INFO] __main__: 🚀 Starting Activation Saving
+2026-01-17 01:40:20,182 [INFO] __main__: 📱 Using device: cpu
+01:40:20 [INFO] __main__: 📱 Using device: cpu
+2026-01-17 01:40:20,182 [INFO] __main__: 🔧 Model: speakleash/Bielik-1.5B-v3.0-Instruct
+01:40:20 [INFO] __main__: 🔧 Model: speakleash/Bielik-1.5B-v3.0-Instruct
+2026-01-17 01:40:20,182 [INFO] __main__: 📊 Dataset: clarin-pl/polemo2-official
+01:40:20 [INFO] __main__: 📊 Dataset: clarin-pl/polemo2-official
+2026-01-17 01:40:20,182 [INFO] __main__: 📊 Data limit: None
+01:40:20 [INFO] __main__: 📊 Data limit: None
+2026-01-17 01:40:20,182 [INFO] __main__: 💾 Run ID: activations_20260117_014020
+01:40:20 [INFO] __main__: 💾 Run ID: activations_20260117_014020
+2026-01-17 01:40:20,182 [INFO] __main__: 📁 Store directory: /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/experiments/slurm_sae_pipeline/store
+01:40:20 [INFO] __main__: 📁 Store directory: /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/experiments/slurm_sae_pipeline/store
+2026-01-17 01:40:20,182 [INFO] __main__: 🎯 Target layers (2): llamaforcausallm_model_layers_15_post_attention_layernorm, llamaforcausallm_model_layers_20_post_attention_layernorm
+01:40:20 [INFO] __main__: 🎯 Target layers (2): llamaforcausallm_model_layers_15_post_attention_layernorm, llamaforcausallm_model_layers_20_post_attention_layernorm
+2026-01-17 01:40:20,183 [INFO] __main__: 📥 Loading language model...
+01:40:20 [INFO] __main__: 📥 Loading language model...
+2026-01-17 01:40:26,641 [INFO] __main__: ✅ Model loaded: speakleash_Bielik-1.5B-v3.0-Instruct
+01:40:26 [INFO] __main__: ✅ Model loaded: speakleash_Bielik-1.5B-v3.0-Instruct
+2026-01-17 01:40:26,641 [INFO] __main__: 📱 Device: cpu
+01:40:26 [INFO] __main__: 📱 Device: cpu
+2026-01-17 01:40:26,641 [INFO] __main__: 📁 Store location: /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/experiments/slurm_sae_pipeline/store
+01:40:26 [INFO] __main__: 📁 Store location: /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/experiments/slurm_sae_pipeline/store
+2026-01-17 01:40:26,641 [INFO] __main__: 🎯 Target layers (2): llamaforcausallm_model_layers_15_post_attention_layernorm, llamaforcausallm_model_layers_20_post_attention_layernorm
+01:40:26 [INFO] __main__: 🎯 Target layers (2): llamaforcausallm_model_layers_15_post_attention_layernorm, llamaforcausallm_model_layers_20_post_attention_layernorm
+2026-01-17 01:40:26,641 [INFO] __main__: 📍 Layer type: resid_mid (after attention, before MLP)
+01:40:26 [INFO] __main__: 📍 Layer type: resid_mid (after attention, before MLP)
+2026-01-17 01:40:26,641 [INFO] __main__: 📥 Loading dataset...
+01:40:26 [INFO] __main__: 📥 Loading dataset...
+2026-01-17 01:40:26,641 [INFO] __main__: 📥 Using HuggingFace datasets server API for polemo2-official...
+01:40:26 [INFO] __main__: 📥 Using HuggingFace datasets server API for polemo2-official...
+Saving the dataset (0/1 shards):   0%|          | 0/4000 [00:00<?, ? examples/s]Saving the dataset (1/1 shards): 100%|██████████| 4000/4000 [00:00<00:00, 508431.30 examples/s]Saving the dataset (1/1 shards): 100%|██████████| 4000/4000 [00:00<00:00, 496940.73 examples/s]
+2026-01-17 01:40:27,205 [INFO] __main__: ✅ Loaded 4000 text samples from dataset
+01:40:27 [INFO] __main__: ✅ Loaded 4000 text samples from dataset
+2026-01-17 01:40:27,205 [INFO] __main__: 📊 Using all 4000 available rows (no data limit)
+01:40:27 [INFO] __main__: 📊 Using all 4000 available rows (no data limit)
+2026-01-17 01:40:27,205 [INFO] __main__: 💾 Saving activations...
+01:40:27 [INFO] __main__: 💾 Saving activations...
+2026-01-17 01:40:27,205 [INFO] __main__:    Batch size: 64
+01:40:27 [INFO] __main__:    Batch size: 64
+2026-01-17 01:40:27,205 [INFO] __main__:    Max length: 256
+01:40:27 [INFO] __main__:    Max length: 256
+2026-01-17 01:40:27,206 [INFO] mi_crow.language_model.activations: Starting save_activations_dataset: run=activations_20260117_014020, layers=['llamaforcausallm_model_layers_15_post_attention_layernorm', 'llamaforcausallm_model_layers_20_post_attention_layernorm'], batch_size=64, device=cpu
+01:40:27 [INFO] mi_crow.language_model.activations: Starting save_activations_dataset: run=activations_20260117_014020, layers=['llamaforcausallm_model_layers_15_post_attention_layernorm', 'llamaforcausallm_model_layers_20_post_attention_layernorm'], batch_size=64, device=cpu
+2026-01-17 01:45:14,825 [INFO] mi_crow.language_model.activations: Saved batch 0 for run=activations_20260117_014020
+01:45:14 [INFO] mi_crow.language_model.activations: Saved batch 0 for run=activations_20260117_014020
+2026-01-17 01:48:29,906 [INFO] mi_crow.language_model.activations: Saved batch 1 for run=activations_20260117_014020
+01:48:29 [INFO] mi_crow.language_model.activations: Saved batch 1 for run=activations_20260117_014020
+2026-01-17 01:52:51,385 [INFO] mi_crow.language_model.activations: Saved batch 2 for run=activations_20260117_014020
+01:52:51 [INFO] mi_crow.language_model.activations: Saved batch 2 for run=activations_20260117_014020
+2026-01-17 01:59:59,450 [INFO] mi_crow.language_model.activations: Saved batch 3 for run=activations_20260117_014020
+01:59:59 [INFO] mi_crow.language_model.activations: Saved batch 3 for run=activations_20260117_014020
+2026-01-17 02:02:39,220 [INFO] mi_crow.language_model.activations: Saved batch 4 for run=activations_20260117_014020
+02:02:39 [INFO] mi_crow.language_model.activations: Saved batch 4 for run=activations_20260117_014020
+2026-01-17 02:05:59,247 [INFO] mi_crow.language_model.activations: Saved batch 5 for run=activations_20260117_014020
+02:05:59 [INFO] mi_crow.language_model.activations: Saved batch 5 for run=activations_20260117_014020
+2026-01-17 02:10:01,776 [INFO] mi_crow.language_model.activations: Saved batch 6 for run=activations_20260117_014020
+02:10:01 [INFO] mi_crow.language_model.activations: Saved batch 6 for run=activations_20260117_014020
+2026-01-17 02:15:44,328 [INFO] mi_crow.language_model.activations: Saved batch 7 for run=activations_20260117_014020
+02:15:44 [INFO] mi_crow.language_model.activations: Saved batch 7 for run=activations_20260117_014020
+2026-01-17 02:18:50,911 [INFO] mi_crow.language_model.activations: Saved batch 8 for run=activations_20260117_014020
+02:18:50 [INFO] mi_crow.language_model.activations: Saved batch 8 for run=activations_20260117_014020
+2026-01-17 02:22:29,732 [INFO] mi_crow.language_model.activations: Saved batch 9 for run=activations_20260117_014020
+02:22:29 [INFO] mi_crow.language_model.activations: Saved batch 9 for run=activations_20260117_014020
+2026-01-17 02:26:11,352 [INFO] mi_crow.language_model.activations: Saved batch 10 for run=activations_20260117_014020
+02:26:11 [INFO] mi_crow.language_model.activations: Saved batch 10 for run=activations_20260117_014020
+2026-01-17 02:31:52,174 [INFO] mi_crow.language_model.activations: Saved batch 11 for run=activations_20260117_014020
+02:31:52 [INFO] mi_crow.language_model.activations: Saved batch 11 for run=activations_20260117_014020
+2026-01-17 02:36:21,643 [INFO] mi_crow.language_model.activations: Saved batch 12 for run=activations_20260117_014020
+02:36:21 [INFO] mi_crow.language_model.activations: Saved batch 12 for run=activations_20260117_014020
+2026-01-17 02:39:11,477 [INFO] mi_crow.language_model.activations: Saved batch 13 for run=activations_20260117_014020
+02:39:11 [INFO] mi_crow.language_model.activations: Saved batch 13 for run=activations_20260117_014020
+2026-01-17 02:42:27,931 [INFO] mi_crow.language_model.activations: Saved batch 14 for run=activations_20260117_014020
+02:42:27 [INFO] mi_crow.language_model.activations: Saved batch 14 for run=activations_20260117_014020
+2026-01-17 02:49:05,247 [INFO] mi_crow.language_model.activations: Saved batch 15 for run=activations_20260117_014020
+02:49:05 [INFO] mi_crow.language_model.activations: Saved batch 15 for run=activations_20260117_014020
+2026-01-17 02:52:05,603 [INFO] mi_crow.language_model.activations: Saved batch 16 for run=activations_20260117_014020
+02:52:05 [INFO] mi_crow.language_model.activations: Saved batch 16 for run=activations_20260117_014020
+2026-01-17 02:57:02,709 [INFO] mi_crow.language_model.activations: Saved batch 17 for run=activations_20260117_014020
+02:57:02 [INFO] mi_crow.language_model.activations: Saved batch 17 for run=activations_20260117_014020
+2026-01-17 03:00:17,192 [INFO] mi_crow.language_model.activations: Saved batch 18 for run=activations_20260117_014020
+03:00:17 [INFO] mi_crow.language_model.activations: Saved batch 18 for run=activations_20260117_014020
+2026-01-17 03:04:19,111 [INFO] mi_crow.language_model.activations: Saved batch 19 for run=activations_20260117_014020
+03:04:19 [INFO] mi_crow.language_model.activations: Saved batch 19 for run=activations_20260117_014020
+2026-01-17 03:07:49,877 [INFO] mi_crow.language_model.activations: Saved batch 20 for run=activations_20260117_014020
+03:07:49 [INFO] mi_crow.language_model.activations: Saved batch 20 for run=activations_20260117_014020
+2026-01-17 03:14:10,271 [INFO] mi_crow.language_model.activations: Saved batch 21 for run=activations_20260117_014020
+03:14:10 [INFO] mi_crow.language_model.activations: Saved batch 21 for run=activations_20260117_014020
+2026-01-17 03:17:48,936 [INFO] mi_crow.language_model.activations: Saved batch 22 for run=activations_20260117_014020
+03:17:48 [INFO] mi_crow.language_model.activations: Saved batch 22 for run=activations_20260117_014020
+2026-01-17 03:21:38,438 [INFO] mi_crow.language_model.activations: Saved batch 23 for run=activations_20260117_014020
+03:21:38 [INFO] mi_crow.language_model.activations: Saved batch 23 for run=activations_20260117_014020
+2026-01-17 03:24:39,232 [INFO] mi_crow.language_model.activations: Saved batch 24 for run=activations_20260117_014020
+03:24:39 [INFO] mi_crow.language_model.activations: Saved batch 24 for run=activations_20260117_014020
+2026-01-17 03:29:08,117 [INFO] mi_crow.language_model.activations: Saved batch 25 for run=activations_20260117_014020
+03:29:08 [INFO] mi_crow.language_model.activations: Saved batch 25 for run=activations_20260117_014020
+2026-01-17 03:33:09,977 [INFO] mi_crow.language_model.activations: Saved batch 26 for run=activations_20260117_014020
+03:33:09 [INFO] mi_crow.language_model.activations: Saved batch 26 for run=activations_20260117_014020
+2026-01-17 03:37:11,745 [INFO] mi_crow.language_model.activations: Saved batch 27 for run=activations_20260117_014020
+03:37:11 [INFO] mi_crow.language_model.activations: Saved batch 27 for run=activations_20260117_014020
+2026-01-17 03:43:25,809 [INFO] mi_crow.language_model.activations: Saved batch 28 for run=activations_20260117_014020
+03:43:25 [INFO] mi_crow.language_model.activations: Saved batch 28 for run=activations_20260117_014020
+2026-01-17 03:49:40,707 [INFO] mi_crow.language_model.activations: Saved batch 29 for run=activations_20260117_014020
+03:49:40 [INFO] mi_crow.language_model.activations: Saved batch 29 for run=activations_20260117_014020
+2026-01-17 03:52:22,530 [INFO] mi_crow.language_model.activations: Saved batch 30 for run=activations_20260117_014020
+03:52:22 [INFO] mi_crow.language_model.activations: Saved batch 30 for run=activations_20260117_014020
+2026-01-17 03:57:32,890 [INFO] mi_crow.language_model.activations: Saved batch 31 for run=activations_20260117_014020
+03:57:32 [INFO] mi_crow.language_model.activations: Saved batch 31 for run=activations_20260117_014020
+2026-01-17 03:59:47,581 [INFO] mi_crow.language_model.activations: Saved batch 32 for run=activations_20260117_014020
+03:59:47 [INFO] mi_crow.language_model.activations: Saved batch 32 for run=activations_20260117_014020
+2026-01-17 04:02:48,003 [INFO] mi_crow.language_model.activations: Saved batch 33 for run=activations_20260117_014020
+04:02:48 [INFO] mi_crow.language_model.activations: Saved batch 33 for run=activations_20260117_014020
+2026-01-17 04:06:51,561 [INFO] mi_crow.language_model.activations: Saved batch 34 for run=activations_20260117_014020
+04:06:51 [INFO] mi_crow.language_model.activations: Saved batch 34 for run=activations_20260117_014020
+2026-01-17 04:13:14,355 [INFO] mi_crow.language_model.activations: Saved batch 35 for run=activations_20260117_014020
+04:13:14 [INFO] mi_crow.language_model.activations: Saved batch 35 for run=activations_20260117_014020
+2026-01-17 04:17:18,411 [INFO] mi_crow.language_model.activations: Saved batch 36 for run=activations_20260117_014020
+04:17:18 [INFO] mi_crow.language_model.activations: Saved batch 36 for run=activations_20260117_014020
+2026-01-17 04:29:10,940 [INFO] mi_crow.language_model.activations: Saved batch 37 for run=activations_20260117_014020
+04:29:10 [INFO] mi_crow.language_model.activations: Saved batch 37 for run=activations_20260117_014020
+2026-01-17 04:32:54,813 [INFO] mi_crow.language_model.activations: Saved batch 38 for run=activations_20260117_014020
+04:32:54 [INFO] mi_crow.language_model.activations: Saved batch 38 for run=activations_20260117_014020
+2026-01-17 04:37:31,181 [INFO] mi_crow.language_model.activations: Saved batch 39 for run=activations_20260117_014020
+04:37:31 [INFO] mi_crow.language_model.activations: Saved batch 39 for run=activations_20260117_014020
+2026-01-17 04:40:40,266 [INFO] mi_crow.language_model.activations: Saved batch 40 for run=activations_20260117_014020
+04:40:40 [INFO] mi_crow.language_model.activations: Saved batch 40 for run=activations_20260117_014020
+2026-01-17 04:43:05,577 [INFO] mi_crow.language_model.activations: Saved batch 41 for run=activations_20260117_014020
+04:43:05 [INFO] mi_crow.language_model.activations: Saved batch 41 for run=activations_20260117_014020
+2026-01-17 04:46:41,460 [INFO] mi_crow.language_model.activations: Saved batch 42 for run=activations_20260117_014020
+04:46:41 [INFO] mi_crow.language_model.activations: Saved batch 42 for run=activations_20260117_014020
+2026-01-17 04:49:41,852 [INFO] mi_crow.language_model.activations: Saved batch 43 for run=activations_20260117_014020
+04:49:41 [INFO] mi_crow.language_model.activations: Saved batch 43 for run=activations_20260117_014020
+2026-01-17 04:53:17,858 [INFO] mi_crow.language_model.activations: Saved batch 44 for run=activations_20260117_014020
+04:53:17 [INFO] mi_crow.language_model.activations: Saved batch 44 for run=activations_20260117_014020
+2026-01-17 04:56:51,048 [INFO] mi_crow.language_model.activations: Saved batch 45 for run=activations_20260117_014020
+04:56:51 [INFO] mi_crow.language_model.activations: Saved batch 45 for run=activations_20260117_014020
+2026-01-17 05:00:07,763 [INFO] mi_crow.language_model.activations: Saved batch 46 for run=activations_20260117_014020
+05:00:07 [INFO] mi_crow.language_model.activations: Saved batch 46 for run=activations_20260117_014020
+2026-01-17 05:03:35,271 [INFO] mi_crow.language_model.activations: Saved batch 47 for run=activations_20260117_014020
+05:03:35 [INFO] mi_crow.language_model.activations: Saved batch 47 for run=activations_20260117_014020
+2026-01-17 05:07:24,469 [INFO] mi_crow.language_model.activations: Saved batch 48 for run=activations_20260117_014020
+05:07:24 [INFO] mi_crow.language_model.activations: Saved batch 48 for run=activations_20260117_014020
+2026-01-17 05:10:08,861 [INFO] mi_crow.language_model.activations: Saved batch 49 for run=activations_20260117_014020
+05:10:08 [INFO] mi_crow.language_model.activations: Saved batch 49 for run=activations_20260117_014020
+2026-01-17 05:15:17,390 [INFO] mi_crow.language_model.activations: Saved batch 50 for run=activations_20260117_014020
+05:15:17 [INFO] mi_crow.language_model.activations: Saved batch 50 for run=activations_20260117_014020
+2026-01-17 05:19:55,338 [INFO] mi_crow.language_model.activations: Saved batch 51 for run=activations_20260117_014020
+05:19:55 [INFO] mi_crow.language_model.activations: Saved batch 51 for run=activations_20260117_014020
+2026-01-17 05:24:02,226 [INFO] mi_crow.language_model.activations: Saved batch 52 for run=activations_20260117_014020
+05:24:02 [INFO] mi_crow.language_model.activations: Saved batch 52 for run=activations_20260117_014020
+2026-01-17 05:30:11,768 [INFO] mi_crow.language_model.activations: Saved batch 53 for run=activations_20260117_014020
+05:30:11 [INFO] mi_crow.language_model.activations: Saved batch 53 for run=activations_20260117_014020
+2026-01-17 05:33:39,693 [INFO] mi_crow.language_model.activations: Saved batch 54 for run=activations_20260117_014020
+05:33:39 [INFO] mi_crow.language_model.activations: Saved batch 54 for run=activations_20260117_014020
+2026-01-17 05:38:39,501 [INFO] mi_crow.language_model.activations: Saved batch 55 for run=activations_20260117_014020
+05:38:39 [INFO] mi_crow.language_model.activations: Saved batch 55 for run=activations_20260117_014020
+2026-01-17 05:45:52,313 [INFO] mi_crow.language_model.activations: Saved batch 56 for run=activations_20260117_014020
+05:45:52 [INFO] mi_crow.language_model.activations: Saved batch 56 for run=activations_20260117_014020
+2026-01-17 05:57:45,585 [INFO] mi_crow.language_model.activations: Saved batch 57 for run=activations_20260117_014020
+05:57:45 [INFO] mi_crow.language_model.activations: Saved batch 57 for run=activations_20260117_014020
+2026-01-17 06:01:16,272 [INFO] mi_crow.language_model.activations: Saved batch 58 for run=activations_20260117_014020
+06:01:16 [INFO] mi_crow.language_model.activations: Saved batch 58 for run=activations_20260117_014020
+2026-01-17 06:05:45,461 [INFO] mi_crow.language_model.activations: Saved batch 59 for run=activations_20260117_014020
+06:05:45 [INFO] mi_crow.language_model.activations: Saved batch 59 for run=activations_20260117_014020
+2026-01-17 06:07:54,987 [INFO] mi_crow.language_model.activations: Saved batch 60 for run=activations_20260117_014020
+06:07:54 [INFO] mi_crow.language_model.activations: Saved batch 60 for run=activations_20260117_014020
+2026-01-17 06:10:12,109 [INFO] mi_crow.language_model.activations: Saved batch 61 for run=activations_20260117_014020
+06:10:12 [INFO] mi_crow.language_model.activations: Saved batch 61 for run=activations_20260117_014020
+2026-01-17 06:12:38,255 [INFO] mi_crow.language_model.activations: Saved batch 62 for run=activations_20260117_014020
+06:12:38 [INFO] mi_crow.language_model.activations: Saved batch 62 for run=activations_20260117_014020
+2026-01-17 06:12:38,256 [INFO] mi_crow.language_model.activations: Completed save_activations_dataset: run=activations_20260117_014020, batches_saved=63
+06:12:38 [INFO] mi_crow.language_model.activations: Completed save_activations_dataset: run=activations_20260117_014020, batches_saved=63
+2026-01-17 06:12:38,266 [INFO] __main__: ✅ Activations saved!
+06:12:38 [INFO] __main__: ✅ Activations saved!
+2026-01-17 06:12:38,266 [INFO] __main__: 📁 Run name: activations_20260117_014020
+06:12:38 [INFO] __main__: 📁 Run name: activations_20260117_014020
+2026-01-17 06:12:38,266 [INFO] __main__: 📦 Saved 63 batches to store
+06:12:38 [INFO] __main__: 📦 Saved 63 batches to store
+2026-01-17 06:12:38,268 [INFO] __main__: 💾 Run ID saved to: /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/experiments/slurm_sae_pipeline/store/run_id.txt
+06:12:38 [INFO] __main__: 💾 Run ID saved to: /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/experiments/slurm_sae_pipeline/store/run_id.txt

@@ -1,0 +1,18 @@
+=== Job Information ===
+Node: dgx-4
+PWD: /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow
+Date: Sat Jan 17 01:40:04 AM CET 2026
+GPU: GPU 0: NVIDIA A100-SXM4-40GB (UUID: GPU-ae9c0a0a-b084-6a5a-bbcf-6e90e0f7c47b)
+
+Using uv: /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/.uv-bin/uv
+uv version: uv 0.9.26
+
+Setting up Python environment...
+Syncing dependencies with uv...
+
+=== Starting Activation Saving ===
+Config file: /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/experiments/slurm_sae_pipeline/configs/config_bielik12_polemo2.json
+Store directory: /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/experiments/slurm_sae_pipeline/store
+
+
+=== Job completed at Sat Jan 17 06:12:58 AM CET 2026 ===
