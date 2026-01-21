@@ -710,16 +710,117 @@ def aggregate_metrics(
     Returns:
         Aggregated metrics dictionary
     """
+    # Build metadata mapping
+    metadata_mapping = {
+        "activation_runs": {},
+        "training_runs": {},
+        "inference_jobs": {},
+        "run_relationships": {},
+    }
+    
+    # Map activation runs
+    for run_id, run_data in activation_metrics.items():
+        metadata_mapping["activation_runs"][run_id] = {
+            "run_id": run_id,
+            "model": "bielik12" if "bielik12" in run_id else "bielik45",
+            "logs": [log.get("job_id") for log in run_data.get("logs", []) if log.get("job_id")],
+            "gpu_metrics": run_data.get("gpu_metrics"),
+        }
+    
+    # Map training runs with full config details
+    for run_id, run_data in training_metrics.items():
+        training_data = run_data.get("training_data", {})
+        meta = training_data.get("meta", {})
+        model_params = training_data.get("model_params", {})
+        
+        training_config = meta.get("training_config", {})
+        final_metrics = meta.get("final_metrics", {})
+        
+        metadata_mapping["training_runs"][run_id] = {
+            "run_id": run_id,
+            "layer_signature": meta.get("layer_signature"),
+            "sae_type": meta.get("sae_type"),
+            "activation_run_id": meta.get("activation_run_id"),
+            "model_id": meta.get("model_id"),
+            "training_config": {
+                "epochs": training_config.get("epochs"),
+                "batch_size": training_config.get("batch_size"),
+                "learning_rate": training_config.get("lr"),
+                "l1_lambda": training_config.get("l1_lambda"),
+                "device": training_config.get("device"),
+                "use_amp": training_config.get("use_amp"),
+                "clip_grad": training_config.get("clip_grad"),
+                "monitoring": training_config.get("monitoring"),
+            },
+            "final_metrics": {
+                "loss": final_metrics.get("loss"),
+                "r2": final_metrics.get("r2"),
+                "recon_mse": final_metrics.get("recon_mse"),
+                "l1": final_metrics.get("l1"),
+                "l0": final_metrics.get("l0"),
+                "dead_features_pct": final_metrics.get("dead_features_pct"),
+            },
+            "n_epochs": meta.get("n_epochs"),
+            "timestamp": meta.get("timestamp"),
+            "logs": [log.get("job_id") for log in run_data.get("logs", []) if log.get("job_id")],
+            "gpu_metrics": run_data.get("gpu_metrics"),
+        }
+        
+        # Build relationships
+        activation_run_id = meta.get("activation_run_id")
+        if activation_run_id:
+            if activation_run_id not in metadata_mapping["run_relationships"]:
+                metadata_mapping["run_relationships"][activation_run_id] = {
+                    "activation_run": activation_run_id,
+                    "training_runs": [],
+                    "inference_jobs": [],
+                }
+            metadata_mapping["run_relationships"][activation_run_id]["training_runs"].append(run_id)
+    
+    # Map inference jobs
+    for job_name, job_data in inference_metrics.items():
+        job_id = job_data.get("job_id")
+        logs = job_data.get("logs", {})
+        
+        metadata_mapping["inference_jobs"][job_name] = {
+            "job_id": job_id,
+            "job_name": job_name,
+            "node": logs.get("node"),
+            "gpu_model": logs.get("gpu_model"),
+            "start_time": logs.get("start_time"),
+            "end_time": logs.get("end_time"),
+            "gpu_metrics": job_data.get("gpu_metrics"),
+            "inference_metrics": job_data.get("inference_metrics"),
+        }
+    
+    # Build summary statistics
+    summary = {
+        "total_activation_jobs": len(activation_metrics),
+        "total_training_jobs": len(training_metrics),
+        "total_inference_jobs": len(inference_metrics),
+        "models": list(set([
+            "bielik12" if "bielik12" in rid else "bielik45"
+            for rid in activation_metrics.keys()
+        ])),
+        "layers": [
+            training_metrics[rid].get("training_data", {}).get("meta", {}).get("layer_signature")
+            for rid in training_metrics.keys()
+            if training_metrics[rid].get("training_data", {}).get("meta", {}).get("layer_signature")
+        ],
+        "sae_types": list(set([
+            training_metrics[rid].get("training_data", {}).get("meta", {}).get("sae_type")
+            for rid in training_metrics.keys()
+            if training_metrics[rid].get("training_data", {}).get("meta", {}).get("sae_type")
+        ])),
+    }
+    
     return {
         "analysis_timestamp": datetime.now().isoformat(),
+        "metadata_mapping": metadata_mapping,
         "activation_saving": activation_metrics,
         "training": training_metrics,
         "inference": inference_metrics,
-        "summary": {
-            "total_activation_jobs": len(activation_metrics),
-            "total_training_jobs": len(training_metrics),
-            "total_inference_jobs": len(inference_metrics),
-        },
+        "summary": summary,
     }
 
 
