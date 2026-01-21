@@ -36,7 +36,9 @@ from mi_crow.mechanistic.sae.modules.l1_sae import L1Sae
 
 logger = get_logger(__name__)
 
-project_root = Path("/Users/adam/Projects/Inzynierka/codebase/experiments/slurm_sae_pipeline/")
+# Find project root dynamically
+script_dir = Path(__file__).parent
+project_root = script_dir
 CONFIG_FILE = project_root / "configs" / "config_bielik12_polemo2.json"
 RESULTS_DIR = project_root / "results" / "concept_experiments"
 CONCEPT_DICTS_DIR = project_root  / "dictionaries"

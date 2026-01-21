@@ -217,13 +217,14 @@ def main():
     logger.info(f"✅ Loaded {len(dataset)} text samples from dataset")
     
     if DATA_LIMIT is not None:
-    if len(dataset) > DATA_LIMIT:
-        logger.info(f"📊 Randomly sampling {DATA_LIMIT} rows from {len(dataset)} total rows...")
-        dataset = dataset.random_sample(DATA_LIMIT)
-        logger.info(f"✅ Sampled {len(dataset)} text samples")
+        if len(dataset) > DATA_LIMIT:
+            logger.info(f"📊 Randomly sampling {DATA_LIMIT} rows from {len(dataset)} total rows...")
+            dataset = dataset.random_sample(DATA_LIMIT)
+            logger.info(f"✅ Sampled {len(dataset)} text samples")
+        else:
+            logger.info(f"📊 Using all {len(dataset)} available rows (less than requested {DATA_LIMIT})")
     else:
-        logger.info(f"📊 Using all {len(dataset)} available rows (less than requested {DATA_LIMIT})")
-    else:
+        logger.info(f"📊 Using all {len(dataset)} available rows (no data limit)")
         logger.info(f"📊 Using all {len(dataset)} available rows (no data limit)")
 
     logger.info("💾 Saving activations...")

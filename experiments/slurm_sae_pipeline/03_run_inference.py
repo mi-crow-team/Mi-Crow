@@ -319,7 +319,7 @@ def main():
     inference_run_dir.mkdir(parents=True, exist_ok=True)
     
     dump_every_n_batches = args.dump_every_n_batches
-
+    
     for sae, hook_id, layer_sig in sae_hooks:
         sae.context.text_tracking_negative = TRACK_BOTH
         sae.concepts._text_tracking_negative = TRACK_BOTH
@@ -344,19 +344,19 @@ def main():
             t0 = time.time()
             try:
                 lm.inference.infer_texts(
-                    texts,
-                    run_name=None,
-                    batch_size=None,
-                    tok_kwargs={
-                        "max_length": MAX_LENGTH,
-                        "padding": True,
-                        "truncation": True,
-                        "add_special_tokens": True
-                    },
-                    autocast=False,
+                texts,
+                run_name=None,
+                batch_size=None,
+                tok_kwargs={
+                    "max_length": MAX_LENGTH,
+                    "padding": True,
+                    "truncation": True,
+                    "add_special_tokens": True
+                },
+                autocast=False,
                     stop_after_layer=stop_after_layer,
                     verbose=True,
-                )
+            )
                 logger.info(f"[DEBUG] Inference completed in {time.time()-t0:.2f}s")
             except Exception as e:
                 logger.error(f"[DEBUG] Inference failed after {time.time()-t0:.2f}s: {e}", exc_info=True)
