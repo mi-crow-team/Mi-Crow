@@ -1,0 +1,1864 @@
+================================================================================
+CONCEPT DICTIONARY REPORT
+================================================================================
+
+Total concepts: 64
+Generated: 07_create_dictionaries_from_texts.py
+
+================================================================================
+
+
+================================================================================
+Feature 760: działać
+Score: 1.000
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 24.047
+   Token: '<token_84_out_of_range>' (index 84)
+   Text: To jest pierwszy minus , jaki jej dajÄ : pewnoÅÄ , Å¼e przecieÅ¼ dlaczego jej terapia miaÅa nie zadziaÅaÄ , skoro za wysoki testosteron to przypadek
+
+2. Activation: 23.812
+   Token: '<token_111_out_of_range>' (index 111)
+   Text: Pani dermatolog w kwietniu stwierdziÅa , ze nie mam Åzs skoro jakiÅ tam lek przeciwgrzybiczny na mnie nie zadziaÅaÅ - 3 kolejnych dermatologÃ³w oraz badanie u trychologa potwierdziÅo jednak moja diagnozÄ .
+
+3. Activation: 23.362
+   Token: '<token_105_out_of_range>' (index 105)
+   Text: Raz pamiÄtam przestaÅa dziaÅaÄ jak naleÅ¼y , ale przyjechali serwisanci , wymienili
+
+4. Activation: 23.106
+   Token: '�' (index 51)
+   Text: Å gumÄ . - przycisk odbioru / inicjowania rozmÃ³w ( sÅuchawka ) : skok przycisku nie do wyczucia , nie wiadomo czy juÅ¼ zadziaÅaÅ czy nie - powinien byÄ taki jak te do regulacji gÅoÅnoÅci .
+
+5. Activation: 22.744
+   Token: '<token_153_out_of_range>' (index 153)
+   Text: Na pchÅy nadal dziaÅa .
+
+
+================================================================================
+Feature 105: warunkowe_wyrażenia
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 25.806
+   Token: 'i' (index 38)
+   Text: Tym bardziej jeÅli chcecie siÄ leczyÄ , naturalnie , bez zbÄdnych proszkÃ³w i wesoÅej atmosferze !
+
+2. Activation: 25.538
+   Token: '<token_94_out_of_range>' (index 94)
+   Text: c siÄ do ceny pÅacimy jedynie za usytuowanie w pobliÅ¼u morze , bo jeÅli chodzi o warunki lokalowe to w kwaterach wrypanych za 1 / 3 ceny spotykaÅa m siÄ z luksusem w porÃ³wnaniu do
+
+3. Activation: 23.865
+   Token: '<token_85_out_of_range>' (index 85)
+   Text: Korzstalismy ze sniadan i obiadokolacji . . . sniadania ok , kontynentalne , jest wybor i naprawde nie mozna wyjsc glodnym . . . jesli chodzi o obiadokolacje . . . unikajcie .
+
+4. Activation: 23.709
+   Token: '<token_96_out_of_range>' (index 96)
+   Text: JeÅli szukasz czegoÅ taniego , w pozytywnym klimacie , ten hotel jest dla ciebie , ale jeÅli oczekujesz 5 - gwiazdkowej jakoÅci za niewielkie
+
+5. Activation: 23.437
+   Token: 'kto' (index 132)
+   Text: sztuÄce to nie ma talerzy , serio - ktoÅ kto to prowadzi powinien siÄ popukaÄ w gÅowÄ i trochÄ pomyÅleÄ , wystarczy zainwestowaÄ 1000zÅ w dodatkowe nakrycia i filiÅ¼anki , naprawdÄ to nie duÅ¼o a ile zmieni w wizerunku ; - ) , ale cÃ³Å jeÅli ktoÅ myÅli tylko o zarabianiu pieniÄdzy , to nie ma siÄ co dziwiÄ .
+
+
+================================================================================
+Feature 243: polskie_hotele
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 30.856
+   Token: '<token_89_out_of_range>' (index 89)
+   Text: Bywam w wielu hotelach w Polsce i za
+
+2. Activation: 29.295
+   Token: '<token_149_out_of_range>' (index 149)
+   Text: To bardzo pomocne szczegÃ³lnie wÃ³wczas gdy do hotelu przyjeÅ¼dÅ¼a tylu PolakÃ³w .
+
+3. Activation: 29.035
+   Token: '<token_127_out_of_range>' (index 127)
+   Text: cych siÄ firm technologicznie innowacyjnych z regionu Europy Centralnej ( Albania , BoÅnia - Hercegowina , BuÅgaria , Chorwacja , Czechy , Estonia , WÄgry , Litwa , Åotwa , Macedonia , MoÅdawia , CzarnogÃ³ra , Polska , Rumunia , Serbia , SÅowacja , SÅowenia ) .
+
+4. Activation: 28.990
+   Token: '<token_82_out_of_range>' (index 82)
+   Text: W naszej czÄÅci Europy wynosi on 9 , 2 proc . , w porÃ³wnaniu do 4 , 1 proc . Åredniej Åwiatowej i 3 , 4 proc . Åredniej europejskiej .
+
+5. Activation: 28.650
+   Token: '<token_104_out_of_range>' (index 104)
+   Text: Tylko 18 proc . dorosÅych PolakÃ³w chodzi pieszo do pracy lub jeÅºdzi do niej rowerem , przy czym zajmuje im to przewaÅ¼nie nie dÅuÅ¼ej niÅ¼ 15 minut .
+
+
+================================================================================
+Feature 765: pytanie_dlaczego
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 27.242
+   Token: 'le' (index 46)
+   Text: Pan doktor wypisaÅ dziecku 4 leki , kiedy zapytaÅa m na co one i dlaczego az 4 , usÅyszalam ze moge zmniejszyc ilosc lekow o poÅowÄ , a nawet o 70 % .
+
+2. Activation: 25.967
+   Token: 'nikt' (index 150)
+   Text: Opinia na podstawie kursuwo elektroniczne [ wyklad ] Na wydziale : W - 12 WEMiF wyklady na niewiele sie przydaja , bo sa zbyt szybko proszadzone i zbyt chaotyczne do 9 wykladu mozna uczyc sie z notatek przygotowanych do wykladow przez pania Dr . od 10 wykladu mozna sie juz modlic o oswiecenie , albo szukac kogos komu sie to udalo zrozumiec kolokwia jesli oblejesz to poprawkowe kolokwia czesto , maja podobno sprawdzic kto uczeszczal na zajecia i odzwierciedlic ogolny poziom wiedzy nie za bardzo ogolnie to mila osoba , ktora nie wie dlaczego nikt nie mozna miernikow zrozumiec nie jest , az tak tragicznie , ale dobrze tez nie jest Przebieg semestru : 1 - sze kolokwium - zdalo ok 50 % osob 2 - gie kolokwium - zdalo 15 osob na 120 1 - zestaw poprawkowych kolokwÃ³w : ogolna liczba osob konczacych do tego momentu kurs to ok [.] 50 na 120 2 ( ostatnie ) - z terminow poprawkowych 14.02 ( czyli srodek zapisow : ( : ( tragedia , ze az do tego musialem czekac ) .
+
+3. Activation: 22.789
+   Token: '<token_75_out_of_range>' (index 75)
+   Text: Lekarze tylko sie zastanawiali jak to moÅ¼liwe i dlaczego zostaÅa podjÄta taka decyzja .
+
+4. Activation: 22.575
+   Token: '<token_148_out_of_range>' (index 148)
+   Text: Teraz juz wiemy dlaczego w taki piekny dzien wakacji tak malo ludzi tam bylo .
+
+5. Activation: 21.497
+   Token: '<token_45_out_of_range>' (index 45)
+   Text: Nie rozumiem dlaczego dostaÅa m koÅska dawkÄ antybiotyku rozpisana na
+
+
+================================================================================
+Feature 872: obiekt_noclegowy
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 30.736
+   Token: '<token_44_out_of_range>' (index 44)
+   Text: Nasza grupa wynajela domek , ktÃ³ry nie speÅniaÅ nawet najniÅ¼szych standardÃ³w .
+
+2. Activation: 30.218
+   Token: '<token_79_out_of_range>' (index 79)
+   Text: Otrzymalismy pokÃ³j , ktÃ³ry nie byÅ zgodny z zamÃ³wieniem , przy uwzglÄdnieniu , Å¼e rezerwacji dokonaÅ em w marcu 2014 roku .
+
+3. Activation: 29.882
+   Token: '<token_68_out_of_range>' (index 68)
+   Text: zek ) i zmieniÅa m lekarza na innego , ktÃ³ry potrafi wysÅuchaÄ pacjenta i wyleczyÄ .
+
+4. Activation: 29.127
+   Token: 'jest' (index 124)
+   Text: ZwÅaszcza Å¼e jestem krÃ³tko po skomplikowanej operacji , tÅukÅ em siÄ o kulach tramwajem przez caÅe miasto , i musiaÅem zejÅÄ i wejÅÄ z drugiego piÄtra i to wszystko z mocnym bÃ³lem stopy , ale to pana doktora nie interesuje , bo on ma charmonogram , ktÃ³ry jest dla niego ÅwiÄty .
+
+5. Activation: 28.928
+   Token: '<token_69_out_of_range>' (index 69)
+   Text: Na szczÄÅcie trafiÅa m do innego proktologa w innym mieÅcie , ktÃ³ry w
+
+
+================================================================================
+Feature 883: zaliczenie
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 45.215
+   Token: '<token_48_out_of_range>' (index 48)
+   Text: Jak ci do zaliczenia brakuje 0 , 5 pkt to choÄbyÅ bÅagaÅ na kolanach nie otrzymasz zaliczenia .
+
+2. Activation: 43.577
+   Token: '<token_86_out_of_range>' (index 86)
+   Text: dziesz to za free nie zaliczy .
+
+3. Activation: 42.339
+   Token: '<token_62_out_of_range>' (index 62)
+   Text: Z mojej grupy zaliczyli wszyscy i to raczej na 4 lub 5 .
+
+4. Activation: 42.212
+   Token: '<token_94_out_of_range>' (index 94)
+   Text: Z drugiej strony , jeÅli ktoÅ nigdy nie miaÅ kontaktu z programowaniem , to musi siÄ przyÅoÅ¼yÄ , bo nie zaliczy .
+
+5. Activation: 42.116
+   Token: '<token_68_out_of_range>' (index 68)
+   Text: gnie Ci jeden punkt , bo akurat tyle Ci brakuje do zaliczenia .
+
+
+================================================================================
+Feature 903: wiedza
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 26.597
+   Token: '<token_66_out_of_range>' (index 66)
+   Text: Ma teÅ¼ doÅwiadczenie , nie tylko wiedzÄ
+
+2. Activation: 25.765
+   Token: ',' (index 17)
+   Text: Profesjonalizm to nie tylko merytoryczna wiedza i doÅwiadczenie , ale rÃ³wnieÅ¼ umiejÄtnoÅÄ przekazania informacji i uwaga , [ktÃ³ra] powinna byÄ skoncentrowana na leczeniu i pomaganiu ludziom ( za ich wÅasne
+
+3. Activation: 23.865
+   Token: '<token_72_out_of_range>' (index 72)
+   Text: Ogromna wiedza i kompetencje .
+
+4. Activation: 23.576
+   Token: 'tylko' (index 56)
+   Text: wykÅad z Mechaniki ogÃ³lnej i mimo iÅ¼ miaÅ em 4 , 5 to nie wspominam tego za dobrze poprostu nie ma wÅasnej wiedzy na kole tylko na blaszkÄ trzeba wykÅuÄ pytania przykÅadowe ehhh tak to niech siÄ
+
+5. Activation: 22.593
+   Token: '<token_61_out_of_range>' (index 61)
+   Text: cych odpowiedzi od lekarza a nie dopytywania siÄ ( przecieÅ¼ nie o wszytskim wiemy jeÅli jest to pierwsza
+
+
+================================================================================
+Feature 1252: czasowniki_związane_z_trwaniem
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 27.545
+   Token: '<token_80_out_of_range>' (index 80)
+   Text: Nasz pobyt trwaÅ 15 dni .
+
+2. Activation: 26.166
+   Token: '<token_75_out_of_range>' (index 75)
+   Text: Najmniej aktywni w trakcie przemieszczania siÄ do lub z pracy
+
+3. Activation: 25.883
+   Token: 'wese' (index 16)
+   Text: Zalezalo nam na goracych daniach i zeby w czasie trwania wesela bylo podane dnie w stylu [udziec] ktory wjedzie na sale w calosci , chcielismy cos efektywnego zeby mialo to swoj urok , pani Magda zaproponowala nam plonace szaszlyki a nastepnie golonki .
+
+4. Activation: 24.400
+   Token: '<token_60_out_of_range>' (index 60)
+   Text: Przez caÅy czas trwania wizyty czuÅa m siÄ bardzo dziwnie .
+
+5. Activation: 23.210
+   Token: '<token_143_out_of_range>' (index 143)
+   Text: Gdyby nie rozmowa przez telefon w trakcie badania , moja wizyta zamiast 45 minut , trwaÅa by ledwo 15 .
+
+
+================================================================================
+Feature 1615: nie tylko
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 27.222
+   Token: '<token_134_out_of_range>' (index 134)
+   Text: WÃ³wczas miasto bÄdzie przeÅ¼ywaÅo najazd samochodÃ³w nie tylko z Czech , ale i z Polski .
+
+2. Activation: 27.052
+   Token: '<token_82_out_of_range>' (index 82)
+   Text: , Åatwo byÅo zauwaÅ¼yÄ nie tylko
+
+3. Activation: 26.476
+   Token: '<token_54_out_of_range>' (index 54)
+   Text: , nawet duÅ¼o , ale bez nich trudno nie tylko mÃ³wiÄ , ale nawet marzyÄ o rozwoju i postÄpie .
+
+4. Activation: 25.793
+   Token: 'podopie' (index 59)
+   Text: Drogi pacjencie pamiÄtaj o tym , iÅ¼ Pan dr teÅ¼ jest czÅowiekiem , ma swÃ³j honor i szacunek takÅ¼e do swojej pracy nie tylko dla swoich podopiecznych ! ! !
+
+5. Activation: 25.718
+   Token: '<token_77_out_of_range>' (index 77)
+   Text: cenÄ zrobiÄ przy okazji plastykÄ nie tylko blizny ale i brzucha po
+
+
+================================================================================
+Feature 2512: czasownik_stwierdzić
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 35.781
+   Token: '<token_138_out_of_range>' (index 138)
+   Text: Dopiero wtedy stwierdzano zgon , choÄ nerki czÄsto byÅy juÅ¼ mocno zniszczone , nie zawsze nadawaÅy siÄ do przeszczepu .
+
+2. Activation: 34.613
+   Token: '<token_154_out_of_range>' (index 154)
+   Text: Gdy trafilismy do innego szpitala lekarz stwierdzil , ze zastosowalby zupelnie odmienny schemat leczenia .
+
+3. Activation: 33.320
+   Token: '<token_93_out_of_range>' (index 93)
+   Text: Po jednej wizycie nie mogÄ stwierdziÄ jakim jest lekarzem w swojej dziedzinie ale jest najdroÅ¼szym jakiego do tej pory spotkaÅa m .
+
+4. Activation: 33.253
+   Token: '<token_180_out_of_range>' (index 180)
+   Text: Zadowolony stwierdziÅ em Å¼e statystycznie to juÅ¼ siÄ nie powinno powtÃ³rzyÄ .
+
+5. Activation: 32.003
+   Token: '<token_63_out_of_range>' (index 63)
+   Text: Potwierdzam , z uÅmiechem na ustach bedzie ci udowadnial ze i tak nic nie potrafisz , ale moze w koÅcu stwierdzi ze laskawie ci zaliczy .
+
+
+================================================================================
+Feature 3046: krytyka_usług
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 25.858
+   Token: 'wi' (index 219)
+   Text: byÄ cztery gwiazdki pokoje maÅe Åazienki zniszczone i bardzo malusie meble stare w pokojach zniszczone telewizji prawie Å¼adnej jak za komuny cztery kanaÅy i goodbye jedzenie beznadziejne monotonia w kaÅ¼dy dzieÅ osiadania nie wspomnÄ jajecznica parÃ³wki KieÅbasa ser i omlety masakra obiadokolacjÄ nie inaczej za kaÅ¼dy PosiÅek ktÃ³ry chciaÅ em wynieÅ muszÄ zapÅaciÄ atrakcje dla dzieci poÅ¼al siÄ BoÅ¼e , basenie zimna woda duÅ¼o ludzi do Sauny nie ma szans wejÅÄ co tu wiÄcej pisaÄ nieudany jeden tydzieÅ wakacji odnoÅnie hotelu reszta ok Kudowa fajne miasto i atrakcji duÅ¼o nie polecam tego hotelu I wiÄcej na pewno z niego nie skorzystam
+
+2. Activation: 24.251
+   Token: '<token_126_out_of_range>' (index 126)
+   Text: MoÅ¼na spacerowaÄ kilometrami . . . . coÅ tam jest co
+
+3. Activation: 23.536
+   Token: 'po' (index 5)
+   Text: Nigdzie nie ma gdzie pojsc [po] kolacji jest tylko ping pong wegetacja w pokoju jakxktos nie ma auta to lipa.zarcie wydzielane male porcje ( obiad jeden byl w miare ok ale jedna kulka ziemniaka miesa malo moze ze 100 gram i na talerzu surowka a i miala starczyc na 4 osoby gdzie dla mnie starczy na max 3 , godziny sztywne posilkow przykladowo 8 : 30 i koniec nie ma cie to nie zjesz , jedzenie nie dokladane na snadaniu ) Wszedzie sie trzeba zapisywac to na basen to saune pewnie wszedzie znajac zycie .
+
+4. Activation: 23.143
+   Token: 'na' (index 56)
+   Text: Å»arÃ³wki masakra , zmieniÅ em na Ring . . . coÅ tam 120 % w zlotoczarnym opakowaniu , totalna przepaÅÄ na + .
+
+5. Activation: 22.375
+   Token: 'i' (index 107)
+   Text: Wizyta byÅa krÃ³tka , punktualnie zaproszono mnie do gabinetu , lekarz byÅ Å¼yczliwy , spokojnie objaÅniÅ istotÄ mojego problemu i potwierdziÅ zasadnoÅÄ operacji , ale nie dowiedziaÅa m siÄ szczegÃ³ÅÃ³w , gdzie i jak taka operacja miaÅa by siÄ odbyÄ , ani nie otrzymaÅa m Å¼adnego pisemnego potwierdzenia diagnozy czy zapisu zaleceÅ .
+
+
+================================================================================
+Feature 3809: pozytywne_opinie
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 22.581
+   Token: '<token_77_out_of_range>' (index 77)
+   Text: Kto tutaj pisze pozytywne recenzje ?
+
+2. Activation: 21.505
+   Token: '<token_124_out_of_range>' (index 124)
+   Text: opinii pozytywnych o tym hotelu .
+
+3. Activation: 20.897
+   Token: '<token_90_out_of_range>' (index 90)
+   Text: Nie wiem jeszcze jak jest z zaliczeniem u Pani Dr Janickiej , bo dopiero co zaczynam u niej kurs , ale pierwsze wraÅ¼enie pozytywne .
+
+4. Activation: 20.638
+   Token: '<token_119_out_of_range>' (index 119)
+   Text: Do pani Grzesiak poszÅa m sugerujac sie opiniami na tej stronie , nikt nie napisaÅ negatywnej opinii .
+
+5. Activation: 20.421
+   Token: '<token_67_out_of_range>' (index 67)
+   Text: Jedynym plusem ( dodatnim ) byly mile panie recepcjonistki .
+
+
+================================================================================
+Feature 4093: pokoje_hotelowe
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 34.342
+   Token: '<token_56_out_of_range>' (index 56)
+   Text: Bardzo nieprzyjemny Pan , studentÃ³w ( szczegÃ³lnie 1 roku ) traktuje z gÃ³ry , krzyczy na studentÃ³w .
+
+2. Activation: 34.254
+   Token: '<token_85_out_of_range>' (index 85)
+   Text: Pokoik czysty i przyjemny , maleÅka Åazienka i klimatyzacja ( niestety bardzo przestarzaÅa , wysuszyÅa nam gardÅa ) .
+
+3. Activation: 33.979
+   Token: '<token_79_out_of_range>' (index 79)
+   Text: to ok . 80euro ( Skoda Fabia z biaÅym dachem : - ) ) .
+
+4. Activation: 33.047
+   Token: 'Mur' (index 47)
+   Text: 165 hoteli sieci B & B Hotels zlokalizowanych we Francji nabyÅy za 508 mln euro ( 644 mln USD ) od funduszu Carlyle Group , Fonciere des Murs SCA , Credit Agricole SA ( ACA ) â s Assurances i Assurances du Credit Mutuel .
+
+5. Activation: 32.227
+   Token: 'z' (index 107)
+   Text: Niestety na miejscu okazaÅo siÄ , Å¼e dostali Åmy klucze do pokoju w drugim budynku hotelu po drugiej stronie ulicy , ktÃ³ry w niczym nie przypominaÅ hotelu ze zdjÄÄ i folderÃ³w : ( Na domiar zÅego nie miaÅ wÅasnego tarasu , a wszystkie okna ( z sypialni i trasowe ) wychodziÅy na ogÃ³lnodostÄpny basen .
+
+
+================================================================================
+Feature 4133: zdrowie
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 21.156
+   Token: '<token_114_out_of_range>' (index 114)
+   Text: Å¼liwy - prowadzi do obniÅ¼enia jakoÅci Å¼ycia , moÅ¼e powodowaÄ strach przed odwiedzaniem miejsc publicznych i podrÃ³Å¼owaniem , a w konsekwencji - niekorzystnie wpÅywaÄ na funkcjonowanie chorych w spoÅeczeÅstwie .
+
+2. Activation: 21.112
+   Token: '<token_165_out_of_range>' (index 165)
+   Text: dzenie moÅ¼e sÅuÅ¼yÄ niemowlÄtom zagroÅ¼onym zespoÅem nagÅej Åmierci ÅÃ³Å¼eczkowej , jak i osobom dorosÅym , gdy zachodzi koniecznoÅÄ badania jakoÅci snu lub monitorowania parametrÃ³w oddechu , np . ze wzglÄdu na przewlekÅe schorzenia ukÅadu drÃ³g oddechowych , takie jak astma oskrzelowa czy mukowiscydoza .
+
+3. Activation: 20.799
+   Token: '<token_67_out_of_range>' (index 67)
+   Text: organizmu , zapobiega kolonizacji przewodu pokarmowego przez bakterie chorobotwÃ³rcze , a takÅ¼e pomaga w rozkÅadaniu niestrawionych polisacharydÃ³w i bÅonnika .
+
+4. Activation: 20.327
+   Token: '<token_94_out_of_range>' (index 94)
+   Text: udaje siÄ uzyskaÄ najwaÅ¼niejsze cele terapeutyczne , tj . odpowiedni poziom glukozy ( mierzony wskaÅºnikiem hemoglobiny glikowanej HbA1c ) , ciÅnienia tÄtniczego oraz lipidÃ³w ( cholesterolu ) we krwi .
+
+5. Activation: 20.304
+   Token: '<token_124_out_of_range>' (index 124)
+   Text: Ä na zwiÄkszenie przepÅywu mÃ³zgowego tak , Å¼eby byÅo wiÄcej odÅ¼ywczej krwi , " Å¼eby te neurony , ktÃ³re przetrwaÅy u chorych urazy , poczuÅy siÄ lepiej , byÅy lepiej odÅ¼ywione â .
+
+
+================================================================================
+Feature 4366: oceny_i_opinie
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 32.988
+   Token: 'patrzy' (index 85)
+   Text: po wizycie pÅatnej prywatnej wyszlam zachwycona . . . sam zaprosiÅ mnie na leczenie do siebie na nfz . . . a tam juÅ¼ widzimy innego czÅowieka ktÃ³ry traktuje pacjenta jak wroga intruza . . . nawet na wyniki badan nie chciaÅo mu sie patrzyc .
+
+2. Activation: 31.183
+   Token: 'nie' (index 107)
+   Text: Klakociar - Ciepacz Magdalena , dr Fizyka 1 , 2 Ocena : [ / b ] jesli ktos lubi skikac do tablicy to polecam ta Pania , jest 0 , 5 pkt ( Fizyka 2 ) i 1 pkt ( Fizyka 1 ) za podejscie do tablicy ; jesli jednak ktos oczekuje zrozumialego wytlumaczenia i nie udziela sie na zajeciach to stanowczo odradzam ; na zajeciach jest tak ze jesli nikt sie nie zglasza to jest ciiiiisza i moze ona trwac bbbb dlugo bo Pani dr uwaza ze to studenci maja rozw zadania , a nie Ona kolokwia sa czasami trudne - jak ktos nie umie kombinowac [ze] wzorami to bedzie mu ciezko u tej Pani ; nigdy nie wiadomo czego sie spodziewac ; trzeba pamietac wszytskei wzorki . . zmieniam by bylo przejzysciej : ) Opinia na podstawie kursu Fizyka 1 , Fizyka 2 Na wydziale : Chemicznym SposÃ³b prowadzenia zajÄÄ : podchodzisz do tablicy i robisz zadanka , tylko chetni Czy potrafi nauczyÄ ? : NIE Podstawa oceny w indeksie / zaliczenia : kolokwia + aktyw Niespodziewajki : brak calkowity Poczucie humoru , Pani dr jest usmiechnieta osobka OgÃ³lne podejÅcie do studenta : przyjazne ale ocen nie naciaga , nawet o 1 pkt
+
+3. Activation: 27.942
+   Token: 'to' (index 93)
+   Text: Opinia na podstawie kursuwo elektroniczne [ wyklad ] Na wydziale : W - 12 WEMiF wyklady na niewiele sie przydaja , bo sa zbyt szybko proszadzone i zbyt chaotyczne do 9 wykladu mozna uczyc sie z notatek przygotowanych do wykladow przez pania Dr . od 10 wykladu mozna sie juz modlic o oswiecenie , albo szukac kogos komu sie to udalo zrozumiec kolokwia jesli oblejesz to poprawkowe kolokwia czesto , maja podobno sprawdzic kto uczeszczal na zajecia i odzwierciedlic ogolny poziom wiedzy nie za bardzo ogolnie to mila osoba , ktora nie wie [dlaczego] nikt nie mozna miernikow zrozumiec nie jest , az tak tragicznie , ale dobrze tez nie jest Przebieg semestru : 1 - sze kolokwium - zdalo ok 50 % osob 2 - gie kolokwium - zdalo 15 osob na 120 1 - zestaw poprawkowych kolokwÃ³w : ogolna liczba osob konczacych do tego momentu kurs to ok . 50 na 120 2 ( ostatnie ) - z terminow poprawkowych 14.02 ( czyli srodek zapisow : ( : ( tragedia , ze az do tego musialem czekac ) .
+
+4. Activation: 27.262
+   Token: '<token_89_out_of_range>' (index 89)
+   Text: Pani trochÄ starej daty , wiÄc ma okreÅlone juÅ¼ zasady ktÃ³rych sie trzyma .
+
+5. Activation: 26.265
+   Token: 'innej' (index 68)
+   Text: OgÃ³lnie to tragedia zaczynajac od brudu i nieprzyjemnych zapachÃ³w poprzez przepalony tv , burczace pompy sciekow , rozwalona wersalke z ktorej sie spada konczac na dziurze w scianie lazienki czy ledwo zaszpachlowanej innej w pokoju .
+
+
+================================================================================
+Feature 5735: obiadokolacje
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 30.003
+   Token: '<token_78_out_of_range>' (index 78)
+   Text: PosiÅki ( Åniadania i obiadokolacje w formie bufetu ) smaczne i nieoklepane .
+
+2. Activation: 29.274
+   Token: 'tu' (index 8)
+   Text: Obiadokolacje w formie bufetu tematycznego teÅ¼ nie powalaÅy [-] 2 zupy , saÅata , 2 dania gÅÃ³wne , deser - np . kuchnia francuska - niestety tylko zupa cebulowa zaÅ reszta jakby polska : ( , deser w stylu - kupne gotowe spody babeczek wypeÅnione
+
+3. Activation: 27.254
+   Token: '<token_87_out_of_range>' (index 87)
+   Text: Bylismy tam z partneka w pazdzierniku 2017 wspaniale wakacje super hotel z przemilom obsuga szczegolne podziekowania dla Elena , Sokorbis , Nikos Christos , Napoleon i obsugi z recepcji .
+
+4. Activation: 26.807
+   Token: '�' (index 29)
+   Text: DuÅ¼a pojemna szafa z pÃ³Åkami i wieszakami do tego w Årodku sejf , deska do prasowania z Å¼elazkiem .
+
+5. Activation: 26.660
+   Token: 'kow' (index 63)
+   Text: Hotel ogolnie bardzo ladny polozony na wzgorzu przyprzepieknej plazy z bialym piaskiem niedaleko malowniczego miasteczka Moro Jable ( polecam odwiedzenie ) jedzenie dobre kazdy znajdzie cos dla siebie , niestety w pakiecie all inclusive tylko 5 drinkow alkoholowych reszta za doplata piwo wylacznie z nalewaka w butelce rowniez za doplata , brak muzyki przy basenach , brak suszarki na balkolnie , winda tylko [w] glownym budynki , tam gdzie my mieszkalismy na 2 pietrze , codziennie wnoszenie wozka naszego dziecka oraz bagazy w dniu przylotu i wylotu bardzo uciazliwe , mala ilosc kelnerow szczegolnie przy kolacji
+
+
+================================================================================
+Feature 146: funkcjonalność
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 21.644
+   Token: '<token_51_out_of_range>' (index 51)
+   Text: Pokoje funkcjonalne i
+
+2. Activation: 21.623
+   Token: '-' (index 17)
+   Text: TrafiÅa m do SUPER SPECJALISTY - - moÅ¼e duÅ¼o droÅ¼szy ale po pierwszej wizycie dowiedziaÅa m siÄ [o] diagnozie i co dalej robiÄ . nIE BYÅ TAK KONTAKTOWY JAK POPRZEDNICZKA , ALE TO NIE MIAÅO Å»ADNEGO ZNACZENIA Nie otrzymaÅa m recepty na leki na katar za 100zÅ jak to Pani doktor potrafi , TYLKO FACHOWÄ POMOC .
+
+3. Activation: 21.474
+   Token: '<token_94_out_of_range>' (index 94)
+   Text: instrukcjÄ jak mam postÄpowaÄ Å¼eby optymalnie skrÃ³ciÄ czas leczenia .
+
+4. Activation: 21.370
+   Token: '<token_66_out_of_range>' (index 66)
+   Text: Jest to bardzo specyficzny obiektyw , manualne ostrzenie , dla ludzi ktÃ³rzy
+
+5. Activation: 21.231
+   Token: '<token_71_out_of_range>' (index 71)
+   Text: Bardziej stabilny i dynamiczny wzrost
+
+
+================================================================================
+Feature 3882: rzeczowniki_zbiorowe
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 22.570
+   Token: '<token_75_out_of_range>' (index 75)
+   Text: , bo w tym okresie z takimi rodzajami bÃ³lu przychodzi wiele osÃ³b , jak
+
+2. Activation: 22.356
+   Token: 'bio' (index 78)
+   Text: Bakteria ta w naturze bytuje na niektÃ³rych produktach spoÅ¼ywczych , szczegÃ³lnie owocach , pojawia siÄ w procesie kiszenia ogÃ³rkÃ³w , a na Dalekim Wschodzie jest wykorzystywana do naturalnej produkcji rÃ³Å¼nego rodzaju biofilmÃ³w , czyli bÅon zbudowanych z polisacharydÃ³w .
+
+3. Activation: 22.333
+   Token: '<token_57_out_of_range>' (index 57)
+   Text: one byÄ stosowane pomocniczo w rÃ³Å¼nego typu schorzeniach , ale ja wolaÅa by m siÄ skonsultowaÄ z innym lekarzem ( bardziej tradycyjnym ) .
+
+4. Activation: 22.270
+   Token: '<token_102_out_of_range>' (index 102)
+   Text: Koktajle robione od serca i co tylko siÄ chciaÅo ( oczywiÅcie bez czarnego J Walkera itp ) Piwo Tuborg - lepsze od naszych sikÃ³w typu lech czy tyskie itp .
+
+5. Activation: 21.598
+   Token: ',' (index 57)
+   Text: wiÄkszoÅÄ tych negatywnych opinii o Pani doktor opiera siÄ na sformuÅowaniach typu : , , bo nie byÅa miÅa ; , , , byÅa znudzona , , , zimna ; itd . , itp . .
+
+
+================================================================================
+Feature 47: wyjaśnianie
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 29.060
+   Token: '<token_86_out_of_range>' (index 86)
+   Text: Lekarz na nasza szczescie pogratulowaÅ wyniku mezowi , przy czym wyjasniÅ bardzo dokÅadnie co i jak .
+
+2. Activation: 25.478
+   Token: '<token_103_out_of_range>' (index 103)
+   Text: DokÅadnie , ale przystÄpnie wyjaÅniono mi co i jak .
+
+3. Activation: 25.381
+   Token: 'i' (index 18)
+   Text: W czasie badania lekarz wyjaÅniaÅ to , co robi i co zdiagnozowaÅ , a po badaniu jeszcze dokÅadnie [to] wytÅumaczyÅ przy uÅ¼yciu odpowiednich obrazkÃ³w i zdjÄÄ .
+
+4. Activation: 24.638
+   Token: '<token_66_out_of_range>' (index 66)
+   Text: Jedynie dawaÅ jakieÅ uwagi na temat tego czego jest zamaÅo , co powinno sie jeszcze tu znaleÅºÄ itp .
+
+5. Activation: 24.383
+   Token: '<token_75_out_of_range>' (index 75)
+   Text: W gabinecie lekarz trzyma 5 minut , gdy zadajÄ pytania , to mnie zbywa , nie chce wytÅumaczyÄ , co jest nie tak , rozmawia przez telefon , jednym sÅowem olewa pacjenta .
+
+
+================================================================================
+Feature 351: świetlica
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 34.931
+   Token: '' (index 45)
+   Text: Na miejscu do dyspozycji goÅci wszystko czego dusza zapragnie : kajak , ÅÃ³dka , rowery , basen , dwa stawy , jezioro , grill , " Åwietlica " z bilardem i piÅkarzykami stoÅowymi , plac zabaw dla dzieci .
+
+2. Activation: 33.212
+   Token: '<token_75_out_of_range>' (index 75)
+   Text: Zgadzam siÄ z poniÅ¼szymi opiniami , Å¼e Pani doktor jest delikatna , bardzo sympatyczna i jest " Åwietnym ginekologiem " jeÅli ma do czynienia z bezproblemowym przypadkiem .
+
+3. Activation: 33.055
+   Token: '<token_93_out_of_range>' (index 93)
+   Text: Standardowo otoczony " zarezerwowanymi " leÅ¼akami , mimo , Å¼e
+
+4. Activation: 32.882
+   Token: '<token_81_out_of_range>' (index 81)
+   Text: Lokalizacja bardzo dobra , po drugiej stronie ulicy malutka plaÅ¼a , a na tyÅach peÅno restauracji i " miasto " .
+
+5. Activation: 32.129
+   Token: '<token_73_out_of_range>' (index 73)
+   Text: W pokojach jest " Åazienka " a wÅaÅciwie WC z natryskiem .
+
+
+================================================================================
+Feature 435: pokoje
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 26.485
+   Token: '<token_185_out_of_range>' (index 185)
+   Text: przyjÄto w raporcie , hotelarstwo otrzymaÅo 25 , 4 punktu i znalazÅo siÄ za caÅym sektorem prywatnego biznesu , ktÃ³ry otrzymaÅ 30 , 6 punktu .
+
+2. Activation: 25.646
+   Token: '2' (index 63)
+   Text: na Åwiecie - pod koniec czerwca br . w jej skÅad wchodziÅo 4 542 hoteli z 666 873 pokojami ) i Louvre Hotels Group â 2 nowe hotele z 288 pokojami .
+
+3. Activation: 24.574
+   Token: '.' (index 68)
+   Text: cznie na wnioski [ od biedy jak jest wykres to na niego zerknie ] , oddaÅ em z kumplem to samo sprawko tylko we wnioskach dopisaÅ em 2 [ dwa ! ] zdania , on dostaÅ 3.0 a ja 4.5 .
+
+4. Activation: 24.567
+   Token: '<token_83_out_of_range>' (index 83)
+   Text: Turystyka przynosi we WÅoszech 8 , 6 procent PKB , a pracuje w niej 9 , 7 procent ogÃ³Åu zatrudnionych .
+
+5. Activation: 24.564
+   Token: '<token_96_out_of_range>' (index 96)
+   Text: Rok wczeÅniej , w listopadzie 2010 r . w Europie na rÃ³Å¼nych etapach realizacji znajdowaÅy siÄ 732 hotele ze 124 348 pokojami .
+
+
+================================================================================
+Feature 440: usługi_medyczne
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 23.037
+   Token: '<token_72_out_of_range>' (index 72)
+   Text: JesteÅ dla nich tylko uzÄbieniem , albo miejscem , gdzie takowe moÅ¼na wszczepiÄ i zarobiÄ na tym ciÄÅ¼kie
+
+2. Activation: 22.906
+   Token: '<token_87_out_of_range>' (index 87)
+   Text: JuÅ¼ na dzieÅ dobry musisz zapÅaciÄ z gÃ³ry czy ci siÄ podoba czy nie - takie zasady .
+
+3. Activation: 22.874
+   Token: 'nie' (index 134)
+   Text: , ktÃ³rej w ogÃ³le nie rozumiaÅa m , powiedziaÅ , Å¼e nie wie , co mi jest , Å¼e nie jest w stanie rozpoznaÄ , zadzwoniÅ przy mnie do innej osoby poprosiÅ o konsultacje bo jestem przypadkiem beznadziejnym . . . po tej wizycie przez tydzieÅ z domu nie wyszÅa m bo mnie tak dobiÅa . . . tak siÄ z ludÅºmi nie postÄpuje , do tego nie trzeba byÄ
+
+4. Activation: 22.849
+   Token: '?' (index 42)
+   Text: Mam nadziejÄ Å¼e okaÅ¼e siÄ ze to jednak dobry hotel i moja rodzina bÄdzie zadowolona z tych wakacji ? !
+
+5. Activation: 22.830
+   Token: '<token_138_out_of_range>' (index 138)
+   Text: Å¼y , gdy samo badanie trwaÅo 30 minut , gdyÅ¼ Pani doktor chciaÅa jak sama powiedziaÅa zrobiÄ wszystko dokÅadnie a dzidzius niestety siÄ wierciÅ i Åºle ukÅadaÅ : ) Polecam
+
+
+================================================================================
+Feature 506: znalezienie
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 30.119
+   Token: 'ich' (index 29)
+   Text: ChciaÅa by m , aby wyniki moich badaÅ powadziÅy do znalezienia sposobu na ich skuteczne zwalczanie poprzez nowe podejÅcie terapeutyczne " - wyjaÅnia Urbanek .
+
+2. Activation: 29.900
+   Token: '<token_95_out_of_range>' (index 95)
+   Text: cych motywacji do znalezienia swojej drogi w tym naszym ziemskim Å¼yciu .
+
+3. Activation: 29.222
+   Token: '<token_64_out_of_range>' (index 64)
+   Text: problemy ze znalezieniem miejsca gdziekolwiek na plaÅ¼y i przy basenie .
+
+4. Activation: 26.959
+   Token: 'ciu' (index 42)
+   Text: Parking przed hotelem jest zwykle pelny wiec wieczorami trzeba sie nagimnastykowac z znalezieniem miejsca aczkolwieki nie mozna parkowac na dwoch pierwszych miejscach przy wejsciu gdzyz sa zarezerwowane dla wlascicieli ! ! !
+
+5. Activation: 26.954
+   Token: '<token_65_out_of_range>' (index 65)
+   Text: WÅaÅciwie nie ma problemu ze znalezieniem wolnych leÅ¼akÃ³w pod warunkiem , Å¼e wczasowicze nie
+
+
+================================================================================
+Feature 731: jedzenie
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 23.484
+   Token: ',' (index 81)
+   Text: tane , w pokojach klimatyzacja , rÄczniki , suszarka do wÅosÃ³w , telewizor , duÅ¼a iloÅÄ basenÃ³w i aquapark , przy gÅownym basenie animacje , ogromny wybÃ³r jedzenia , kilka restauracji , kaÅ¼dy znajdzie coÅ dla siebie , do tego tematyczne wieczory .
+
+2. Activation: 22.998
+   Token: '"' (index 70)
+   Text: Stare , bardzo stare parÃ³wki , nie smaczne , odgrzewane setny raz , ktÃ³rych nikt nie jadÅ , parÄ typÃ³w " plastelinowej " szynki , chrupki z mlekiem i napoje ( " sok " z proszku , kawa / herbata ) .
+
+3. Activation: 22.517
+   Token: '<token_86_out_of_range>' (index 86)
+   Text: Hotel fajny , jedzenie OK dobre i zawsze ciepÅe , przy basenie jedzenie dobre frytki , pizza , tosty , kanapki , lody itp . . .
+
+4. Activation: 21.383
+   Token: '<token_77_out_of_range>' (index 77)
+   Text: Wieczorami cichutko spokojnie , pokoje klimatyzowane , uÅmiechniÄci barmani i kelnerzy - jedzonko naprawdÄ smaczne za
+
+5. Activation: 21.339
+   Token: 'dania' (index 67)
+   Text: hotel / spa pretenduje do 4 gwiazdek ( podobno ) niestety realia sa nieco innelokalizacja super - prywatne zejscie na plaze , troche na uboczu , cicho i spokojnieinfrastruktura - widac zab czasu zarowno w pokojach jak i w otoczeniu hotelukuchnia - sniadania ok , pozostale posilki srednioceny - bylismy w hotelu poza sezonem i ceny zdecydowanie nie adekwatne do jakosci .
+
+
+================================================================================
+Feature 1382: za_kazdym_razem
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 37.144
+   Token: '<token_160_out_of_range>' (index 160)
+   Text: Ma czas dla pacjenta na kaÅ¼dym etapie leczenia .
+
+2. Activation: 33.339
+   Token: '<token_57_out_of_range>' (index 57)
+   Text: w hotelu zatrzymalam sie kilka razy , za kazdym razem - mniej posprzatana lazienka , plus halas z pokoju obok ( halas czyli normalnie prowadzone rozmowe , jest b zla izolacja w hotelu ) , b slyszalny .
+
+3. Activation: 33.073
+   Token: 'l' (index 53)
+   Text: cym problemem hemoroidÃ³w , za kazdym razem dostawalam to samo mase drogich lekÃ³w , diete , to awokado do jedzenia i nei widzialam poprawy ( problem i bol powracal ) .
+
+4. Activation: 32.505
+   Token: '<token_74_out_of_range>' (index 74)
+   Text: ganie pieniÄdzy z turystÃ³w na kaÅ¼dym kroku .
+
+5. Activation: 31.851
+   Token: '<token_62_out_of_range>' (index 62)
+   Text: Po takim fakcie zegar ( data ) startuje za kaÅ¼dym razem od
+
+
+================================================================================
+Feature 1415: obsługa_klienta
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 23.408
+   Token: 'w' (index 54)
+   Text: Co wiÄcej pan dr nie zaÅoÅ¼yÅ mi nawet karty , nic nie zapisaÅ , moja wizyta zostaÅa , z tego co wiem , jedynie odnotowana w jego kalendarzu .
+
+2. Activation: 23.318
+   Token: '<token_120_out_of_range>' (index 120)
+   Text: Å¼ siÄ odpina ( kiepskie mocowanie ) , a do tego jest maÅa , kosz jest niewielki , a dostÄp do niego trudny ( w gondoli siÄ tego nie odczuwa , bo zawieszona jest wyzej i kosz jest jakby 2 - piÄtrowy ) .
+
+3. Activation: 23.015
+   Token: '<token_79_out_of_range>' (index 79)
+   Text: Hotel jest usytuowany tuÅ¼ przy wejÅciu na gÅÃ³wny szlak , ktÃ³ry prowadzi grzbietem Karkonoszy .
+
+4. Activation: 22.641
+   Token: '<token_84_out_of_range>' (index 84)
+   Text: Pierwsza wpadka juÅ¼ na wejÅciu : obsÅuga nie byÅa przygotowana na przywitanie mÅodych : chlebem ,
+
+5. Activation: 22.614
+   Token: '<token_84_out_of_range>' (index 84)
+   Text: Jak przyznaÅ dr WaÅniowski , chociaÅ¼ naukowcy byli przeszkoleni w hodowli
+
+
+================================================================================
+Feature 1637: jakość_usług_hotelowych
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 23.075
+   Token: '.' (index 118)
+   Text: : spokÃ³j i cisza , piÄkne widoki na bukowy las i niewielkie jeziorka , sporo atrakcji dla dzieci ( Åwiat bajek , zoo , fokarium ) , miejsca na dÅugie spacery , stylowy wystrÃ³j wnÄtrz ( zwÅaszcza piÄkne drewniane meble ) oraz caÅkiem duÅ¼y basen i strefa saun na europejskim poziomie .
+
+2. Activation: 22.556
+   Token: '<token_97_out_of_range>' (index 97)
+   Text: Tak jak oczekiwali Åmy : pokoje , jedzenie , lobby , komfort , czystoÅÄ , obsÅuga , wygoda , lokalizacja , wszystko na najwyÅ¼szym poziomie .
+
+3. Activation: 22.472
+   Token: '<token_80_out_of_range>' (index 80)
+   Text: Pobyt wykupilismy z obiadokolacja - to dwie malenkie zupy i dwa drugie dania do wyboru , podawane do stolika bez dokladek .
+
+4. Activation: 22.234
+   Token: '<token_117_out_of_range>' (index 117)
+   Text: dzony minimalistycznie , nowoczeÅnie i ze smakiem .
+
+5. Activation: 21.955
+   Token: '<token_89_out_of_range>' (index 89)
+   Text: Okropny hotel , jedzenie codziennie to samo , przy kolacji pÅatna nawet woda , hotel dla
+
+
+================================================================================
+Feature 2089: określenia czasowe
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 26.278
+   Token: '<token_58_out_of_range>' (index 58)
+   Text: Do Åadniejszej plaÅ¼y spacerkiem ok 15 - 20 minut , poniewaÅ¼ bliÅ¼ej hotelu ok 5 minut plaÅ¼a jest nie za ciekawa i
+
+2. Activation: 25.577
+   Token: '<token_65_out_of_range>' (index 65)
+   Text: Plus za lokalizacjÄ , blisko plaÅ¼y miejskiej ok 5 - 10 min . ale dzielnica hotelu nieciekawa .
+
+3. Activation: 25.533
+   Token: '<token_83_out_of_range>' (index 83)
+   Text: Sama lista skÅadnikÃ³w do zakupu na pierwsze dwa dni - to chyba z 50 pozycji , czÄÅÄ nie do kupienia w zwykÅym osiedlowym sklepie , a przygotowywanie to co dzieÅ najmniej ze 2 - 3 godziny .
+
+4. Activation: 24.750
+   Token: '<token_85_out_of_range>' (index 85)
+   Text: bardzo krzywo w stosunku do nadruku ( przesuniÄcie o 2 - 3 mm ) , co bardzo niekorzystnie wpÅywa na
+
+5. Activation: 23.940
+   Token: '1' (index 61)
+   Text: mialam ( nie ) - przyjemnosc z pania doktor na izbie przyjec na Jozefowie , na oko stwierdzila ze nic mi nie jest , a ja od 3 dni nic nie jadlam i nie pilam i wymiotowalam okolo 10 - 15razy na dobe i w dzien i w nocy zolcia i slina : ( a bylam wtedy w 10 tyg ciazy [.]
+
+
+================================================================================
+Feature 2394: hotel
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 24.135
+   Token: '<token_115_out_of_range>' (index 115)
+   Text: Hotel raczej niczym nas nie zaskoczy , ot caÅkiem przyjemny pokÃ³j , czysta Åazienka , wygodne ÅoÅ¼ka , Åadny widok na rzekÄ . . i w sumie tyle .
+
+2. Activation: 23.794
+   Token: '<token_65_out_of_range>' (index 65)
+   Text: Ja dziÅ byÅ em przetestowaÄ ten obiektyw w terenie i nawet na 300m Åadnie ostrzy , krawÄdzie rÃ³wnieÅ¼ bez problemu .
+
+3. Activation: 22.911
+   Token: '<token_94_out_of_range>' (index 94)
+   Text: hotel poÅoÅ¼ony w dobrej lokalizacji 10 minut spacerkiem od plaÅ¼y nissi beachpokoje Åadne ,
+
+4. Activation: 22.416
+   Token: '<token_103_out_of_range>' (index 103)
+   Text: Jest to luksusowy i elegancki hotel , bardzo dobrze poÅoÅ¼ony tuÅ¼ przy Åadnej plaÅ¼y .
+
+5. Activation: 22.301
+   Token: 'por' (index 47)
+   Text: tku nie miaÅa m na co narzekaÄ , moÅ¼e dlatego , Å¼e nie miaÅa m Å¼adnego porÃ³wnania i nie wiedziaÅa m , Å¼e badanie ginekologiczne moÅ¼e nie boleÄ i nie powodowaÄ chodzenia okrakiem przez kilka dni . . .
+
+
+================================================================================
+Feature 3101: ocena_gwiazdkowa
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 40.678
+   Token: ',' (index 31)
+   Text: Hotel Mitsis Rodos Maris posiada piÄÄ gwiazdek , jednak nie zasÅuguje na tyle , ma bardzo dobre opinie na rÃ³Å¼nych portalach , moÅ¼e dlatego tak siÄ rozczarowaÅa m tym co zastaÅa [m] .
+
+2. Activation: 34.109
+   Token: '<token_84_out_of_range>' (index 84)
+   Text: Nie wiem , czy zasÅuÅ¼enie ma 3 gwiazdki .
+
+3. Activation: 32.390
+   Token: '<token_48_out_of_range>' (index 48)
+   Text: Szczerze polecam i przyznaje 5 gwiazdek ( zasÅuguje na 6 albo wiÄcej ) .
+
+4. Activation: 32.078
+   Token: '<token_75_out_of_range>' (index 75)
+   Text: OgÃ³lnie przyjemny pobyt ale w porÃ³wnaniu do innego obiektu z grupy Mariot o takiej samej liczbie gwiazdek i podobnej cenie jest to przepaÅÄ .
+
+5. Activation: 31.518
+   Token: '<token_77_out_of_range>' (index 77)
+   Text: Hotel nie zasÅuguje na ani jedna gwiazdkÄ , jest to raczej stary , zaniedbany oÅrodek wypoczynkowy .
+
+
+================================================================================
+Feature 3474: lekarz
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 36.674
+   Token: '�' (index 108)
+   Text: PosÅuchali Åmy i okazaÅo siÄ , Å¼e inny lekarz na podstawie tych samych wynikÃ³w badaÅ stwierdziÅ coÅ innego niÅ¼ dr Ratajczak , daÅo nam to do myÅlenia i tak jeszcze innych dwÃ³ch lekarzy potwierdziÅo zgodnie coÅ innego niÅ¼ dr Ratajczak .
+
+2. Activation: 34.458
+   Token: 'dalej' (index 60)
+   Text: TrafiÅa m do SUPER SPECJALISTY - - moÅ¼e duÅ¼o droÅ¼szy ale po pierwszej wizycie dowiedziaÅa m siÄ o diagnozie i co dalej robiÄ . nIE BYÅ TAK KONTAKTOWY JAK POPRZEDNICZKA , ALE TO NIE MIAÅO Å»ADNEGO ZNACZENIA Nie otrzymaÅa m recepty na leki na katar za 100zÅ jak to Pani doktor potrafi , TYLKO FACHOWÄ POMOC .
+
+3. Activation: 33.848
+   Token: 'innego' (index 205)
+   Text: tpiÅa m coraz bardziej w kompetencje tego lekarza dziwnie siÄ zachowywaÅ wysÅaÅ po jakieÅ dziwne leki do apteki w ramach , , przysÅugi , , owszem leki dobraÅ dobrze bo mi pomogÅy lecz wizyty ograniczaÅy siÄ do wypisania recept i nigdy nie pamiÄtaÅ mnie kiedy przychodziÅa m i ciÄÅ¼ko sie do niego dodzwoniÄ kiedyÅ 2 tyg nie odbieraÅ telefonu i za kaÅ¼dym razem kiedy pytaÅa m jak dÅugo bÄdzie trwaÅo leczenie mÃ³wiÅ co innego .
+
+4. Activation: 33.847
+   Token: 'by' (index 133)
+   Text: ZapÅaciÅa m za wizytÄ 100zÅ z czego Pani wypisaÅa mi lek na receptÄ , ktÃ³ry dostÄpny byÅ w aptece normalnie sprzedawany bez recepty , ale 100zÅ zapÅaciÅa m za receptÄ : ( Plus taki iÅ¼ otrzymaÅa m paragon za wizytÄ , co byÅo dla mnie wielkim zdziwieniem w gabinecie lekarza ; ) Moim zdaniem lekarz jak lekarz , rewelacji nie byÅo ; ) Ale polecam za
+
+5. Activation: 33.432
+   Token: '�' (index 92)
+   Text: jak poszÅa m rodziÄ do szpitala paÅstwowego a nie do damiana , to lekarze denerwowali siÄ , Å¼e nic z tych badaÅ nie wynika i jeÅli ktoÅ nie zna niemieckiego nie moÅ¼e ich odczytaÄ . no i jeszcze coÅ dziwnego - nie robi On badania ginekologicznego podczas
+
+
+================================================================================
+Feature 3896: noc
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 28.801
+   Token: 'niezbyt' (index 70)
+   Text: Åazienka niestety wymaga zdecydowanie odÅwieÅ¼enia i dogrzewania - wilgotno na tyle Å¼e rÄczniki nie wyschÅy przez noc wcale a woda z przepÅywowego ogrzewacza - niezbyt ciepÅa i malutkie ciÅnienie pod prysznicem .
+
+2. Activation: 28.140
+   Token: '<token_64_out_of_range>' (index 64)
+   Text: zku z tym Å¼e zostawali Åmy na noc zabrali Åmy ze soba psa rasy Jack Russell , ( dla wyjaÅnienia piesek wielkoÅci kota i bardzo przyjazny ) .
+
+3. Activation: 27.958
+   Token: '<token_162_out_of_range>' (index 162)
+   Text: Jestem juÅ¼ po wizytach u rÃ³Å¼nych laryngologÃ³w , mam zrosty w nosie i do tego wskazane jest zabieg laryngologiczny w celu poprawy droÅ¼noÅci nosa , zatyka mi siÄ jedna dziurka a w nocy oddycham tylko przez buzie .
+
+4. Activation: 27.888
+   Token: '<token_70_out_of_range>' (index 70)
+   Text: W dzieÅ nie sprawiaÅo to problemu ale w nocy niestety nie daÅo siÄ normalnie spaÄ .
+
+5. Activation: 27.808
+   Token: '<token_68_out_of_range>' (index 68)
+   Text: Na koniec ciekawostka - samochÃ³d pozostaÅ na noc na przylegÅej do hotelu ulicy wÅrÃ³d innych tam zaparkowanych .
+
+
+================================================================================
+Feature 4027: lokalizacja_poza
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 23.014
+   Token: '<token_69_out_of_range>' (index 69)
+   Text: Hotel poÅoÅ¼ony poza gÅÃ³wnym centrum , na zboczu .
+
+2. Activation: 22.753
+   Token: '<token_52_out_of_range>' (index 52)
+   Text: Doktor nawet poza wyznaczonym terminem wizyty .
+
+3. Activation: 22.448
+   Token: '<token_79_out_of_range>' (index 79)
+   Text: Teraz minusy : czujnik temperatury wystaje poza obudowÄ .
+
+4. Activation: 22.365
+   Token: '<token_78_out_of_range>' (index 78)
+   Text: Co najmniej 5 nocy w tygodniu ÅpiÄ poza domem , ale tak chudego ÅÃ³Å¼ka jeszcze nie miaÅa m .
+
+5. Activation: 22.074
+   Token: '<token_76_out_of_range>' (index 76)
+   Text: Kawy , herbaty i sokÃ³w moÅ¼na byÅo tylko sie napic do sniadania , do kolejnych posiÅkÃ³w ekspresy i automaty z sokami byÅy pozasÅaniane .
+
+
+================================================================================
+Feature 4476: wszystko
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 33.014
+   Token: '<token_83_out_of_range>' (index 83)
+   Text: Na plus dziaÅa wyÅ¼ywienie - Åniadanie i kolacja bufet szwedzki bardzo urozmaicony i wszystko domowej roboty .
+
+2. Activation: 32.293
+   Token: '<token_110_out_of_range>' (index 110)
+   Text: peÅne takich pensjonatÃ³w , hoteli , apartamentÃ³w jak ten " Chillout Rooms " bezpoÅrednio ulokowane nad jeziorem na szlaku Wielkich Jezior ; kilka minut samochodem od MikoÅajek - urocze genialne miejsce . . . wszystkie pokoje z widokiem na jezioro , wnÄtrze
+
+3. Activation: 32.110
+   Token: '<token_89_out_of_range>' (index 89)
+   Text: Tak jak oczekiwali Åmy : pokoje , jedzenie , lobby , komfort , czystoÅÄ , obsÅuga , wygoda , lokalizacja , wszystko na najwyÅ¼szym poziomie .
+
+4. Activation: 32.066
+   Token: '<token_90_out_of_range>' (index 90)
+   Text: Profesjonalna pomoc , pogodne usposobienie , kultura osobista i wnikliwe analizowanie wszelkich moÅ¼liwoÅci zastosowaÅ terapeutycznych
+
+5. Activation: 31.831
+   Token: 'od' (index 64)
+   Text: Stetoskop uwypuklaÅ by wiÄc najwaÅ¼niejsze cechy dÅºwiÄku tak , by lepiej odbieraÅo je ludzkie ucho i sprawiaÅ , Å¼e wszelkie odstÄpstwa od normy byÅy by Åatwiejsze do zauwaÅ¼enia podczas szybkiego badania , nawet w gÅoÅnym otoczeniu .
+
+
+================================================================================
+Feature 5879: bliskość_morza
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 32.168
+   Token: ',' (index 88)
+   Text: polecam smaczne posiÅki miÅa obsÅuga czysto , piÄkny basen i zjeÅ¼dÅ¼alnie super drinki serwowane , bardzo ciekawe codziennie animacje dla dzieci i dorosÅych , gimnastyka w basenie , okolice piÄkne , blisko morza , do plaÅ¼y , wycieczki ÅÃ³dkami nad Morze ÅrÃ³dziemne ,
+
+2. Activation: 30.261
+   Token: '<token_80_out_of_range>' (index 80)
+   Text: Bardzo blisko do morza i pieknej plaÅ¼y , co wynagradza wszelkie niedoskonaÅoÅci .
+
+3. Activation: 29.394
+   Token: '<token_82_out_of_range>' (index 82)
+   Text: Co prawda nie ma bezpoÅredniego zejÅcia do morza z hotelu ale naprawdÄ b . blisko jest na plaÅ¼Ä .
+
+4. Activation: 29.370
+   Token: 'pla' (index 42)
+   Text: da zaniedbany zalany kort tenisowy , prywatna plaÅ¼a z czÄÅciowo zniszczonym maÅym molo i placem zabaw .
+
+5. Activation: 28.612
+   Token: '<token_80_out_of_range>' (index 80)
+   Text: gnÄÅo mnie miejsce , obsÅuga a przede wszystkim restauracja hotelowa na dachu budynku , wprost przy morzu jak i bardzo przyjazna wÅaÅcicielka , z pochodzenia po mamie polskiego ,
+
+
+================================================================================
+Feature 5885: wiek_dziecka
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 33.462
+   Token: '<token_51_out_of_range>' (index 51)
+   Text: Do Pani Doktor trafiÅa m z 15 - miesiÄcznym synem , u ktÃ³rego w wymazie wyszÅy
+
+2. Activation: 32.485
+   Token: '<token_64_out_of_range>' (index 64)
+   Text: czki do trzymania bardzo podpasowaly mojej cÃ³rce bo juÅ¼ jako 5 miesiÄczne dziecko sama piÅa mleko po podmiance ustnikow .
+
+3. Activation: 31.470
+   Token: '<token_87_out_of_range>' (index 87)
+   Text: ByÅ em na wizycie z synem , ktÃ³ry od 7 miesiÄcy cierpiaÅ na chroniczny katar i kaszel .
+
+4. Activation: 31.212
+   Token: '<token_136_out_of_range>' (index 136)
+   Text: najbardziej negatywne wraÅ¼enie pozostawiÅ fakt iÅ¼ pobyt naszej 16 miesiÄcznej cÃ³reczki przy checkoucie okazaÅ sie pÅatny . .
+
+5. Activation: 30.907
+   Token: '<token_68_out_of_range>' (index 68)
+   Text: MiaÅa m okazjÄ byÄ u Pani doktor z moim 7 - miesiÄcznym synkiem , ktÃ³ry cierpi na AZS .
+
+
+================================================================================
+Feature 5087: lekarze
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 30.232
+   Token: '<token_81_out_of_range>' (index 81)
+   Text: PragnÄ serdecznie podziÄkowaÄ Panu dr Marcinowi Czternastek , Panu dr MichaÅowi Cibor oraz Pani doktor anestezjolog Pietras .
+
+2. Activation: 29.400
+   Token: 'nie' (index 9)
+   Text: Co wiÄcej pan dr nie zaÅoÅ¼yÅ mi nawet karty [,] nic nie zapisaÅ , moja wizyta zostaÅa , z tego co wiem , jedynie odnotowana w jego kalendarzu .
+
+3. Activation: 28.885
+   Token: '�' (index 39)
+   Text: Dla pana dr ( uwaga nie wpisywaÄ inÅ¼ . poniewaÅ¼ jest po uniwerku i karze kreÅliÄ po indeksie )
+
+4. Activation: 27.702
+   Token: '<token_75_out_of_range>' (index 75)
+   Text: ze szpitala , w ktÃ³rym Pan dr jest ordynatorem . . . liczyÅa m na
+
+5. Activation: 27.591
+   Token: '<token_125_out_of_range>' (index 125)
+   Text: Z czystym sumieniem bardzo polecam Pana dr . Salomona .
+
+
+================================================================================
+Feature 2488: czasowniki_w_formie_przeszÅej
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 20.586
+   Token: '�' (index 40)
+   Text: Dodatkowo przyznaÅa , Å¼e w nocy drzwi do naszej czÄÅci budynku byÅy zamkniÄte , a my byli Åmy jedynymi goÅÄmi w tej czÄÅci .
+
+2. Activation: 20.532
+   Token: '<token_54_out_of_range>' (index 54)
+   Text: c ( odeszÅy mi wody a nie byÅo Å¼adnych skurczÃ³w ) .
+
+3. Activation: 20.308
+   Token: '<token_152_out_of_range>' (index 152)
+   Text: Warto pochwaliÄ wyposaÅ¼enie aneksu kuchennego , ostatniego dnia przygotowali Åmy makaron z langustynkami , ktÃ³re byÅy wyborne .
+
+4. Activation: 20.257
+   Token: '<token_115_out_of_range>' (index 115)
+   Text: Nikt siÄ nie najadÅ z pytanych przeze mnie osÃ³b ( w zasadzie maÅo kto cokolwiek zjadÅ bo albo nie byÅo co albo byÅo niesmaczne ) .
+
+5. Activation: 20.251
+   Token: '<token_135_out_of_range>' (index 135)
+   Text: wypeÅniaÅ dokumenty , gdyÅ¼ byÅy one bardzo waÅ¼ne . . . . bardzo waÅ¼ne : - (
+
+
+================================================================================
+Feature 5239: częstość
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 31.380
+   Token: '<token_62_out_of_range>' (index 62)
+   Text: Natomiast bardzo czÄsto pod koniec wizyty pacjentka dowiaduje siÄ , Å¼e pÅaci 80 % lub 50 % kwoty naleÅ¼nej .
+
+2. Activation: 29.012
+   Token: '<token_101_out_of_range>' (index 101)
+   Text: " DziÄki temu bardzo czÄsto osoby , ktÃ³re sÅabo
+
+3. Activation: 27.904
+   Token: '<token_91_out_of_range>' (index 91)
+   Text: Nieporozumienie to wynika z tego , Å¼e szczepionka przeciwko grypie nie chroni przed tzw . zakaÅ¼enia grypopodobnymi , z ktÃ³rymi czÄsto
+
+4. Activation: 27.746
+   Token: 'to' (index 107)
+   Text: nieobecnoÅÄ bez wiedzy i zgody ( ! ) - ziemniaki , smaÅ¼ony makaron , ryÅ¼ i kasza na Åniadanie , z kilkoma gruziÅskimi daniami , takimi jak buraki , smaÅ¼ony bakÅaÅ¼an , saÅatka z ogÃ³rka i pomidora ; czÄsto to samo na obiad - wi - fi ledwo dziaÅaWybraliÅmy to lokum skuszeni opiniami w portalach podrÃ³Å¼niczych , w ktÃ³rych rÃ³Å¼ne osoby
+
+5. Activation: 27.273
+   Token: '<token_95_out_of_range>' (index 95)
+   Text: Bardzo czÄsto uÅ¼ywam karuzelki .
+
+
+================================================================================
+Feature 1327: przy
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 32.333
+   Token: '<token_72_out_of_range>' (index 72)
+   Text: Hotel praktycznie przy samej plaÅ¼y - kamienista .
+
+2. Activation: 30.768
+   Token: '<token_76_out_of_range>' (index 76)
+   Text: Osoba przyzwyczajona do standardu 3 - 4 * w polskich hotelach , bÄdzie niemile zaskoczona .
+
+3. Activation: 30.224
+   Token: 'to' (index 25)
+   Text: Co najwaÅ¼niejsze wizyta przyniosÅa efekt , bez potrzeb kolejnych wizyt kontrolnych , jak to byÅo u naszego poprzedniego pediatry .
+
+4. Activation: 30.040
+   Token: '<token_92_out_of_range>' (index 92)
+   Text: ale widzi ze jest krzywy i " caly chodzi przy dotknieciu " ) Zreszta Nie stac mnie na kolejna operacje .
+
+5. Activation: 29.483
+   Token: '<token_31_out_of_range>' (index 31)
+   Text: Nie pytano mnie przy rezerwacji czy pokÃ³j ma byÄ dla
+
+
+================================================================================
+Feature 1691: all_inclusive
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 57.862
+   Token: '<token_81_out_of_range>' (index 81)
+   Text: All inclusive jest mocno kontrolowane , w
+
+2. Activation: 57.862
+   Token: '<token_58_out_of_range>' (index 58)
+   Text: All inclusive to totalne dno .
+
+3. Activation: 49.044
+   Token: '<token_41_out_of_range>' (index 41)
+   Text: SÅabe all inclusive i ogÃ³lnie jedzenie - wiec jak wybierzesz ten hotel to tylko ze Åniadaniami .
+
+4. Activation: 46.498
+   Token: '<token_251_out_of_range>' (index 251)
+   Text: SpÄdzili Åmy tydzieÅ w wersji all - inclusive w hotelu .
+
+5. Activation: 45.515
+   Token: '<token_126_out_of_range>' (index 126)
+   Text: dze a nie w ramach / all inclusive / .
+
+
+================================================================================
+Feature 2932: negacja
+Score: 0.950
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 29.169
+   Token: '�' (index 50)
+   Text: Niczego nie wyjaÅniÅ , nie rozmawiaÅ i co gorsza okazaÅo siÄ , Å¼e nie zapoznaÅ siÄ z wynikami ostatnich badaÅ .
+
+2. Activation: 29.169
+   Token: '<token_56_out_of_range>' (index 56)
+   Text: Niczego nie moÅ¼emy siÄ przyczepiÄ .
+
+3. Activation: 28.091
+   Token: '<token_47_out_of_range>' (index 47)
+   Text: Jednak nikt ze wspomnianych wyÅ¼ej osÃ³b nie byÅ w stanie zagwarantowaÄ mi , Å¼e zabieg polepszy
+
+4. Activation: 27.721
+   Token: '<token_53_out_of_range>' (index 53)
+   Text: taÄ i w odp usÅyszalam UWAGA : nic nie mozna zrobic , ja nie wiem ilu partnerow pani miaÅa i co pani robila !
+
+5. Activation: 27.390
+   Token: 'mi' (index 35)
+   Text: Dowodem na to , Å¼e nie traktuje na serio swoich pacjentek jest fakt , Å¼e nikt nie raczyl mnie powiadomiÄ , Å¼e w dniu , na ktÃ³ry miaÅa m
+
+
+================================================================================
+Feature 498: czasowniki_zwrotne
+Score: 0.900
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 31.143
+   Token: '<token_91_out_of_range>' (index 91)
+   Text: A teraz co mi sie podobaÅo : - mimo maÅych wymiarÃ³w materaca byÅ wygodny i
+
+2. Activation: 30.614
+   Token: '<token_129_out_of_range>' (index 129)
+   Text: Tyle tylko , Å¼e sÅowem nie powiedziaÅ co mi jest , co podejrzewa lub jak moÅ¼na interpretowaÄ wyniki badaÅ .
+
+3. Activation: 30.487
+   Token: 'niemow' (index 69)
+   Text: Å¼ pionizacji jÄzyka - nikt mi tego wczeÅniej nie powiedziaÅ , Å¼e Äwiczenia moÅ¼na byÅo wykonywaÄ juÅ¼ od niemowlÄcia .
+
+4. Activation: 30.381
+   Token: ',' (index 35)
+   Text: PowiedziaÅ , Å¼e nie poda , Å¼e nie odpowiada za to , co mi ktoÅ sprzeda , Å¼e on dobraÅ takie i takie trzeba zamÃ³wiÄ , itp .
+
+5. Activation: 29.887
+   Token: '<token_79_out_of_range>' (index 79)
+   Text: opiniÄ , poniewaÅ¼ nikt mi nie zaszkodziÅ , ani nie pomÃ³gÅ .
+
+
+================================================================================
+Feature 597: krytyka_jakości
+Score: 0.900
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 30.293
+   Token: '<token_95_out_of_range>' (index 95)
+   Text: Gra sprawia wraÅ¼enie wyprodukowanej na prÄdce , do tego ten akcent jak u Borata .
+
+2. Activation: 28.881
+   Token: '<token_59_out_of_range>' (index 59)
+   Text: Mysz ogÃ³lnie dziaÅa bardzo dobrze , ale dla gracza jak ja lift - off distance jest strasznie
+
+3. Activation: 28.779
+   Token: '<token_71_out_of_range>' (index 71)
+   Text: Jedyny problem jakiego narazie sie doszukalem dotyczy oprogramowania - brak mozliwosci ustawienia domyslnego profilu do ktorego mysz wracala by po przelaczeniu aplikacji jak to bywa w produktach logitecha .
+
+4. Activation: 28.612
+   Token: '<token_67_out_of_range>' (index 67)
+   Text: Jestem totalnie rozczarowana leczeniem mojej wady zgryzu , w tym monecie pÅakaÄ mi siÄ chce jak o tym myÅlÄ .
+
+5. Activation: 27.951
+   Token: '�' (index 26)
+   Text: Pani SokoÅowska jest - jak do tej pory - jedynym lekarzem ginekologiem , ktÃ³ra na dzieÅ dobry nie wypisaÅa recepty na lekarstwa antykoncepcyjne , po ktÃ³re [przyszÅa] m - przypadkowo akurat do Niej
+
+
+================================================================================
+Feature 3288: zaimki_wskazujące
+Score: 0.900
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 29.945
+   Token: '<token_72_out_of_range>' (index 72)
+   Text: Efekt taki , ze choÄ szczeknelo / chrupneÅo , pomocnik siÄ zwinaÅ z bÃ³lu na wskutek doznanej kontuzji . , ktÃ³ra
+
+2. Activation: 29.483
+   Token: '<token_73_out_of_range>' (index 73)
+   Text: zywania naszych problemÃ³w a jedynie lustrem , ktÃ³re moÅ¼e nam je pokazaÄ .
+
+3. Activation: 29.394
+   Token: '<token_79_out_of_range>' (index 79)
+   Text: Ustawna w Årodku , Åwietna szuflada na owoce i warzywa , ktÃ³rych zazwyczaj mam mnÃ³stwo , i faktycznie dÅuÅ¼ej
+
+4. Activation: 29.297
+   Token: '<token_189_out_of_range>' (index 189)
+   Text: W barze dostÄpny tylko jeden rodzaj piwa , raki , wino i czysta wÃ³dka , ktÃ³rej
+
+5. Activation: 29.265
+   Token: '<token_121_out_of_range>' (index 121)
+   Text: JeÅli wrÃ³cÄ do Lukki , na pewno zamieszkam w tym hotelu , bo ceniÄ spokÃ³j , ciszÄ i swobodÄ , ktÃ³rej nie
+
+
+================================================================================
+Feature 111: wyrażenia oceniające
+Score: 0.900
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 30.204
+   Token: '<token_60_out_of_range>' (index 60)
+   Text: JeÅ¼eli chodzi o jedzenie to teÅ¼ jest wybÃ³r na kolacjÄ codziennie jest jakiÅ inny motyw przewodni np . kuchnia meksykaÅska , chiÅska itp .
+
+2. Activation: 28.866
+   Token: 'sport' (index 32)
+   Text: Bardzo polecam dr Urbana , jeÅli ktoÅ ma jakiÅ problem a nadal chce uprawiaÄ sport i byÄ aktywnym czÅowiekiem to warto wybraÄ siÄ wÅaÅnie do Niego .
+
+3. Activation: 26.319
+   Token: '�' (index 86)
+   Text: PomyÅlaÅa m : pÅyta jak pÅyta , powinna grzaÄ i tyle , wiÄc nie warto przepÅacaÄ . . . i siÄ zdÅºiwiÅam . . . to jest jakaÅ poraÅ¼ka ! ! ! !
+
+4. Activation: 24.396
+   Token: '<token_120_out_of_range>' (index 120)
+   Text: Plan mam taki , Å¼eby pÃ³jÅÄ jeszcze raz i zobaczyÄ czy jest jakaÅ poprawa
+
+5. Activation: 23.116
+   Token: '<token_83_out_of_range>' (index 83)
+   Text: ChciaÅ em skonsultowaÄ zarÃ³wno zalecony sposÃ³b leczenia jak siÄ dowiedzieÄ w jaki sposÃ³b ksztaÅtowaÄ
+
+
+================================================================================
+Feature 1992: czasownik_modalny
+Score: 0.900
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 34.271
+   Token: '<token_117_out_of_range>' (index 117)
+   Text: Ktore potem trzeba poprawiac .
+
+2. Activation: 23.394
+   Token: '<token_90_out_of_range>' (index 90)
+   Text: Na dzieÅ dobry byÅ problem z pokojem - rezerwacja przez booking.com , nie ma dla nas pokoju - potem siÄ znalazÅ .
+
+3. Activation: 22.555
+   Token: ',' (index 45)
+   Text: I ostrzegam - trzeba mieÄ naprawdÄ mocne nerwy , Å¼eby to przetrwaÄ - doczekaÄ siÄ , potem , Å¼eby przetrawiÄ wszystkie â Å¼yczliwe â informacje na swÃ³j temat a na koÅcu nie daÄ siÄ wmanewrowaÄ w dany zabieg .
+
+4. Activation: 21.822
+   Token: '<token_69_out_of_range>' (index 69)
+   Text: Za obecnosc na wszystkich zajeciach stawial 5.5 i pozniej co pol oceny w dol za kazda nieobecnosc . . .
+
+5. Activation: 21.703
+   Token: 'szy' (index 54)
+   Text: W ogÃ³le kolokwia kosmicznie trudne i nie zawsze uczciwie oceniane . . . ale trzeba przyznac , Å¼e potem idzie siÄ na egzamin bez stresu , bo jest duÅ¼o prostszy niÅ¼ kolokwia pani Janickiej .
+
+
+================================================================================
+Feature 2783: wyrażenia_porównawcze
+Score: 0.900
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 27.057
+   Token: '<token_42_out_of_range>' (index 42)
+   Text: Pani bardzo sympatyczne ale nie ma pojÄcia o zabiegach , wszystkim serwowaÅa to samo , czyli krÃ³tki masaÅ¼ .
+
+2. Activation: 24.340
+   Token: 'zwi' (index 84)
+   Text: Weszli Åmy - wszystkie stoliki zajÄte - okazaÅo siÄ , Å¼e nikogo za bardzo to nie interesuje , Å¼e chcemy zarezerwowaÄ najbliÅ¼szy wolny stolik - trzeba byÅo walczyÄ o miejsce - czyli zwisaÄ nad
+
+3. Activation: 23.495
+   Token: 'pogody' (index 40)
+   Text: Wszystko w stanie bardzo dobrym , czyli jest siÄ gdzie zrelaksowaÄ po wyczerpujacym " zwiedzaniu " szlakÃ³w lub w razie braku pogody miÅo spÄdziÄ czas .
+
+4. Activation: 22.484
+   Token: '<token_79_out_of_range>' (index 79)
+   Text: w hotelu zatrzymalam sie kilka razy , za kazdym razem - mniej posprzatana lazienka , plus halas z pokoju obok ( halas czyli normalnie prowadzone rozmowe , jest b zla izolacja w hotelu ) , b slyszalny .
+
+5. Activation: 22.239
+   Token: 'stosowania' (index 39)
+   Text: cy swoje dziaÅanie przez 5 dni po jednej aplikacji , czyli nie miaÅa m moÅ¼liwoÅci zaprzestania stosowania ( dodam , Å¼e byÅ to dosyÄ drogi lek , ok 40 zÅ ) .
+
+
+================================================================================
+Feature 5076: reklamacje_usług_hotelowych
+Score: 0.900
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 28.922
+   Token: '<token_157_out_of_range>' (index 157)
+   Text: Kiedy jedno z nas zaczÄÅo wysuwaÄ argument , Å¼e cofniÄcie transakcji zapÅaty ( w celu zmniejszenia opÅaty ) jest moÅ¼liwe , a odmawianie zwrotu nie do koÅca zgodne z prawem , to usÅyszeli Åmy " zaraz mi pan powie , Å¼e pana tata jest adwokatem ! " .
+
+2. Activation: 26.454
+   Token: '-' (index 56)
+   Text: W dniu przyjazdu ( 8 sierpnia 2013 ) prÃ³bowali Åmy dodzwoniÄ siÄ do hotelu , aby poinformowaÄ , Å¼e - byÄ moÅ¼e - przyjedziemy dopiero pÃ³Åºnym wieczorem , po godz . 22 . 00 .
+
+3. Activation: 26.227
+   Token: '<token_115_out_of_range>' (index 115)
+   Text: Å nawet bazgroliÄ na kartce , jednak szybko znudziÅo go to zajÄcie i oÅwiadczyÅ , Å¼e on nie moÅ¼e siÄ tym
+
+4. Activation: 25.892
+   Token: 'nie' (index 44)
+   Text: Po 5 minutach sama podziÄkowaÅa m za wizytÄ poniewaÅ¼ stwierdziÅa m , Å¼e nie bÄdÄ siÄ prosiÄ Å¼eby mnie zbadaÅa ( chociaÅ¼ to jest jej
+
+5. Activation: 25.770
+   Token: 'moje' (index 74)
+   Text: UdaÅa m siÄ na wizytÄ , po przejrzeniu przyniesionych przeze mnie wynikÃ³w badaÅ P . Dominik odmÃ³wiÅ mi konsultacji , poniewaÅ¼ stwierdziÅ , Å¼e moje badania byÅy wykonane komercyjnie - pÅatnie , Å¼e oni takich nie
+
+
+================================================================================
+Feature 5549: wizyta_lekarska
+Score: 0.900
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 26.402
+   Token: '�' (index 97)
+   Text: , ktÃ³rej w ogÃ³le nie rozumiaÅa m , powiedziaÅ , Å¼e nie wie , co mi jest , Å¼e nie jest w stanie rozpoznaÄ , zadzwoniÅ przy mnie do innej osoby poprosiÅ o konsultacje bo jestem przypadkiem beznadziejnym . . . po tej wizycie przez tydzieÅ z domu nie wyszÅa m bo mnie tak dobiÅa . . . tak siÄ z ludÅºmi nie postÄpuje , do tego nie trzeba byÄ
+
+2. Activation: 25.816
+   Token: 'cie' (index 73)
+   Text: Wczesniej chodzilam do Pana Barczaka ( 1 wizyta ) , gdzie lekarz mimo informacji , ze mialam dzien wczesniej krwawienia nie zrobil USG i do Dr . Feliksika , ktory za wizyte kasowal prawie 200zl . , ktory byl wedlug mnie dobrym lekarzem , jednak po wizycie u Pana Barona stwierdzam , ze na NFZ mozna jeszcze spotkac dobrego lekarza , ktory wytlumaczy .
+
+3. Activation: 23.603
+   Token: '<token_193_out_of_range>' (index 193)
+   Text: zdecydowanie odradzam wizyty u niego na pierwszej wizycie miÅy i diagnoza trafna ale z
+
+4. Activation: 23.556
+   Token: '<token_113_out_of_range>' (index 113)
+   Text: Pani doktor w czasie wizyty w nocnej pomocy lekarskiej byÅa
+
+5. Activation: 23.129
+   Token: 'cie' (index 37)
+   Text: DaÅ em ocenÄ dobry , ale w kierunku " plus " Pan doktor bardzo przyjazny dzieciom , syn ( 4 . 5l ) po wizycie chÄtnie o niej mÃ³wi , chce do " tego " pana doktora [przychodziÄ] .
+
+
+================================================================================
+Feature 539: czasowniki_zwrotne
+Score: 0.850
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 33.800
+   Token: '<token_154_out_of_range>' (index 154)
+   Text: c siÄ z pÅaceniem opÅat dodatkowych za korzystanie z â dodatkowych â usÅug : klimatyzacji , korzystania z TV , dostÄpu do internetu , minibaru , wody mineralnej , zestawu kawowego , prasowalnicy , a nawet usÅug Åwiadczonych przez recepcjÄ jak np . budzenie ( budzenie za darmo moÅ¼na sobie wÃ³wczas ustawiÄ w telewizorze ) .
+
+2. Activation: 32.865
+   Token: '<token_84_out_of_range>' (index 84)
+   Text: gle zbyt wielu chorych ( okoÅo jedna trzecia ) dowiaduje siÄ , Å¼e ma cukrzycÄ dopiero wtedy , gdy dojdzie do powaÅ¼nych komplikacji schorzenia .
+
+3. Activation: 32.034
+   Token: '<token_64_out_of_range>' (index 64)
+   Text: byÄ bardziej Åwiadome swojego ciaÅa , ale warto rÃ³wnoczeÅnie korzystaÄ z pomocy bardziej " tradycyjnego " ginekologa ( ja tak robiÄ )
+
+4. Activation: 31.234
+   Token: '<token_76_out_of_range>' (index 76)
+   Text: Podczas biegania ( do tego byÅy kupione ) nie
+
+5. Activation: 31.076
+   Token: 'pia' (index 60)
+   Text: powyÅ¼ej , Å¼e to duÅ¼a waga powoduje zapadanie siÄ materaca : kilka lat temu miaÅem materac ze ' zwykÅej ' ( starej , dobrej ) pianki - kupiony za 230 zÅ ( tyle Å¼e 90cmx200cm ) - i przez wiele dÅugich lat nic siÄ nie odksztaÅcaÅo .
+
+
+================================================================================
+Feature 603: spójnik_koordynujący
+Score: 0.850
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 29.457
+   Token: ')' (index 79)
+   Text: Å¼ siÄ odpina ( kiepskie mocowanie ) , a do tego jest maÅa , kosz jest niewielki , a dostÄp do niego trudny ( w gondoli siÄ tego nie odczuwa , bo zawieszona jest wyzej i kosz jest jakby 2 - piÄtrowy ) .
+
+2. Activation: 29.385
+   Token: '<token_62_out_of_range>' (index 62)
+   Text: Oceniam kontakt a wÅaÅciwie jego brak , bo do rezerwacji nie doszÅo .
+
+3. Activation: 29.148
+   Token: '<token_60_out_of_range>' (index 60)
+   Text: W tej chwili wzrok mam pogorszony okropnie a do tego powieka oka jest znacznie podniesiona i nie wrÃ³ciÅa juÅ¼ do normy . . . .
+
+4. Activation: 28.957
+   Token: 'In' (index 28)
+   Text: Wyklad zalicza siÄ przez ekranowki ( takie testy komputerowe ; ) ) Na szczescie ekranowki do Infy 2 sa na necie , a do Infy 3 pytania podal [jakis] miesiac przed testem - wiec mozna sie tego spokojenie nauczyc ; ) Wyklady mozna sobie spokojnie odpuscic .
+
+5. Activation: 28.845
+   Token: '�' (index 69)
+   Text: MyÅle , Å¼e lekarz powinien dokÅadnie wysÅuchaÄ pacjenta , co ten ma do powiedzenia na temat swoich dolegliwoÅci a na wizycie u dra Barga niestety nie miaÅa m takiej moÅ¼liwoÅci .
+
+
+================================================================================
+Feature 838: czasowniki_dokonane
+Score: 0.850
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 24.118
+   Token: '2' (index 72)
+   Text: dku i spytaÅa dla upewnienia o cenÄ , Zadowolone przyjechaÅy Åmy na nastÄpny dzieÅ i pierwszy klops pokÃ³j niegotowy , fakt byÅo przed 12 ( la dzieÅ wczeÅnie Pani przez telefon powiedziaÅa , Å¼e nie ma sprawy bo akurat jest wolny ) , czekaÅy Åmy ponad 2h aÅ¼ bÄdziemy mogÅy siÄ wprowadziÄ , kiedy doszÅo do pÅacenia cena okazaÅa siÄ 2 razy wyÅ¼sza , a kiedy powiedziaÅa m mu , ze jest [nie] w
+
+2. Activation: 23.014
+   Token: '<token_69_out_of_range>' (index 69)
+   Text: PosiÅki w restauracji w godzinach ÅciÅle okreÅlonych np . obiadokolacja tylko od 17 do 18 .
+
+3. Activation: 22.862
+   Token: '<token_150_out_of_range>' (index 150)
+   Text: Å * gniazdka w pokoju ulokowane w nielogicznych miejscach * pÃ³Åºne Åniadanie to po prostu wszystko co zostaÅo z " normalnego " Åniadania wrzucone na jeden talerz ( resztki ) * w okolicy totalnie nic siÄ nie dzieje * basen tylko od 9 : 00 do 18 : 00 * Cuba Libre jest z
+
+4. Activation: 22.632
+   Token: '<token_116_out_of_range>' (index 116)
+   Text: ca . . . ; ) Albo przepisanie recznie 50 stron jego skryptu ( uwaga - doÅÄ duÅ¼o bÅÄdÃ³w w nim : ! : : ? zwlasza w wyprowadzeniach wzorÃ³w ) albo policzenie ile mozna utworzyc par z 5 kropek ( jedna osoba odpowiada - pozostale 100 na sali zalicza : lol : ) .
+
+5. Activation: 21.873
+   Token: '7' (index 85)
+   Text: Odwiedzilismy gospode w 10 osob zeby zjesc kolacje w tradycyjnej karczmie , powinnismy juz sie wycofac jak Pani kelnerka stala w samym wejsciu i palila papierosa , pozniej nam powiedziala ze mamy pilnowac dzieci bo ona myla okna i zebysmy jej nie pobrudzili , knedliki serwuja tylko do 17 : 00 , pani super nie mila i kasuja za saszetke keczupu , jedzenie nawet ok , jak przyszli turysci z niemiec wszystko bylo calkiem inaczej , inni polacy weszli i na szczecie szybko wyszli , [zal] ze my tak nie zrobilismy , polacy omijajcie to miejsce
+
+
+================================================================================
+Feature 912: hotelowe_usługi
+Score: 0.850
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 26.805
+   Token: 'sobo' (index 49)
+   Text: ZgÅosiÅ em siÄ do niego z powaÅ¼nym poraÅ¼eniem nerwu promieniowego ( zespÃ³Å sobotniej nocy -
+
+2. Activation: 23.157
+   Token: 'h' (index 70)
+   Text: Ponadto ÅÃ³Å¼ko to byÅo tak stare i tak zÅoÅ¼one Å¼e jakikolwiek ruch na nim powodowaÅ chybotanie siÄ na prawo i lewo oraz skrzypienie ( bhp to chyba nieznany skrÃ³t dla wÅaÅcicieli tego przybytku ) .
+
+3. Activation: 23.031
+   Token: '�' (index 25)
+   Text: Å gumÄ . - przycisk odbioru / inicjowania rozmÃ³w ( sÅuchawka ) : skok przycisku nie do wyczucia , nie wiadomo czy juÅ¼ zadziaÅaÅ czy [nie] - powinien byÄ taki jak te do regulacji gÅoÅnoÅci .
+
+4. Activation: 22.838
+   Token: 'sze' (index 54)
+   Text: c przy tym , Å¼e " jego stetoskop kosztowaÅ kilka tysiÄcy , a sama membrana 700 zÅ " ( sÅowa skierowane do szeÅciolatki ! ) .
+
+5. Activation: 22.819
+   Token: '<token_115_out_of_range>' (index 115)
+   Text: zupeÅnie przypadkiem - w \ " mojej \ " przychodni \ " zapisywali \ " do okulisty na marzec ( a rzecz siÄ dziaÅa w paÅºdzierniku ) .
+
+
+================================================================================
+Feature 1918: sektor_apartamentów_wakacyjnych
+Score: 0.850
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 60.046
+   Token: '<token_120_out_of_range>' (index 120)
+   Text: c , iÅ¼ w przypadku dekoniunktury na rynku nieruchomoÅci , sektor apartamentÃ³w wakacyjnych traci na wartoÅci znacznie szybciej niÅ¼ rynek tradycyjnych mieszkaÅ .
+
+2. Activation: 59.041
+   Token: 'mu' (index 70)
+   Text: amputacji â - powiedziaÅa rozmÃ³wczyni PAP i dodaÅa , Å¼e dziÄki badaniom noblistÃ³w wykrywa siÄ coraz wiÄcej mutacji w systemach tego transportu .
+
+3. Activation: 59.023
+   Token: '<token_70_out_of_range>' (index 70)
+   Text: Do atutÃ³w tego miejsca mogÄ dodaÄ
+
+4. Activation: 58.957
+   Token: '<token_72_out_of_range>' (index 72)
+   Text: OgÃ³lnie nie polecam tego goÅcia , bo duÅ¼o osÃ³b oblaÅ ( ale nie mnie : ) ) .
+
+5. Activation: 58.722
+   Token: '<token_64_out_of_range>' (index 64)
+   Text: ok . 50 lekarzy rodzinnych , ktÃ³rzy przeszli przeszkolenie w zakresie dobrej praktyki klinicznej i uczestniczyli juÅ¼ w duÅ¼ych badaniach , prowadzonych przez uczelniÄ .
+
+
+================================================================================
+Feature 2762: czasowniki_przeszÅe
+Score: 0.850
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 30.508
+   Token: '<token_152_out_of_range>' (index 152)
+   Text: â Od ok . 120 lat wiadomo byÅo , Å¼e
+
+2. Activation: 29.372
+   Token: '<token_101_out_of_range>' (index 101)
+   Text: ByÅo to doÅÄ dawno temu ( 11 lat ) kiedy mimo licznych i nietanich nawet jak na tamten czas wizyt p . doktor nie doleczyÅ nadÅ¼erki o czym nie miaÅa m pojÄcia .
+
+3. Activation: 28.675
+   Token: '<token_63_out_of_range>' (index 63)
+   Text: â Kiedy 32 lata temu
+
+4. Activation: 28.283
+   Token: '<token_69_out_of_range>' (index 69)
+   Text: DziÄkujemy za super 2 tygodnie . . . . .
+
+5. Activation: 27.045
+   Token: '<token_106_out_of_range>' (index 106)
+   Text: ÅoÅ¼e bardzo wygodne mogÅo by byÄ troche twardsze ale na dwie noce ok .
+
+
+================================================================================
+Feature 6004: pokoje_hotelowe
+Score: 0.850
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 27.988
+   Token: 'kie' (index 61)
+   Text: Za maÅa regulacja nawysokoÅÄ , za maÅa regulacja odcinka lÄdÅºwowego ( podpiera krzyÅ¼ ) , zbyt ktÃ³rkie oparacie ( plastikowa ramka oparcia wbija siÄ w Åopatki ) Zdecydowanie odradzam krzesÅo osobom
+
+2. Activation: 25.680
+   Token: '<token_92_out_of_range>' (index 92)
+   Text: Za kaÅ¼de " podkrÄcenie Årubeczki " kasa , kasa i jeszcze raz kasa , a wiÄc normalna wizyta .
+
+3. Activation: 24.860
+   Token: '<token_84_out_of_range>' (index 84)
+   Text: Hotelarze z Krakowa zajÄli pierwsze miejsce w zestawieniu piÄciu najwiÄkszych polskich miast , porÃ³wnanych pod
+
+4. Activation: 24.361
+   Token: '<token_79_out_of_range>' (index 79)
+   Text: Jak wyjaÅniÅ Krzakowski , oznacza to , Å¼e na 100 pacjentÃ³w przebadanych pod
+
+5. Activation: 24.064
+   Token: '<token_171_out_of_range>' (index 171)
+   Text: Ale doktor jest cierpliwy i bardzo dba o szczegÃ³Åy , wszystko robi dokÅadnie i pod mikroskopem .
+
+
+================================================================================
+Feature 5061: usługi_hotelarskie
+Score: 0.850
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 439.283
+   Token: '<token_142_out_of_range>' (index 142)
+   Text: Witam Jestem posiadaczem owego fotela od 4 miesiÄcy .
+
+2. Activation: 438.161
+   Token: '<token_112_out_of_range>' (index 112)
+   Text: Hotel zostal wynajety w 95 % , a Pani z recepcji robila w niedziele sceny , ze goscie nie oddali kluczy .
+
+3. Activation: 435.124
+   Token: '<token_96_out_of_range>' (index 96)
+   Text: Spedzilam w hotelu Lagotel dlugi weekend od 8 do 11 maja .
+
+4. Activation: 435.086
+   Token: '<token_52_out_of_range>' (index 52)
+   Text: W jego cenniku sa implanty w cenach od 9 . 000 - 13 . 400 Po co ten cennik , skoro mnie nawet nie zapytal jakie ja chce miec ! !
+
+5. Activation: 434.984
+   Token: '<token_107_out_of_range>' (index 107)
+   Text: d przestrzeni publicznych jest nowoczesny i utrzymany w Å¼ywej kolorystyce .
+
+
+================================================================================
+Feature 2981: czasowniki_zwrotne
+Score: 0.850
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 38.666
+   Token: '.' (index 16)
+   Text: Jednak znajdzie siÄ zawsze jakieÅ ale . . . kiedy na koniec wyjazdu udaÅo nam siÄ [skorzystaÄ] ze strefy SPA okazaÅo siÄ , Å¼e woda w jacuzzi byÅa lodowata ( o czym nie byli Åmy uprzedzeni , a byli Åmy z dzieckiem ) .
+
+2. Activation: 37.826
+   Token: '�' (index 40)
+   Text: trzeba uÅ¼ywac balsamÃ³w i tak dalej . . . nie wiem , czy sie nie zna na hashimoto i nadczynnoÅci , czy ma w nosie pacjenta
+
+3. Activation: 36.632
+   Token: '<token_115_out_of_range>' (index 115)
+   Text: Na pranie trzeba czekaÄ dwa dni . . .
+
+4. Activation: 36.116
+   Token: '<token_178_out_of_range>' (index 178)
+   Text: daÅy jak nowe . . . ) .
+
+5. Activation: 35.828
+   Token: '.' (index 33)
+   Text: Ja mÃ³wiÄ Å¼e nie byÅo tego w ofercie a on na to . . . Å¼e hotel zbudowany zostaÅ w 1983 i czÄÅÄ pokoi w tym mÃ³j od tego czasu nie byÅo remontowanych [ani] odÅwieÅ¼anych ! ! ! !
+
+
+================================================================================
+Feature 5093: czasowniki_zwrotne
+Score: 0.850
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 29.313
+   Token: '<token_64_out_of_range>' (index 64)
+   Text: Facet z Zmojskim Akcentem , jak ktos go kiedys okreslil : ) Lubi straszyc ludzi na paru pierwszych zajeciach .
+
+2. Activation: 25.986
+   Token: '<token_105_out_of_range>' (index 105)
+   Text: Jak kiedyÅ pisaÅ em juÅ¼ tutaj na blogu .
+
+3. Activation: 24.269
+   Token: '<token_59_out_of_range>' (index 59)
+   Text: niestety jego entuzjazm nie jest staly i kiedy ma gorszy humor ( a moze
+
+4. Activation: 23.866
+   Token: '<token_81_out_of_range>' (index 81)
+   Text: Duzy budynek , ktory kiedys byl pensjonatem , obecnie straszy i nie wyglada zeby byl w remoncie .
+
+5. Activation: 23.767
+   Token: '<token_84_out_of_range>' (index 84)
+   Text: Prostackie odzywki pokojowek typu " boze jak mi sie nie chce " i " zaraz chyba umre " i komentowanie stylu zycia gosci to rzecz niedopuszczalna tymbardziej kiedy odbywa sie to na glos na korytarzu .
+
+
+================================================================================
+Feature 5587: czasowniki_dokonane
+Score: 0.850
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 31.150
+   Token: '<token_86_out_of_range>' (index 86)
+   Text: Jak sie okazalo kilka lat pozniej mialem zerwane wiezadlo jak on mogl to przeoczyc .
+
+2. Activation: 28.770
+   Token: '<token_75_out_of_range>' (index 75)
+   Text: PS . w przypadku tego pana sluze pomoca jesli ktos chce w miare bezstresowo go przejsc : )
+
+3. Activation: 25.105
+   Token: '<token_59_out_of_range>' (index 59)
+   Text: Generalnie nie chodzi o pieniadze , ale o ten caly strach i lek , ktory przezylismy , nie wiedzac co sie tak naprawde dzieje z malym .
+
+4. Activation: 24.950
+   Token: '<token_61_out_of_range>' (index 61)
+   Text: skiej w Trzebnicy , Polskim Towarzystwem Transplantacyjnym , Polskim Stowarzyszeniem KoordynatorÃ³w Transplantacyjnych oraz oddziaÅami opolskim i
+
+5. Activation: 24.514
+   Token: '<token_95_out_of_range>' (index 95)
+   Text: Odkryli Åmy , Å¼e ludzkie metylotransferazy
+
+
+================================================================================
+Feature 5812: obsługa_klienta
+Score: 0.850
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 25.253
+   Token: 'chwil' (index 124)
+   Text: W pokojach popÄkane Åciany - my tak akurat trafili Åmy ( pokÃ³j208 ) , nie ma klimatyzacj iZostawiÅam komÃ³rkÄ w pokoju jak sie zorientowaÅa m , to juz jej nie byÅo - Pan w recepcji najpierw powiedziaÅ Å¼e znalezli te komÃ³rkrÄ , a za chwilÄ zmieniÅ zdanie zÅodzieje .
+
+2. Activation: 25.143
+   Token: '<token_102_out_of_range>' (index 102)
+   Text: Dwie gwiazdki za lokalizacjÄ i piÄkne widoki .
+
+3. Activation: 24.976
+   Token: 'a' (index 53)
+   Text: jedyne co dostaÅa m po 10 min . wizyty to karteczka z notesu na ktÃ³rej byÅo napisane " usg tarczycy " . czyli za to zapÅaciÅa m 168zÅ ! ! ! !
+
+4. Activation: 24.696
+   Token: '<token_106_out_of_range>' (index 106)
+   Text: kolokwia ogÃ³lnowydziaÅowe , wiÄc nie moge napisac , jakiego poziomu trudnoÅci zadania daje za zaliczeniach .
+
+5. Activation: 24.156
+   Token: '<token_84_out_of_range>' (index 84)
+   Text: Wg mnie za maÅo zaangaÅ¼owania , niewiele wyjaÅnieÅ , Oczekiwalam rozwazenia roznych opcji , komentarza i proady odnosnie najlepszego rozwiazania w mojej sytuacji .
+
+
+================================================================================
+Feature 6116: czasowniki_zwrotne
+Score: 0.850
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 35.275
+   Token: '<token_77_out_of_range>' (index 77)
+   Text: rektoskopiÄ i to nie w dniu wizyty , tylko po specjalnym przygotowaniu za dwa dni .
+
+2. Activation: 34.793
+   Token: '<token_99_out_of_range>' (index 99)
+   Text: Tak samo jest na basenie , po godzinie 13 - 14 wszÄdzie
+
+3. Activation: 34.745
+   Token: '<token_98_out_of_range>' (index 98)
+   Text: czonym upÅynniaczem PNM i z efektem teatru , albo po
+
+4. Activation: 34.694
+   Token: '�' (index 99)
+   Text: twarz niektÃ³rych recepcjonistek i nie byli Åmy skorzy do kÅÃ³tni , nawet jak wyszÅo , Å¼e nas okÅamaÅy - powiedzieli Åmy im to tylko : ) ) Jest to trzeci hotel Mitsis , w jakim zamieszkali Åmy i pierwszy raz poÅ¼aÅowali Åmy naszego wyboru .
+
+5. Activation: 34.409
+   Token: '<token_82_out_of_range>' (index 82)
+   Text: Spytasz sie to ci pomoÅ¼e , albo powie ze ' wy przecieÅ¼ juz wszystko umiecie , po co wam analiza ' .
+
+
+================================================================================
+Feature 3724: czasowniki_zwrotne
+Score: 0.850
+================================================================================
+
+Sample texts (top 5 of 15 total):
+--------------------------------------------------------------------------------
+
+1. Activation: 31.609
+   Token: '<token_56_out_of_range>' (index 56)
+   Text: Fakt , dr nie przepisuje tabletek antykoncepcyjnych tak od razu , ale teÅ¼ : nie dowiesz siÄ co wÅaÅciwie ci dolega , czy tabletki ci
+
+2. Activation: 31.000
+   Token: '<token_151_out_of_range>' (index 151)
+   Text: Po powrocie do 10 wszystko od
+
+3. Activation: 30.958
+   Token: 'itp' (index 57)
+   Text: Koktajle robione od serca i co tylko siÄ chciaÅo ( oczywiÅcie bez czarnego J Walkera itp ) Piwo Tuborg - lepsze od naszych sikÃ³w typu lech czy tyskie itp .
+
+4. Activation: 30.893
+   Token: '<token_69_out_of_range>' (index 69)
+   Text: Nawet nie wiem od czego
+
+5. Activation: 29.944
+   Token: '<token_141_out_of_range>' (index 141)
+   Text: Po raz kolejny przekonujÄ siÄ Å¼e po pierwszym nietrafionym antybiotyku lekarz powinien od razu zlecaÄ posiew .

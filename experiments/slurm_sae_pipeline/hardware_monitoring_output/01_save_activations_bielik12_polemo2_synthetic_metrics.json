@@ -1,0 +1,6752 @@
+[
+  {
+    "timestamp": "2026-01-21T12:00:00",
+    "cpu": {
+      "cpu_percent_overall": 20.483570765056164,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 58.323819867198345,
+      "ram_percent": 5.791839112929329
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 43.38379698174097,
+      "utilization_memory_pct": 4.373690729917027,
+      "memory_used_mib": 3567.1384224130284,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 0.0,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.0
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:01:00",
+    "cpu": {
+      "cpu_percent_overall": 20.00733692441935,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 49.69241354646168,
+      "ram_percent": 4.934698465388449
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 42.85279221210406,
+      "utilization_memory_pct": 3.8917331368315895,
+      "memory_used_mib": 3174.0586290684764,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 0.3272298839002651,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.016361494195013256
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:02:00",
+    "cpu": {
+      "cpu_percent_overall": 20.192002789331966,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 57.48949125646488,
+      "ram_percent": 5.708986222091845
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.36352693743129,
+      "utilization_memory_pct": 4.298680508077657,
+      "memory_used_mib": 3505.9608355830565,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 0.8428999465102677,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.042144997325513384
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:03:00",
+    "cpu": {
+      "cpu_percent_overall": 21.00547476323819,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.03069918305876,
+      "ram_percent": 5.365511338933342
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.72176292749091,
+      "utilization_memory_pct": 4.522264525229073,
+      "memory_used_mib": 3688.31372413158,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 2.543950199958859,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.12719750999794296
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:04:00",
+    "cpu": {
+      "cpu_percent_overall": 20.37903851770996,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.05547404685615,
+      "ram_percent": 5.070057005646092
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.7803720212514,
+      "utilization_memory_pct": 3.5626615088151428,
+      "memory_used_mib": 2905.671099974542,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 2.1984026703536945,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.10992013351768472
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:05:00",
+    "cpu": {
+      "cpu_percent_overall": 19.84658002234158,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.38631042278981,
+      "ram_percent": 5.500130131359465
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 45.24363943468605,
+      "utilization_memory_pct": 3.973345613489504,
+      "memory_used_mib": 3240.6209489059047,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 2.7243145038929324,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.13621572519464661
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:06:00",
+    "cpu": {
+      "cpu_percent_overall": 20.75400263062089,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.59717908672041,
+      "ram_percent": 5.421765549823278
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 45.917899077808585,
+      "utilization_memory_pct": 4.310271613722714,
+      "memory_used_mib": 3515.414425436108,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 3.526294143372798,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.1763147071686399
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:07:00",
+    "cpu": {
+      "cpu_percent_overall": 20.916478282892434,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.19934936852361,
+      "ram_percent": 5.183649391114559
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 47.79843888694651,
+      "utilization_memory_pct": 4.118970221301636,
+      "memory_used_mib": 3359.3909227914014,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 3.6324057319296132,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.18162028659648066
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:08:00",
+    "cpu": {
+      "cpu_percent_overall": 20.126900751007355,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.209406254970055,
+      "ram_percent": 5.383257820751743
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 47.70146943138293,
+      "utilization_memory_pct": 4.259774120175899,
+      "memory_used_mib": 3474.2291746742617,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 3.8853488155654845,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.1942674407782742
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:09:00",
+    "cpu": {
+      "cpu_percent_overall": 20.214785671045725,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.84405920941472,
+      "ram_percent": 5.247672215433439
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.68375780431273,
+      "utilization_memory_pct": 4.020651261855633,
+      "memory_used_mib": 3279.202962656836,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 4.4185536999928265,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.22092768499964133
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:10:00",
+    "cpu": {
+      "cpu_percent_overall": 19.535004550779522,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.340552035753745,
+      "ram_percent": 5.396281234930858
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.044888388455036,
+      "utilization_memory_pct": 4.1899949208481955,
+      "memory_used_mib": 3417.31795749458,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 4.982786730887763,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.24913933654438813
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:11:00",
+    "cpu": {
+      "cpu_percent_overall": 18.9554565529849,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.98639202356314,
+      "ram_percent": 5.559721154276379
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 50.6977847545765,
+      "utilization_memory_pct": 4.130585898455823,
+      "memory_used_mib": 3368.864552921584,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 5.501834978399354,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.27509174891996774
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:12:00",
+    "cpu": {
+      "cpu_percent_overall": 18.99360977371169,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 58.75805044843606,
+      "ram_percent": 5.834960322585507
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 54.82080310099045,
+      "utilization_memory_pct": 4.4551262427591825,
+      "memory_used_mib": 3633.5564123319614,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 6.386119604532244,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.31930598022661216
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:13:00",
+    "cpu": {
+      "cpu_percent_overall": 17.40960812416159,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 50.28655350351945,
+      "ram_percent": 4.993699454172736
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 52.7357216589186,
+      "utilization_memory_pct": 4.231150662293852,
+      "memory_used_mib": 3450.8841686602427,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 6.550136511676883,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.32750682558384414
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:14:00",
+    "cpu": {
+      "cpu_percent_overall": 16.204478531152574,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 60.3991001239688,
+      "ram_percent": 5.997924540612592
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 50.78980811513919,
+      "utilization_memory_pct": 4.251548611943551,
+      "memory_used_mib": 3467.5205324150406,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 7.392342343440503,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.36961711717202517
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:15:00",
+    "cpu": {
+      "cpu_percent_overall": 16.05209110454896,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 48.143736601432494,
+      "ram_percent": 4.780907308980386
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 53.12344429981548,
+      "utilization_memory_pct": 4.067760280012637,
+      "memory_used_mib": 3317.6246067755064,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 7.487522750837901,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.3743761375418951
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:16:00",
+    "cpu": {
+      "cpu_percent_overall": 15.584654098615797,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.54464471489325,
+      "ram_percent": 5.317243765133392
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 55.37202916087766,
+      "utilization_memory_pct": 4.049189856650401,
+      "memory_used_mib": 3302.478755185501,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 8.069057372109718,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.40345286860548585
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:17:00",
+    "cpu": {
+      "cpu_percent_overall": 16.182641483269883,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.764951619453726,
+      "ram_percent": 5.537731044632942
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 52.86821872972414,
+      "utilization_memory_pct": 4.062688804958467,
+      "memory_used_mib": 3313.488362436076,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 7.532498170745098,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.3766249085372549
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:18:00",
+    "cpu": {
+      "cpu_percent_overall": 15.774227204138493,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.8429756032051,
+      "ram_percent": 5.4461743399409235
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 50.955593604364225,
+      "utilization_memory_pct": 4.2654893126149895,
+      "memory_used_mib": 3478.8904284756595,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 9.491621086421873,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.4745810543210936
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:19:00",
+    "cpu": {
+      "cpu_percent_overall": 15.04886534751625,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.131901440538215,
+      "ram_percent": 5.1769514836681445
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.62050688510252,
+      "utilization_memory_pct": 4.065526923866093,
+      "memory_used_mib": 3315.8031038359472,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 9.708560223079106,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.4854280111539553
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:20:00",
+    "cpu": {
+      "cpu_percent_overall": 16.590772122079976,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.375633248928175,
+      "ram_percent": 5.300460104163672
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.25408477916516,
+      "utilization_memory_pct": 4.2398202177310695,
+      "memory_used_mib": 3457.9549713792826,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 10.536179776119416,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.5268089888059708
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:21:00",
+    "cpu": {
+      "cpu_percent_overall": 16.63282407840308,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.5209971960235,
+      "ram_percent": 5.215590585503823
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 44.28680297467357,
+      "utilization_memory_pct": 4.677693644759116,
+      "memory_used_mib": 3815.0801597290874,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 9.090905768152224,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.4545452884076112
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:22:00",
+    "cpu": {
+      "cpu_percent_overall": 16.88854662015856,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.231905729167366,
+      "ram_percent": 5.18688239614373
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 42.435086918293194,
+      "utilization_memory_pct": 4.3823795542936255,
+      "memory_used_mib": 3574.2249406863384,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 12.085079545698912,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.6042539772849456
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:23:00",
+    "cpu": {
+      "cpu_percent_overall": 15.986703487474683,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.54880629106307,
+      "ram_percent": 5.615571627712321
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 41.357448993830545,
+      "utilization_memory_pct": 4.088813366478784,
+      "memory_used_mib": 3334.7952935664316,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 11.472956115290442,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.5736478057645221
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:24:00",
+    "cpu": {
+      "cpu_percent_overall": 15.880410920959594,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.07104645789514,
+      "ram_percent": 5.468822885590382
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 41.98099338124372,
+      "utilization_memory_pct": 4.463324445411039,
+      "memory_used_mib": 3640.242784432789,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 12.598701073796267,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.6299350536898133
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:25:00",
+    "cpu": {
+      "cpu_percent_overall": 16.281541225098053,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.92127121421804,
+      "ram_percent": 5.156034877280838
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 43.07569531238386,
+      "utilization_memory_pct": 4.068692511428156,
+      "memory_used_mib": 3318.3849253956896,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 12.026515437924223,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.6013257718962112
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:26:00",
+    "cpu": {
+      "cpu_percent_overall": 15.676064858266619,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.69879962629975,
+      "ram_percent": 5.630466695759657
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.77039205043584,
+      "utilization_memory_pct": 3.6689698168987226,
+      "memory_used_mib": 2992.3750929644293,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 13.354714090077753,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.6677357045038876
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:27:00",
+    "cpu": {
+      "cpu_percent_overall": 16.30642864328588,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.92189856262983,
+      "ram_percent": 5.4540117738460605
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 44.558289757319,
+      "utilization_memory_pct": 3.9215570786994927,
+      "memory_used_mib": 3198.3827378165192,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 13.02347809201912,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.6511739046009559
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:28:00",
+    "cpu": {
+      "cpu_percent_overall": 16.109985329353893,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.43858635651688,
+      "ram_percent": 5.604626251888469
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.841623330521976,
+      "utilization_memory_pct": 3.710003329853025,
+      "memory_used_mib": 3025.8416157948286,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 13.740160129317523,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.6870080064658761
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:29:00",
+    "cpu": {
+      "cpu_percent_overall": 16.174717217605853,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.888886525770836,
+      "ram_percent": 5.550038383889855
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.266003258070114,
+      "utilization_memory_pct": 4.082562688595665,
+      "memory_used_mib": 3329.6973031917382,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 15.510919022658298,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.7755459511329149
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:30:00",
+    "cpu": {
+      "cpu_percent_overall": 15.997229675792926,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.51301496723378,
+      "ram_percent": 5.115493045405539
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.122228979089485,
+      "utilization_memory_pct": 4.173277842835138,
+      "memory_used_mib": 3403.6836758379104,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 14.960420881402712,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.7480210440701356
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:31:00",
+    "cpu": {
+      "cpu_percent_overall": 17.68685386280569,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.31945687940909,
+      "ram_percent": 5.1955766513812405
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 47.52101556577593,
+      "utilization_memory_pct": 4.579859319578534,
+      "memory_used_mib": 3735.2874624550564,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 15.666337254433726,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.7833168627216863
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:32:00",
+    "cpu": {
+      "cpu_percent_overall": 17.723702864831388,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.24188081536978,
+      "ram_percent": 5.58509243449551
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 44.93514698562871,
+      "utilization_memory_pct": 4.248930804390481,
+      "memory_used_mib": 3465.3854747528326,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 16.49451341924772,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.8247256709623861
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:33:00",
+    "cpu": {
+      "cpu_percent_overall": 16.971864238389756,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.83111079630039,
+      "ram_percent": 5.544300972820297
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 45.89793540477091,
+      "utilization_memory_pct": 4.115033159109635,
+      "memory_used_mib": 3356.179894238227,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 16.809179233949123,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.8404589616974563
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:34:00",
+    "cpu": {
+      "cpu_percent_overall": 17.742993286708682,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.93729521810756,
+      "ram_percent": 5.356235870715746
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.26279473130269,
+      "utilization_memory_pct": 4.372149138950573,
+      "memory_used_mib": 3565.881116236698,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 17.138406478594092,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.8569203239297046
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:35:00",
+    "cpu": {
+      "cpu_percent_overall": 16.865911556224113,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.35198214992634,
+      "ram_percent": 5.397416300886429
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 47.2575231760244,
+      "utilization_memory_pct": 3.6265438985255134,
+      "memory_used_mib": 2957.772938198423,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 17.747536263314892,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.8873768131657446
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:36:00",
+    "cpu": {
+      "cpu_percent_overall": 17.192672519044063,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 57.83299468736527,
+      "ram_percent": 5.7430977842468
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 47.67614885182716,
+      "utilization_memory_pct": 4.226538961514626,
+      "memory_used_mib": 3447.1229116217132,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 19.2686222907604,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.9634311145380201
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:37:00",
+    "cpu": {
+      "cpu_percent_overall": 15.844019048277623,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.22528583349251,
+      "ram_percent": 5.1862250082912125
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 52.580856817865964,
+      "utilization_memory_pct": 4.357793791951095,
+      "memory_used_mib": 3554.1730387773932,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 18.539963835683952,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.9269981917841976
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:38:00",
+    "cpu": {
+      "cpu_percent_overall": 15.171276654362156,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.641292143510114,
+      "ram_percent": 5.525451056952345
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 50.254474328258304,
+      "utilization_memory_pct": 3.806180496136578,
+      "memory_used_mib": 3104.282750844032,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 19.171181493617702,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 0.9585590746808851
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:39:00",
+    "cpu": {
+      "cpu_percent_overall": 15.743231083109675,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.39342204269832,
+      "ram_percent": 5.302226617944222
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.501209573515744,
+      "utilization_memory_pct": 4.449234062018154,
+      "memory_used_mib": 3628.750808641386,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 20.097817904323506,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.0048908952161753
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:40:00",
+    "cpu": {
+      "cpu_percent_overall": 16.63559635563978,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.34695639031834,
+      "ram_percent": 5.2976123525638865
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.81743303199637,
+      "utilization_memory_pct": 4.251767777313212,
+      "memory_used_mib": 3467.699281498883,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 20.62711240885817,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.0313556204429084
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:41:00",
+    "cpu": {
+      "cpu_percent_overall": 16.96878311318629,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 57.296330555961575,
+      "ram_percent": 5.689804424623791
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 45.528316126960384,
+      "utilization_memory_pct": 4.066923843131769,
+      "memory_used_mib": 3316.9424172198396,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 21.169723331218847,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.0584861665609424
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:42:00",
+    "cpu": {
+      "cpu_percent_overall": 17.03672943441717,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.47624904696409,
+      "ram_percent": 5.60836634031421
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 44.26055574057264,
+      "utilization_memory_pct": 4.323932825587926,
+      "memory_used_mib": 3526.5563732212568,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 21.397432025512728,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.0698716012756364
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:43:00",
+    "cpu": {
+      "cpu_percent_overall": 16.955392247562628,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.440528908001916,
+      "ram_percent": 5.604819156703269
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 47.0184070948126,
+      "utilization_memory_pct": 4.725583407791757,
+      "memory_used_mib": 3854.1385715608794,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 21.00842319419238,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.050421159709619
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:44:00",
+    "cpu": {
+      "cpu_percent_overall": 16.00319191765266,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 57.91643642146299,
+      "ram_percent": 5.751383954465044
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.848704951369406,
+      "utilization_memory_pct": 4.213358735408353,
+      "memory_used_mib": 3436.373251011699,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 22.898500152767646,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.1449250076383821
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:45:00",
+    "cpu": {
+      "cpu_percent_overall": 15.76282997370873,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.06301152489828,
+      "ram_percent": 5.368720111707872
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.072831991790096,
+      "utilization_memory_pct": 4.229630227516359,
+      "memory_used_mib": 3449.644117260067,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 22.01047042616723,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.1005235213083615
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:46:00",
+    "cpu": {
+      "cpu_percent_overall": 15.75292639943258,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.04585891388489,
+      "ram_percent": 5.565626505847557
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.0139604895027,
+      "utilization_memory_pct": 4.05611621046353,
+      "memory_used_mib": 3308.127820091951,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 23.236819591355577,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.1618409795677789
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:47:00",
+    "cpu": {
+      "cpu_percent_overall": 16.88282910918188,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.06919973021963,
+      "ram_percent": 5.270029764669278
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 47.00183908448874,
+      "utilization_memory_pct": 3.9603613655231693,
+      "memory_used_mib": 3230.0311261070415,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 23.210222669785857,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.1605111334892928
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:48:00",
+    "cpu": {
+      "cpu_percent_overall": 17.308118459980943,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.97249905746533,
+      "ram_percent": 5.459036649202118
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 45.69189482882539,
+      "utilization_memory_pct": 4.372377252429344,
+      "memory_used_mib": 3566.067163308849,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 24.05715015755852,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.202857507877926
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:49:00",
+    "cpu": {
+      "cpu_percent_overall": 16.08962057446175,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.60957083689695,
+      "ram_percent": 5.323691244974871
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 47.06726742178816,
+      "utilization_memory_pct": 3.958831318209181,
+      "memory_used_mib": 3228.7832348182264,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 24.755459272066236,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.2377729636033117
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:50:00",
+    "cpu": {
+      "cpu_percent_overall": 16.619240465338585,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.29098789497815,
+      "ram_percent": 5.391359274575785
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 47.33331565230766,
+      "utilization_memory_pct": 4.186310827062468,
+      "memory_used_mib": 3414.3132474438785,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 25.253615410699112,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.2626807705349556
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:51:00",
+    "cpu": {
+      "cpu_percent_overall": 16.53754268522556,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.78547107631074,
+      "ram_percent": 5.539768726545257
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 43.95025566296733,
+      "utilization_memory_pct": 4.051629508266379,
+      "memory_used_mib": 3304.4685106469765,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 25.805755916151096,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.2902877958075547
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:52:00",
+    "cpu": {
+      "cpu_percent_overall": 16.249219782212258,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.54533795029958,
+      "ram_percent": 5.118702874905619
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 47.50747823631536,
+      "utilization_memory_pct": 4.286217296863961,
+      "memory_used_mib": 3495.7959651492783,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 26.903509909622258,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.3451754954811128
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:53:00",
+    "cpu": {
+      "cpu_percent_overall": 16.97059403151107,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 60.27716182705638,
+      "ram_percent": 5.985815474384943
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 51.05269961436865,
+      "utilization_memory_pct": 4.250582303678796,
+      "memory_used_mib": 3466.7324210573897,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 26.825280161909404,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.3412640080954703
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:54:00",
+    "cpu": {
+      "cpu_percent_overall": 17.898254568656373,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 50.98194785550089,
+      "ram_percent": 5.0627554970705955
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.00793842219614,
+      "utilization_memory_pct": 4.42318810781346,
+      "memory_used_mib": 3607.5079888515797,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 26.97829342956657,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.3489146714783284
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:55:00",
+    "cpu": {
+      "cpu_percent_overall": 18.611976472695066,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 50.3574341616368,
+      "ram_percent": 5.000738248424708
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 47.742574383001156,
+      "utilization_memory_pct": 4.043694405558001,
+      "memory_used_mib": 3297.9967202290504,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 28.084274067415553,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.4042137033707776
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:56:00",
+    "cpu": {
+      "cpu_percent_overall": 17.890766859373826,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 57.474332620500206,
+      "ram_percent": 5.707480895779564
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.08150554607328,
+      "utilization_memory_pct": 4.1025821956391395,
+      "memory_used_mib": 3346.0250129413257,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 28.698824463793173,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.4349412231896586
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:57:00",
+    "cpu": {
+      "cpu_percent_overall": 17.67524254857934,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.37498808188881,
+      "ram_percent": 5.598310633752612
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.47163897313504,
+      "utilization_memory_pct": 3.9287476021573813,
+      "memory_used_mib": 3204.2472568435387,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 27.99214404782184,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.399607202391092
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:58:00",
+    "cpu": {
+      "cpu_percent_overall": 17.972403739845113,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.87235945115646,
+      "ram_percent": 5.54839716496092
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.48383609977773,
+      "utilization_memory_pct": 4.059811115860638,
+      "memory_used_mib": 3311.141347984778,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 29.40650672637474,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.470325336318737
+    }
+  },
+  {
+    "timestamp": "2026-01-21T12:59:00",
+    "cpu": {
+      "cpu_percent_overall": 18.708202024210117,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.88503652779284,
+      "ram_percent": 5.549656060356787
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 53.18269021622041,
+      "utilization_memory_pct": 4.261283363710897,
+      "memory_used_mib": 3475.4600986089704,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 29.96025179866474,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.498012589933237
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:00:00",
+    "cpu": {
+      "cpu_percent_overall": 18.242591042194633,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.963259681459256,
+      "ram_percent": 5.358814268268049
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 51.73369750604984,
+      "utilization_memory_pct": 4.354390960322061,
+      "memory_used_mib": 3551.3977233290702,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 29.962742411888776,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.498137120594439
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:01:00",
+    "cpu": {
+      "cpu_percent_overall": 18.066958153367572,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.308236885542506,
+      "ram_percent": 5.095157585456058
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.19721866661161,
+      "utilization_memory_pct": 3.942626730544115,
+      "memory_used_mib": 3215.566935164475,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 31.301236306284057,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.5650618153142029
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:02:00",
+    "cpu": {
+      "cpu_percent_overall": 17.227163199857916,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.22741367458118,
+      "ram_percent": 5.385046045142123
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 45.82106548778936,
+      "utilization_memory_pct": 4.38200711634661,
+      "memory_used_mib": 3573.921184021132,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 31.040213842171465,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.5520106921085732
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:03:00",
+    "cpu": {
+      "cpu_percent_overall": 16.445933751818725,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.96851486546367,
+      "ram_percent": 5.160726401734227
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 44.31295258074293,
+      "utilization_memory_pct": 4.5011924763189715,
+      "memory_used_mib": 3671.12757176099,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 31.679888598482982,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.583994429924149
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:04:00",
+    "cpu": {
+      "cpu_percent_overall": 17.288438055841567,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.925359200253254,
+      "ram_percent": 5.652965163878178
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 44.49644305059651,
+      "utilization_memory_pct": 4.270144288974534,
+      "memory_used_mib": 3482.6869806447403,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 32.032423195664755,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.6016211597832377
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:05:00",
+    "cpu": {
+      "cpu_percent_overall": 18.412352368893448,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.55882785549358,
+      "ram_percent": 5.318652220009294
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.49054810639439,
+      "utilization_memory_pct": 4.6289914816410365,
+      "memory_used_mib": 3775.3591625116132,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 32.628607367656905,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.631430368382845
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:06:00",
+    "cpu": {
+      "cpu_percent_overall": 18.29649192237418,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.523508409622465,
+      "ram_percent": 5.1165350952951805
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 47.02998216245927,
+      "utilization_memory_pct": 3.9790117095345523,
+      "memory_used_mib": 3245.2421601792853,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 32.57453903647804,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.628726951823902
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:07:00",
+    "cpu": {
+      "cpu_percent_overall": 19.004667807437073,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.03584247504102,
+      "ram_percent": 5.266717226915693
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 47.34543953653207,
+      "utilization_memory_pct": 3.8635454815994765,
+      "memory_used_mib": 3151.0690593377167,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 32.90450987468798,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.645225493734399
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:08:00",
+    "cpu": {
+      "cpu_percent_overall": 19.125194655107236,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.23879436282687,
+      "ram_percent": 5.4854810688010796
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 47.10913552429948,
+      "utilization_memory_pct": 3.732581260460703,
+      "memory_used_mib": 3044.2559502191443,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 34.923646583657096,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.7461823291828549
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:09:00",
+    "cpu": {
+      "cpu_percent_overall": 18.472575640887307,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.30882634158807,
+      "ram_percent": 5.194520987248071
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.43839106989553,
+      "utilization_memory_pct": 4.535623122276924,
+      "memory_used_mib": 3699.2088622978367,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 34.20477211394492,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.7102386056972458
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:10:00",
+    "cpu": {
+      "cpu_percent_overall": 18.67273599888552,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.5333388133007,
+      "ram_percent": 5.117511302214568
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 54.22919050374581,
+      "utilization_memory_pct": 4.329225629631079,
+      "memory_used_mib": 3530.8731312708114,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 34.63441534943541,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.7317207674717703
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:11:00",
+    "cpu": {
+      "cpu_percent_overall": 19.72535302390217,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.731061634475736,
+      "ram_percent": 5.435060738279616
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 51.87998750505127,
+      "utilization_memory_pct": 4.155130722321153,
+      "memory_used_mib": 3388.883065817909,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 34.55527520342118,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.727763760171059
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:12:00",
+    "cpu": {
+      "cpu_percent_overall": 19.43968054098438,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.73489971332617,
+      "ram_percent": 5.43544187818532
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.97016655000531,
+      "utilization_memory_pct": 4.237415521602722,
+      "memory_used_mib": 3455.9937252639643,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 35.81434812243777,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.7907174061218885
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:13:00",
+    "cpu": {
+      "cpu_percent_overall": 20.39721120169723,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.47917047388661,
+      "ram_percent": 5.211436988469376
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 51.56737940934956,
+      "utilization_memory_pct": 3.8927674328281667,
+      "memory_used_mib": 3174.9021905403247,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 35.974142835638254,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.7987071417819127
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:14:00",
+    "cpu": {
+      "cpu_percent_overall": 18.072820693375334,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.586885083145035,
+      "ram_percent": 5.222133573301393
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 52.164244626162386,
+      "utilization_memory_pct": 4.7685116246194355,
+      "memory_used_mib": 3889.150395923365,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 37.95855404846967,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.8979277024234835
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:15:00",
+    "cpu": {
+      "cpu_percent_overall": 18.678324467650455,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.69614981207291,
+      "ram_percent": 5.431593824436237
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 55.1176933162837,
+      "utilization_memory_pct": 4.200449044734542,
+      "memory_used_mib": 3425.8442363950453,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 38.14431374913228,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.9072156874566142
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:16:00",
+    "cpu": {
+      "cpu_percent_overall": 18.641861098681513,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 49.65574697550803,
+      "ram_percent": 4.931057296475474
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 54.97628850802567,
+      "utilization_memory_pct": 4.195587193223284,
+      "memory_used_mib": 3421.8789589209787,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 37.79718876793158,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.889859438396579
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:17:00",
+    "cpu": {
+      "cpu_percent_overall": 18.321326421029887,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 49.77760867687034,
+      "ram_percent": 4.943158756392288
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 52.87533184116899,
+      "utilization_memory_pct": 4.346734664205959,
+      "memory_used_mib": 3545.1533247797383,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 39.769340579252074,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.9884670289626034
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:18:00",
+    "cpu": {
+      "cpu_percent_overall": 18.34194804027703,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.84466733624269,
+      "ram_percent": 5.148427739448132
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 53.08440720944749,
+      "utilization_memory_pct": 4.286714950339439,
+      "memory_used_mib": 3496.201846347343,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 39.6358641561352,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.9817932078067602
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:19:00",
+    "cpu": {
+      "cpu_percent_overall": 16.799979148284805,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.35965854486446,
+      "ram_percent": 5.2988737383182185
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 54.350023647254474,
+      "utilization_memory_pct": 4.223662385335556,
+      "memory_used_mib": 3444.7768048558264,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 39.484424456944566,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.9742212228472285
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:20:00",
+    "cpu": {
+      "cpu_percent_overall": 16.81522836016395,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.932722696794016,
+      "ram_percent": 5.455086663038135
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 54.82053268068077,
+      "utilization_memory_pct": 3.974920130103284,
+      "memory_used_mib": 3241.9051089109375,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 38.89899602732157,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 1.9449498013660786
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:21:00",
+    "cpu": {
+      "cpu_percent_overall": 17.260778534773166,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 58.426068650848656,
+      "ram_percent": 5.801992914682091
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 54.562728243903976,
+      "utilization_memory_pct": 4.284375325135422,
+      "memory_used_mib": 3494.293671427199,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 41.79602890711321,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.0898014453556604
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:22:00",
+    "cpu": {
+      "cpu_percent_overall": 18.48008228811333,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.57297886960606,
+      "ram_percent": 5.617972082383918
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 55.518335855455604,
+      "utilization_memory_pct": 4.630273666051578,
+      "memory_used_mib": 3776.4048992950065,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 40.45763012349552,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.0228815061747762
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:23:00",
+    "cpu": {
+      "cpu_percent_overall": 18.019367281191094,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.52018441010972,
+      "ram_percent": 5.31481473784605
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 56.546106217073174,
+      "utilization_memory_pct": 4.498686851519753,
+      "memory_used_mib": 3669.0840092309954,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 40.83157571945836,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.0415787859729178
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:24:00",
+    "cpu": {
+      "cpu_percent_overall": 17.41009198684254,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.94295137629194,
+      "ram_percent": 5.356797554745972
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 57.86672416569101,
+      "utilization_memory_pct": 4.559444482310817,
+      "memory_used_mib": 3718.6373253278794,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 42.6674190450011,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.133370952250055
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:25:00",
+    "cpu": {
+      "cpu_percent_overall": 17.122260406127758,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 50.99241190608657,
+      "ram_percent": 5.063794628211179
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 57.44900630477561,
+      "utilization_memory_pct": 4.043400317210563,
+      "memory_used_mib": 3297.7568647137628,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 43.87786876822539,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.1938934384112696
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:26:00",
+    "cpu": {
+      "cpu_percent_overall": 17.94047293348515,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.94446059202283,
+      "ram_percent": 5.3569474272118
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 55.380707390393866,
+      "utilization_memory_pct": 3.926089132956858,
+      "memory_used_mib": 3202.079035948284,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 43.8519877103705,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.192599385518525
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:27:00",
+    "cpu": {
+      "cpu_percent_overall": 18.19596532570714,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.13402408323959,
+      "ram_percent": 5.276467138355471
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 54.28170002334477,
+      "utilization_memory_pct": 4.1379156389608385,
+      "memory_used_mib": 3374.84261598007,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 43.9436645972009,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.197183229860045
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:28:00",
+    "cpu": {
+      "cpu_percent_overall": 17.76925037402579,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.96815568101427,
+      "ram_percent": 5.458605330785925
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 55.573113849510605,
+      "utilization_memory_pct": 4.182426197547468,
+      "memory_used_mib": 3411.144982457739,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 44.460945944066836,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.2230472972033417
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:29:00",
+    "cpu": {
+      "cpu_percent_overall": 18.188813392756938,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.51830716934303,
+      "ram_percent": 5.1160185868265176
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 52.421581863010815,
+      "utilization_memory_pct": 4.437080277705943,
+      "memory_used_mib": 3618.8383036941896,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 45.09213528868383,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.2546067644341914
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:30:00",
+    "cpu": {
+      "cpu_percent_overall": 18.23329954585443,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.55803954272352,
+      "ram_percent": 5.517183668592207
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 52.232558532192286,
+      "utilization_memory_pct": 3.7537329712932186,
+      "memory_used_mib": 3061.5070740570363,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 45.546750540246535,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.2773375270123264
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:31:00",
+    "cpu": {
+      "cpu_percent_overall": 18.92478835687593,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 58.59821673900773,
+      "ram_percent": 5.819088057498285
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 50.471663246475984,
+      "utilization_memory_pct": 4.543839507463459,
+      "memory_used_mib": 3705.9100638921227,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 45.80974069339732,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.290487034669866
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:32:00",
+    "cpu": {
+      "cpu_percent_overall": 18.259530282936527,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.67371955462943,
+      "ram_percent": 5.330061524789416
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.861277887667704,
+      "utilization_memory_pct": 4.130014370313763,
+      "memory_used_mib": 3368.398420284202,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 46.22310426944806,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.3111552134724027
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:33:00",
+    "cpu": {
+      "cpu_percent_overall": 17.974854130547723,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.20513516629683,
+      "ram_percent": 5.482138546802068
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 51.96683511599288,
+      "utilization_memory_pct": 4.064080954904445,
+      "memory_used_mib": 3314.623786010516,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 46.641565889581834,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.332078294479092
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:34:00",
+    "cpu": {
+      "cpu_percent_overall": 17.684544896116446,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.07043197513334,
+      "ram_percent": 5.56806673040053
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 51.47311789143574,
+      "utilization_memory_pct": 3.92057176393527,
+      "memory_used_mib": 3197.5791249479666,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 46.797738895157735,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.339886944757887
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:35:00",
+    "cpu": {
+      "cpu_percent_overall": 16.63422695059989,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.79633858434249,
+      "ram_percent": 5.242933325158142
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 50.749666958848294,
+      "utilization_memory_pct": 3.762955241759764,
+      "memory_used_mib": 3069.028665626846,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 47.536242387217165,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.3768121193608582
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:36:00",
+    "cpu": {
+      "cpu_percent_overall": 17.061183115808337,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.67227744543125,
+      "ram_percent": 5.429223182267254
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 47.181519018963215,
+      "utilization_memory_pct": 4.370620185132705,
+      "memory_used_mib": 3564.634116792383,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 47.33196025461234,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.3665980127306168
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:37:00",
+    "cpu": {
+      "cpu_percent_overall": 17.397797102572003,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.03777720234538,
+      "ram_percent": 5.366214220689709
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.5714236547759,
+      "utilization_memory_pct": 4.186740388476662,
+      "memory_used_mib": 3414.663593437681,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 48.63112758437213,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.4315563792186063
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:38:00",
+    "cpu": {
+      "cpu_percent_overall": 17.49196262966805,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.293028295646494,
+      "ram_percent": 5.391561896290614
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.54122688695577,
+      "utilization_memory_pct": 3.852435439438675,
+      "memory_used_mib": 3142.007820051789,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 48.68786058025353,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.4343930290126763
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:39:00",
+    "cpu": {
+      "cpu_percent_overall": 17.392227885186482,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.6809706484336,
+      "ram_percent": 5.1321718618106855
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 53.552877772853876,
+      "utilization_memory_pct": 3.851180428385925,
+      "memory_used_mib": 3140.9842455872767,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 49.13222021128059,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.4566110105640293
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:40:00",
+    "cpu": {
+      "cpu_percent_overall": 16.4218656458707,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.07353052277683,
+      "ram_percent": 5.369764699382008
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 51.77361181352449,
+      "utilization_memory_pct": 4.086419720867071,
+      "memory_used_mib": 3332.8430601419745,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 50.27582068152469,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.5137910340762346
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:41:00",
+    "cpu": {
+      "cpu_percent_overall": 16.343101806916074,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.49399487373635,
+      "ram_percent": 5.510823721324364
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 51.36778572959009,
+      "utilization_memory_pct": 4.578040811017642,
+      "memory_used_mib": 3733.8043050578785,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 51.38373348517973,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.5691866742589866
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:42:00",
+    "cpu": {
+      "cpu_percent_overall": 16.334600648483587,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 58.353430823385125,
+      "ram_percent": 5.794779624963766
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 51.08632360594416,
+      "utilization_memory_pct": 4.105103948953861,
+      "memory_used_mib": 3348.0817297272793,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 51.64874938106806,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.582437469053403
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:43:00",
+    "cpu": {
+      "cpu_percent_overall": 15.982702599294834,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.87781247825562,
+      "ram_percent": 5.648243543024392
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 53.63602695255584,
+      "utilization_memory_pct": 3.800158669645752,
+      "memory_used_mib": 3099.371409376379,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 50.9061995123148,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.5453099756157402
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:44:00",
+    "cpu": {
+      "cpu_percent_overall": 16.164332925651102,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 60.45954737253467,
+      "ram_percent": 6.003927246527772
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 52.29050229165986,
+      "utilization_memory_pct": 4.108499843282545,
+      "memory_used_mib": 3350.8513871828113,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 51.6984944819007,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.584924724095035
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:45:00",
+    "cpu": {
+      "cpu_percent_overall": 16.742721129414342,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.69795731133585,
+      "ram_percent": 5.133858720092935
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 51.932872152028594,
+      "utilization_memory_pct": 4.101883649934974,
+      "memory_used_mib": 3345.455286050466,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 53.16555288023946,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.658277644011973
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:46:00",
+    "cpu": {
+      "cpu_percent_overall": 18.34595238591009,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.61696191016203,
+      "ram_percent": 5.622339812329894
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 52.319523999629034,
+      "utilization_memory_pct": 3.5074273488047742,
+      "memory_used_mib": 2860.6226714116856,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 52.70578232553567,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.6352891162767835
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:47:00",
+    "cpu": {
+      "cpu_percent_overall": 18.424992887647452,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.55002601721505,
+      "ram_percent": 5.417083020577463
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 51.763474558313035,
+      "utilization_memory_pct": 4.155447009767699,
+      "memory_used_mib": 3389.1410266964376,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 53.5865681833658,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.67932840916829
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:48:00",
+    "cpu": {
+      "cpu_percent_overall": 18.55440674754241,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 60.56940879965302,
+      "ram_percent": 6.014837020819565
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.96144278400997,
+      "utilization_memory_pct": 4.112131210483533,
+      "memory_used_mib": 3353.8130939582643,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 54.47576954393607,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.7237884771968037
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:49:00",
+    "cpu": {
+      "cpu_percent_overall": 18.41541129858642,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.57510514393454,
+      "ram_percent": 5.121658902078902
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.774815351494915,
+      "utilization_memory_pct": 4.339485860496921,
+      "memory_used_mib": 3539.2412729626835,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 54.218430003051445,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.710921500152572
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:50:00",
+    "cpu": {
+      "cpu_percent_overall": 16.914021192324178,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.48083447345767,
+      "ram_percent": 5.11229736578527
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 51.4632197234762,
+      "utilization_memory_pct": 4.622164591264077,
+      "memory_used_mib": 3769.791218989069,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 55.25714871961573,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.7628574359807865
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:51:00",
+    "cpu": {
+      "cpu_percent_overall": 17.057032606888637,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.20182206366793,
+      "ram_percent": 5.183894941774373
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.48805463619154,
+      "utilization_memory_pct": 4.445018950587368,
+      "memory_used_mib": 3625.3130059095515,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 55.03930695514312,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.751965347757156
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:52:00",
+    "cpu": {
+      "cpu_percent_overall": 17.243650373311112,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 47.62831282707058,
+      "ram_percent": 4.729723220165896
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.39408275647125,
+      "utilization_memory_pct": 4.102824043807592,
+      "memory_used_mib": 3346.2222618890337,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 55.9074946166861,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.795374730834305
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:53:00",
+    "cpu": {
+      "cpu_percent_overall": 19.20453440167841,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.42273493495772,
+      "ram_percent": 5.2058326648418785
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.5647166316283,
+      "utilization_memory_pct": 3.8974175973855316,
+      "memory_used_mib": 3178.6948182516658,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 56.86992814179246,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.843496407089623
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:54:00",
+    "cpu": {
+      "cpu_percent_overall": 18.879583517840807,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.72260201533891,
+      "ram_percent": 5.1363060591200504
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.98960705762622,
+      "utilization_memory_pct": 4.799803774751985,
+      "memory_used_mib": 3914.671960649972,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 56.41539904401483,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.8207699522007417
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:55:00",
+    "cpu": {
+      "cpu_percent_overall": 18.973806496914897,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.451181359428624,
+      "ram_percent": 5.407267265087251
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 45.342473498936364,
+      "utilization_memory_pct": 4.18328288331502,
+      "memory_used_mib": 3411.8436868028975,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 57.93399201582034,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.896699600791017
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:56:00",
+    "cpu": {
+      "cpu_percent_overall": 18.80170169509873,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.02526792733148,
+      "ram_percent": 5.464276854749898
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 44.267366594825575,
+      "utilization_memory_pct": 4.172177023237888,
+      "memory_used_mib": 3402.785858382589,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 58.20579448343628,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.9102897241718138
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:57:00",
+    "cpu": {
+      "cpu_percent_overall": 17.80493791261927,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 59.62851251764766,
+      "ram_percent": 5.921401441673055
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 45.31940654323723,
+      "utilization_memory_pct": 4.162845280812663,
+      "memory_used_mib": 3395.1749825779993,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 58.99371709616768,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.9496858548083837
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:58:00",
+    "cpu": {
+      "cpu_percent_overall": 18.691314336612646,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.85127151455815,
+      "ram_percent": 5.645607896182537
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.70909602314376,
+      "utilization_memory_pct": 4.217335857665703,
+      "memory_used_mib": 3439.616952153571,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 59.33128792205091,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 2.9665643961025454
+    }
+  },
+  {
+    "timestamp": "2026-01-21T13:59:00",
+    "cpu": {
+      "cpu_percent_overall": 19.15156696063583,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.26928903301279,
+      "ram_percent": 5.190594740120436
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.164656071418925,
+      "utilization_memory_pct": 4.133361024062594,
+      "memory_used_mib": 3371.1279176152116,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 60.40325980606499,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.020162990303249
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:00:00",
+    "cpu": {
+      "cpu_percent_overall": 19.57210587682274,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.30475598595493,
+      "ram_percent": 5.094811915189168
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.67403865465037,
+      "utilization_memory_pct": 4.028087149945381,
+      "memory_used_mib": 3285.267598623953,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 60.285660578461496,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.014283028923075
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:01:00",
+    "cpu": {
+      "cpu_percent_overall": 18.654249404203274,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.475757514519515,
+      "ram_percent": 5.509012662812266
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 50.52336270227805,
+      "utilization_memory_pct": 4.03465983122883,
+      "memory_used_mib": 3290.6282117519218,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 60.5102042926344,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.02551021463172
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:02:00",
+    "cpu": {
+      "cpu_percent_overall": 19.608207726774857,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 50.03930037893807,
+      "ram_percent": 4.969146015783323
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.80402910606223,
+      "utilization_memory_pct": 4.160729466958644,
+      "memory_used_mib": 3393.4493459568002,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 61.28791455077264,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.064395727538632
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:03:00",
+    "cpu": {
+      "cpu_percent_overall": 18.315588270664417,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 59.494376297563065,
+      "ram_percent": 5.908081062320067
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 42.06593223125072,
+      "utilization_memory_pct": 4.03550196271809,
+      "memory_used_mib": 3291.315045773247,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 62.000273549834176,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.100013677491709
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:04:00",
+    "cpu": {
+      "cpu_percent_overall": 18.70839285041496,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 57.53832036216386,
+      "ram_percent": 5.713835189887176
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 43.58007274167511,
+      "utilization_memory_pct": 3.9939563303431473,
+      "memory_used_mib": 3257.4308434645673,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 62.254913306538306,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.112745665326915
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:05:00",
+    "cpu": {
+      "cpu_percent_overall": 20.2449756422102,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.592473043685885,
+      "ram_percent": 5.222688484973772
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 42.888747959283364,
+      "utilization_memory_pct": 4.194860218416581,
+      "memory_used_mib": 3421.2860455383793,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 62.75263785303688,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.137631892651844
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:06:00",
+    "cpu": {
+      "cpu_percent_overall": 19.16532705203065,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 48.86059641272737,
+      "ram_percent": 4.852094976437673
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 41.210846849416356,
+      "utilization_memory_pct": 4.106235432651,
+      "memory_used_mib": 3349.004556515829,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 62.88320489959104,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.144160244979552
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:07:00",
+    "cpu": {
+      "cpu_percent_overall": 18.565804697023975,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 58.06161712249624,
+      "ram_percent": 5.7658011045179975
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 43.41676836133255,
+      "utilization_memory_pct": 4.537572306816584,
+      "memory_used_mib": 3700.7985977165376,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 63.40460902077843,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.170230451038922
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:08:00",
+    "cpu": {
+      "cpu_percent_overall": 18.55567251628611,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.65638046424215,
+      "ram_percent": 5.328339668743014
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 44.316234606052184,
+      "utilization_memory_pct": 3.5186871324089286,
+      "memory_used_mib": 2869.806038321398,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 63.536615579713526,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.1768307789856767
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:09:00",
+    "cpu": {
+      "cpu_percent_overall": 18.094714898256044,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 57.71344893592038,
+      "ram_percent": 5.731226309426057
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 43.38423429059723,
+      "utilization_memory_pct": 4.436421940416744,
+      "memory_used_mib": 3618.301370384492,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 65.61456532326632,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.2807282661633157
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:10:00",
+    "cpu": {
+      "cpu_percent_overall": 16.917510090218038,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 49.2167170236169,
+      "ram_percent": 4.887459485959971
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 41.08795990979876,
+      "utilization_memory_pct": 4.474327834450552,
+      "memory_used_mib": 3649.2170384995256,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 64.6197040700367,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.230985203501835
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:11:00",
+    "cpu": {
+      "cpu_percent_overall": 17.131305807789854,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.20187493113868,
+      "ram_percent": 5.1839001917714675
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 43.65692631271725,
+      "utilization_memory_pct": 3.6603219185109803,
+      "memory_used_mib": 2985.3219535183703,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 65.39704182489386,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.2698520912446933
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:12:00",
+    "cpu": {
+      "cpu_percent_overall": 16.464882151326798,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.01573109915455,
+      "ram_percent": 5.36402493536788
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 45.373809839522856,
+      "utilization_memory_pct": 4.084726984371964,
+      "memory_used_mib": 3331.4624811839303,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 65.88614952706669,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.2943074763533344
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:13:00",
+    "cpu": {
+      "cpu_percent_overall": 17.05034415160416,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.140941781294224,
+      "ram_percent": 5.376458965371819
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 45.259469049657724,
+      "utilization_memory_pct": 4.07767607106615,
+      "memory_used_mib": 3325.7118268008417,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 67.19467408438298,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.359733704219149
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:14:00",
+    "cpu": {
+      "cpu_percent_overall": 16.503224353188187,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.64980358556227,
+      "ram_percent": 5.228381686748984
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.24848638390916,
+      "utilization_memory_pct": 3.8236094864532864,
+      "memory_used_mib": 3118.497661056436,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 67.10159579282424,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.355079789641212
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:15:00",
+    "cpu": {
+      "cpu_percent_overall": 17.890191503973114,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.8685497970425,
+      "ram_percent": 5.54801884776986
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.51403541703787,
+      "utilization_memory_pct": 3.9780240837698164,
+      "memory_used_mib": 3244.436662481825,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 68.3748004043666,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.41874002021833
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:16:00",
+    "cpu": {
+      "cpu_percent_overall": 17.31922280912497,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 50.79713871185221,
+      "ram_percent": 5.044403049836367
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 43.23332724554024,
+      "utilization_memory_pct": 3.8964244668360752,
+      "memory_used_mib": 3177.8848309068344,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 67.91604279196729,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.3958021395983637
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:17:00",
+    "cpu": {
+      "cpu_percent_overall": 17.179793250601968,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.57286154493612,
+      "ram_percent": 5.320045833658005
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 42.195321211958586,
+      "utilization_memory_pct": 4.598455214856392,
+      "memory_used_mib": 3750.4540886847244,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 68.89414392126059,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.444707196063029
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:18:00",
+    "cpu": {
+      "cpu_percent_overall": 17.912962176038924,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.3608868951357,
+      "ram_percent": 5.398300585415661
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 42.67029239581825,
+      "utilization_memory_pct": 4.398209490834233,
+      "memory_used_mib": 3587.1356786294923,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 68.83883204957829,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.4419416024789142
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:19:00",
+    "cpu": {
+      "cpu_percent_overall": 17.00286961230762,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.543316502176246,
+      "ram_percent": 5.515721599024454
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 43.68076138002317,
+      "utilization_memory_pct": 4.48057359580038,
+      "memory_used_mib": 3654.311018998832,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 70.83093887615435,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.5415469438077176
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:20:00",
+    "cpu": {
+      "cpu_percent_overall": 17.323034121414572,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.13484463426667,
+      "ram_percent": 5.574463220880504
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 43.5220514515214,
+      "utilization_memory_pct": 4.3457305911164275,
+      "memory_used_mib": 3544.334412808647,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 69.66642383881236,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.4833211919406177
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:21:00",
+    "cpu": {
+      "cpu_percent_overall": 18.404936068914207,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 50.626073724486396,
+      "ram_percent": 5.027415464199245
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 44.63306006647321,
+      "utilization_memory_pct": 3.8918937772122684,
+      "memory_used_mib": 3174.189645756554,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 70.91699213950012,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.545849606975006
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:22:00",
+    "cpu": {
+      "cpu_percent_overall": 17.138583232656156,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 49.39765748779313,
+      "ram_percent": 4.905427754497828
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 42.2098682657023,
+      "utilization_memory_pct": 4.040137749045532,
+      "memory_used_mib": 3295.0959467440452,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 71.58082896091213,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.5790414480456065
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:23:00",
+    "cpu": {
+      "cpu_percent_overall": 17.406271141656962,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 57.83303046569553,
+      "ram_percent": 5.743101337209089
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 45.8102936944008,
+      "utilization_memory_pct": 4.288766306901242,
+      "memory_used_mib": 3497.874912245584,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 71.97269880523132,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.5986349402615656
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:24:00",
+    "cpu": {
+      "cpu_percent_overall": 17.690242566094735,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.99694203593877,
+      "ram_percent": 5.461463955902559
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 45.666232165616286,
+      "utilization_memory_pct": 3.8690695548273157,
+      "memory_used_mib": 3155.5744382216108,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 72.17501416312619,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.6087507081563093
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:25:00",
+    "cpu": {
+      "cpu_percent_overall": 18.323073335013508,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.75454039033034,
+      "ram_percent": 5.139477695166866
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.06261858710891,
+      "utilization_memory_pct": 4.343603631768999,
+      "memory_used_mib": 3542.5996860344776,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 72.70460637875782,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.635230318937891
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:26:00",
+    "cpu": {
+      "cpu_percent_overall": 17.346899301602917,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 58.65345592656757,
+      "ram_percent": 5.824573577613463
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.47294902643576,
+      "utilization_memory_pct": 4.109828370098178,
+      "memory_used_mib": 3351.9349203683732,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 73.29328120067356,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.664664060033678
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:27:00",
+    "cpu": {
+      "cpu_percent_overall": 16.454521946549274,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.347023902878576,
+      "ram_percent": 5.396923922828061
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.061188432693335,
+      "utilization_memory_pct": 4.076847237570447,
+      "memory_used_mib": 3325.0358384900806,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 73.69973319992924,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.6849866599964622
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:28:00",
+    "cpu": {
+      "cpu_percent_overall": 17.077799828779558,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 57.53789155219148,
+      "ram_percent": 5.713792606970356
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.798521456276966,
+      "utilization_memory_pct": 4.343103757575128,
+      "memory_used_mib": 3542.1919936406985,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 74.75703249520043,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.737851624760022
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:29:00",
+    "cpu": {
+      "cpu_percent_overall": 17.438868359387513,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.20255544423033,
+      "ram_percent": 5.382577501909665
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 50.16893121387178,
+      "utilization_memory_pct": 4.277704069811067,
+      "memory_used_mib": 3488.852662297208,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 75.88221317365812,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.794110658682906
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:30:00",
+    "cpu": {
+      "cpu_percent_overall": 17.710907743238792,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 60.18224377464596,
+      "ram_percent": 5.976389649915189
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 50.89330932751285,
+      "utilization_memory_pct": 4.080244690146009,
+      "memory_used_mib": 3327.806766836184,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 75.000064516418,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.7500032258209006
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:31:00",
+    "cpu": {
+      "cpu_percent_overall": 18.014107738875705,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 59.26602252732961,
+      "ram_percent": 5.885404421780498
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 52.95053324166403,
+      "utilization_memory_pct": 4.453053569407238,
+      "memory_used_mib": 3631.8659606728497,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 75.09576765519186,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.7547883827595934
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:32:00",
+    "cpu": {
+      "cpu_percent_overall": 17.50197303686048,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.25310755456278,
+      "ram_percent": 5.2882927065107035
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 52.320647711787515,
+      "utilization_memory_pct": 3.903661563383588,
+      "memory_used_mib": 3183.7873344800205,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 76.23838685686525,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.8119193428432627
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:33:00",
+    "cpu": {
+      "cpu_percent_overall": 17.750867354202164,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.91471285286307,
+      "ram_percent": 5.651907929777861
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 52.861458445955265,
+      "utilization_memory_pct": 4.319801764843675,
+      "memory_used_mib": 3523.1871213888526,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 78.07424128592753,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.9037120642963767
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:34:00",
+    "cpu": {
+      "cpu_percent_overall": 18.00804160604585,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.93612784875544,
+      "ram_percent": 5.554729677135595
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 51.643794721058796,
+      "utilization_memory_pct": 4.3142022972249245,
+      "memory_used_mib": 3518.6202515936766,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 76.88440806917498,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.8442204034587495
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:35:00",
+    "cpu": {
+      "cpu_percent_overall": 17.471071801619196,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 58.105894672597046,
+      "ram_percent": 5.77019808069484
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 53.82147166534387,
+      "utilization_memory_pct": 4.092853899799167,
+      "memory_used_mib": 3338.090712137202,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 78.60766249194137,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.9303831245970686
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:36:00",
+    "cpu": {
+      "cpu_percent_overall": 18.949741914734883,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.105229618259685,
+      "ram_percent": 5.07499797599401
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 51.227827081217825,
+      "utilization_memory_pct": 4.248736012516612,
+      "memory_used_mib": 3465.2266044484236,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 79.12881323231703,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.9564406616158516
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:37:00",
+    "cpu": {
+      "cpu_percent_overall": 19.162655318208493,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.058154379995315,
+      "ram_percent": 5.566847505461302
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 54.225627928147865,
+      "utilization_memory_pct": 3.861961628665064,
+      "memory_used_mib": 3149.7772847229394,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 78.5150274404843,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.925751372024215
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:38:00",
+    "cpu": {
+      "cpu_percent_overall": 18.09477939757523,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 57.175273460548766,
+      "ram_percent": 5.677782865992927
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 52.907452042572565,
+      "utilization_memory_pct": 4.395352326342133,
+      "memory_used_mib": 3584.80540384138,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 79.57817183699039,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 3.9789085918495197
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:39:00",
+    "cpu": {
+      "cpu_percent_overall": 18.57297769441432,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 48.723781540730656,
+      "ram_percent": 4.838508593915655
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.86670652173878,
+      "utilization_memory_pct": 4.123419331663461,
+      "memory_used_mib": 3363.0195727114024,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 80.6097373450215,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.030486867251075
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:40:00",
+    "cpu": {
+      "cpu_percent_overall": 17.756019787581682,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 50.45022446200267,
+      "ram_percent": 5.009952776762926
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.70571981479062,
+      "utilization_memory_pct": 4.0405784718991065,
+      "memory_used_mib": 3295.455395896192,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 80.10783389902298,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.005391694951149
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:41:00",
+    "cpu": {
+      "cpu_percent_overall": 18.38293027225127,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 47.8823034667197,
+      "ram_percent": 4.754945726585868
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.869653361874775,
+      "utilization_memory_pct": 4.426000619388882,
+      "memory_used_mib": 3609.801845167378,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 80.69746632552501,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.034873316276251
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:42:00",
+    "cpu": {
+      "cpu_percent_overall": 19.19443741566913,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.19177949666633,
+      "ram_percent": 5.282202531943032
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.50455681046988,
+      "utilization_memory_pct": 3.996041224011388,
+      "memory_used_mib": 3259.131261891448,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 81.01027478466136,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.050513739233068
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:43:00",
+    "cpu": {
+      "cpu_percent_overall": 18.39976006455498,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.152626767387886,
+      "ram_percent": 5.576229073226205
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.75836293236438,
+      "utilization_memory_pct": 3.823376623949887,
+      "memory_used_mib": 3118.307740727288,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 81.29559561234872,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.064779780617436
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:44:00",
+    "cpu": {
+      "cpu_percent_overall": 19.062328151804973,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 58.507071156288085,
+      "ram_percent": 5.81003685762543
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 45.70762328275868,
+      "utilization_memory_pct": 3.787042711773341,
+      "memory_used_mib": 3088.674165295219,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 81.98019394122163,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.099009697061081
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:45:00",
+    "cpu": {
+      "cpu_percent_overall": 19.2125646242366,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.222284341259325,
+      "ram_percent": 5.384536677384244
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 41.783444255359264,
+      "utilization_memory_pct": 4.31736778316204,
+      "memory_used_mib": 3521.201990269128,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 82.19472131643299,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.109736065821649
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:46:00",
+    "cpu": {
+      "cpu_percent_overall": 19.64722505059698,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 58.88584663671388,
+      "ram_percent": 5.847651105929878
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 41.466084346632314,
+      "utilization_memory_pct": 3.854772777376799,
+      "memory_used_mib": 3143.9141295007435,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 83.32559192000322,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.166279596000161
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:47:00",
+    "cpu": {
+      "cpu_percent_overall": 20.82273602999789,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 49.85969562535533,
+      "ram_percent": 4.951310389806884
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 37.05602510871665,
+      "utilization_memory_pct": 4.5990740891831345,
+      "memory_used_mib": 3750.958836396873,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 83.42542230640376,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.171271115320188
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:48:00",
+    "cpu": {
+      "cpu_percent_overall": 20.215284538496057,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 48.889852681934535,
+      "ram_percent": 4.855000266329149
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 35.07142541308914,
+      "utilization_memory_pct": 3.658227931219431,
+      "memory_used_mib": 2983.6141184232556,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 84.42916061388793,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.2214580306943965
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:49:00",
+    "cpu": {
+      "cpu_percent_overall": 19.31768973445353,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.83335690331015,
+      "ram_percent": 5.345914290298922
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 38.307582379028794,
+      "utilization_memory_pct": 4.584768417535781,
+      "memory_used_mib": 3739.2912736580074,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 84.03617857095023,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.201808928547511
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:50:00",
+    "cpu": {
+      "cpu_percent_overall": 18.45290045206636,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.152196346817924,
+      "ram_percent": 5.476881464430777
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 41.111625355341225,
+      "utilization_memory_pct": 4.220507232114818,
+      "memory_used_mib": 3442.2034934405237,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 85.48142524621875,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.274071262310938
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:51:00",
+    "cpu": {
+      "cpu_percent_overall": 17.773107670532326,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.901915755717724,
+      "ram_percent": 5.35272251794615
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 42.73834243178847,
+      "utilization_memory_pct": 4.145045154582476,
+      "memory_used_mib": 3380.6573776259215,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 86.23460834697545,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.311730417348772
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:52:00",
+    "cpu": {
+      "cpu_percent_overall": 17.7493152378919,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 47.79767369988037,
+      "ram_percent": 4.746541578935489
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 41.19694116644885,
+      "utilization_memory_pct": 4.0351355247590215,
+      "memory_used_mib": 3291.01618263821,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 85.32283478094475,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.266141739047237
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:53:00",
+    "cpu": {
+      "cpu_percent_overall": 18.042781933320597,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.73263988146164,
+      "ram_percent": 5.335912599946538
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 41.81720614358336,
+      "utilization_memory_pct": 4.266637922081456,
+      "memory_used_mib": 3479.827222870414,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 87.00858962321374,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.350429481160687
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:54:00",
+    "cpu": {
+      "cpu_percent_overall": 18.24388274282002,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 50.08659149848544,
+      "ram_percent": 4.973842254070053
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 42.43705988995566,
+      "utilization_memory_pct": 4.1595324360463355,
+      "memory_used_mib": 3392.4730595150304,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 87.93725457058609,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.396862728529304
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:55:00",
+    "cpu": {
+      "cpu_percent_overall": 18.827687768174037,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.009017646490115,
+      "ram_percent": 5.561967988727916
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 40.53893505915798,
+      "utilization_memory_pct": 4.439314332450501,
+      "memory_used_mib": 3620.6603764033043,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 87.22045830106332,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.361022915053166
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:56:00",
+    "cpu": {
+      "cpu_percent_overall": 18.713286021856362,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.09979473829055,
+      "ram_percent": 5.471677729721008
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 44.515231233995294,
+      "utilization_memory_pct": 4.196772311740467,
+      "memory_used_mib": 3422.845529732408,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 89.16342373988725,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.458171186994362
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:57:00",
+    "cpu": {
+      "cpu_percent_overall": 19.696443676445895,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.180360641017934,
+      "ram_percent": 5.082458852136836
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.58040735910491,
+      "utilization_memory_pct": 4.2056184508053995,
+      "memory_used_mib": 3430.0603522923757,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 89.0385057872109,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.4519252893605445
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:58:00",
+    "cpu": {
+      "cpu_percent_overall": 19.243484500050542,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.45839924798992,
+      "ram_percent": 5.209374304666327
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.02932149019688,
+      "utilization_memory_pct": 4.079595823339213,
+      "memory_used_mib": 3327.2775575572286,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 88.97834909070814,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.448917454535406
+    }
+  },
+  {
+    "timestamp": "2026-01-21T14:59:00",
+    "cpu": {
+      "cpu_percent_overall": 21.097088699985175,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 50.822359434333144,
+      "ram_percent": 5.046907590301206
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.08138352855586,
+      "utilization_memory_pct": 4.154796987770554,
+      "memory_used_mib": 3388.6108752557866,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 89.80482921581797,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.490241460790899
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:00:00",
+    "cpu": {
+      "cpu_percent_overall": 21.101775905811152,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.81196270818049,
+      "ram_percent": 5.343789742619711
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.506779895962346,
+      "utilization_memory_pct": 4.24424079964003,
+      "memory_used_mib": 3461.560353778412,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 90.61373594696717,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.530686797348358
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:01:00",
+    "cpu": {
+      "cpu_percent_overall": 19.993641352627268,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.865426961503715,
+      "ram_percent": 5.647013600943765
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 42.14311968787698,
+      "utilization_memory_pct": 3.7493916323994587,
+      "memory_used_mib": 3057.966321468675,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 90.87443392247201,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.5437216961236
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:02:00",
+    "cpu": {
+      "cpu_percent_overall": 18.891425776187344,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.04282186099337,
+      "ram_percent": 5.068800582025161
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 42.20257923140218,
+      "utilization_memory_pct": 3.838157549232896,
+      "memory_used_mib": 3130.3629155788576,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 91.60766795904846,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.580383397952422
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:03:00",
+    "cpu": {
+      "cpu_percent_overall": 19.119566221191633,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.512139546553534,
+      "ram_percent": 5.512625575625972
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 41.34002542589648,
+      "utilization_memory_pct": 4.351025415716896,
+      "memory_used_mib": 3548.652818804543,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 91.37981190234508,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.568990595117254
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:04:00",
+    "cpu": {
+      "cpu_percent_overall": 18.7840341990185,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.40922714488268,
+      "ram_percent": 5.204491275559352
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 39.93561959123268,
+      "utilization_memory_pct": 4.210661101320012,
+      "memory_used_mib": 3434.1730876255883,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 92.42668784696228,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.621334392348114
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:05:00",
+    "cpu": {
+      "cpu_percent_overall": 19.201929439734794,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.621381503212966,
+      "ram_percent": 5.126254369733164
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 40.25496603748727,
+      "utilization_memory_pct": 4.12364464097091,
+      "memory_used_mib": 3363.2033327294644,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 92.1370089225512,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.60685044612756
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:06:00",
+    "cpu": {
+      "cpu_percent_overall": 19.376568242204733,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.67890892013633,
+      "ram_percent": 5.330576854035385
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 44.89186283824818,
+      "utilization_memory_pct": 4.1732816569760285,
+      "memory_used_mib": 3403.6867866130788,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 93.29011187638883,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.664505593819442
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:07:00",
+    "cpu": {
+      "cpu_percent_overall": 19.115461321381368,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 50.89427303274188,
+      "ram_percent": 5.054048960550335
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.403853421171675,
+      "utilization_memory_pct": 4.25399568542078,
+      "memory_used_mib": 3469.5163410723344,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 93.39562982239026,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.6697814911195135
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:08:00",
+    "cpu": {
+      "cpu_percent_overall": 18.31304683462286,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.33905208395846,
+      "ram_percent": 5.197522550542051
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 45.14379952945205,
+      "utilization_memory_pct": 4.0364007208746155,
+      "memory_used_mib": 3292.0480639381276,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 93.98167740788726,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.699083870394364
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:09:00",
+    "cpu": {
+      "cpu_percent_overall": 17.12995439091503,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 50.40636632223345,
+      "ram_percent": 5.005597450072836
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.47465344088218,
+      "utilization_memory_pct": 3.977904406527222,
+      "memory_used_mib": 3244.3390549195374,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 95.46934770284685,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.773467385142342
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:10:00",
+    "cpu": {
+      "cpu_percent_overall": 16.925575018227512,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 59.89417539874917,
+      "ram_percent": 5.9477830584656575
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.34210184158045,
+      "utilization_memory_pct": 4.2167866832839245,
+      "memory_used_mib": 3439.1690510195363,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 95.89881491159824,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.794940745579912
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:11:00",
+    "cpu": {
+      "cpu_percent_overall": 17.729037861235987,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.105790655915186,
+      "ram_percent": 5.37296828757847
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 50.7825172994602,
+      "utilization_memory_pct": 3.928843468503775,
+      "memory_used_mib": 3204.3254444769937,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 96.15958764781418,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.807979382390709
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:12:00",
+    "cpu": {
+      "cpu_percent_overall": 17.930252490148245,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.900823476022246,
+      "ram_percent": 5.1540043173805605
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 50.19036348137354,
+      "utilization_memory_pct": 4.2688735162801095,
+      "memory_used_mib": 3481.6505511428945,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 95.81072094108377,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.7905360470541885
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:13:00",
+    "cpu": {
+      "cpu_percent_overall": 17.006410532592014,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.641939732202665,
+      "ram_percent": 5.4262104997222105
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.2032417259858,
+      "utilization_memory_pct": 3.751251583703125,
+      "memory_used_mib": 3059.483279152432,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 96.70053183463216,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.835026591731608
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:14:00",
+    "cpu": {
+      "cpu_percent_overall": 17.2853346470916,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.66301585092751,
+      "ram_percent": 5.328998594928253
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.33902442567647,
+      "utilization_memory_pct": 4.421132097579824,
+      "memory_used_mib": 3605.8311274651287,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 97.96714364552861,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.89835718227643
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:15:00",
+    "cpu": {
+      "cpu_percent_overall": 17.681522484824487,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.337091201400334,
+      "ram_percent": 5.296632691300927
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.66449007121067,
+      "utilization_memory_pct": 4.284652210648253,
+      "memory_used_mib": 3494.5194964826087,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 97.93331198841845,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.896665599420922
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:16:00",
+    "cpu": {
+      "cpu_percent_overall": 17.066401034949966,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.84250010013027,
+      "ram_percent": 5.5454319861102555
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 50.99472232258731,
+      "utilization_memory_pct": 4.231545196560496,
+      "memory_used_mib": 3451.205946862775,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 99.52397703764882,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.97619885188244
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:17:00",
+    "cpu": {
+      "cpu_percent_overall": 17.321734709166616,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.27252313014191,
+      "ram_percent": 5.588135365456
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 51.57937475773135,
+      "utilization_memory_pct": 4.40973797715654,
+      "memory_used_mib": 3596.5381967891026,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 99.06282992341464,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.953141496170732
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:18:00",
+    "cpu": {
+      "cpu_percent_overall": 17.467131041626125,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.40849655716842,
+      "ram_percent": 5.204418724644332
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 52.94652924624225,
+      "utilization_memory_pct": 4.57717099142034,
+      "memory_used_mib": 3733.0948888925154,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 99.46405429802196,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.973202714901098
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:19:00",
+    "cpu": {
+      "cpu_percent_overall": 16.68983366200924,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.27254527806596,
+      "ram_percent": 5.190918101098904
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 50.78055591502872,
+      "utilization_memory_pct": 4.417506361043694,
+      "memory_used_mib": 3602.8740130036263,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 99.71533024373517,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 4.985766512186758
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:20:00",
+    "cpu": {
+      "cpu_percent_overall": 17.154699132969064,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.17484490854507,
+      "ram_percent": 5.280520844939927
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 52.8300000656065,
+      "utilization_memory_pct": 3.717339783143088,
+      "memory_used_mib": 3031.825153733671,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 100.43851766428705,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.021925883214353
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:21:00",
+    "cpu": {
+      "cpu_percent_overall": 17.70208265779988,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 47.09423650579325,
+      "ram_percent": 4.676686842680561
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 52.220459225619564,
+      "utilization_memory_pct": 3.8549818004792358,
+      "memory_used_mib": 3144.0846066528597,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 100.79737102976512,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.039868551488256
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:22:00",
+    "cpu": {
+      "cpu_percent_overall": 18.559058691511357,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 49.454426813404346,
+      "ram_percent": 4.911065224767065
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 55.64543817428969,
+      "utilization_memory_pct": 4.0155424716596135,
+      "memory_used_mib": 3275.0362844608644,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 101.72951902235917,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.086475951117959
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:23:00",
+    "cpu": {
+      "cpu_percent_overall": 19.26555142681083,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 58.100622802333575,
+      "ram_percent": 5.7696745583250815
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 52.75132803015814,
+      "utilization_memory_pct": 4.175159344820519,
+      "memory_used_mib": 3405.218210042167,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 102.35567457847162,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.117783728923581
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:24:00",
+    "cpu": {
+      "cpu_percent_overall": 18.04246668682139,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 58.93490314050385,
+      "ram_percent": 5.85252265546215
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 55.38415281228144,
+      "utilization_memory_pct": 4.295702257376653,
+      "memory_used_mib": 3503.5318040938246,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 101.98618742587983,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.099309371293992
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:25:00",
+    "cpu": {
+      "cpu_percent_overall": 17.332727903861837,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.25289188133087,
+      "ram_percent": 5.288271289109321
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 54.39214253571079,
+      "utilization_memory_pct": 3.9907934591759426,
+      "memory_used_mib": 3254.851237369307,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 102.2154244154144,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.1107712207707205
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:26:00",
+    "cpu": {
+      "cpu_percent_overall": 17.819095168689056,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.7296708891673,
+      "ram_percent": 5.5342274964416385
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 51.765343347763825,
+      "utilization_memory_pct": 4.214560444457897,
+      "memory_used_mib": 3437.353352895416,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 102.46479694170112,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.123239847085056
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:27:00",
+    "cpu": {
+      "cpu_percent_overall": 18.231570356569854,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.93375046363061,
+      "ram_percent": 5.4551887252860585
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.88438159408518,
+      "utilization_memory_pct": 3.9835253172909617,
+      "memory_used_mib": 3248.9234135293354,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 104.13875402776853,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.206937701388426
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:28:00",
+    "cpu": {
+      "cpu_percent_overall": 18.58312056781391,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 63.236642425365716,
+      "ram_percent": 6.279706298447439
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.62899500776433,
+      "utilization_memory_pct": 4.018804104270051,
+      "memory_used_mib": 3277.6964394016104,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 103.8349337972848,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.19174668986424
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:29:00",
+    "cpu": {
+      "cpu_percent_overall": 21.385201100632866,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 57.35872473430373,
+      "ram_percent": 5.6960004701393965
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.125394244043704,
+      "utilization_memory_pct": 3.82381807112686,
+      "memory_used_mib": 3118.6677806303555,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 103.81203053995499,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.1906015269977495
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:30:00",
+    "cpu": {
+      "cpu_percent_overall": 21.305588818557812,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.6162472255577,
+      "ram_percent": 5.3243542428557795
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.7545396323117,
+      "utilization_memory_pct": 3.942364853391801,
+      "memory_used_mib": 3215.3533507778193,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 105.58462387475619,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.279231193737809
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:31:00",
+    "cpu": {
+      "cpu_percent_overall": 21.66142472590959,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.133378678198724,
+      "ram_percent": 5.07779331461755
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 47.98658867919393,
+      "utilization_memory_pct": 3.837299475075385,
+      "memory_used_mib": 3129.6630788767334,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 107.13869306726657,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.356934653363329
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:32:00",
+    "cpu": {
+      "cpu_percent_overall": 21.827712339643053,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 49.18066103922728,
+      "ram_percent": 4.883878951263881
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 47.637455733566775,
+      "utilization_memory_pct": 3.929456405062021,
+      "memory_used_mib": 3204.8253494045334,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 106.3910165888397,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.319550829441985
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:33:00",
+    "cpu": {
+      "cpu_percent_overall": 21.74209892717594,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.61039090760167,
+      "ram_percent": 5.423077547924694
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 51.89060512661667,
+      "utilization_memory_pct": 4.427136624188094,
+      "memory_used_mib": 3610.728359321568,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 107.31515616789494,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.365757808394747
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:34:00",
+    "cpu": {
+      "cpu_percent_overall": 20.944332154619293,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.73094776414709,
+      "ram_percent": 5.137134832586602
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 54.634855014835665,
+      "utilization_memory_pct": 3.935948481753836,
+      "memory_used_mib": 3210.1202222336115,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 107.4386841960024,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.37193420980012
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:35:00",
+    "cpu": {
+      "cpu_percent_overall": 21.07190924679635,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 49.73323887120698,
+      "ram_percent": 4.938752618789174
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 54.25590646892579,
+      "utilization_memory_pct": 4.814277287567869,
+      "memory_used_mib": 3926.476412967478,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 107.85018342619252,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.392509171309626
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:36:00",
+    "cpu": {
+      "cpu_percent_overall": 20.031503948873716,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.06028134727242,
+      "ram_percent": 5.169839259907887
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 53.09732780274014,
+      "utilization_memory_pct": 4.289733297583562,
+      "memory_used_mib": 3498.6635801761777,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 108.86102523034147,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.443051261517073
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:37:00",
+    "cpu": {
+      "cpu_percent_overall": 19.54916440148765,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 50.75535598915681,
+      "ram_percent": 5.040253822160557
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 52.284794418437464,
+      "utilization_memory_pct": 4.214087010310297,
+      "memory_used_mib": 3436.967224738975,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 108.75820845281272,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.437910422640637
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:38:00",
+    "cpu": {
+      "cpu_percent_overall": 18.95276708039268,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 59.06142490521769,
+      "ram_percent": 5.865086882345351
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 52.63046299840572,
+      "utilization_memory_pct": 3.9582736962980873,
+      "memory_used_mib": 3228.3284439637573,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 109.53890061800249,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.476945030900125
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:39:00",
+    "cpu": {
+      "cpu_percent_overall": 18.871257622873518,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.64491927084835,
+      "ram_percent": 5.625116114284841
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.48802916172821,
+      "utilization_memory_pct": 4.340492129479026,
+      "memory_used_mib": 3540.0619758817984,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 110.06791210012403,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.503395605006202
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:40:00",
+    "cpu": {
+      "cpu_percent_overall": 20.476562904447622,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.97608207605015,
+      "ram_percent": 5.3600875944439075
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.42433405887995,
+      "utilization_memory_pct": 4.027602637051025,
+      "memory_used_mib": 3284.8724347524453,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 110.07487670626396,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.503743835313198
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:41:00",
+    "cpu": {
+      "cpu_percent_overall": 18.704629574336668,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 58.43983241667008,
+      "ram_percent": 5.803359723601795
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 44.55665739490502,
+      "utilization_memory_pct": 4.198680664217404,
+      "memory_used_mib": 3424.4019629290724,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 111.40680184391323,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.570340092195662
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:42:00",
+    "cpu": {
+      "cpu_percent_overall": 19.11363028096705,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.23210492294285,
+      "ram_percent": 5.385511908931763
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 45.61152734314035,
+      "utilization_memory_pct": 4.79654839766765,
+      "memory_used_mib": 3912.016907653759,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 111.32515952685674,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.566257976342836
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:43:00",
+    "cpu": {
+      "cpu_percent_overall": 17.737048835429754,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.41614739601521,
+      "ram_percent": 5.105873624231898
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 47.02890971504506,
+      "utilization_memory_pct": 4.145205336081941,
+      "memory_used_mib": 3380.78802005507,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 111.5366255615175,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.576831278075875
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:44:00",
+    "cpu": {
+      "cpu_percent_overall": 17.422542610773217,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 58.56937223180897,
+      "ram_percent": 5.816223657577852
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 45.85988168695961,
+      "utilization_memory_pct": 4.45058750751865,
+      "memory_used_mib": 3629.8546652571354,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 112.68461179910861,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.63423058995543
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:45:00",
+    "cpu": {
+      "cpu_percent_overall": 18.32587416688276,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.61673013105398,
+      "ram_percent": 5.52301192959821
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.18627163682474,
+      "utilization_memory_pct": 3.9963274622970153,
+      "memory_used_mib": 3259.3647149748226,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 112.46898162248736,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.6234490811243685
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:46:00",
+    "cpu": {
+      "cpu_percent_overall": 18.325203056171944,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 50.88826153702063,
+      "ram_percent": 5.053451989773648
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.134222998996115,
+      "utilization_memory_pct": 4.160181343445368,
+      "memory_used_mib": 3393.0023019006076,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 113.43416492812693,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.671708246406347
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:47:00",
+    "cpu": {
+      "cpu_percent_overall": 17.46811401429917,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.428983965749175,
+      "ram_percent": 5.3057580899453
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 43.03890230070607,
+      "utilization_memory_pct": 4.602999211769519,
+      "memory_used_mib": 3754.160127127102,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 113.91737358717975,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.695868679358988
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:48:00",
+    "cpu": {
+      "cpu_percent_overall": 17.01141913020932,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.37314523984573,
+      "ram_percent": 5.101603300878423
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 43.954415774576105,
+      "utilization_memory_pct": 4.015015618683955,
+      "memory_used_mib": 3274.6065884424465,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 114.96673960447713,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.748336980223857
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:49:00",
+    "cpu": {
+      "cpu_percent_overall": 17.66940457237893,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 49.85160080710699,
+      "ram_percent": 4.950506534965937
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.46015984387521,
+      "utilization_memory_pct": 4.613212167387273,
+      "memory_used_mib": 3762.489711599386,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 115.16299967406079,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.758149983703039
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:50:00",
+    "cpu": {
+      "cpu_percent_overall": 17.171218912734236,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.778532642594925,
+      "ram_percent": 5.638384572253717
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.92738401935546,
+      "utilization_memory_pct": 4.342317079771816,
+      "memory_used_mib": 3541.550387091095,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 115.4149958143077,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.770749790715385
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:51:00",
+    "cpu": {
+      "cpu_percent_overall": 17.45788001801058,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 59.728249921410395,
+      "ram_percent": 5.931305851182761
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.37461946442736,
+      "utilization_memory_pct": 4.030832458491578,
+      "memory_used_mib": 3287.5066448211464,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 116.3382511793399,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.816912558966996
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:52:00",
+    "cpu": {
+      "cpu_percent_overall": 17.573376895236855,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 49.80429727854258,
+      "ram_percent": 4.945809064403434
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 50.28365629496898,
+      "utilization_memory_pct": 4.323841081684552,
+      "memory_used_mib": 3526.481547811104,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 117.12633054030789,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.8563165270153945
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:53:00",
+    "cpu": {
+      "cpu_percent_overall": 17.148670100246964,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.68890771007171,
+      "ram_percent": 5.530179514406327
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.560240064772145,
+      "utilization_memory_pct": 4.407252283531365,
+      "memory_used_mib": 3594.510889925346,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 117.21199065503465,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.860599532751733
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:54:00",
+    "cpu": {
+      "cpu_percent_overall": 18.884327652203915,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.048072292634515,
+      "ram_percent": 5.168626841373834
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.663686725180604,
+      "utilization_memory_pct": 4.321242281591779,
+      "memory_used_mib": 3524.3619924434392,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 117.4401205478399,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.872006027391994
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:55:00",
+    "cpu": {
+      "cpu_percent_overall": 19.227117771111836,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.53862384870591,
+      "ram_percent": 5.217340997885393
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 50.119819585125526,
+      "utilization_memory_pct": 3.783708794887025,
+      "memory_used_mib": 3085.9550560219086,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 117.28088485780262,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.864044242890131
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:56:00",
+    "cpu": {
+      "cpu_percent_overall": 17.524193165451855,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.22281822728339,
+      "ram_percent": 5.185979962987426
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 50.87172469202488,
+      "utilization_memory_pct": 3.99045177703874,
+      "memory_used_mib": 3254.5725648350262,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 117.90610487849948,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.895305243924974
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:57:00",
+    "cpu": {
+      "cpu_percent_overall": 17.735404926711148,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.40802769096055,
+      "ram_percent": 5.105067298009986
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.83054245855422,
+      "utilization_memory_pct": 4.108064435426745,
+      "memory_used_mib": 3350.496272889699,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 118.78790809391931,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.939395404695966
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:58:00",
+    "cpu": {
+      "cpu_percent_overall": 17.278754339128184,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.14556488383448,
+      "ram_percent": 5.3769180619498
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.80669582419547,
+      "utilization_memory_pct": 4.150508606260487,
+      "memory_used_mib": 3385.1133141799905,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 119.13762308107648,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.956881154053824
+    }
+  },
+  {
+    "timestamp": "2026-01-21T15:59:00",
+    "cpu": {
+      "cpu_percent_overall": 18.026266189356125,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.507149650766884,
+      "ram_percent": 5.114910590940108
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 52.1338832942758,
+      "utilization_memory_pct": 4.320963252994931,
+      "memory_used_mib": 3524.1344195101356,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 119.85075226672286,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 5.992537613336143
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:00:00",
+    "cpu": {
+      "cpu_percent_overall": 17.42793570712818,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.811370477339516,
+      "ram_percent": 5.4430357971538745
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.90011912696441,
+      "utilization_memory_pct": 4.212337326581556,
+      "memory_used_mib": 3435.540200186651,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 120.47442161672363,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.023721080836181
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:01:00",
+    "cpu": {
+      "cpu_percent_overall": 17.427693019958777,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.84928567165259,
+      "ram_percent": 5.347496094503732
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 50.14628867813831,
+      "utilization_memory_pct": 3.841306450861315,
+      "memory_used_mib": 3132.9311282579797,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 121.21280176751294,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.060640088375647
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:02:00",
+    "cpu": {
+      "cpu_percent_overall": 17.892279526200305,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.28315585940077,
+      "ram_percent": 5.291276649394317
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 50.56180876761132,
+      "utilization_memory_pct": 4.26199385745435,
+      "memory_used_mib": 3476.039570201193,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 121.4145647373645,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.070728236868225
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:03:00",
+    "cpu": {
+      "cpu_percent_overall": 18.55775399289785,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.277309013875204,
+      "ram_percent": 5.092086297306375
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 50.42495236069983,
+      "utilization_memory_pct": 4.318489865075301,
+      "memory_used_mib": 3522.1171490567644,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 122.19492368436661,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.109746184218331
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:04:00",
+    "cpu": {
+      "cpu_percent_overall": 17.573868588671342,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.269686008295004,
+      "ram_percent": 5.190634161697617
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.605568683519465,
+      "utilization_memory_pct": 4.306033778719955,
+      "memory_used_mib": 3511.958089586208,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 122.48576880591806,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.124288440295903
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:05:00",
+    "cpu": {
+      "cpu_percent_overall": 17.386912373489928,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.26617367747727,
+      "ram_percent": 5.587504833910355
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.80432430832164,
+      "utilization_memory_pct": 4.4337916662917936,
+      "memory_used_mib": 3616.156145110924,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 121.96765705139556,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.098382852569778
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:06:00",
+    "cpu": {
+      "cpu_percent_overall": 17.12266653409572,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.502751562873144,
+      "ram_percent": 5.511693303165158
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.63001211299136,
+      "utilization_memory_pct": 4.373256698720902,
+      "memory_used_mib": 3566.784430909781,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 122.98758137372258,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.149379068686129
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:07:00",
+    "cpu": {
+      "cpu_percent_overall": 16.76426962955108,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.067334265604345,
+      "ram_percent": 5.071234783078882
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.998241236487324,
+      "utilization_memory_pct": 4.281361978255848,
+      "memory_used_mib": 3491.836015845687,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 123.88706402883062,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.1943532014415315
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:08:00",
+    "cpu": {
+      "cpu_percent_overall": 18.27371986532924,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.29799691628768,
+      "ram_percent": 5.392055304497287
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.69006537566253,
+      "utilization_memory_pct": 4.1515551413188865,
+      "memory_used_mib": 3385.9668577082707,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 123.85611917133036,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.1928059585665185
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:09:00",
+    "cpu": {
+      "cpu_percent_overall": 18.536398168750573,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 56.25416137011537,
+      "ram_percent": 5.5863119533381695
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 48.35826547193233,
+      "utilization_memory_pct": 3.761458347082237,
+      "memory_used_mib": 3067.8078132968017,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 125.26278964380852,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.263139482190426
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:10:00",
+    "cpu": {
+      "cpu_percent_overall": 17.5102754776867,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 48.99178415663589,
+      "ram_percent": 4.865122557759274
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 49.625092943504,
+      "utilization_memory_pct": 4.274112781944993,
+      "memory_used_mib": 3485.923643826517,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 126.23005943104172,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.311502971552087
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:11:00",
+    "cpu": {
+      "cpu_percent_overall": 18.272130616324777,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.63008057713981,
+      "ram_percent": 5.524337693856982
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 43.09938949865524,
+      "utilization_memory_pct": 4.219690699288395,
+      "memory_used_mib": 3441.5375374326222,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 126.57592367677799,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.3287961838389
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:12:00",
+    "cpu": {
+      "cpu_percent_overall": 19.822928171635535,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.01212872316246,
+      "ram_percent": 5.165057470026063
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 45.946889044638375,
+      "utilization_memory_pct": 4.23535816701906,
+      "memory_used_mib": 3454.3157674390745,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 126.36168005152373,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.318084002576187
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:13:00",
+    "cpu": {
+      "cpu_percent_overall": 20.323837891303565,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.711796005779476,
+      "ram_percent": 5.5324524335431455
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 42.30145675250861,
+      "utilization_memory_pct": 3.8556753820374676,
+      "memory_used_mib": 3144.6502848359382,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 127.7156232914733,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.3857811645736655
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:14:00",
+    "cpu": {
+      "cpu_percent_overall": 18.83573473314252,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.71022253037245,
+      "ram_percent": 5.135076716025069
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 42.09511226268574,
+      "utilization_memory_pct": 3.9036632277472108,
+      "memory_used_mib": 3183.7886919183475,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 127.54645268770886,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.377322634385443
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:15:00",
+    "cpu": {
+      "cpu_percent_overall": 18.347198968521454,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 48.58535369800644,
+      "ram_percent": 4.824762035551783
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 40.329538644567975,
+      "utilization_memory_pct": 4.427016724906608,
+      "memory_used_mib": 3610.6305706665808,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 127.80543470960825,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.390271735480413
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:16:00",
+    "cpu": {
+      "cpu_percent_overall": 19.2453024851332,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 49.117372686350514,
+      "ram_percent": 4.87759410986599
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 38.461276748868876,
+      "utilization_memory_pct": 4.159061500543985,
+      "memory_used_mib": 3392.088969228669,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 128.16913509945627,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.408456754972813
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:17:00",
+    "cpu": {
+      "cpu_percent_overall": 18.527755013149136,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.14425483998414,
+      "ram_percent": 5.376787968220868
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 42.029821490033434,
+      "utilization_memory_pct": 4.3358797183321585,
+      "memory_used_mib": 3536.3001394745247,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 128.8264603240422,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.44132301620211
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:18:00",
+    "cpu": {
+      "cpu_percent_overall": 18.78145633228644,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.779167505164445,
+      "ram_percent": 5.43983788531921
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 41.64317574377345,
+      "utilization_memory_pct": 4.1757055324686325,
+      "memory_used_mib": 3405.663675226092,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 129.28546549407508,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.4642732747037535
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:19:00",
+    "cpu": {
+      "cpu_percent_overall": 19.245213422515477,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.28705012468677,
+      "ram_percent": 5.093053637009611
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 43.024357533841936,
+      "utilization_memory_pct": 4.176058102599528,
+      "memory_used_mib": 3405.9512278991488,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 130.0666207505929,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.503331037529645
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:20:00",
+    "cpu": {
+      "cpu_percent_overall": 18.363233555454592,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 55.91577737633212,
+      "ram_percent": 5.552708776199814
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 43.37217068811936,
+      "utilization_memory_pct": 4.398848393427089,
+      "memory_used_mib": 3587.6567611951996,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 130.56355836598962,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.528177918299481
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:21:00",
+    "cpu": {
+      "cpu_percent_overall": 18.264104505090053,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 49.01543981319312,
+      "ram_percent": 4.867471679562375
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 44.76813082207001,
+      "utilization_memory_pct": 4.0422161310910205,
+      "memory_used_mib": 3296.7910543565254,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 130.98665312160088,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.549332656080044
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:22:00",
+    "cpu": {
+      "cpu_percent_overall": 15.793538324274738,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 53.80176060405805,
+      "ram_percent": 5.342776624037542
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 45.11423716998605,
+      "utilization_memory_pct": 4.192332122007622,
+      "memory_used_mib": 3419.224155388197,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 131.7054579324568,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.58527289662284
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:23:00",
+    "cpu": {
+      "cpu_percent_overall": 15.356216844632812,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 50.36695140071263,
+      "ram_percent": 5.001683356575237
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 42.55281792369214,
+      "utilization_memory_pct": 4.055401540307006,
+      "memory_used_mib": 3307.5449422589913,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 132.58417072103626,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.629208536051813
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:24:00",
+    "cpu": {
+      "cpu_percent_overall": 15.563358204393019,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.04449167659352,
+      "ram_percent": 5.168271268777907
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 45.16205555597732,
+      "utilization_memory_pct": 4.062213556460399,
+      "memory_used_mib": 3313.1007545135367,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 132.96548338742323,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.648274169371161
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:25:00",
+    "cpu": {
+      "cpu_percent_overall": 14.993017087260428,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 54.142196013949246,
+      "ram_percent": 5.376583516777482
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 44.25085839794196,
+      "utilization_memory_pct": 4.092945689998985,
+      "memory_used_mib": 3338.1655753062723,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 132.25011607153712,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.612505803576855
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:26:00",
+    "cpu": {
+      "cpu_percent_overall": 16.66837300212009,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 51.418759904148146,
+      "ram_percent": 5.106133059001802
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 41.24440765106519,
+      "utilization_memory_pct": 4.223233186192502,
+      "memory_used_mib": 3444.4267543267424,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 132.21746322437056,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.610873161218528
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:27:00",
+    "cpu": {
+      "cpu_percent_overall": 15.795511018331602,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.84633336731052,
+      "ram_percent": 5.247898050378403
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 41.05870466537699,
+      "utilization_memory_pct": 4.051361928992882,
+      "memory_used_mib": 3304.250275667305,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 134.46344248350067,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.723172124175034
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:28:00",
+    "cpu": {
+      "cpu_percent_overall": 15.796151000559124,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 57.01887842764332,
+      "ram_percent": 5.662252078216815
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 44.9514945259025,
+      "utilization_memory_pct": 4.476699352756537,
+      "memory_used_mib": 3651.151225114704,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 133.8147019147328,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.69073509573664
+    }
+  },
+  {
+    "timestamp": "2026-01-21T16:29:00",
+    "cpu": {
+      "cpu_percent_overall": 16.224783783439825,
+      "cpu_count": 128
+    },
+    "ram": {
+      "ram_total_gb": 1007.0,
+      "ram_used_gb": 52.26932439143055,
+      "ram_percent": 5.1905982513833715
+    },
+    "gpu": {
+      "index": 0,
+      "name": "NVIDIA H100 PCIe",
+      "utilization_gpu_pct": 46.89423600545546,
+      "utilization_memory_pct": 3.9493845431602876,
+      "memory_used_mib": 3221.0785395560993,
+      "memory_total_mib": 81559.0
+    },
+    "disk": {
+      "disk_used_gb": 134.88761729905366,
+      "disk_total_gb": 2000.0,
+      "disk_percent": 6.744380864952683
+    }
+  }
+]
