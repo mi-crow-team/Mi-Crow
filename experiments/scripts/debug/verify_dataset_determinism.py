@@ -13,8 +13,10 @@ Usage:
 import argparse
 import hashlib
 import logging
+from pathlib import Path
 
 from mi_crow.datasets import ClassificationDataset
+from mi_crow.store import LocalStore
 
 logging.basicConfig(
     level=logging.INFO,
@@ -22,36 +24,39 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Default store path (can be overridden via command line)
+DEFAULT_STORE_PATH = "/mnt/evafs/groups/mi2lab/hkowalski/Mi-Crow/store"
+
 
 def hash_text(text: str) -> str:
     """Compute SHA256 hash of text for fast comparison."""
     return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
 
 
-def load_dataset_snapshot(dataset_name: str) -> dict:
+def load_dataset_snapshot(dataset_name: str, store_base_path: str) -> dict:
     """Load dataset and return snapshot of key properties."""
     logger.info(f"Loading dataset: {dataset_name}")
 
     dataset_configs = {
         "wgmix_train": {
-            "parquet_file": "/mnt/evafs/groups/mi2lab/hkowalski/Mi-Crow/store/datasets/wgmix_train.parquet",
+            "store_path": "datasets/wgmix_train",
             "text_field": "prompt",
-            "category_field": "label",
+            "category_field": "prompt_harm_label",
         },
         "wgmix_test": {
-            "parquet_file": "/mnt/evafs/groups/mi2lab/hkowalski/Mi-Crow/store/datasets/wgmix_test.parquet",
+            "store_path": "datasets/wgmix_test",
             "text_field": "prompt",
-            "category_field": "label",
+            "category_field": "prompt_harm_label",
         },
         "plmix_train": {
-            "parquet_file": "/mnt/evafs/groups/mi2lab/hkowalski/Mi-Crow/store/datasets/plmix_train.parquet",
+            "store_path": "datasets/plmix_train",
             "text_field": "text",
-            "category_field": "label",
+            "category_field": "text_harm_label",
         },
         "plmix_test": {
-            "parquet_file": "/mnt/evafs/groups/mi2lab/hkowalski/Mi-Crow/store/datasets/plmix_test.parquet",
+            "store_path": "datasets/plmix_test",
             "text_field": "text",
-            "category_field": "label",
+            "category_field": "text_harm_label",
         },
     }
 
@@ -59,7 +64,14 @@ def load_dataset_snapshot(dataset_name: str) -> dict:
         raise ValueError(f"Unknown dataset: {dataset_name}")
 
     config = dataset_configs[dataset_name]
-    dataset = ClassificationDataset.from_parquet(**config)
+
+    # Load dataset using from_disk (not from_parquet)
+    store = LocalStore(base_path=str(Path(store_base_path) / config["store_path"]))
+    dataset = ClassificationDataset.from_disk(
+        store=store,
+        text_field=config["text_field"],
+        category_field=config["category_field"],
+    )
 
     # Extract key properties
     items = list(dataset.iter_items())
@@ -175,6 +187,12 @@ def main():
         default=10,
         help="Number of times to load dataset (default: 10)",
     )
+    parser.add_argument(
+        "--store",
+        type=str,
+        default=DEFAULT_STORE_PATH,
+        help=f"Store base path (default: {DEFAULT_STORE_PATH})",
+    )
     args = parser.parse_args()
 
     logger.info("=" * 80)
@@ -182,13 +200,14 @@ def main():
     logger.info("=" * 80)
     logger.info(f"Dataset: {args.dataset}")
     logger.info(f"Number of loads: {args.num_loads}")
+    logger.info(f"Store path: {args.store}")
     logger.info("")
 
     # Load dataset multiple times
     snapshots = []
     for i in range(args.num_loads):
         logger.info(f"Load {i + 1}/{args.num_loads}...")
-        snapshot = load_dataset_snapshot(args.dataset)
+        snapshot = load_dataset_snapshot(args.dataset, args.store)
         snapshots.append(snapshot)
 
     logger.info("")
