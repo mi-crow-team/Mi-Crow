@@ -76,14 +76,16 @@ def load_dataset_snapshot(dataset_name: str, store_base_path: str) -> dict:
     # Extract key properties
     items = list(dataset.iter_items())
 
+    # NOTE: ClassificationDataset.iter_items() normalizes text field to "text" key
+    # but preserves original category field names
     snapshot = {
         "num_samples": len(items),
         "text_field": config["text_field"],
         "category_field": config["category_field"],
-        "sample_hashes": [hash_text(item[config["text_field"]]) for item in items],
+        "sample_hashes": [hash_text(item["text"]) for item in items],  # Always use "text" key
         "labels": [item[config["category_field"]] for item in items],
-        "first_text": items[0][config["text_field"]][:100] if items else "",
-        "last_text": items[-1][config["text_field"]][:100] if items else "",
+        "first_text": items[0]["text"][:100] if items else "",  # Always use "text" key
+        "last_text": items[-1]["text"][:100] if items else "",  # Always use "text" key
     }
 
     return snapshot
