@@ -11,7 +11,7 @@ This script runs a complete LPM pipeline on the cluster:
 
 Usage:
     cd /path/to/Mi-Crow
-    uv run python -m experiments.scripts.run_lpm_test
+    uv run python -m experiments.scripts.debug.run_lpm_test
 """
 
 from __future__ import annotations
@@ -20,14 +20,14 @@ import gc
 import json
 import sys
 from datetime import datetime
+from pathlib import Path
 from time import perf_counter
-from zipfile import Path
 
 import pandas as pd
 import torch
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
-REPO_DIR = Path(__file__).resolve().parents[2]
+REPO_DIR = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_DIR))
 
 from experiments.models.lpm.lpm import LPM  # noqa: E402
