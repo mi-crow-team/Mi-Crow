@@ -1,0 +1,12 @@
+Node: pascal
+PWD:  /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow
+Config: /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/experiments/slurm_sae_pipeline/configs/config_bielik12_polemo2.json
+uv not found, installing...
+no checksums to verify
+installing to /home2/faculty/akaniasty/.local/bin
+  uv
+  uvx
+everything's installed!
+Using uv: /home2/faculty/akaniasty/.local/bin/uv
+uv version: uv 0.9.23
+Syncing project dependencies...

@@ -1,0 +1,7 @@
+Node: pascal
+PWD:  /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow
+Config: /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/experiments/slurm_sae_pipeline/configs/config_bielik12_polemo2.json
+GPU:  GPU 0: Tesla P100-PCIE-16GB (UUID: GPU-4982d96e-2379-32df-335e-0b01fecacb11)
+Using uv: /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/.uv-bin/uv
+uv version: uv 0.9.24
+✅ Activation saving completed!
