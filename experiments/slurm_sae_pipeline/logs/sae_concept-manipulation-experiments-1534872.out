@@ -1,0 +1,20 @@
+=== Job Information ===
+Node: dgx-4
+PWD: /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow
+Date: Thu Jan 22 10:02:50 AM  2026
+GPU: GPU 0: NVIDIA A100-SXM4-40GB (UUID: GPU-4d470d18-172f-a277-fbee-cc659107af6d)
+Job ID: 1534872
+
+=== Hardware Usage Summary ===
+Duration: 9:59:00
+Average CPU Usage: 7.3%
+Average RAM Usage: 15.0%
+Average GPU Utilization: 4.2%
+Peak GPU Memory: 0.0 GB
+
+=== Script Execution ===
+Script: concept-manipulation-experiments
+Start time: 2026-01-22T10:02:50.935768
+End time: 2026-01-22T20:01:50.935768
+
+=== Job completed at Thu Jan 22 08:01:50 PM  2026 ===

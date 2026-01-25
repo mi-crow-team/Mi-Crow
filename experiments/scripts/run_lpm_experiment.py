@@ -239,6 +239,7 @@ def train_lpm(
     device: str,
     store_dir: Path,
     results_store: LocalStore,
+    max_samples: Optional[int] = None,
 ) -> LPM:
     """Train LPM using pre-saved activations."""
     logger.info("=" * 80)
@@ -282,7 +283,7 @@ def train_lpm(
         dataset=train_dataset,
         model_id=model_id,
         category_field=train_config["category_field"],
-        max_samples=None,
+        max_samples=max_samples,
     )
     fit_elapsed = perf_counter() - fit_t0
 
@@ -307,6 +308,7 @@ def save_test_attention_masks(
     store_dir: Path,
     batch_size: int,
     max_length: int,
+    test_limit: Optional[int] = None,
 ) -> str:
     """Save attention masks for test dataset."""
     logger.info("=" * 80)
@@ -678,6 +680,8 @@ def main() -> int:
     parser.add_argument("--max-length", type=int, default=512)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--store", type=str, default=None, help="Store directory (default: $REPO_DIR/store)")
+    parser.add_argument("--max-samples", type=int, default=None, help="Limit number of training samples (for benchmarking)")
+    parser.add_argument("--test-limit", type=int, default=None, help="Limit number of test samples (for benchmarking)")
 
     args = parser.parse_args()
 
@@ -742,6 +746,7 @@ def main() -> int:
             args.device,
             store_dir,
             results_store,
+            max_samples=getattr(args, 'max_samples', None),
         )
         train_elapsed = perf_counter() - train_t0
 
@@ -757,6 +762,7 @@ def main() -> int:
             store_dir,
             args.batch_size,
             args.max_length,
+            test_limit=getattr(args, 'test_limit', None),
         )
         masks_elapsed = perf_counter() - masks_t0
 

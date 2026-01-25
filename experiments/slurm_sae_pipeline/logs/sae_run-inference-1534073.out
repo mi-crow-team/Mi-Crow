@@ -1,0 +1,20 @@
+=== Job Information ===
+Node: hopper
+PWD: /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow
+Date: Thu Jan 22 05:43:24 AM  2026
+GPU: GPU 0: NVIDIA H100 PCIe (UUID: GPU-bf61031e-72aa-ca7a-24b8-920d973b2f1a)
+Job ID: 1534073
+
+=== Hardware Usage Summary ===
+Duration: 9:59:00
+Average CPU Usage: 2.3%
+Average RAM Usage: 4.7%
+Average GPU Utilization: 0.1%
+Peak GPU Memory: 5.4 GB
+
+=== Script Execution ===
+Script: run-inference
+Start time: 2026-01-22T05:43:24.969463
+End time: 2026-01-22T15:42:24.969463
+
+=== Job completed at Thu Jan 22 03:42:24 PM  2026 ===
