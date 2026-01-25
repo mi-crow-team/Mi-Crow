@@ -326,7 +326,9 @@ def save_test_attention_masks(
     store_path_suffix = (
         test_config["store_path"].split("/", 1)[-1] if "/" in test_config["store_path"] else test_config["store_path"]
     )
-    run_name = f"test_attention_masks_layer{layer_num}_{model_id}_{aggregation_method}_{store_path_suffix}_{ts}"
+    # Replace "/" with "_" in model_id for run_name
+    safe_model_id = model_id.replace("/", "_")
+    run_name = f"test_attention_masks_layer{layer_num}_{safe_model_id}_{aggregation_method}_{store_path_suffix}_{ts}"
     logger.info("Run name: %s", run_name)
 
     # Setup attention mask detector
