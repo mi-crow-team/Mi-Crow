@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/logo.svg" alt="Mi-Crow Logo" width="200">
+  <img src="docs/logo-white.svg" alt="Mi-Crow Logo" width="200">
 </div>
 
 # Mi-Crow: Mechanistic Interpretability for Large Language Models
