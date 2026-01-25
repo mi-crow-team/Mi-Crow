@@ -20,6 +20,7 @@ import argparse
 import os
 import torch
 from pathlib import Path
+from datetime import datetime
 
 from dotenv import load_dotenv
 
@@ -49,6 +50,7 @@ def main():
     parser = argparse.ArgumentParser(description="Train SAE on saved activations")
     parser.add_argument("--run_id", type=str, default=None, help="Run ID to use (default: read from run_id.txt)")
     parser.add_argument("--config", type=str, default=None, help="Path to config JSON file (default: config.json in script directory)")
+    parser.add_argument("--layer", type=int, default=None, help="Layer index to use from layer_signatures list (0-based, default: use first layer)")
     args = parser.parse_args()
     
     # Load config.json into Pydantic model
@@ -89,7 +91,10 @@ def main():
         WANDB_API_KEY = WANDB_API_KEY.strip().strip('"').strip("'")
     
     # Data type configuration
-    DTYPE = torch.float16 if DEVICE == "cuda" and torch.cuda.is_available() else None
+    # When using AMP, don't set dtype directly - let AMP handle it
+    use_amp = DEVICE != "cpu"
+    DTYPE = None if use_amp else None
+    AMP_DTYPE = torch.float16 if use_amp and torch.cuda.is_available() else None
     
     logger.info("🚀 Starting SAE Training")
     logger.info(f"📱 Using device: {DEVICE}")
@@ -105,8 +110,7 @@ def main():
 
     logger.info("📥 Loading language model...")
     store = LocalStore(base_path=STORE_DIR)
-    lm = LanguageModel.from_huggingface(MODEL_ID, store=store)
-    lm.model.to(DEVICE)
+    lm = LanguageModel.from_huggingface(MODEL_ID, store=store, device=DEVICE)
     lm.model.eval()  # Set to evaluation mode
 
     logger.info(f"✅ Model loaded: {lm.model_id}")
@@ -135,10 +139,39 @@ def main():
 
     logger.info(f"📦 Found {len(batches)} batches")
 
+    # Get layer signature from metadata first
+    try:
+        metadata = store.get_run_metadata(RUN_ID)
+        layer_signatures = metadata.get("layer_signatures", [])
+        if not layer_signatures:
+            logger.error("❌ Error: No layer signatures found in metadata")
+            return
+        num_layers = len(layer_signatures)
+        
+        # Select layer based on --layer argument
+        if args.layer is not None:
+            if args.layer < 0 or args.layer >= len(layer_signatures):
+                logger.error(f"❌ Error: Layer index {args.layer} out of range. Available: 0-{len(layer_signatures)-1}")
+                return
+            layer_signature = layer_signatures[args.layer]
+            logger.info(f"🎯 Using layer index {args.layer}: {layer_signature}")
+        else:
+            layer_signature = layer_signatures[0]
+            if len(layer_signatures) > 1:
+                logger.warning(f"⚠️  Multiple layers in config ({len(layer_signatures)}), using first: {layer_signature}")
+                logger.warning(f"   Use --layer N to select a different layer (0-{len(layer_signatures)-1})")
+            logger.info(f"🎯 Target layer: {layer_signature}")
+    except Exception as e:
+        logger.error(f"❌ Error: Could not get layer signature from metadata: {e}")
+        return
+
     # Get activation dimension from a sample batch
     sample_batch = store.get_run_batch(RUN_ID, batches[0])
     if isinstance(sample_batch, dict):
-        activations = sample_batch.get("activations")
+        if num_layers == 1:
+            activations = sample_batch.get("activations")
+        else:
+            activations = sample_batch.get(f"activations_{layer_signature}")
     elif isinstance(sample_batch, list):
         activations = sample_batch[0] if sample_batch else None
     else:
@@ -146,6 +179,8 @@ def main():
 
     if activations is None:
         logger.error("❌ Error: Could not find activations in batch")
+        if isinstance(sample_batch, dict):
+            logger.error(f"   Available keys: {list(sample_batch.keys())}")
         return
 
     if isinstance(activations, torch.Tensor):
@@ -159,20 +194,6 @@ def main():
     logger.info(f"📊 Activation dimension: {n_inputs}")
     logger.info(f"📊 SAE latents: {n_latents} ({N_LATENTS_MULTIPLIER}x overcomplete)")
     logger.info(f"📊 TopK: {TOP_K}")
-
-    # Get layer signature from metadata
-    try:
-        metadata = store.get_run_metadata(RUN_ID)
-        layer_signatures = metadata.get("layer_signatures", [])
-        if not layer_signatures:
-            logger.error("❌ Error: No layer signatures found in metadata")
-            return
-        layer_signature = layer_signatures[0]
-    except Exception as e:
-        logger.error(f"❌ Error: Could not get layer signature from metadata: {e}")
-        return
-
-    logger.info(f"🎯 Target layer: {layer_signature}")
 
     logger.info("🏗️  Creating TopKSAE...")
     sae = TopKSae(
@@ -224,7 +245,6 @@ def main():
         else:
             logger.info("ℹ️  No WANDB_API_KEY in .env file, wandb will use existing credentials if available")
 
-    use_amp = DEVICE != "cpu"
     if not use_amp:
         logger.warning(f"   ⚠️  AMP disabled for CPU device")
 
@@ -238,7 +258,7 @@ def main():
         dtype=DTYPE,
         verbose=True,
         use_amp=use_amp,
-        amp_dtype=DTYPE if use_amp else None,
+        amp_dtype=AMP_DTYPE,
         clip_grad=1.0,
         monitoring=2,
         memory_efficient=True,
@@ -285,7 +305,10 @@ def main():
 
     logger.info("🚀 Starting training (this may take a while)...")
 
-    result = sae.train(store, RUN_ID, layer_signature, config)
+    layer_safe_name = layer_signature.replace("/", "_").replace("\\", "_")
+    custom_training_run_id = f"sae_{layer_safe_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    
+    result = sae.train(store, RUN_ID, layer_signature, config, training_run_id=custom_training_run_id)
     training_run_id = result.get('training_run_id')
     wandb_url = result.get('wandb_url')
 

@@ -1,78 +1,94 @@
 #!/bin/bash
 #SBATCH -A mi2lab-normal
-#SBATCH -p experimental
+#SBATCH -p short,long,debug
 #SBATCH -t 04:00:00
 #SBATCH -N 1
-#SBATCH -c 8
+#SBATCH -c 2
+#SBATCH --mem=24G
 #SBATCH --gres=gpu:1
-#SBATCH --mem=32G
-#SBATCH --job-name=sae_save_activations
+#SBATCH --job-name=save-activations
 #SBATCH --output=/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/slurm-logs/sae_save_activations-%j.out
 #SBATCH --error=/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/slurm-logs/sae_save_activations-%j.err
 #SBATCH --export=ALL
 #SBATCH --mail-user=adam.master111@gmail.com
-#SBATCH --mail-type=FAIL,END
+#SBATCH --mail-type FAIL,END
 
 set -euo pipefail
 
-REPO_DIR=${REPO_DIR:-"/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow"}
-STORE_DIR=${STORE_DIR:-"$REPO_DIR/experiments/slurm_sae_pipeline/store"}
-LOG_DIR=${LOG_DIR:-"$REPO_DIR/slurm-logs"}
-CONFIG_FILE=${CONFIG_FILE:-"$REPO_DIR/experiments/slurm_sae_pipeline/configs/config_bielik12_polemo2.json"}
+REPO_DIR="/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow"
+STORE_DIR="${STORE_DIR:-$REPO_DIR/experiments/slurm_sae_pipeline/store}"
+LOG_DIR="${LOG_DIR:-$REPO_DIR/slurm-logs}"
+CONFIG_FILE="${CONFIG_FILE:-$REPO_DIR/experiments/slurm_sae_pipeline/configs/config_bielik12_polemo2.json}"
 
 mkdir -p "$LOG_DIR"
-mkdir -p "$STORE_DIR"
 cd "$REPO_DIR"
 
+echo "=== Job Information ==="
 echo "Node: $(hostname -s)"
-echo "PWD:  $(pwd)"
-echo "Config: $CONFIG_FILE"
-echo "GPU:  $(nvidia-smi -L)"
+echo "PWD: $(pwd)"
+echo "Date: $(date)"
+echo "GPU: $(nvidia-smi -L 2>/dev/null || echo 'No GPU available')"
+echo ""
 
+# Setup uv (project-local installation)
+UV_BIN="$REPO_DIR/.uv-bin/uv"
+if [[ ! -f "$UV_BIN" ]]; then
+    echo "Installing uv to project directory..."
+    mkdir -p "$REPO_DIR/.uv-bin"
+    
+    # Try to copy from ~/.local/bin if available
+    if [[ -f "$HOME/.local/bin/uv" ]]; then
+        cp "$HOME/.local/bin/uv" "$UV_BIN"
+        chmod +x "$UV_BIN"
+    else
+        # Install uv
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        # Copy to project directory
+        if [[ -f "$HOME/.cargo/bin/uv" ]]; then
+            cp "$HOME/.cargo/bin/uv" "$UV_BIN"
+            chmod +x "$UV_BIN"
+        elif [[ -f "$HOME/.local/bin/uv" ]]; then
+            cp "$HOME/.local/bin/uv" "$UV_BIN"
+            chmod +x "$UV_BIN"
+        fi
+    fi
+fi
 
-# Respect allocated cores for common CPU backends
-export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-8}
-export MKL_NUM_THREADS=${SLURM_CPUS_PER_TASK:-8}
-
-# Set cache directory to repo-local location to enable hardlinks on NFS
+export PATH="$REPO_DIR/.uv-bin:$PATH"
+export UV_HTTP_TIMEOUT=300
 export UV_CACHE_DIR="$REPO_DIR/.uv-cache"
 mkdir -p "$UV_CACHE_DIR"
 
-# Use project-local uv installation
-UV_BIN="$REPO_DIR/.uv-bin/uv"
-if [ ! -f "$UV_BIN" ]; then
-    echo "Installing uv locally..."
-    mkdir -p "$REPO_DIR/.uv-bin"
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    # Copy to project directory
-    if [ -f "$HOME/.local/bin/uv" ]; then
-        cp "$HOME/.local/bin/uv" "$UV_BIN"
-        chmod +x "$UV_BIN"
-        # Clean up home installation
-        rm -f "$HOME/.local/bin/uv" "$HOME/.local/bin/uvx" 2>/dev/null || true
-    else
-        echo "ERROR: uv installation failed"
-        exit 1
-    fi
-    if [ ! -f "$UV_BIN" ]; then
-        echo "ERROR: Failed to install uv to project directory"
-        exit 1
-    fi
-fi
+echo "Using uv: $(command -v uv)"
+echo "uv version: $(uv --version)"
+echo ""
 
-echo "Using uv: $UV_BIN"
-echo "uv version: $($UV_BIN --version)"
+# Setup Python environment
+echo "Setting up Python environment..."
+export OMP_NUM_THREADS=1
+export MKL_NUM_THREADS=1
 
-# Check for HuggingFace authentication (required for gated models)
+# HuggingFace authentication check
 if [[ -z "${HF_TOKEN:-}" ]] && [[ ! -f "${HF_HOME:-$HOME/.cache/huggingface}/token" ]]; then
-  echo "ERROR: HuggingFace auth missing (Bielik model is gated)." >&2
-  echo "Run once:  $UV_BIN run huggingface-cli login" >&2
-  echo "Or submit with: HF_TOKEN=... sbatch 01_save_activations.sh" >&2
-  exit 2
+    echo "⚠️  Warning: HF_TOKEN not set and no HuggingFace token file found."
+    echo "   The job may fail if the model requires authentication."
+    echo "   Set HF_TOKEN environment variable or run 'huggingface-cli login'"
+    echo ""
 fi
 
-# Run activation saving script
-cd "$REPO_DIR/experiments/slurm_sae_pipeline"
-$UV_BIN run python 01_save_activations.py --config "$CONFIG_FILE" --run_id "bielik12_polemo2_layer12_3epochs"
+# Sync dependencies
+echo "Syncing dependencies with uv..."
+uv sync --frozen
+echo ""
 
-echo "✅ Activation saving completed!"
+# Run the script
+echo "=== Starting Activation Saving ==="
+echo "Config file: $CONFIG_FILE"
+echo "Store directory: $STORE_DIR"
+echo ""
+
+uv run python "$REPO_DIR/experiments/slurm_sae_pipeline/01_save_activations.py" \
+    --config "$CONFIG_FILE"
+
+echo ""
+echo "=== Job completed at $(date) ==="

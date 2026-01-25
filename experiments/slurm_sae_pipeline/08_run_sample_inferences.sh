@@ -1,14 +1,15 @@
 #!/bin/bash
 #SBATCH -A mi2lab-normal
 #SBATCH -p short,long,debug
-#SBATCH -t 08:00:00
+#SBATCH -t 04:00:00
 #SBATCH -N 1
 #SBATCH -c 2
 #SBATCH --mem=24G
 #SBATCH --gres=gpu:h100:1
-#SBATCH --job-name=train-sae
-#SBATCH --output=/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/slurm-logs/sae_train_sae-%j.out
-#SBATCH --error=/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/slurm-logs/sae_train_sae-%j.err
+#SBATCH --exclude=hopper-2,dgx-2,dgx-3,sr-1,sr-2
+#SBATCH --job-name=sae-sample-inference
+#SBATCH --output=/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/slurm-logs/sae_sample_inference-%j.out
+#SBATCH --error=/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/slurm-logs/sae_sample_inference-%j.err
 #SBATCH --export=ALL
 #SBATCH --mail-user=adam.master111@gmail.com
 #SBATCH --mail-type FAIL,END
@@ -19,8 +20,6 @@ REPO_DIR="/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow"
 STORE_DIR="${STORE_DIR:-$REPO_DIR/experiments/slurm_sae_pipeline/store}"
 LOG_DIR="${LOG_DIR:-$REPO_DIR/slurm-logs}"
 CONFIG_FILE="${CONFIG_FILE:-$REPO_DIR/experiments/slurm_sae_pipeline/configs/config_bielik12_polemo2.json}"
-RUN_ID="${RUN_ID:-}"
-LAYER="${LAYER:-}"
 
 mkdir -p "$LOG_DIR"
 cd "$REPO_DIR"
@@ -30,7 +29,6 @@ echo "Node: $(hostname -s)"
 echo "PWD: $(pwd)"
 echo "Date: $(date)"
 echo "GPU: $(nvidia-smi -L 2>/dev/null || echo 'No GPU available')"
-echo "Run ID: $RUN_ID"
 echo ""
 
 UV_BIN="$REPO_DIR/.uv-bin/uv"
@@ -74,13 +72,33 @@ echo ""
 if [[ -z "${HF_TOKEN:-}" ]] && [[ ! -f "${HF_HOME:-$HOME/.cache/huggingface}/token" ]]; then
     echo "⚠️  Warning: HF_TOKEN not set and no HuggingFace token file found."
     echo "   The job may fail if the model requires authentication."
-    echo "   Set HF_TOKEN environment variable or run 'huggingface-cli login'"
     echo ""
 fi
 
-uv run python "$REPO_DIR/experiments/slurm_sae_pipeline/02_train_sae.py" \
-    --config "$CONFIG_FILE" \
-    ${RUN_ID:+--run_id "$RUN_ID"} \
-    ${LAYER:+--layer "$LAYER"}
+if [[ -z "${SAE_PATHS:-}" ]]; then
+    echo "❌ Error: SAE_PATHS environment variable is required"
+    echo "   Example: SAE_PATHS='path1.pt path2.pt' LAYER_SIGNATURES='layer_15 layer_20' sbatch 08_run_sample_inferences.sh"
+    exit 1
+fi
 
-echo "✅ SAE training completed!"
+if [[ -z "${LAYER_SIGNATURES:-}" ]]; then
+    echo "❌ Error: LAYER_SIGNATURES environment variable is required"
+    echo "   Example: SAE_PATHS='path1.pt path2.pt' LAYER_SIGNATURES='layer_15 layer_20' sbatch 08_run_sample_inferences.sh"
+    exit 1
+fi
+
+echo "SAE paths: $SAE_PATHS"
+echo "Layer signatures: $LAYER_SIGNATURES"
+echo ""
+
+export PYTHONUNBUFFERED=1
+uv run python "$REPO_DIR/experiments/slurm_sae_pipeline/08_run_sample_inferences.py" \
+    --config "$CONFIG_FILE" \
+    --sae_paths $SAE_PATHS \
+    --layer_signatures $LAYER_SIGNATURES \
+    ${TEST_SENTENCES_FILE:+--test_sentences_file $TEST_SENTENCES_FILE} \
+    ${CONCEPT_DICTS_DIR:+--concept_dicts_dir $CONCEPT_DICTS_DIR} \
+    ${TOP_K:+--top_k $TOP_K} \
+    ${OUTPUT_DIR:+--output_dir $OUTPUT_DIR}
+
+echo "✅ Sample inference completed!"

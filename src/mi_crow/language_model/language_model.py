@@ -16,6 +16,7 @@ from mi_crow.language_model.context import LanguageModelContext
 from mi_crow.language_model.inference import InferenceEngine
 from mi_crow.language_model.persistence import save_model, load_model_from_saved_file
 from mi_crow.language_model.initialization import initialize_model_id, create_from_huggingface, create_from_local_torch
+from mi_crow.language_model.device_manager import normalize_device, sync_model_to_context_device
 from mi_crow.store.store import Store
 from mi_crow.utils import get_logger
 
@@ -103,7 +104,8 @@ class LanguageModel:
         self.context.model_id = initialize_model_id(model, model_id)
         self.context.store = store
         self.context.special_token_ids = _extract_special_token_ids(tokenizer)
-        self.context.device = self._normalize_device(device)
+        self.context.device = normalize_device(device)
+        sync_model_to_context_device(self)
 
         self.layers = LanguageModelLayers(self.context)
         self.lm_tokenizer = LanguageModelTokenizer(self.context)
@@ -112,49 +114,6 @@ class LanguageModel:
 
         self._input_tracker: "InputTracker | None" = None
 
-    def _normalize_device(self, device: str | torch.device | None) -> str:
-        """
-        Normalize and validate the device string for the language model.
-        
-        This method ensures that the configured device is usable on the current
-        system and raises clear errors when CUDA or MPS are requested but not
-        available. It centralizes device handling so that all components rely
-        on the same validated device stored in the context.
-        
-        Args:
-            device: Optional device specification as string or torch.device.
-        
-        Returns:
-            Normalized device string such as "cpu", "cuda", "cuda:0", or "mps".
-        
-        Raises:
-            ValueError: If a CUDA or MPS device is requested but not available.
-        """
-        if device is None:
-            return "cpu"
-        
-        if isinstance(device, torch.device):
-            device_str = str(device)
-        else:
-            device_str = str(device)
-        
-        if device_str.startswith("cuda"):
-            if not torch.cuda.is_available():
-                raise ValueError(
-                    "Requested device 'cuda' but CUDA is not available. "
-                    "Install a CUDA-enabled PyTorch build or use device='cpu'."
-                )
-        
-        if device_str == "mps":
-            mps_backend = getattr(torch.backends, "mps", None)
-            mps_available = bool(mps_backend and mps_backend.is_available())
-            if not mps_available:
-                raise ValueError(
-                    "Requested device 'mps' but MPS is not available. "
-                    "Ensure PyTorch is built with MPS support or use device='cpu'."
-                )
-        
-        return device_str
 
     @property
     def model(self) -> nn.Module:

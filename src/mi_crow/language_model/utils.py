@@ -44,8 +44,11 @@ def get_device_from_model(model: nn.Module) -> torch.device:
     Returns:
         Device where model parameters are located, or CPU if no parameters
     """
-    first_param = next(model.parameters(), None)
-    return first_param.device if first_param is not None else torch.device("cpu")
+    try:
+        first_param = next(model.parameters(), None)
+        return first_param.device if first_param is not None else torch.device("cpu")
+    except (TypeError, AttributeError):
+        return torch.device("cpu")
 
 
 def move_tensors_to_device(
@@ -62,9 +65,6 @@ def move_tensors_to_device(
     Returns:
         Dictionary with tensors moved to device
     """
-    device_type = str(device.type)
-    if device_type == "cuda":
-        return {k: v.to(device, non_blocking=True) for k, v in tensors.items()}
     return {k: v.to(device) for k, v in tensors.items()}
 
 

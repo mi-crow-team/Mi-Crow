@@ -66,11 +66,22 @@ markers = [
 branch = true
 source = ["mi_crow"]
 parallel = true
+omit = [
+    "*/mechanistic/sae/training/wandb_logger.py",  # Optional dependency (wandb)
+    "*/mechanistic/sae/training/__init__.py",  # Empty init file
+]
 
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
 fail_under = 85
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+]
 
 [tool.coverage.xml]
 output = "coverage.xml"

@@ -1,0 +1,250 @@
+{
+  "activation_saving": {
+    "sae_save_activations-1519579.out": {
+      "log_file": "sae_save_activations-1519579.out",
+      "log_path": "experiments/slurm_sae_pipeline/logs/sae_save_activations-1519579.out",
+      "run_id": "sae_llamaforcausallm_model_layers_15_20260118_150004",
+      "activation_run": "activations_bielik12",
+      "training_config": {
+        "epochs": 25,
+        "batch_size": 64,
+        "lr": 0.001,
+        "l1_lambda": 0.0001,
+        "device": "cuda",
+        "dtype": null,
+        "use_amp": true,
+        "clip_grad": 1.0,
+        "monitoring": 2
+      },
+      "layer_signature": "llamaforcausallm_model_layers_15",
+      "sae_type": "TopKSae",
+      "final_metrics": {
+        "loss": 0.2129431777796096,
+        "r2": 0.9956716887634058,
+        "recon_mse": 0.004328311236594162,
+        "l1": 7.197331604761827,
+        "l0": 0.0,
+        "dead_features_pct": 0.6227213442325592
+      },
+      "model_id": null
+    },
+    "sae_save_activations-1519579.err": {
+      "log_file": "sae_save_activations-1519579.err",
+      "log_path": "experiments/slurm_sae_pipeline/logs/sae_save_activations-1519579.err",
+      "corresponds_to": "sae_save_activations-1519579.out"
+    },
+    "sae_save_activations-1520800.out": {
+      "log_file": "sae_save_activations-1520800.out",
+      "log_path": "experiments/slurm_sae_pipeline/logs/sae_save_activations-1520800.out",
+      "run_id": null,
+      "activation_run": "activations_bielik45"
+    },
+    "sae_save_activations-1520800.err": {
+      "log_file": "sae_save_activations-1520800.err",
+      "log_path": "experiments/slurm_sae_pipeline/logs/sae_save_activations-1520800.err",
+      "corresponds_to": "sae_save_activations-1520800.out"
+    }
+  },
+  "training": {
+    "sae_train_sae-1521330.out": {
+      "log_file": "sae_train_sae-1521330.out",
+      "log_path": "experiments/slurm_sae_pipeline/logs/sae_train_sae-1521330.out",
+      "run_id": "sae_llamaforcausallm_model_layers_38_20260118_144434",
+      "activation_run": "activations_20260118_122829",
+      "training_config": {
+        "epochs": 25,
+        "batch_size": 64,
+        "lr": 0.001,
+        "l1_lambda": 0.0001,
+        "device": "cuda",
+        "dtype": null,
+        "use_amp": true,
+        "clip_grad": 1.0,
+        "monitoring": 2
+      },
+      "layer_signature": "llamaforcausallm_model_layers_38",
+      "sae_type": "TopKSae",
+      "final_metrics": {
+        "loss": 0.20880761702431944,
+        "r2": 0.9819934983061331,
+        "recon_mse": 0.01800650169386686,
+        "l1": 7.5910576767836595,
+        "l0": 0.0,
+        "dead_features_pct": 0.63134765625
+      },
+      "model_id": null
+    },
+    "sae_train_sae-1521330.err": {
+      "log_file": "sae_train_sae-1521330.err",
+      "log_path": "experiments/slurm_sae_pipeline/logs/sae_train_sae-1521330.err",
+      "corresponds_to": "sae_train_sae-1521330.out"
+    },
+    "sae_train_sae-1521331.out": {
+      "log_file": "sae_train_sae-1521331.out",
+      "log_path": "experiments/slurm_sae_pipeline/logs/sae_train_sae-1521331.out",
+      "run_id": "sae_llamaforcausallm_model_layers_38_20260118_144434",
+      "activation_run": "activations_20260118_122829",
+      "training_config": {
+        "epochs": 25,
+        "batch_size": 64,
+        "lr": 0.001,
+        "l1_lambda": 0.0001,
+        "device": "cuda",
+        "dtype": null,
+        "use_amp": true,
+        "clip_grad": 1.0,
+        "monitoring": 2
+      },
+      "layer_signature": "llamaforcausallm_model_layers_38",
+      "sae_type": "TopKSae",
+      "final_metrics": {
+        "loss": 0.20880761702431944,
+        "r2": 0.9819934983061331,
+        "recon_mse": 0.01800650169386686,
+        "l1": 7.5910576767836595,
+        "l0": 0.0,
+        "dead_features_pct": 0.63134765625
+      },
+      "model_id": null
+    },
+    "sae_train_sae-1521331.err": {
+      "log_file": "sae_train_sae-1521331.err",
+      "log_path": "experiments/slurm_sae_pipeline/logs/sae_train_sae-1521331.err",
+      "corresponds_to": "sae_train_sae-1521331.out"
+    },
+    "sae_train_sae-1521427.out": {
+      "log_file": "sae_train_sae-1521427.out",
+      "log_path": "experiments/slurm_sae_pipeline/logs/sae_train_sae-1521427.out",
+      "run_id": "sae_llamaforcausallm_model_layers_15_20260118_150004",
+      "activation_run": "activations_bielik12",
+      "training_config": {
+        "epochs": 25,
+        "batch_size": 64,
+        "lr": 0.001,
+        "l1_lambda": 0.0001,
+        "device": "cuda",
+        "dtype": null,
+        "use_amp": true,
+        "clip_grad": 1.0,
+        "monitoring": 2
+      },
+      "layer_signature": "llamaforcausallm_model_layers_15",
+      "sae_type": "TopKSae",
+      "final_metrics": {
+        "loss": 0.2129431777796096,
+        "r2": 0.9956716887634058,
+        "recon_mse": 0.004328311236594162,
+        "l1": 7.197331604761827,
+        "l0": 0.0,
+        "dead_features_pct": 0.6227213442325592
+      },
+      "model_id": null
+    },
+    "sae_train_sae-1521427.err": {
+      "log_file": "sae_train_sae-1521427.err",
+      "log_path": "experiments/slurm_sae_pipeline/logs/sae_train_sae-1521427.err",
+      "corresponds_to": "sae_train_sae-1521427.out"
+    },
+    "sae_train_sae-1521428.out": {
+      "log_file": "sae_train_sae-1521428.out",
+      "log_path": "experiments/slurm_sae_pipeline/logs/sae_train_sae-1521428.out",
+      "run_id": "sae_llamaforcausallm_model_layers_15_20260118_150004",
+      "activation_run": "activations_bielik12",
+      "training_config": {
+        "epochs": 25,
+        "batch_size": 64,
+        "lr": 0.001,
+        "l1_lambda": 0.0001,
+        "device": "cuda",
+        "dtype": null,
+        "use_amp": true,
+        "clip_grad": 1.0,
+        "monitoring": 2
+      },
+      "layer_signature": "llamaforcausallm_model_layers_15",
+      "sae_type": "TopKSae",
+      "final_metrics": {
+        "loss": 0.2129431777796096,
+        "r2": 0.9956716887634058,
+        "recon_mse": 0.004328311236594162,
+        "l1": 7.197331604761827,
+        "l0": 0.0,
+        "dead_features_pct": 0.6227213442325592
+      },
+      "model_id": null
+    },
+    "sae_train_sae-1521428.err": {
+      "log_file": "sae_train_sae-1521428.err",
+      "log_path": "experiments/slurm_sae_pipeline/logs/sae_train_sae-1521428.err",
+      "corresponds_to": "sae_train_sae-1521428.out"
+    }
+  },
+  "inference": {
+    "sae_run_inference-1524133.out": {
+      "log_file": "sae_run_inference-1524133.out",
+      "log_path": "experiments/slurm_sae_pipeline/logs/sae_run_inference-1524133.out",
+      "run_id": "sae_llamaforcausallm_model_layers_15_20260118_150004",
+      "activation_run": null,
+      "training_config": {
+        "epochs": 25,
+        "batch_size": 64,
+        "lr": 0.001,
+        "l1_lambda": 0.0001,
+        "device": "cuda",
+        "dtype": null,
+        "use_amp": true,
+        "clip_grad": 1.0,
+        "monitoring": 2
+      },
+      "layer_signature": "llamaforcausallm_model_layers_15",
+      "sae_type": "TopKSae",
+      "final_metrics": {
+        "loss": 0.2129431777796096,
+        "r2": 0.9956716887634058,
+        "recon_mse": 0.004328311236594162,
+        "l1": 7.197331604761827,
+        "l0": 0.0,
+        "dead_features_pct": 0.6227213442325592
+      },
+      "model_id": null
+    },
+    "sae_run_inference-1524133.err": {
+      "log_file": "sae_run_inference-1524133.err",
+      "log_path": "experiments/slurm_sae_pipeline/logs/sae_run_inference-1524133.err",
+      "corresponds_to": "sae_run_inference-1524133.out"
+    },
+    "sae_run_inference-1524134.out": {
+      "log_file": "sae_run_inference-1524134.out",
+      "log_path": "experiments/slurm_sae_pipeline/logs/sae_run_inference-1524134.out",
+      "run_id": "sae_llamaforcausallm_model_layers_28_20260118_144434",
+      "activation_run": null,
+      "training_config": {
+        "epochs": 25,
+        "batch_size": 64,
+        "lr": 0.001,
+        "l1_lambda": 0.0001,
+        "device": "cuda",
+        "dtype": null,
+        "use_amp": true,
+        "clip_grad": 1.0,
+        "monitoring": 2
+      },
+      "layer_signature": "llamaforcausallm_model_layers_28",
+      "sae_type": "TopKSae",
+      "final_metrics": {
+        "loss": 0.20744465900038198,
+        "r2": 0.9894111945996752,
+        "recon_mse": 0.010588805400324808,
+        "l1": 6.807217145012333,
+        "l0": 0.0,
+        "dead_features_pct": 0.73583984375
+      },
+      "model_id": null
+    },
+    "sae_run_inference-1524134.err": {
+      "log_file": "sae_run_inference-1524134.err",
+      "log_path": "experiments/slurm_sae_pipeline/logs/sae_run_inference-1524134.err",
+      "corresponds_to": "sae_run_inference-1524134.out"
+    }
+  }
+}

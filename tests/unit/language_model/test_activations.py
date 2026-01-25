@@ -625,6 +625,7 @@ class TestLanguageModelActivations:
 
         with patch.object(torch_module.cuda, "is_available", return_value=True), \
              patch.object(torch_module.cuda, "empty_cache") as mock_empty_cache, \
+             patch.object(torch_module.cuda, "synchronize") as mock_synchronize, \
              patch("gc.collect"):
 
             activations._process_batch(
@@ -891,15 +892,21 @@ class TestLanguageModelActivations:
         layer_sig = layer_names[0] if layer_names else 0
 
 
-        detector = Mock()
-
-        detector.tensor_metadata = {"activations": torch.tensor([1.0, 2.0], dtype=torch.float32)}
-
-        mock_language_model.layers.get_detectors = Mock(return_value=[detector])
-
         mock_language_model.inference.execute_inference = Mock()
 
         mock_language_model.save_detector_metadata = Mock()
+
+        created_detector = None
+
+        original_setup_detector = activations._setup_detector
+
+        def capture_detector(*args, **kwargs):
+            nonlocal created_detector
+            detector, hook_id = original_setup_detector(*args, **kwargs)
+            created_detector = detector
+            return detector, hook_id
+
+        activations._setup_detector = capture_detector
 
 
         with patch("torch.inference_mode"):
@@ -907,7 +914,9 @@ class TestLanguageModelActivations:
             activations.save_activations_dataset(dataset, layer_sig, dtype=torch.float16)
 
 
-        assert detector.tensor_metadata["activations"].dtype == torch.float16
+        assert created_detector is not None
+
+        assert created_detector.target_dtype == torch.float16
 
 
     def test_save_activations_dataset_with_max_length(self, mock_language_model, temp_store):

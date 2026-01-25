@@ -6,9 +6,10 @@
 #SBATCH -c 2
 #SBATCH --mem=24G
 #SBATCH --gres=gpu:h100:1
-#SBATCH --job-name=train-sae
-#SBATCH --output=/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/slurm-logs/sae_train_sae-%j.out
-#SBATCH --error=/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/slurm-logs/sae_train_sae-%j.err
+#SBATCH --exclude=hopper-2,dgx-2,dgx-3,sr-1,sr-2
+#SBATCH --job-name=sae-run-inference
+#SBATCH --output=/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/slurm-logs/sae_run_inference-%j.out
+#SBATCH --error=/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/slurm-logs/sae_run_inference-%j.err
 #SBATCH --export=ALL
 #SBATCH --mail-user=adam.master111@gmail.com
 #SBATCH --mail-type FAIL,END
@@ -19,19 +20,22 @@ REPO_DIR="/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow"
 STORE_DIR="${STORE_DIR:-$REPO_DIR/experiments/slurm_sae_pipeline/store}"
 LOG_DIR="${LOG_DIR:-$REPO_DIR/slurm-logs}"
 CONFIG_FILE="${CONFIG_FILE:-$REPO_DIR/experiments/slurm_sae_pipeline/configs/config_bielik12_polemo2.json}"
-RUN_ID="${RUN_ID:-}"
-LAYER="${LAYER:-}"
 
 mkdir -p "$LOG_DIR"
 cd "$REPO_DIR"
+NVIDIA_SMI_LOG="$LOG_DIR/nvidia-smi-%j.log"
 
 echo "=== Job Information ==="
 echo "Node: $(hostname -s)"
 echo "PWD: $(pwd)"
 echo "Date: $(date)"
 echo "GPU: $(nvidia-smi -L 2>/dev/null || echo 'No GPU available')"
-echo "Run ID: $RUN_ID"
 echo ""
+
+echo "Logging GPU usage to $NVIDIA_SMI_LOG"
+nvidia-smi --query-gpu=timestamp,index,name,utilization.gpu,utilization.memory,memory.used,memory.total --format=csv -l 60 > "$NVIDIA_SMI_LOG" &
+SMI_PID=$!
+trap "kill $SMI_PID 2>/dev/null || true" EXIT
 
 UV_BIN="$REPO_DIR/.uv-bin/uv"
 if [[ ! -f "$UV_BIN" ]]; then
@@ -78,9 +82,23 @@ if [[ -z "${HF_TOKEN:-}" ]] && [[ ! -f "${HF_HOME:-$HOME/.cache/huggingface}/tok
     echo ""
 fi
 
-uv run python "$REPO_DIR/experiments/slurm_sae_pipeline/02_train_sae.py" \
-    --config "$CONFIG_FILE" \
-    ${RUN_ID:+--run_id "$RUN_ID"} \
-    ${LAYER:+--layer "$LAYER"}
+if [[ -z "${SAE_PATHS:-}" ]]; then
+    echo "❌ Error: SAE_PATHS environment variable is required"
+    echo "   Example: SAE_PATHS='path1.pt path2.pt' sbatch 03_run_inference.sh"
+    exit 1
+fi
 
-echo "✅ SAE training completed!"
+echo "SAE paths: $SAE_PATHS"
+echo ""
+
+export PYTHONUNBUFFERED=1
+uv run python "$REPO_DIR/experiments/slurm_sae_pipeline/03_run_inference.py" \
+    --config "$CONFIG_FILE" \
+    --sae_paths $SAE_PATHS \
+    ${TRACK_BOTH:+--track_both} \
+    ${TOP_K:+--top_k $TOP_K} \
+    ${BATCH_SIZE:+--batch_size $BATCH_SIZE} \
+    ${DUMP_EVERY_N_BATCHES:+--dump_every_n_batches $DUMP_EVERY_N_BATCHES} \
+    ${DATA_LIMIT:+--data_limit $DATA_LIMIT}
+
+echo "✅ SAE inference completed!"

@@ -1,6 +1,6 @@
 {
   "model": {
-    "model_id": "speakleash/Bielik-1.5B-v3.0-Instruct"
+    "model_id": "speakleash/Bielik-4.5B-v3.0-Instruct"
   },
   "dataset": {
     "hf_dataset": "clarin-pl/polemo2-official",
@@ -13,8 +13,8 @@
   "layer": {
     "layer_num": null,
     "layer_signature": [
-      "llamaforcausallm_model_layers_15",
-      "llamaforcausallm_model_layers_20"
+      "llamaforcausallm_model_layers_28",
+      "llamaforcausallm_model_layers_38"
     ]
   },
   "storage": {

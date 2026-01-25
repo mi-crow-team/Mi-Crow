@@ -12,14 +12,11 @@
   },
   "layer": {
     "layer_num": null,
-    "layer_signature": [
-      "llamaforcausallm_model_layers_15",
-      "llamaforcausallm_model_layers_20"
-    ]
+    "layer_signature": "llamaforcausallm_model_layers_15"
   },
   "storage": {
-    "store_dir": "/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/experiments/slurm_sae_pipeline/store",
-    "device": "cuda"
+    "store_dir": null,
+    "device": "cpu"
   },
   "sae": {
     "n_latents_multiplier": 4,

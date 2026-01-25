@@ -21,10 +21,10 @@ import json
 import logging
 import os
 import torch
+import requests
 from pathlib import Path
 from datetime import datetime
 
-import requests
 from dotenv import load_dotenv
 
 from config import PipelineConfig
@@ -52,71 +52,6 @@ while project_root != project_root.parent:
 env_file = project_root / ".env"
 if env_file.exists():
     load_dotenv(env_file, override=True)
-
-
-def _download_polemo2_from_api(split: str, output_file: Path, limit: int = None) -> int:
-    """Download polemo2 dataset from HuggingFace datasets server API.
-    
-    Args:
-        split: Dataset split to download (train, val, test)
-        output_file: Path to save the JSONL file
-        limit: Optional limit on number of rows to download
-        
-    Returns:
-        Number of rows downloaded
-    """
-    base_url = "https://datasets-server.huggingface.co/rows"
-    dataset = "clarin-pl%2Fpolemo2-official"
-    config = "all_sentence"
-    batch_size = 100
-    
-    all_rows = []
-    offset = 0
-    
-    logger.info(f"📥 Downloading polemo2-official {split} split from HuggingFace datasets server...")
-    
-    while True:
-        url = f"{base_url}?dataset={dataset}&config={config}&split={split}&offset={offset}&length={batch_size}"
-        
-        try:
-            response = requests.get(url, timeout=30)
-            response.raise_for_status()
-            data = response.json()
-            
-            rows = data.get("rows", [])
-            if not rows:
-                break
-                
-            # Extract text from each row
-            for row in rows:
-                row_data = row.get("row", {})
-                text = row_data.get("text", "")
-                if text:
-                    all_rows.append({"text": text})
-            
-            logger.info(f"   Downloaded {len(all_rows)} rows so far...")
-            
-            if limit and len(all_rows) >= limit:
-                all_rows = all_rows[:limit]
-                break
-                
-            if len(rows) < batch_size:
-                break
-                
-            offset += batch_size
-            
-        except requests.exceptions.RequestException as e:
-            logger.error(f"❌ Error downloading dataset: {e}")
-            raise
-    
-    # Save to JSONL file
-    output_file.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_file, "w", encoding="utf-8") as f:
-        for row in all_rows:
-            f.write(json.dumps(row, ensure_ascii=False) + "\n")
-    
-    logger.info(f"✅ Downloaded {len(all_rows)} rows to {output_file}")
-    return len(all_rows)
 
 
 def main():
@@ -188,8 +123,7 @@ def main():
 
     logger.info("📥 Loading language model...")
     store = LocalStore(base_path=STORE_DIR)
-    lm = LanguageModel.from_huggingface(MODEL_ID, store=store)
-    lm.model.to(DEVICE)
+    lm = LanguageModel.from_huggingface(MODEL_ID, store=store, device=DEVICE)
     lm.model.eval()  # Set to evaluation mode
 
     logger.info(f"✅ Model loaded: {lm.model_id}")
@@ -215,17 +149,58 @@ def main():
     logger.info("📥 Loading dataset...")
     # Special handling for datasets with old loading scripts (like polemo2-official)
     if "polemo2-official" in HF_DATASET:
-        logger.info("📥 Using HuggingFace datasets server API for polemo2-official...")
-        # Download dataset to local file
+        logger.info("📥 Downloading polemo2-official raw data file...")
         cache_dir = script_dir / "cache"
         cache_dir.mkdir(exist_ok=True)
         jsonl_file = cache_dir / f"polemo2_{DATA_SPLIT}.jsonl"
         
-        # Download if file doesn't exist or is empty
+        should_download = False
         if not jsonl_file.exists() or jsonl_file.stat().st_size == 0:
-            _download_polemo2_from_api(DATA_SPLIT, jsonl_file, limit=DATA_LIMIT * 2)  # Download more than needed for sampling
+            should_download = True
+        elif DATA_LIMIT is None:
+            cached_lines = sum(1 for _ in open(jsonl_file)) if jsonl_file.exists() else 0
+            if cached_lines < 10000:
+                logger.info(f"📊 Cached file has {cached_lines} rows, re-downloading to ensure completeness...")
+                should_download = True
         
-        # Load from local JSONL file
+        if should_download:
+            if jsonl_file.exists():
+                jsonl_file.unlink()
+                logger.info(f"🗑️  Removed old cache file to force re-download")
+            
+            logger.info("📥 Downloading raw data file from HuggingFace...")
+            base_url = "https://huggingface.co/datasets/clarin-pl/polemo2-official/resolve/main/data"
+            raw_file_url = f"{base_url}/all.sentence.{DATA_SPLIT}.txt"
+            
+            logger.info(f"   URL: {raw_file_url}")
+            response = requests.get(raw_file_url, timeout=300, stream=True)
+            response.raise_for_status()
+            
+            logger.info("💾 Parsing and saving dataset to JSONL...")
+            jsonl_file.parent.mkdir(parents=True, exist_ok=True)
+            count = 0
+            download_limit = None if DATA_LIMIT is None else DATA_LIMIT * 2
+            
+            with open(jsonl_file, "w", encoding="utf-8") as f:
+                for line in response.iter_lines(decode_unicode=True):
+                    if not line.strip():
+                        continue
+                    
+                    splitted_line = line.split(" ")
+                    if len(splitted_line) < 2:
+                        continue
+                    
+                    text = " ".join(splitted_line[:-1])
+                    if text:
+                        f.write(json.dumps({"text": text}, ensure_ascii=False) + "\n")
+                        count += 1
+                        if count % 1000 == 0:
+                            logger.info(f"   Saved {count} rows so far...")
+                        if download_limit and count >= download_limit:
+                            break
+            
+            logger.info(f"✅ Saved {count} rows to {jsonl_file}")
+        
         dataset = TextDataset.from_json(
             jsonl_file,
             store=store,
@@ -241,12 +216,16 @@ def main():
         )
     logger.info(f"✅ Loaded {len(dataset)} text samples from dataset")
     
-    if len(dataset) > DATA_LIMIT:
-        logger.info(f"📊 Randomly sampling {DATA_LIMIT} rows from {len(dataset)} total rows...")
-        dataset = dataset.random_sample(DATA_LIMIT)
-        logger.info(f"✅ Sampled {len(dataset)} text samples")
+    if DATA_LIMIT is not None:
+        if len(dataset) > DATA_LIMIT:
+            logger.info(f"📊 Randomly sampling {DATA_LIMIT} rows from {len(dataset)} total rows...")
+            dataset = dataset.random_sample(DATA_LIMIT)
+            logger.info(f"✅ Sampled {len(dataset)} text samples")
+        else:
+            logger.info(f"📊 Using all {len(dataset)} available rows (less than requested {DATA_LIMIT})")
     else:
-        logger.info(f"📊 Using all {len(dataset)} available rows (less than requested {DATA_LIMIT})")
+        logger.info(f"📊 Using all {len(dataset)} available rows (no data limit)")
+        logger.info(f"📊 Using all {len(dataset)} available rows (no data limit)")
 
     logger.info("💾 Saving activations...")
     logger.info(f"   Batch size: {BATCH_SIZE_SAVE}")

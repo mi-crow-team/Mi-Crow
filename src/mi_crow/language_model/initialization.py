@@ -44,17 +44,14 @@ def create_from_huggingface(
     """
     Load a language model from HuggingFace Hub.
     
-    Automatically loads model to GPU if device is "cuda" and CUDA is available.
-    This prevents OOM errors by keeping the model on GPU instead of CPU RAM.
-    
     Args:
         cls: LanguageModel class
         model_name: HuggingFace model identifier
         store: Store instance for persistence
         tokenizer_params: Optional tokenizer parameters
         model_params: Optional model parameters
-        device: Target device ("cuda", "cpu", "mps"). If "cuda" and CUDA is available,
-            model will be loaded directly to GPU using ``device_map=\"auto\"``.
+        device: Target device ("cuda", "cpu", "mps"). Model will be moved to this device
+            after loading.
     Returns:
         LanguageModel instance
     
@@ -73,11 +70,6 @@ def create_from_huggingface(
     if model_params is None:
         model_params = {}
     
-    if device == "cuda" and torch.cuda.is_available():
-        model_params = dict(model_params)
-        if "device_map" not in model_params:
-            model_params["device_map"] = "auto"
-
     try:
         tokenizer = AutoTokenizer.from_pretrained(model_name, **tokenizer_params)
         model = AutoModelForCausalLM.from_pretrained(model_name, **model_params)
@@ -125,13 +117,9 @@ def create_from_local_torch(
     if not tokenizer_path_obj.exists():
         raise FileNotFoundError(f"Tokenizer path does not exist: {tokenizer_path}")
 
-    model_kwargs: dict = {}
-    if device == "cuda" and torch.cuda.is_available():
-        model_kwargs["device_map"] = "auto"
-    
     try:
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
-        model = AutoModelForCausalLM.from_pretrained(model_path, **model_kwargs)
+        model = AutoModelForCausalLM.from_pretrained(model_path)
     except Exception as e:
         raise RuntimeError(
             f"Failed to load model from local paths. "

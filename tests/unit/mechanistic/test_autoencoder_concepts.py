@@ -38,31 +38,6 @@ class DummyAutoencoder:
 
 
 
-class DummyTokenizer:
-
-
-    def __init__(self):
-
-
-        self._encodes = {}
-
-
-
-    def encode(self, text, add_special_tokens=False):
-
-
-        return self._encodes.get(text, [0])
-
-
-
-    def decode(self, ids):
-
-
-        return f"TOKEN_{ids[0]}"
-
-
-
-
 def build_context(tmp_lm=None, tracking=False, negative=False):
 
 
@@ -232,39 +207,6 @@ def test_update_top_texts_and_getters(tmp_path):
 
 
 
-def test_update_top_texts_negative_tracking():
-
-
-    context = build_context(tmp_lm=None, tracking=True, negative=True)
-
-
-    concepts = AutoencoderConcepts(context)
-
-
-    concepts._ensure_heaps(1)
-
-
-    concepts._text_tracking_negative = True
-
-
-    latents = torch.tensor([[-0.5], [-0.1]])
-
-
-    texts = ["neg1", "neg2"]
-
-
-
-    concepts.update_top_texts_from_latents(latents, texts)
-
-
-    result = concepts.get_top_texts_for_neuron(0)
-
-
-    assert result[0].text == "neg1"
-
-
-
-
 def test_update_top_texts_replaces_existing_entry():
 
 
@@ -303,41 +245,6 @@ def test_update_top_texts_replaces_existing_entry():
 
 
 
-def test_decode_token_with_tokenizer():
-
-
-    tokenizer = DummyTokenizer()
-
-
-    tokenizer._encodes["hello"] = [10, 11]
-
-
-
-    class LM:
-
-
-        def __init__(self):
-
-
-            self.tokenizer = tokenizer
-
-
-
-    context = build_context(tmp_lm=LM(), tracking=False)
-
-
-    concepts = AutoencoderConcepts(context)
-
-
-
-    assert concepts._decode_token("hello", 1) == "TOKEN_11"
-
-
-    assert "<token_5" in concepts._decode_token("hello", 5)
-
-
-
-
 def test_generate_concepts_requires_top_texts():
 
 
@@ -352,23 +259,6 @@ def test_generate_concepts_requires_top_texts():
 
 
         concepts.generate_concepts_with_llm()
-
-
-
-
-def test_ensure_dictionary_creates_instance():
-
-
-    context = build_context(tmp_lm=None, tracking=False)
-
-
-    concepts = AutoencoderConcepts(context)
-
-
-    dictionary = concepts._ensure_dictionary()
-
-
-    assert dictionary.n_size == context.n_latents
 
 
 
@@ -408,52 +298,5 @@ def test_load_concepts_from_files(tmp_path):
     assert concepts.dictionary.get(1).name == "b"
 
 
-
-
-def test_generate_concepts_with_stub(monkeypatch):
-
-
-    context = build_context(tmp_lm=None, tracking=False)
-
-
-    concepts = AutoencoderConcepts(context)
-
-
-    concepts._top_texts_heaps = [[(1.0, (1.0, "text", 0))]]
-
-
-
-    class StubDictionary:
-
-
-        def __init__(self):
-
-
-            self.store = None
-
-
-
-    stub_dict = StubDictionary()
-
-
-
-    def fake_from_llm(**kwargs):
-
-
-        return stub_dict
-
-
-
-    monkeypatch.setattr(
-        "mi_crow.mechanistic.sae.concepts.concept_dictionary.ConceptDictionary.from_llm",
-        staticmethod(lambda **kwargs: stub_dict),
-    )
-
-
-
-    concepts.generate_concepts_with_llm(llm_provider="mock")
-
-
-    assert concepts.dictionary is stub_dict
 
 

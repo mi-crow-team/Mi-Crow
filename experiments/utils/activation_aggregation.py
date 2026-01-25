@@ -6,6 +6,7 @@ This module provides utilities for aggregating the sequence dimension of LLM act
 Aggregation types:
 - 'last': Selects the last non-special token (where attention_mask == 1) for each sequence.
 - 'mean': Computes the mean of activations over non-special tokens (where attention_mask == 1) for each sequence.
+- 'max': Computes the maximum value across the sequence for each dimension over non-special tokens (where attention_mask == 1).
 
 Functions are provided for both single activation (2D) and batch activations (3D).
 
@@ -31,7 +32,7 @@ from mi_crow.utils import get_logger
 
 logger = get_logger(__name__)
 
-AggregationType = Literal["last", "mean"]
+AggregationType = Literal["last", "mean", "max"]
 
 
 def aggregate_activations_single(
@@ -42,7 +43,7 @@ def aggregate_activations_single(
     Args:
         activations: [seq_len, d_model]
         attention_mask: [seq_len]
-        agg: 'last' or 'mean'
+        agg: 'last', 'mean', or 'max'
     Returns:
         [d_model]
     """
@@ -50,23 +51,24 @@ def aggregate_activations_single(
         raise ValueError("Expected activations [seq_len, d_model] and attention_mask [seq_len]")
     valid_idx = attention_mask.nonzero(as_tuple=True)[0]
     if len(valid_idx) == 0:
-        # All tokens are special
         logger.warning(
             "All tokens are special (attention_mask==0 everywhere). "
-            f"Fallback for agg='{agg}': using last token (for 'last') or mean over all (for 'mean')."
+            f"Fallback for agg='{agg}': using last token (for 'last'), mean over all (for 'mean'), or max over all (for 'max')."
         )
         if agg == "last":
-            # Use the very last token
             return activations[-1]
         elif agg == "mean":
-            # Mean over all tokens
             return activations.mean(dim=0)
+        elif agg == "max":
+            return activations.max(dim=0)[0]
         else:
             raise ValueError(f"Unknown aggregation type: {agg}")
     if agg == "last":
         return activations[valid_idx[-1]]
     elif agg == "mean":
         return activations[valid_idx].mean(dim=0)
+    elif agg == "max":
+        return activations[valid_idx].max(dim=0)[0]
     else:
         raise ValueError(f"Unknown aggregation type: {agg}")
 
@@ -79,7 +81,7 @@ def aggregate_activations_batch(
     Args:
         activations: [batch_size, seq_len, d_model]
         attention_mask: [batch_size, seq_len]
-        agg: 'last' or 'mean'
+        agg: 'last', 'mean', or 'max'
     Returns:
         [batch_size, d_model]
     """

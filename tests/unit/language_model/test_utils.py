@@ -250,10 +250,10 @@ class TestMoveTensorsToDevice:
 
 
 
-    def test_move_with_non_blocking(self):
+    def test_move_to_cuda(self):
 
 
-        """Test moving tensors with non_blocking for CUDA."""
+        """Test moving tensors to CUDA device."""
 
 
         if not torch.cuda.is_available():

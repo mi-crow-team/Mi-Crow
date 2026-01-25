@@ -135,8 +135,18 @@ class ConceptDictionary:
         with json_path.open("r", encoding="utf-8") as f:
             data = json.load(f)
 
-        for neuron_idx_str, concepts in data.items():
-            neuron_idx = int(neuron_idx_str)
+        if isinstance(data, dict) and "concepts" in data:
+            concepts_data = data["concepts"]
+            if "n_size" in data:
+                concept_dict.n_size = int(data["n_size"])
+        else:
+            concepts_data = data
+
+        for neuron_idx_str, concepts in concepts_data.items():
+            try:
+                neuron_idx = int(neuron_idx_str)
+            except ValueError:
+                continue
             
             # Handle both old format (list) and new format (single dict)
             if isinstance(concepts, list):

@@ -75,7 +75,8 @@ class TestCreateFromHuggingface:
             )
 
 
-            assert lm.model == mock_model
+            assert lm.model is not None
+            mock_model.to.assert_called_once()
 
             assert lm.tokenizer == mock_tokenizer
 
@@ -238,7 +239,8 @@ class TestCreateFromLocalTorch:
             )
 
 
-            assert lm.model == mock_model
+            assert lm.model is not None
+            mock_model.to.assert_called_once()
 
             assert lm.tokenizer == mock_tokenizer
 
@@ -298,9 +300,9 @@ class TestCreateFromLocalTorch:
                 create_from_local_torch(LanguageModel, str(model_path), str(tokenizer_path), temp_store)
 
 
-    def test_create_from_local_torch_sets_device_map_for_cuda(self, temp_store, tmp_path):
+    def test_create_from_local_torch_moves_model_to_cuda(self, temp_store, tmp_path):
 
-        """create_from_local_torch should set device_map='auto' when device='cuda' and CUDA is available."""
+        """create_from_local_torch should move model to cuda when device='cuda' is specified."""
 
         model_path = tmp_path / "model"
 
@@ -325,7 +327,7 @@ class TestCreateFromLocalTorch:
             mock_model_class.from_pretrained.return_value = mock_model
 
 
-            create_from_local_torch(
+            lm = create_from_local_torch(
                 LanguageModel,
                 str(model_path),
                 str(tokenizer_path),
@@ -334,10 +336,7 @@ class TestCreateFromLocalTorch:
             )
 
 
-            mock_model_class.from_pretrained.assert_called_once()
-
-            _, kwargs = mock_model_class.from_pretrained.call_args
-
-            assert kwargs.get("device_map") == "auto"
+            mock_model.to.assert_called_once()
+            assert lm.context.device == "cuda:0"
 
 
