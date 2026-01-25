@@ -320,15 +320,38 @@ class LanguageModelActivations:
         )
 
         # Synchronize CUDA to ensure async CPU transfers from detector hooks complete
-        if torch.cuda.is_available():
-            torch.cuda.synchronize()
+        # Only synchronize if CUDA is actually available and initialized
+        try:
+            if torch.cuda.is_available():
+                torch.cuda.synchronize()
+        except (AssertionError, RuntimeError):
+            # CUDA not available or not initialized (e.g., in test environment)
+            pass
 
         gc.collect()
         if torch.cuda.is_available():
-            torch.cuda.empty_cache()
+            try:
+                torch.cuda.empty_cache()
+            except (AssertionError, RuntimeError):
+                # CUDA not available or not initialized
+                pass
 
         if verbose:
             logger.info(f"Saved batch {batch_index} for run={run_name}")
+
+    def _convert_activations_to_dtype(self, dtype: torch.dtype) -> None:
+        """
+        Convert all captured activations in detectors to the specified dtype.
+
+        Args:
+            dtype: Target dtype to convert activations to
+        """
+        detectors = self.context.language_model.layers.get_detectors()
+        for detector in detectors:
+            if hasattr(detector, "tensor_metadata") and "activations" in detector.tensor_metadata:
+                tensor = detector.tensor_metadata["activations"]
+                if tensor.dtype != dtype:
+                    detector.tensor_metadata["activations"] = tensor.to(dtype)
 
     def _manage_cuda_cache(
         self, batch_counter: int, free_cuda_cache_every: int | None, device_type: str, verbose: bool

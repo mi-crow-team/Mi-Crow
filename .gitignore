@@ -137,6 +137,15 @@ experiments/slurm_sae_pipeline/test_inference_output/
 experiments/slurm_sae_pipeline/test_steering_output/
 experiments/slurm_sae_pipeline/test_top_texts/
 
+# Generated metrics and reports
+experiments/slurm_sae_pipeline/*_metrics.json
+experiments/slurm_sae_pipeline/dictionaries/**/concepts_report.txt
+experiments/verify_sae_training/*.ipynb
+
+# Coverage files
+.coverage.*
+.coverage
+
 # uv package manager
 .uv-bin/
 .uv-cache/
