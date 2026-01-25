@@ -380,17 +380,13 @@ class BatchAlignmentValidator:
         masks_store = LocalStore(base_path=str(self.store_dir))
         test_texts = test_dataset.get_all_texts()
 
-        # Tokenize test texts
+        # Load tokenizer
         model_store = LocalStore(base_path=str(self.store_dir))
         lm = LanguageModel.from_huggingface(MODEL_ID, store=model_store, device=DEVICE)
         tokenizer = lm.tokenizer
-
-        logger.info("Tokenizing %d test samples...", len(test_texts))
-        tokenized = tokenizer(test_texts, truncation=True, max_length=MAX_LENGTH, return_tensors="pt", padding=True)
-        input_ids = tokenized["input_ids"]
-        attention_mask = tokenized["attention_mask"]
-
         del lm
+
+        logger.info("Comparing %d test samples...", len(test_texts))
 
         # Load saved attention masks
         num_batches = (len(test_texts) + BATCH_SIZE - 1) // BATCH_SIZE
@@ -399,9 +395,13 @@ class BatchAlignmentValidator:
         for batch_idx in range(num_batches):
             start_idx = batch_idx * BATCH_SIZE
             end_idx = min(start_idx + BATCH_SIZE, len(test_texts))
+            batch_texts = test_texts[start_idx:end_idx]
 
-            # Get expected mask for this batch (tokenize batch independently)
-            expected_mask = attention_mask[start_idx:end_idx]
+            # Tokenize this batch independently (same way as during saving)
+            tokenized = tokenizer(
+                batch_texts, truncation=True, max_length=MAX_LENGTH, return_tensors="pt", padding=True
+            )
+            expected_mask = tokenized["attention_mask"]
 
             # Use LocalStore to load attention mask (same way as LPM does)
             try:
