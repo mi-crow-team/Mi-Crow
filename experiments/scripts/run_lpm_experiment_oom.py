@@ -47,6 +47,7 @@ from typing import Optional
 
 try:
     import psutil
+
     PSUTIL_AVAILABLE = True
 except ImportError:
     PSUTIL_AVAILABLE = False
@@ -211,7 +212,7 @@ def _force_memory_cleanup() -> None:
 def cleanup_language_model(lm: LanguageModel) -> None:
     """
     Explicitly break circular references in LanguageModel.
-    
+
     This addresses the circular reference chain:
     LanguageModel <-> LanguageModelContext <-> Hooks
     """
@@ -223,18 +224,18 @@ def cleanup_language_model(lm: LanguageModel) -> None:
                 lm.layers.unregister_hook(hook_id)
             except Exception:
                 pass
-        
+
         # Clear all registries
         lm.context._hook_registry.clear()
         lm.context._hook_id_map.clear()
-        
+
         # Break circular reference with context
         # Note: We can't set context.language_model = None due to dataclass,
         # but clearing registries should help
-        
+
         # Clear other references
         lm._input_tracker = None
-        
+
         # Force cleanup
         _force_memory_cleanup()
     except Exception as e:
@@ -244,23 +245,23 @@ def cleanup_language_model(lm: LanguageModel) -> None:
 def unregister_hook_with_cleanup(lm: LanguageModel, hook_id: str) -> bool:
     """
     Unregister hook and explicitly clean up references.
-    
+
     This fixes the issue where unregister_hook() doesn't clear hook._context.
     """
     try:
         # Get hook before unregistering
         if hook_id not in lm.context._hook_id_map:
             return False
-        
+
         _, _, hook = lm.context._hook_id_map[hook_id]
-        
+
         # Unregister from PyTorch and registry
         success = lm.layers.unregister_hook(hook_id)
-        
+
         if success:
             # Clear hook's context reference
             hook._context = None
-            
+
             # If hook is a Detector, clear captured tensors
             if isinstance(hook, Detector):
                 try:
@@ -269,10 +270,10 @@ def unregister_hook_with_cleanup(lm: LanguageModel, hook_id: str) -> bool:
                     hook.metadata.clear()
                 except Exception:
                     pass
-            
+
             # Disable hook
             hook.disable()
-        
+
         return success
     except Exception as e:
         logger.warning(f"Error during hook cleanup: {e}")
@@ -286,7 +287,7 @@ def unregister_hook_with_cleanup(lm: LanguageModel, hook_id: str) -> bool:
 
 class MemoryBenchmark:
     """Track memory usage across pipeline steps."""
-    
+
     def __init__(self, enabled: bool = True, periodic_interval: float = 60.0):
         self.enabled = enabled
         self.measurements: list[dict[str, float]] = []
@@ -296,35 +297,37 @@ class MemoryBenchmark:
         self._periodic_thread: Optional[threading.Thread] = None
         self._periodic_stop_event = threading.Event()
         self._current_step = "unknown"
-    
+
     def measure(self, step_name: str) -> float:
         """Measure memory at a specific step."""
         if not self.enabled:
             return 0.0
-        
+
         _force_memory_cleanup()
         memory_mb = get_memory_usage_mb()
         delta_mb = memory_mb - self.baseline_mb
-        
-        self.measurements.append({
-            "step": step_name,
-            "memory_mb": memory_mb,
-            "delta_mb": delta_mb,
-            "timestamp": perf_counter(),
-        })
-        
+
+        self.measurements.append(
+            {
+                "step": step_name,
+                "memory_mb": memory_mb,
+                "delta_mb": delta_mb,
+                "timestamp": perf_counter(),
+            }
+        )
+
         logger.info(f"📊 Memory [{step_name}]: {memory_mb:.1f} MB (Δ {delta_mb:+.1f} MB)")
         return memory_mb
-    
+
     def start_periodic_logging(self, step_name: str) -> None:
         """Start periodic memory logging for a long-running step."""
         if not self.enabled or self._periodic_active:
             return
-        
+
         self._current_step = step_name
         self._periodic_active = True
         self._periodic_stop_event.clear()
-        
+
         def _periodic_worker():
             while not self._periodic_stop_event.wait(self.periodic_interval):
                 if not self._periodic_active:
@@ -337,35 +340,39 @@ class MemoryBenchmark:
                     f"{memory_mb:.1f} MB (Δ {delta_mb:+.1f} MB)"
                 )
                 # Also record periodic measurements
-                self.measurements.append({
-                    "step": f"{self._current_step}_periodic",
-                    "memory_mb": memory_mb,
-                    "delta_mb": delta_mb,
-                    "timestamp": perf_counter(),
-                })
-        
+                self.measurements.append(
+                    {
+                        "step": f"{self._current_step}_periodic",
+                        "memory_mb": memory_mb,
+                        "delta_mb": delta_mb,
+                        "timestamp": perf_counter(),
+                    }
+                )
+
         self._periodic_thread = threading.Thread(target=_periodic_worker, daemon=True)
         self._periodic_thread.start()
-        logger.info(f"🔄 Started periodic memory logging (every {self.periodic_interval:.0f}s) for step: {self._current_step}")
-    
+        logger.info(
+            f"🔄 Started periodic memory logging (every {self.periodic_interval:.0f}s) for step: {self._current_step}"
+        )
+
     def stop_periodic_logging(self) -> None:
         """Stop periodic memory logging."""
         if not self._periodic_active:
             return
-        
+
         self._periodic_active = False
         self._periodic_stop_event.set()
         if self._periodic_thread:
             self._periodic_thread.join(timeout=2.0)
         logger.info("⏹️  Stopped periodic memory logging")
-    
+
     def get_report(self) -> dict:
         """Get benchmark report."""
         if not self.measurements:
             return {}
-        
+
         df = pd.DataFrame(self.measurements)
-        
+
         return {
             "baseline_mb": self.baseline_mb,
             "peak_mb": df["memory_mb"].max(),
@@ -412,7 +419,7 @@ def load_datasets(
     logger.info("=" * 80)
     logger.info("STEP 1: Load Datasets from Disk")
     logger.info("=" * 80)
-    
+
     if benchmark:
         benchmark.measure("before_load_datasets")
 
@@ -438,7 +445,7 @@ def load_datasets(
         category_field=test_config["category_field"],
     )
     logger.info("✅ Loaded %d test samples", len(test_dataset))
-    
+
     if benchmark:
         benchmark.measure("after_load_datasets")
 
@@ -462,7 +469,7 @@ def train_lpm(
     logger.info("=" * 80)
     logger.info("STEP 2: Train LPM")
     logger.info("=" * 80)
-    
+
     if benchmark:
         benchmark.measure("before_train_lpm")
 
@@ -499,7 +506,7 @@ def train_lpm(
     # Start periodic logging for long-running fit operation
     if benchmark:
         benchmark.start_periodic_logging("lpm_fit")
-    
+
     fit_t0 = perf_counter()
     try:
         lpm.fit(
@@ -513,12 +520,12 @@ def train_lpm(
     finally:
         if benchmark:
             benchmark.stop_periodic_logging()
-    
+
     fit_elapsed = perf_counter() - fit_t0
 
     logger.info("✅ LPM trained (%.2fs)", fit_elapsed)
     logger.info("   Prototypes: %s", list(lpm.lpm_context.prototypes.keys()))
-    
+
     if benchmark:
         benchmark.measure("after_lpm_fit")
 
@@ -526,7 +533,7 @@ def train_lpm(
     model_path = f"models/lpm_{distance_metric}_layer{layer_num}_{_timestamp()}.pt"
     lpm.save(results_store, model_path)
     logger.info("✅ Model saved: %s", model_path)
-    
+
     # Cleanup after training
     _force_memory_cleanup()
     if benchmark:
@@ -552,14 +559,14 @@ def save_test_attention_masks(
     logger.info("=" * 80)
     logger.info("STEP 3: Save Test Attention Masks")
     logger.info("=" * 80)
-    
+
     if benchmark:
         benchmark.measure("before_save_attention_masks")
 
     # Load model
     model_store = LocalStore(base_path=str(store_dir))
     lm = LanguageModel.from_huggingface(model_id, store=model_store, device=device)
-    
+
     if benchmark:
         benchmark.measure("after_model_load_attention_masks")
 
@@ -571,7 +578,8 @@ def save_test_attention_masks(
     store_path_suffix = (
         test_config["store_path"].split("/", 1)[-1] if "/" in test_config["store_path"] else test_config["store_path"]
     )
-    run_name = f"test_attention_masks_layer{layer_num}_{model_id}_{aggregation_method}_{store_path_suffix}_{ts}"
+    safe_model_id = model_id.replace("/", "_")
+    run_name = f"test_attention_masks_layer{layer_num}_{safe_model_id}_{aggregation_method}_{store_path_suffix}_{ts}"
     logger.info("Run name: %s", run_name)
 
     # Setup attention mask detector
@@ -607,7 +615,7 @@ def save_test_attention_masks(
     # Start periodic logging for batch processing
     if benchmark:
         benchmark.start_periodic_logging("save_attention_masks")
-    
+
     save_t0 = perf_counter()
     try:
         for batch_idx in range(num_batches):
@@ -633,7 +641,7 @@ def save_test_attention_masks(
     finally:
         if benchmark:
             benchmark.stop_periodic_logging()
-    
+
     save_elapsed = perf_counter() - save_t0
 
     # Cleanup
@@ -643,7 +651,7 @@ def save_test_attention_masks(
     # Delete test_texts before model cleanup
     del test_texts
     _force_memory_cleanup()
-    
+
     if benchmark:
         benchmark.measure("before_model_cleanup_attention_masks")
 
@@ -651,7 +659,7 @@ def save_test_attention_masks(
     cleanup_language_model(lm)
     del lm
     _force_memory_cleanup()
-    
+
     if benchmark:
         benchmark.measure("after_save_attention_masks")
 
@@ -676,7 +684,7 @@ def run_inference(
     logger.info("=" * 80)
     logger.info("STEP 4: Run Inference")
     logger.info("=" * 80)
-    
+
     if benchmark:
         benchmark.measure("before_run_inference")
 
@@ -684,13 +692,13 @@ def run_inference(
     masks_store = LocalStore(base_path=str(store_dir))
     lpm.load_inference_attention_masks(masks_store, attention_masks_run_id)
     logger.info("✅ Attention masks loaded")
-    
+
     if benchmark:
         benchmark.measure("after_load_attention_masks")
 
     # Load model
     lm = LanguageModel.from_huggingface(model_id, store=masks_store, device=device)
-    
+
     if benchmark:
         benchmark.measure("after_model_load_inference")
 
@@ -714,7 +722,7 @@ def run_inference(
     # Start periodic logging for inference
     if benchmark:
         benchmark.start_periodic_logging("inference")
-    
+
     inference_t0 = perf_counter()
     try:
         for batch_idx in range(num_batches):
@@ -735,7 +743,7 @@ def run_inference(
     finally:
         if benchmark:
             benchmark.stop_periodic_logging()
-    
+
     inference_elapsed = perf_counter() - inference_t0
     logger.info("✅ Inference complete (%.2fs, %.2f samples/s)", inference_elapsed, len(test_texts) / inference_elapsed)
 
@@ -747,14 +755,14 @@ def run_inference(
     inference_run_id = f"inference_{ts}"
     pred_path = lpm.save_predictions(run_id=inference_run_id, store=results_store, format="parquet")
     logger.info("✅ Predictions saved: %s", pred_path)
-    
+
     # Clear LPM's inference attention masks
     lpm.clear_inference_attention_masks()
-    
+
     # Delete test_texts before model cleanup
     del test_texts
     _force_memory_cleanup()
-    
+
     if benchmark:
         benchmark.measure("before_model_cleanup_inference")
 
@@ -762,7 +770,7 @@ def run_inference(
     cleanup_language_model(lm)
     del lm
     _force_memory_cleanup()
-    
+
     if benchmark:
         benchmark.measure("after_run_inference")
 
@@ -782,7 +790,7 @@ def evaluate_and_analyze(
     logger.info("=" * 80)
     logger.info("STEP 5: Evaluate and Analyze")
     logger.info("=" * 80)
-    
+
     if benchmark:
         benchmark.measure("before_evaluate")
 
@@ -884,7 +892,7 @@ def evaluate_and_analyze(
     results_df.to_csv(analysis_dir / "detailed_results.csv", index=False)
 
     logger.info("✅ Analysis saved")
-    
+
     if benchmark:
         benchmark.measure("after_evaluate")
 
@@ -984,7 +992,9 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--store", type=str, default=None, help="Store directory (default: $REPO_DIR/store)")
     parser.add_argument("--benchmark", action="store_true", help="Enable memory benchmarking")
-    parser.add_argument("--max-samples", type=int, default=None, help="Limit number of training samples (for benchmarking)")
+    parser.add_argument(
+        "--max-samples", type=int, default=None, help="Limit number of training samples (for benchmarking)"
+    )
     parser.add_argument("--test-limit", type=int, default=None, help="Limit number of test samples (for benchmarking)")
 
     args = parser.parse_args()
@@ -1059,7 +1069,7 @@ def main() -> int:
             store_dir,
             results_store,
             benchmark,
-            max_samples=getattr(args, 'max_samples', None),
+            max_samples=getattr(args, "max_samples", None),
         )
         train_elapsed = perf_counter() - train_t0
 
@@ -1076,7 +1086,7 @@ def main() -> int:
             args.batch_size,
             args.max_length,
             benchmark,
-            test_limit=getattr(args, 'test_limit', None),
+            test_limit=getattr(args, "test_limit", None),
         )
         masks_elapsed = perf_counter() - masks_t0
 
