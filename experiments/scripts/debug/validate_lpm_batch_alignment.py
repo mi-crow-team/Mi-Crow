@@ -269,25 +269,25 @@ class BatchAlignmentValidator:
         seen_samples_log = []
 
         def instrumented_process(module, input, output):
-            """Instrumented version that logs _seen_samples."""
+            """Instrumented version that logs _seen_samples and batch index."""
             # Get current state BEFORE processing
             batch_size = output.shape[0]
-            batch_idx_before = lpm._seen_samples // batch_size
+            batch_idx_actual = lpm._current_batch_idx  # Use actual counter
             seen_before = lpm._seen_samples
 
             # Log attention mask info if available
-            if batch_idx_before in lpm._inference_attention_masks:
-                mask_shape = lpm._inference_attention_masks[batch_idx_before].shape
+            if batch_idx_actual in lpm._inference_attention_masks:
+                mask_shape = lpm._inference_attention_masks[batch_idx_actual].shape
             else:
                 mask_shape = "NOT_FOUND"
 
             log_entry = {
-                "batch_idx_computed": batch_idx_before,
+                "batch_idx_actual": batch_idx_actual,
                 "seen_samples_before": seen_before,
                 "batch_size": batch_size,
                 "activation_shape": list(output.shape),
                 "attention_mask_shape": mask_shape if isinstance(mask_shape, str) else list(mask_shape),
-                "has_attention_mask": batch_idx_before in lpm._inference_attention_masks,
+                "has_attention_mask": batch_idx_actual in lpm._inference_attention_masks,
             }
 
             try:
@@ -295,17 +295,19 @@ class BatchAlignmentValidator:
                 result = original_process(module, input, output)
 
                 log_entry["seen_samples_after"] = lpm._seen_samples
+                log_entry["batch_idx_after"] = lpm._current_batch_idx
                 log_entry["increment"] = lpm._seen_samples - seen_before
                 log_entry["status"] = "success"
 
             except Exception as e:
                 log_entry["seen_samples_after"] = lpm._seen_samples
+                log_entry["batch_idx_after"] = lpm._current_batch_idx
                 log_entry["status"] = "error"
                 log_entry["error"] = str(e)
 
                 # Log detailed error info
-                if batch_idx_before in lpm._inference_attention_masks:
-                    mask = lpm._inference_attention_masks[batch_idx_before]
+                if batch_idx_actual in lpm._inference_attention_masks:
+                    mask = lpm._inference_attention_masks[batch_idx_actual]
                     log_entry["attention_mask_analysis"] = {
                         "shape": list(mask.shape),
                         "max_value": int(mask.max().item()),
@@ -313,7 +315,7 @@ class BatchAlignmentValidator:
                         "num_ones": int(mask.sum().item()),
                     }
 
-                logger.error("❌ Error in batch %d: %s", batch_idx_before, e)
+                logger.error("❌ Error in batch %d: %s", batch_idx_actual, e)
                 logger.error("   Activation shape: %s", output.shape)
                 logger.error("   Attention mask shape: %s", mask_shape)
 

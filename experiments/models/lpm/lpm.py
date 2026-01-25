@@ -89,11 +89,13 @@ class LPM(Detector, Predictor):
         )
         self.positive_label = positive_label
         self._seen_samples = 0
+        self._current_batch_idx = 0  # Track actual batch index for attention mask lookup
         self._inference_attention_masks: Optional[Dict[int, torch.Tensor]] = None  # batch_idx -> attention_mask
 
     def clear_predictions(self) -> None:
         super().clear_predictions()
         self._seen_samples = 0
+        self._current_batch_idx = 0
 
     def _get_aggregation_type(self) -> Literal["last", "mean"]:
         """
@@ -407,14 +409,13 @@ class LPM(Detector, Predictor):
             # Try to get attention mask from loaded inference masks
             attention_mask = None
             if self._inference_attention_masks is not None:
-                # Try to find matching batch (assumes sequential processing)
-                batch_idx = self._seen_samples // batch_size
-                if batch_idx in self._inference_attention_masks:
-                    attention_mask = self._inference_attention_masks[batch_idx]
+                # Use explicit batch counter (not computed from _seen_samples)
+                if self._current_batch_idx in self._inference_attention_masks:
+                    attention_mask = self._inference_attention_masks[self._current_batch_idx]
                     # Ensure it's on the correct device
                     if attention_mask.device != tensor.device:
                         attention_mask = attention_mask.to(tensor.device)
-                    logger.info(f"Using loaded attention mask for batch {batch_idx}")
+                    logger.info(f"Using loaded attention mask for batch {self._current_batch_idx}")
 
             # Fallback: create dummy attention mask (all ones - treat all tokens as valid)
             if attention_mask is None:
@@ -452,6 +453,7 @@ class LPM(Detector, Predictor):
             batch_results.append(result_dict)
 
         self._seen_samples += len(batch_results)
+        self._current_batch_idx += 1  # Increment batch counter
 
         # Keep detector metadata lightweight
         self.metadata["predictions"] = batch_results
