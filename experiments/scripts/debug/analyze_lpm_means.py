@@ -59,6 +59,12 @@ def analyze_lpm_model(model_path: str):
         if torch.isinf(tensor).any():
             print("  WARNING: Contains Infs!")
 
+        # Print raw values
+        print("\n  Raw Values:")
+        with torch.no_grad():
+            torch.set_printoptions(threshold=10_000, linewidth=200, precision=4, sci_mode=False)
+            print(f"  {tensor}")
+
     # Comparison between prototypes
     if len(labels) >= 2:
         print("\n" + "=" * 50)
