@@ -1,5 +1,5 @@
-site_name: mi_crow
-site_description: Explaining and modifying LLM responses using SAE and concepts
+site_name: Mi-Crow
+site_description: Python library for mechanistic interpretability research on Large Language Models
 site_url: https://adamkaniasty.github.io/Inzynierka
 repo_url: https://github.com/AdamKaniasty/Inzynierka
 repo_name: AdamKaniasty/Inzynierka
@@ -7,14 +7,28 @@ edit_uri: blob/main/
 
 theme:
   name: material
+  logo: docs/logo.svg
   features:
     - navigation.instant
     - navigation.tracking
     - navigation.tabs
     - content.code.copy
     - content.action.edit
+    - content.tabs.link
+    - content.tooltips
   palette:
     - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
 
 plugins:
   - search

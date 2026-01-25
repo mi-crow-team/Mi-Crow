@@ -5,10 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "mi-crow"
 readme = "README.md"
-description = "Engineer Thesis: Explaining and modifying LLM responses using SAE and concepts."
+description = "Python library for mechanistic interpretability research on Large Language Models. Designed for researchers, provides unified interface for SAE training, activation hooks, and concept manipulation."
 authors = [
-    { name = "Hubert Kowalski", email = "your.email@example.com" },
-    { name = "Adam Kaniasty", email = "adam.kaniasty@gmail.com" }
+    { name = "Adam Kaniasty", email = "adam.kaniasty@gmail.com" },
+    { name = "Hubert Kowalski" }
+]
+maintainers = [
+    { name = "Adam Kaniasty", email = "adam.kaniasty@gmail.com" },
+    { name = "Hubert Kowalski" }
 ]
 requires-python = ">=3.10"
 dependencies = [
