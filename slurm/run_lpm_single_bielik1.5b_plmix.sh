@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH -A mi2lab-normal
-#SBATCH -p short,long
-#SBATCH -t 05:00:00
+#SBATCH -p short
+#SBATCH -t 02:00:00
 #SBATCH -N 1
-#SBATCH -c 8
+#SBATCH -c 4
 #SBATCH --mem=36G
 #SBATCH --job-name=lpm-single-bielik1.5b-plmix
 #SBATCH --output=/mnt/evafs/groups/mi2lab/hkowalski/Mi-Crow/slurm-logs/%x-%j.out
