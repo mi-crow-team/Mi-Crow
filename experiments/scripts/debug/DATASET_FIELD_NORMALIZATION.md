@@ -65,11 +65,62 @@ To:
 
 ## Are the Saved Datasets Corrupted?
 
-**No.** The saved datasets are fine. The Arrow files on disk contain all original columns:
-- `wgmix_train`: `["prompt", "prompt_harm_label", "subcategory"]`
-- `plmix_train`: `["text", "text_harm_label"]`
+**No.** The saved datasets preserve the full Arrow schema but use format restrictions.
 
-The normalization only happens when **reading** items via the ClassificationDataset API (`iter_items()`, `__getitem__()`, etc.), not in the stored data.
+### What's Actually Saved
+
+When `ClassificationDataset` saves a dataset, it:
+1. **Saves the full dataset** to Arrow files (all columns from the original data)
+2. **Sets format restrictions** using `ds.set_format("python", columns=[text_field, *category_fields])`
+
+This means:
+- **Arrow schema metadata**: Contains ALL original columns (e.g., 7 columns for wgmix_train)
+- **Accessible data**: Only the columns specified in `text_field` + `category_field` are returned when indexing
+
+### Example: wgmix_train
+
+When prepared with:
+```python
+ClassificationDataset.from_huggingface(
+    "allenai/wildguardmix",
+    text_field="prompt",
+    category_field=["prompt_harm_label", "subcategory"],
+    ...
+)
+```
+
+**Arrow files contain** (7 columns):
+- `['prompt', 'adversarial', 'response', 'prompt_harm_label', 'response_refusal_label', 'response_harm_label', 'subcategory']`
+
+**But only 3 columns are accessible** via `ds[i]`:
+- `['prompt', 'prompt_harm_label', 'subcategory']`
+
+This is because:
+```python
+# In ClassificationDataset.__init__
+format_columns = [text_field] + self._category_fields  # ['prompt', 'prompt_harm_label', 'subcategory']
+ds.set_format("python", columns=format_columns)
+```
+
+### Why This Happens
+
+`set_format()` is a HuggingFace Datasets feature that:
+- Doesn't modify the underlying Arrow files
+- Only controls which columns are returned when you index the dataset
+- Reduces memory usage by not loading unnecessary columns
+- The metadata (schema) still shows all columns, but `row.keys()` only contains formatted columns
+
+### Implication
+
+When you use raw `load_from_disk()`:
+- `ds.column_names` shows all schema columns ✅
+- `ds[i]` only returns formatted columns ⚠️
+- `ds.column_names` ≠ `list(ds[0].keys())`
+
+When you use `ClassificationDataset.from_disk()`:
+- It applies the same format restrictions ✅
+- Returns items with `"text"` normalization ✅
+- Consistent behavior with original save
 
 ## Verification
 
