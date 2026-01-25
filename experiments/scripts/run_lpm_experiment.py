@@ -128,6 +128,10 @@ ACTIVATION_RUN_IDS = {
         "meta-llama/Llama-3.2-3B-Instruct",
         "plmix_train",
     ): "activations_llama_3_2_3b_instruct_plmix_train_layer27_20260117_120312",
+    (
+        "meta-llama/Llama-3.2-3B-Instruct",
+        "wgmix_train",
+    ): "activations_llama_3_2_3b_instruct_wgmix_train_layer27_20260117_115104",
 }
 
 # Activation run IDs (prefixed - for last_token_prefix)
