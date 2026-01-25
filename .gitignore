@@ -125,6 +125,18 @@ src/frontend/.next/
 mi_crow_server
 slurm-logs/
 
+# SLURM SAE Pipeline output directories
+experiments/slurm_sae_pipeline/logs/
+experiments/slurm_sae_pipeline/hardware_monitoring_output/
+experiments/slurm_sae_pipeline/inference_results/
+experiments/slurm_sae_pipeline/interactive_naming_results/
+experiments/slurm_sae_pipeline/performance_analysis/
+experiments/slurm_sae_pipeline/results/
+experiments/slurm_sae_pipeline/store/
+experiments/slurm_sae_pipeline/test_inference_output/
+experiments/slurm_sae_pipeline/test_steering_output/
+experiments/slurm_sae_pipeline/test_top_texts/
+
 # uv package manager
 .uv-bin/
 .uv-cache/
