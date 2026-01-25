@@ -207,19 +207,20 @@ class BatchAlignmentValidator:
                 stop_after_layer=layer_0_signature,
             )
 
-            # Inspect saved attention mask
-            batch_dir = model_store._run_key(run_name) / f"batch_{batch_idx:04d}"
-            mask_file = batch_dir / f"{attention_mask_layer_sig}.pt"
+            # Inspect saved attention mask using LocalStore (same way as LPM does)
+            try:
+                # Load using the same method as load_inference_attention_masks()
+                attention_mask_tensor = model_store.get_detector_metadata_by_layer_by_key(
+                    run_name, batch_idx, attention_mask_layer_sig, "attention_mask"
+                )
 
-            if mask_file.exists():
-                mask_tensor = torch.load(mask_file, map_location="cpu")
                 info = {
                     "batch_idx": batch_idx,
                     "expected_samples": batch_size_actual,
                     "start_idx": start_idx,
                     "end_idx": end_idx,
-                    "mask_shape": list(mask_tensor.shape),
-                    "mask_dtype": str(mask_tensor.dtype),
+                    "mask_shape": list(attention_mask_tensor.shape),
+                    "mask_dtype": str(attention_mask_tensor.dtype),
                     "sample_texts_preview": [t[:50] + "..." if len(t) > 50 else t for t in batch_texts[:3]],
                 }
                 batch_info.append(info)
@@ -228,10 +229,12 @@ class BatchAlignmentValidator:
                     batch_idx,
                     start_idx,
                     end_idx - 1,
-                    mask_tensor.shape,
+                    attention_mask_tensor.shape,
                 )
-            else:
-                logger.warning("  Batch %d: mask file not found!", batch_idx)
+            except FileNotFoundError:
+                logger.warning("  Batch %d: attention mask not found!", batch_idx)
+            except Exception as e:
+                logger.warning("  Batch %d: error loading attention mask: %s", batch_idx, e)
 
         lm.layers.unregister_hook(hook_id)
         del lm
@@ -255,7 +258,7 @@ class BatchAlignmentValidator:
         # Load attention masks
         masks_store = LocalStore(base_path=str(self.store_dir))
         lpm.load_inference_attention_masks(masks_store, attention_masks_run_id)
-        logger.info("✅ Loaded %d attention mask batches", len(lpm.inference_attention_masks))
+        logger.info("✅ Loaded %d attention mask batches", len(lpm._inference_attention_masks))
 
         # Load model
         lm = LanguageModel.from_huggingface(MODEL_ID, store=masks_store, device=DEVICE)
@@ -273,8 +276,8 @@ class BatchAlignmentValidator:
             seen_before = lpm._seen_samples
 
             # Log attention mask info if available
-            if batch_idx_before in lpm.inference_attention_masks:
-                mask_shape = lpm.inference_attention_masks[batch_idx_before].shape
+            if batch_idx_before in lpm._inference_attention_masks:
+                mask_shape = lpm._inference_attention_masks[batch_idx_before].shape
             else:
                 mask_shape = "NOT_FOUND"
 
@@ -284,7 +287,7 @@ class BatchAlignmentValidator:
                 "batch_size": batch_size,
                 "activation_shape": list(output.shape),
                 "attention_mask_shape": mask_shape if isinstance(mask_shape, str) else list(mask_shape),
-                "has_attention_mask": batch_idx_before in lpm.inference_attention_masks,
+                "has_attention_mask": batch_idx_before in lpm._inference_attention_masks,
             }
 
             try:
@@ -301,8 +304,8 @@ class BatchAlignmentValidator:
                 log_entry["error"] = str(e)
 
                 # Log detailed error info
-                if batch_idx_before in lpm.inference_attention_masks:
-                    mask = lpm.inference_attention_masks[batch_idx_before]
+                if batch_idx_before in lpm._inference_attention_masks:
+                    mask = lpm._inference_attention_masks[batch_idx_before]
                     log_entry["attention_mask_analysis"] = {
                         "shape": list(mask.shape),
                         "max_value": int(mask.max().item()),
@@ -397,32 +400,37 @@ class BatchAlignmentValidator:
             start_idx = batch_idx * BATCH_SIZE
             end_idx = min(start_idx + BATCH_SIZE, len(test_texts))
 
-            batch_dir = masks_store._run_key(attention_masks_run_id) / f"batch_{batch_idx:04d}"
-            mask_file = batch_dir / "attention_masks.pt"
-
-            if not mask_file.exists():
-                logger.warning("Batch %d: mask file not found", batch_idx)
-                continue
-
-            saved_mask = torch.load(mask_file, map_location="cpu")
-
-            # Compare with expected
+            # Get expected mask for this batch (tokenize batch independently)
             expected_mask = attention_mask[start_idx:end_idx]
+
+            # Use LocalStore to load attention mask (same way as LPM does)
+            try:
+                # Load using the same method as load_inference_attention_masks()
+                saved_mask_tensor = masks_store.get_detector_metadata_by_layer_by_key(
+                    attention_masks_run_id, batch_idx, "attention_masks", "attention_mask"
+                )
+            except FileNotFoundError:
+                logger.warning("Batch %d: attention mask not found", batch_idx)
+                continue
+            except Exception as e:
+                logger.warning("Batch %d: error loading attention mask: %s", batch_idx, e)
+                continue
 
             batch_comparison = {
                 "batch_idx": batch_idx,
                 "start_idx": start_idx,
                 "end_idx": end_idx,
-                "saved_mask_shape": list(saved_mask.shape),
+                "saved_mask_shape": list(saved_mask_tensor.shape),
                 "expected_mask_shape": list(expected_mask.shape),
-                "shapes_match": saved_mask.shape == expected_mask.shape,
+                "shapes_match": saved_mask_tensor.shape == expected_mask.shape,
                 "samples": [],
             }
 
             # Compare individual samples
-            for i in range(min(saved_mask.shape[0], expected_mask.shape[0])):
+            num_samples = min(saved_mask_tensor.shape[0], expected_mask.shape[0])
+            for i in range(num_samples):
                 sample_idx = start_idx + i
-                saved_seq_len = int(saved_mask[i].sum().item())
+                saved_seq_len = int(saved_mask_tensor[i].sum().item())
                 expected_seq_len = int(expected_mask[i].sum().item())
 
                 sample_info = {
