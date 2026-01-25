@@ -51,22 +51,47 @@ DATASET_CONFIGS = {
     },
 }
 
+# New dataset configurations (for debugging/comparison)
+NEW_DATASET_CONFIGS = {
+    "new_wgmix_train": {
+        "store_path": "datasets/new_wgmix_train",
+        "text_field": "prompt",
+        "category_field": ["prompt_harm_label", "subcategory"],
+    },
+    "new_wgmix_test": {
+        "store_path": "datasets/new_wgmix_test",
+        "text_field": "prompt",
+        "category_field": ["prompt_harm_label", "subcategory"],
+    },
+    "new_plmix_train": {
+        "store_path": "datasets/new_plmix_train",
+        "text_field": "text",
+        "category_field": "text_harm_label",
+    },
+    "new_plmix_test": {
+        "store_path": "datasets/new_plmix_test",
+        "text_field": "text",
+        "category_field": "text_harm_label",
+    },
+}
 
-def inspect_dataset(dataset_name: str, store_base_path: str) -> dict:
+
+def inspect_dataset(dataset_name: str, store_base_path: str, configs: dict) -> dict:
     """Inspect a single dataset and return its properties.
 
     Args:
         dataset_name: Name of the dataset (e.g., 'wgmix_train')
         store_base_path: Base path to the store directory
+        configs: Dataset configurations dictionary
 
     Returns:
         Dictionary with dataset properties
     """
-    if dataset_name not in DATASET_CONFIGS:
+    if dataset_name not in configs:
         logger.error(f"❌ Unknown dataset: {dataset_name}")
         return {"status": "UNKNOWN_DATASET", "dataset_name": dataset_name}
 
-    config = DATASET_CONFIGS[dataset_name]
+    config = configs[dataset_name]
     store = LocalStore(base_path=str(Path(store_base_path) / config["store_path"]))
     dataset_path = Path(store.base_path) / "datasets"
 
@@ -151,20 +176,32 @@ def main():
         default=DEFAULT_STORE_PATH,
         help=f"Store base path (default: {DEFAULT_STORE_PATH})",
     )
+    parser.add_argument(
+        "--new",
+        action="store_true",
+        help="Inspect NEW datasets (new_wgmix_train, etc.) instead of original ones",
+    )
     args = parser.parse_args()
 
     store_path = Path(args.store)
 
-    logger.info("🔍 Dataset Inspector (using ClassificationDataset.from_disk)")
+    # Choose which configs to use
+    if args.new:
+        configs = NEW_DATASET_CONFIGS
+        logger.info("🔍 Dataset Inspector (NEW DATASETS - using ClassificationDataset.from_disk)")
+    else:
+        configs = DATASET_CONFIGS
+        logger.info("🔍 Dataset Inspector (ORIGINAL DATASETS - using ClassificationDataset.from_disk)")
+
     logger.info(f"Store base path: {store_path}")
     logger.info("")
 
     # Inspect all configured datasets
-    dataset_names = list(DATASET_CONFIGS.keys())
+    dataset_names = list(configs.keys())
 
     results = {}
     for dataset_name in dataset_names:
-        results[dataset_name] = inspect_dataset(dataset_name, str(store_path))
+        results[dataset_name] = inspect_dataset(dataset_name, str(store_path), configs)
         logger.info("")
 
     # Summary
