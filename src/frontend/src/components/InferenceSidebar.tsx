@@ -11,6 +11,7 @@ type InferenceSidebarProps = {
   onSelectHistory: (entry: InferenceHistoryEntry) => void;
   selectedHistoryEntry: InferenceHistoryEntry | null;
   onCloseHistoryModal: () => void;
+  onDeleteHistory?: (entry: InferenceHistoryEntry) => void;
   settings: {
     loadConcepts: boolean;
     saveTopTexts: boolean;
@@ -24,6 +25,7 @@ export function InferenceSidebar({
   onSelectHistory,
   selectedHistoryEntry,
   onCloseHistoryModal,
+  onDeleteHistory,
   settings,
   onSettingsChange,
 }: InferenceSidebarProps) {
@@ -73,31 +75,48 @@ export function InferenceSidebar({
                   const status = entry.status || (entry.outputs.length > 0 ? "completed" : "failed");
                   const isCompleted = status === "completed";
                   return (
-                    <button
+                    <div
                       key={entry.id}
-                      onClick={() => onSelectHistory(entry)}
-                      className="w-full text-left p-2 rounded-md border border-slate-200 bg-white hover:bg-mi_crow-50 hover:border-mi_crow-300 transition text-xs"
+                      className="group rounded-md border border-slate-200 bg-white hover:bg-mi_crow-50 hover:border-mi_crow-300 transition text-xs relative"
                     >
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="font-medium text-slate-900 truncate">
+                      {onDeleteHistory && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteHistory(entry);
+                          }}
+                          className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity text-red-600 hover:text-red-800 text-xs px-1.5 py-0.5 rounded hover:bg-red-50 z-10"
+                          title="Delete"
+                        >
+                          ✕
+                        </button>
+                      )}
+                      <button
+                        onClick={() => onSelectHistory(entry)}
+                        className="w-full text-left p-2"
+                      >
+                        <div className="font-medium text-slate-900 truncate mb-1">
                           <span className="text-slate-600">Model:</span> <span className="text-slate-900">{entry.model_id}</span> / <span className="text-slate-600">SAE:</span> <span className="text-slate-900">{entry.sae_id}</span>
                         </div>
-                        <span
-                          className={`px-2 py-0.5 rounded text-xs font-medium ${
-                            isCompleted
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {isCompleted ? "✓ Completed" : "✗ Failed"}
-                        </span>
-                      </div>
-                      <div className="text-slate-900 text-xs mt-1 font-mono font-semibold">{entry.id}</div>
-                      <div className="text-slate-700 text-xs mt-1">{formatTimestamp(entry.timestamp)}</div>
-                      <div className="text-slate-700 text-xs mt-1">
-                        {entry.prompts.length} prompt{entry.prompts.length !== 1 ? "s" : ""}
-                      </div>
-                    </button>
+                        <div className="text-slate-900 text-xs mt-1 font-mono font-semibold">{entry.id}</div>
+                        <div className="text-slate-700 text-xs mt-1">{formatTimestamp(entry.timestamp)}</div>
+                        <div className="text-slate-700 text-xs mt-1">
+                          {entry.prompts.length} prompt{entry.prompts.length !== 1 ? "s" : ""}
+                        </div>
+                        <div className="flex justify-end mt-4">
+                          <span
+                            className={`px-2 py-0.5 rounded text-xs font-medium ${
+                              isCompleted
+                                ? "bg-green-100 text-green-700"
+                                : "bg-red-100 text-red-700"
+                            }`}
+                          >
+                            {isCompleted ? "✓ Completed" : "✗ Failed"}
+                          </span>
+                        </div>
+                      </button>
+                    </div>
                   );
                 })}
               </div>

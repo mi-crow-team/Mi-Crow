@@ -1,0 +1,261 @@
+{
+  "n_size": 6144,
+  "concepts": {
+    "105": {
+      "name": "warunkowe_wyrażenia",
+      "score": 0.95
+    },
+    "243": {
+      "name": "polskie_hotele",
+      "score": 0.95
+    },
+    "498": {
+      "name": "czasowniki_zwrotne",
+      "score": 0.9
+    },
+    "539": {
+      "name": "czasowniki_zwrotne",
+      "score": 0.85
+    },
+    "597": {
+      "name": "krytyka_jakości",
+      "score": 0.9
+    },
+    "603": {
+      "name": "spójnik_koordynujący",
+      "score": 0.85
+    },
+    "765": {
+      "name": "pytanie_dlaczego",
+      "score": 0.95
+    },
+    "838": {
+      "name": "czasowniki_dokonane",
+      "score": 0.85
+    },
+    "872": {
+      "name": "obiekt_noclegowy",
+      "score": 0.95
+    },
+    "883": {
+      "name": "zaliczenie",
+      "score": 0.95
+    },
+    "903": {
+      "name": "wiedza",
+      "score": 0.95
+    },
+    "912": {
+      "name": "hotelowe_usługi",
+      "score": 0.85
+    },
+    "1252": {
+      "name": "czasowniki_związane_z_trwaniem",
+      "score": 0.95
+    },
+    "1615": {
+      "name": "nie tylko",
+      "score": 0.95
+    },
+    "1918": {
+      "name": "sektor_apartamentów_wakacyjnych",
+      "score": 0.85
+    },
+    "2512": {
+      "name": "czasownik_stwierdzić",
+      "score": 0.95
+    },
+    "2762": {
+      "name": "czasowniki_przeszÅe",
+      "score": 0.85
+    },
+    "3046": {
+      "name": "krytyka_usług",
+      "score": 0.95
+    },
+    "3288": {
+      "name": "zaimki_wskazujące",
+      "score": 0.9
+    },
+    "3809": {
+      "name": "pozytywne_opinie",
+      "score": 0.95
+    },
+    "4093": {
+      "name": "pokoje_hotelowe",
+      "score": 0.95
+    },
+    "4133": {
+      "name": "zdrowie",
+      "score": 0.95
+    },
+    "4366": {
+      "name": "oceny_i_opinie",
+      "score": 0.95
+    },
+    "5735": {
+      "name": "obiadokolacje",
+      "score": 0.95
+    },
+    "6004": {
+      "name": "pokoje_hotelowe",
+      "score": 0.85
+    },
+    "5061": {
+      "name": "usługi_hotelarskie",
+      "score": 0.85
+    },
+    "146": {
+      "name": "funkcjonalność",
+      "score": 0.95
+    },
+    "3882": {
+      "name": "rzeczowniki_zbiorowe",
+      "score": 0.95
+    },
+    "47": {
+      "name": "wyjaśnianie",
+      "score": 0.95
+    },
+    "111": {
+      "name": "wyrażenia oceniające",
+      "score": 0.9
+    },
+    "351": {
+      "name": "świetlica",
+      "score": 0.95
+    },
+    "435": {
+      "name": "pokoje",
+      "score": 0.95
+    },
+    "440": {
+      "name": "usługi_medyczne",
+      "score": 0.95
+    },
+    "506": {
+      "name": "znalezienie",
+      "score": 0.95
+    },
+    "731": {
+      "name": "jedzenie",
+      "score": 0.95
+    },
+    "760": {
+      "name": "działać",
+      "score": 1.0
+    },
+    "1382": {
+      "name": "za_kazdym_razem",
+      "score": 0.95
+    },
+    "1415": {
+      "name": "obsługa_klienta",
+      "score": 0.95
+    },
+    "1637": {
+      "name": "jakość_usług_hotelowych",
+      "score": 0.95
+    },
+    "1992": {
+      "name": "czasownik_modalny",
+      "score": 0.9
+    },
+    "2089": {
+      "name": "określenia czasowe",
+      "score": 0.95
+    },
+    "2394": {
+      "name": "hotel",
+      "score": 0.95
+    },
+    "2783": {
+      "name": "wyrażenia_porównawcze",
+      "score": 0.9
+    },
+    "2981": {
+      "name": "czasowniki_zwrotne",
+      "score": 0.85
+    },
+    "3101": {
+      "name": "ocena_gwiazdkowa",
+      "score": 0.95
+    },
+    "3474": {
+      "name": "lekarz",
+      "score": 0.95
+    },
+    "3896": {
+      "name": "noc",
+      "score": 0.95
+    },
+    "4027": {
+      "name": "lokalizacja_poza",
+      "score": 0.95
+    },
+    "4476": {
+      "name": "wszystko",
+      "score": 0.95
+    },
+    "5076": {
+      "name": "reklamacje_usług_hotelowych",
+      "score": 0.9
+    },
+    "5093": {
+      "name": "czasowniki_zwrotne",
+      "score": 0.85
+    },
+    "5549": {
+      "name": "wizyta_lekarska",
+      "score": 0.9
+    },
+    "5587": {
+      "name": "czasowniki_dokonane",
+      "score": 0.85
+    },
+    "5812": {
+      "name": "obsługa_klienta",
+      "score": 0.85
+    },
+    "5879": {
+      "name": "bliskość_morza",
+      "score": 0.95
+    },
+    "5885": {
+      "name": "wiek_dziecka",
+      "score": 0.95
+    },
+    "6116": {
+      "name": "czasowniki_zwrotne",
+      "score": 0.85
+    },
+    "5087": {
+      "name": "lekarze",
+      "score": 0.95
+    },
+    "3724": {
+      "name": "czasowniki_zwrotne",
+      "score": 0.85
+    },
+    "2488": {
+      "name": "czasowniki_w_formie_przeszÅej",
+      "score": 0.95
+    },
+    "5239": {
+      "name": "częstość",
+      "score": 0.95
+    },
+    "1327": {
+      "name": "przy",
+      "score": 0.95
+    },
+    "1691": {
+      "name": "all_inclusive",
+      "score": 0.95
+    },
+    "2932": {
+      "name": "negacja",
+      "score": 0.95
+    }
+  }
+}

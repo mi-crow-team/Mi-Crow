@@ -26,12 +26,22 @@ export function useInferenceHistory() {
     removeStorageItem(HISTORY_STORAGE_KEY);
   };
 
+  const deleteHistoryEntry = (entry: InferenceHistoryEntry) => {
+    const newHistory = history.filter((e) => e.id !== entry.id);
+    setHistory(newHistory);
+    setStorageItem(HISTORY_STORAGE_KEY, newHistory);
+    if (selectedHistoryEntry?.id === entry.id) {
+      setSelectedHistoryEntry(null);
+    }
+  };
+
   return {
     history,
     selectedHistoryEntry,
     setSelectedHistoryEntry,
     saveToHistory,
     clearHistory,
+    deleteHistoryEntry,
   };
 }
 

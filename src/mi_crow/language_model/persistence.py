@@ -89,7 +89,8 @@ def load_model_from_saved_file(
         cls: type["LanguageModel"],
         saved_path: Path | str,
         store: "Store",
-        model_id: str | None = None
+        model_id: str | None = None,
+        device: str | torch.device | None = None,
 ) -> "LanguageModel":
     """
     Load a language model from a saved file (created by save_model).
@@ -100,6 +101,7 @@ def load_model_from_saved_file(
         store: Store instance for persistence
         model_id: Optional model identifier. If not provided, will use the model_id from saved metadata.
                  If provided, will be used to load the model architecture from HuggingFace.
+        device: Optional device string or torch.device (defaults to 'cpu' if None)
                  
     Returns:
         LanguageModel instance
@@ -164,7 +166,7 @@ def load_model_from_saved_file(
         ) from e
     
     # Create LanguageModel instance
-    lm = cls(model, tokenizer, store, model_id=model_id)
+    lm = cls(model, tokenizer, store, model_id=model_id, device=device)
     
     # Note: Hooks are not automatically restored as they require hook instances
     # The hook metadata is available in metadata_dict["hooks"] if needed

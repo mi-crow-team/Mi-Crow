@@ -1,0 +1,33 @@
+{
+  "model": {
+    "model_id": "sshleifer/tiny-gpt2"
+  },
+  "dataset": {
+    "hf_dataset": "roneneldan/TinyStories",
+    "data_split": "train",
+    "text_field": "text",
+    "data_limit": 10,
+    "max_length": 32,
+    "batch_size_save": 2
+  },
+  "layer": {
+    "layer_num": null,
+    "layer_signature": ["gpt2lmheadmodel_transformer_h_0_attn_c_attn", "gpt2lmheadmodel_transformer_h_0_attn_c_proj"]
+  },
+  "storage": {
+    "store_dir": "./test_store",
+    "device": "cpu"
+  },
+  "sae": {
+    "n_latents_multiplier": 2,
+    "top_k": 4
+  },
+  "training": {
+    "epochs": 1,
+    "batch_size_train": 2,
+    "lr": 0.001,
+    "l1_lambda": 0.0001,
+    "snapshot_every_n_epochs": null,
+    "snapshot_base_path": null
+  }
+}

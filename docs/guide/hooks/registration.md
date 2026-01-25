@@ -21,7 +21,7 @@ hook_id = lm.layers.register_hook(
 )
 
 # Hook is now active and will execute during forward passes
-outputs = lm.forwards(["Hello, world!"])
+outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 ```
 
 The `register_hook` method:
@@ -136,7 +136,7 @@ hook2_id = lm.layers.register_hook("layer_5", detector2)
 hook3_id = lm.layers.register_hook("layer_10", detector3)
 
 # All execute during forward pass
-outputs = lm.forwards(["Hello, world!"])
+outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 ```
 
 ## Unregistering Hooks
@@ -150,7 +150,7 @@ Always unregister hooks when done to prevent memory leaks:
 hook_id = lm.layers.register_hook("layer_0", detector)
 
 # Use hook
-outputs = lm.forwards(["Hello, world!"])
+outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 
 # Unregister
 lm.layers.unregister_hook(hook_id)
@@ -292,7 +292,7 @@ class HookContext:
 
 # Usage
 with HookContext(lm.layers, detector, "layer_0") as hook:
-    outputs = lm.forwards(["Hello, world!"])
+    outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
     activations = hook.get_captured()
 # Hook automatically unregistered
 ```
@@ -304,7 +304,7 @@ hook_id = None
 try:
     detector = LayerActivationDetector("layer_0")
     hook_id = lm.layers.register_hook("layer_0", detector)
-    outputs = lm.forwards(["Hello, world!"])
+    outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 finally:
     if hook_id:
         lm.layers.unregister_hook(hook_id)
@@ -341,11 +341,11 @@ For temporary disabling:
 ```python
 # Disable temporarily
 detector.disable()
-outputs = lm.forwards(["Hello"])  # Hook doesn't execute
+outputs, encodings = lm.inference.execute_inference(["Hello"])  # Hook doesn't execute
 
 # Re-enable
 detector.enable()
-outputs = lm.forwards(["Hello"])  # Hook executes again
+outputs, encodings = lm.inference.execute_inference(["Hello"])  # Hook executes again
 
 # Unregister when truly done
 lm.layers.unregister_hook(hook_id)
@@ -376,7 +376,7 @@ try:
     
     # Process batches
     for batch in dataset:
-        outputs = lm.forwards(batch)
+        outputs, encodings = lm.inference.execute_inference(batch)
         # Access detector data
         for hook_id in hook_ids:
             # Get hook and access data

@@ -9,19 +9,24 @@ Let's start with the simplest possible example: loading a model and running infe
 ```python
 from mi_crow.language_model import LanguageModel
 from mi_crow.store import LocalStore
+import torch
 
 # Create a store for saving data
 store = LocalStore(base_path="./store")
 
-# Load a small model for testing
+# Choose device: use GPU when available, otherwise CPU
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+# Load a small model for testing on the chosen device
 lm = LanguageModel.from_huggingface(
     "sshleifer/tiny-gpt2",
-    store=store
+    store=store,
+    device=device,
 )
 
 # Run inference
 texts = ["Hello, world!", "How are you?"]
-outputs = lm.forwards(texts)
+outputs, encodings = lm.inference.execute_inference(texts)
 
 print(outputs.logits.shape)  # (batch_size, seq_len, vocab_size)
 ```
@@ -98,7 +103,7 @@ lm.attach_sae(sae, layer_signature="transformer.h.0.attn.c_attn")
 sae.concepts.enable_text_tracking(top_k=5)
 
 # Run inference with SAE attached
-outputs = lm.forwards(["The cat sat on the mat."])
+outputs, encodings = lm.inference.execute_inference(["The cat sat on the mat."])
 
 # Get top texts for each neuron
 top_texts = sae.concepts.get_top_texts()
@@ -118,7 +123,11 @@ from mi_crow.mechanistic.sae.train import SaeTrainer, SaeTrainingConfig
 
 # Setup
 store = LocalStore(base_path="./store")
-lm = LanguageModel.from_huggingface("sshleifer/tiny-gpt2", store=store)
+
+# Choose device: GPU if available, otherwise CPU
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+lm = LanguageModel.from_huggingface("sshleifer/tiny-gpt2", store=store, device=device)
 
 # Step 1: Save activations
 dataset = TextDataset(texts=["The cat sat on the mat."] * 50)
@@ -138,7 +147,7 @@ history = trainer.train(store, run_id, "transformer.h.0.attn.c_attn", config)
 # Step 3: Use SAE
 lm.attach_sae(sae, "transformer.h.0.attn.c_attn")
 sae.concepts.enable_text_tracking(top_k=3)
-outputs = lm.forwards(["The cat sat on the mat."])
+outputs, encodings = lm.inference.execute_inference(["The cat sat on the mat."])
 top_texts = sae.concepts.get_top_texts()
 
 print("Quick start complete!")

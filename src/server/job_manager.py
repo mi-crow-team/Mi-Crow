@@ -7,8 +7,6 @@ from typing import Any, Callable, Dict, Optional
 
 
 class JobManager:
-    """Lightweight in-memory job manager with basic timeouts and idempotency."""
-
     def __init__(self):
         self._jobs: Dict[str, Dict[str, Any]] = {}
         self._idempotency: Dict[str, str] = {}
@@ -102,3 +100,13 @@ class JobManager:
             else:
                 job["status"] = "cancel_requested"
         return dict(job)
+
+    def get_job_counts(self) -> Dict[str, int]:
+        counts = {"total": 0, "pending": 0, "running": 0, "completed": 0, "failed": 0, "timed_out": 0, "cancelled": 0}
+        with self._lock:
+            for job in self._jobs.values():
+                counts["total"] += 1
+                status = job.get("status", "unknown")
+                if status in counts:
+                    counts[status] += 1
+        return counts

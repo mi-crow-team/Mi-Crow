@@ -26,6 +26,7 @@ dependencies = [
     "pytest>=8.4.2",
     "pytest-xdist>=3.8.0",
     "seaborn>=0.13.2",
+    "numpy>=1.20.0,<2.0",
 ]
 dynamic = ["version"]
 
@@ -53,16 +54,34 @@ docs = [
 addopts = "--maxfail=1 -q --cov=mi_crow --cov-report=term-missing --cov-report=xml --cov-fail-under=85"
 testpaths = ["tests"]
 pythonpath = ["src"]
+norecursedirs = ["experiments", "playground", "examples", "presentations", "site", "htmlcov", ".git", "__pycache__", "*.egg-info"]
+markers = [
+    "unit: Unit tests (fast, isolated, mocked)",
+    "integration: Integration tests (real dependencies)",
+    "e2e: End-to-end tests (full workflows)",
+    "slow: Slow running tests",
+]
 
 [tool.coverage.run]
 branch = true
 source = ["mi_crow"]
 parallel = true
+omit = [
+    "*/mechanistic/sae/training/wandb_logger.py",  # Optional dependency (wandb)
+    "*/mechanistic/sae/training/__init__.py",  # Empty init file
+]
 
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
 fail_under = 85
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+]
 
 [tool.coverage.xml]
 output = "coverage.xml"
@@ -137,6 +156,8 @@ dev = [
     "wheel>=0.45.1",
     "pytest>=8.0.0",
     "pytest-cov>=7.0.0",
+    "python-dotenv>=1.2.1",
+    "sentence-transformers>=5.2.0",
 ]
 server = [
     "fastapi>=0.124.4",

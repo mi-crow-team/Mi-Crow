@@ -26,7 +26,7 @@ Before manipulating concepts, you need:
 sae.concepts.manipulate_concept(neuron_idx=42, scale=1.5)
 
 # Run inference with amplified concept
-outputs = lm.forwards(["Your prompt here"])
+outputs, encodings = lm.inference.execute_inference(["Your prompt here"])
 ```
 
 **Scale values**:
@@ -41,7 +41,7 @@ outputs = lm.forwards(["Your prompt here"])
 sae.concepts.manipulate_concept(neuron_idx=42, scale=0.5)
 
 # Run inference
-outputs = lm.forwards(["Your prompt here"])
+outputs, encodings = lm.inference.execute_inference(["Your prompt here"])
 ```
 
 ### Reset Manipulation
@@ -62,7 +62,7 @@ Compare model behavior with and without concept manipulation:
 
 ```python
 # Get baseline output
-baseline_outputs = lm.forwards(
+baseline_outputs, _ = lm.inference.execute_inference(
     ["Your prompt here"],
     with_controllers=False  # Disable SAE manipulation
 )
@@ -75,7 +75,7 @@ baseline_outputs = lm.forwards(
 sae.concepts.manipulate_concept(neuron_idx=42, scale=1.5)
 
 # Get manipulated output
-manipulated_outputs = lm.forwards(
+manipulated_outputs, _ = lm.inference.execute_inference(
     ["Your prompt here"],
     with_controllers=True  # Enable SAE manipulation
 )
@@ -106,7 +106,7 @@ sae.concepts.manipulate_concept(neuron_idx=100, scale=2.0)  # Concept B
 sae.concepts.manipulate_concept(neuron_idx=200, scale=0.5)  # Suppress Concept C
 
 # All manipulations apply simultaneously
-outputs = lm.forwards(["Your prompt here"])
+outputs, encodings = lm.inference.execute_inference(["Your prompt here"])
 ```
 
 ### Batch Manipulation
@@ -134,7 +134,7 @@ def generate_with_control(prompt, concept_idx, scale):
     sae.concepts.manipulate_concept(neuron_idx=concept_idx, scale=scale)
     
     # Generate
-    outputs = lm.generate([prompt], max_length=50)
+    outputs, encodings = lm.inference.execute_inference([prompt])
     
     return outputs
 
@@ -156,7 +156,7 @@ def conditional_manipulate(prompt):
         # Amplify family concepts
         sae.concepts.manipulate_concept(neuron_idx=42, scale=1.5)
     
-    return lm.forwards([prompt])
+    return lm.inference.execute_inference([prompt])
 ```
 
 ## Concept Configurations
@@ -194,7 +194,7 @@ for neuron_idx, scale in config.items():
 ```python
 # Steer model toward specific topics
 sae.concepts.manipulate_concept(neuron_idx=42, scale=2.0)  # Science concept
-outputs = lm.generate(["Write about"], max_length=100)
+outputs, encodings = lm.inference.execute_inference(["Write about"])
 ```
 
 ### Reducing Bias
@@ -206,7 +206,7 @@ biased_concept_neurons = [100, 150, 200]  # Identified through analysis
 for neuron_idx in biased_concept_neurons:
     sae.concepts.manipulate_concept(neuron_idx=neuron_idx, scale=0.3)
 
-outputs = lm.forwards(["Your prompt"])
+outputs, encodings = lm.inference.execute_inference(["Your prompt"])
 ```
 
 ### Enhancing Specific Features
@@ -231,7 +231,7 @@ for neuron_idx, scale in desired_features.items():
 # Gradually increase concept strength
 for scale in [1.0, 1.2, 1.4, 1.6, 1.8, 2.0]:
     sae.concepts.manipulate_concept(neuron_idx=42, scale=scale)
-    outputs = lm.forwards(["Your prompt"])
+    outputs, encodings = lm.inference.execute_inference(["Your prompt"])
     print(f"Scale {scale}: {outputs.logits[0, 0, :5]}")  # First 5 logits
 ```
 
@@ -244,17 +244,17 @@ concept_b = 100
 
 # Individual effects
 sae.concepts.manipulate_concept(neuron_idx=concept_a, scale=1.5)
-output_a = lm.forwards(["Prompt"])
+output_a, _ = lm.inference.execute_inference(["Prompt"])
 
 sae.concepts.reset_manipulations()
 sae.concepts.manipulate_concept(neuron_idx=concept_b, scale=1.5)
-output_b = lm.forwards(["Prompt"])
+output_b, _ = lm.inference.execute_inference(["Prompt"])
 
 # Combined effect
 sae.concepts.reset_manipulations()
 sae.concepts.manipulate_concept(neuron_idx=concept_a, scale=1.5)
 sae.concepts.manipulate_concept(neuron_idx=concept_b, scale=1.5)
-output_combined = lm.forwards(["Prompt"])
+output_combined, _ = lm.inference.execute_inference(["Prompt"])
 
 # Compare
 print("Individual A:", output_a.logits)
@@ -283,7 +283,7 @@ config = sae.concepts.get_manipulation_config()
 print(f"Current manipulations: {config}")
 
 # Ensure with_controllers=True
-outputs = lm.forwards(["Prompt"], with_controllers=True)
+outputs, encodings = lm.inference.execute_inference(["Prompt"], with_controllers=True)
 ```
 
 ### Too Strong Effect

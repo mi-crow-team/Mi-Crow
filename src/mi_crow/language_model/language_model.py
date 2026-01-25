@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gc
 from collections import defaultdict
 from pathlib import Path
 from typing import Sequence, Any, Dict, List, TYPE_CHECKING, Set, Tuple
@@ -15,6 +16,7 @@ from mi_crow.language_model.context import LanguageModelContext
 from mi_crow.language_model.inference import InferenceEngine
 from mi_crow.language_model.persistence import save_model, load_model_from_saved_file
 from mi_crow.language_model.initialization import initialize_model_id, create_from_huggingface, create_from_local_torch
+from mi_crow.language_model.device_manager import normalize_device, sync_model_to_context_device
 from mi_crow.store.store import Store
 from mi_crow.utils import get_logger
 
@@ -72,7 +74,7 @@ class LanguageModel:
     
     Provides a unified interface for working with language models, including:
     - Model initialization and configuration
-    - Inference operations
+    - Inference operations through the inference property
     - Hook management (detectors and controllers)
     - Model persistence
     - Activation tracking
@@ -84,6 +86,7 @@ class LanguageModel:
             tokenizer: PreTrainedTokenizerBase,
             store: Store,
             model_id: str | None = None,
+            device: str | torch.device | None = None,
     ):
         """
         Initialize LanguageModel.
@@ -93,6 +96,7 @@ class LanguageModel:
             tokenizer: HuggingFace tokenizer
             store: Store instance for persistence
             model_id: Optional model identifier (auto-extracted if not provided)
+            device: Optional device string or torch.device (defaults to 'cpu' if None)
         """
         self.context = LanguageModelContext(self)
         self.context.model = model
@@ -100,14 +104,16 @@ class LanguageModel:
         self.context.model_id = initialize_model_id(model, model_id)
         self.context.store = store
         self.context.special_token_ids = _extract_special_token_ids(tokenizer)
+        self.context.device = normalize_device(device)
+        sync_model_to_context_device(self)
 
         self.layers = LanguageModelLayers(self.context)
         self.lm_tokenizer = LanguageModelTokenizer(self.context)
         self.activations = LanguageModelActivations(self.context)
         self.inference = InferenceEngine(self)
-        self._inference_engine = self.inference
 
         self._input_tracker: "InputTracker | None" = None
+
 
     @property
     def model(self) -> nn.Module:
@@ -147,86 +153,6 @@ class LanguageModel:
         """
         return self.lm_tokenizer.tokenize(texts, **kwargs)
 
-    def forwards(
-            self,
-            texts: Sequence[str],
-            tok_kwargs: Dict | None = None,
-            autocast: bool = True,
-            autocast_dtype: torch.dtype | None = None,
-            with_controllers: bool = True,
-    ) -> Tuple[Any, Any]:
-        """
-        Run forward pass on texts.
-        
-        Args:
-            texts: Input texts to process
-            tok_kwargs: Optional tokenizer keyword arguments
-            autocast: Whether to use automatic mixed precision
-            autocast_dtype: Optional dtype for autocast
-            with_controllers: Whether to use controllers during inference
-            
-        Returns:
-            Tuple of (model_output, encodings)
-        """
-        return self._inference_engine.execute_inference(
-            texts,
-            tok_kwargs=tok_kwargs,
-            autocast=autocast,
-            autocast_dtype=autocast_dtype,
-            with_controllers=with_controllers
-        )
-
-    def generate(
-            self,
-            texts: Sequence[str],
-            tok_kwargs: Dict | None = None,
-            autocast: bool = True,
-            autocast_dtype: torch.dtype | None = None,
-            with_controllers: bool = True,
-            skip_special_tokens: bool = True,
-    ) -> Sequence[str]:
-        """
-        Run inference and automatically decode the output with the tokenizer.
-        
-        Args:
-            texts: Input texts to process
-            tok_kwargs: Optional tokenizer keyword arguments
-            autocast: Whether to use automatic mixed precision
-            autocast_dtype: Optional dtype for autocast
-            with_controllers: Whether to use controllers during inference
-            skip_special_tokens: Whether to skip special tokens when decoding
-            
-        Returns:
-            Sequence of decoded text strings
-            
-        Raises:
-            ValueError: If texts is empty or tokenizer is None
-        """
-        if not texts:
-            raise ValueError("Texts list cannot be empty")
-
-        if self.tokenizer is None:
-            raise ValueError("Tokenizer is required for decoding but is None")
-
-        output, enc = self._inference_engine.execute_inference(
-            texts,
-            tok_kwargs=tok_kwargs,
-            autocast=autocast,
-            autocast_dtype=autocast_dtype,
-            with_controllers=with_controllers
-        )
-
-        logits = self._inference_engine.extract_logits(output)
-        predicted_token_ids = logits.argmax(dim=-1)
-
-        decoded_texts = []
-        for i in range(predicted_token_ids.shape[0]):
-            token_ids = predicted_token_ids[i].cpu().tolist()
-            decoded_text = self.tokenizer.decode(token_ids, skip_special_tokens=skip_special_tokens)
-            decoded_texts.append(decoded_text)
-
-        return decoded_texts
-
     def get_input_tracker(self) -> "InputTracker | None":
         """
         Get the input tracker instance if it exists.
@@ -248,8 +174,8 @@ class LanguageModel:
         detectors_tensor_metadata: Dict[str, Dict[str, torch.Tensor]] = defaultdict(dict)
 
         for detector in detectors:
-            detectors_metadata[detector.layer_signature] = detector.metadata
-            detectors_tensor_metadata[detector.layer_signature] = detector.tensor_metadata
+            detectors_metadata[detector.layer_signature] = dict(detector.metadata)
+            detectors_tensor_metadata[detector.layer_signature] = dict(detector.tensor_metadata)
 
         return detectors_metadata, detectors_tensor_metadata
 
@@ -263,17 +189,14 @@ class LanguageModel:
         """
         detectors = self.layers.get_detectors()
         for detector in detectors:
-            # Clear generic accumulated metadata
             detector.metadata.clear()
             detector.tensor_metadata.clear()
 
-            # Allow detector implementations to provide more specialized
-            # clearing logic (e.g. ModelInputDetector, ModelOutputDetector).
             clear_captured = getattr(detector, "clear_captured", None)
             if callable(clear_captured):
                 clear_captured()
 
-    def save_detector_metadata(self, run_name: str, batch_idx: int | None, unified: bool = False) -> str:
+    def save_detector_metadata(self, run_name: str, batch_idx: int | None, unified: bool = False, clear_after_save: bool = True) -> str:
         """
         Save detector metadata to store.
         
@@ -282,6 +205,8 @@ class LanguageModel:
             batch_idx: Batch index. Ignored when ``unified`` is True.
             unified: If True, save metadata in a single detectors directory
                 for the whole run instead of per‑batch directories.
+            clear_after_save: If True, clear detector metadata after saving to free memory.
+                Defaults to True to prevent OOM errors when processing large batches.
             
         Returns:
             Path where metadata was saved
@@ -291,12 +216,36 @@ class LanguageModel:
         """
         if self.store is None:
             raise ValueError("Store must be provided or set on the language model")
+        
         detectors_metadata, detectors_tensor_metadata = self.get_all_detector_metadata()
+        
         if unified:
-            return self.store.put_run_detector_metadata(run_name, detectors_metadata, detectors_tensor_metadata)
-        if batch_idx is None:
-            raise ValueError("batch_idx must be provided when unified is False")
-        return self.store.put_detector_metadata(run_name, batch_idx, detectors_metadata, detectors_tensor_metadata)
+            result = self.store.put_run_detector_metadata(run_name, detectors_metadata, detectors_tensor_metadata)
+        else:
+            if batch_idx is None:
+                raise ValueError("batch_idx must be provided when unified is False")
+            result = self.store.put_detector_metadata(run_name, batch_idx, detectors_metadata, detectors_tensor_metadata)
+        
+        if clear_after_save:
+            for layer_signature in list(detectors_tensor_metadata.keys()):
+                detector_tensors = detectors_tensor_metadata[layer_signature]
+                for tensor_key in list(detector_tensors.keys()):
+                    del detector_tensors[tensor_key]
+                del detectors_tensor_metadata[layer_signature]
+            detectors_metadata.clear()
+            
+            detectors = self.layers.get_detectors()
+            for detector in detectors:
+                clear_captured = getattr(detector, "clear_captured", None)
+                if callable(clear_captured):
+                    clear_captured()
+                for key in list(detector.tensor_metadata.keys()):
+                    del detector.tensor_metadata[key]
+                detector.metadata.clear()
+            
+            gc.collect()
+        
+        return result
 
     def _ensure_input_tracker(self) -> "InputTracker":
         """
@@ -339,23 +288,36 @@ class LanguageModel:
             store: Store,
             tokenizer_params: dict = None,
             model_params: dict = None,
+            device: str | torch.device | None = None,
     ) -> "LanguageModel":
         """
         Load a language model from HuggingFace Hub.
+        
+        Automatically loads model to GPU if device is "cuda" and CUDA is available.
+        This prevents OOM errors by keeping the model on GPU instead of CPU RAM.
         
         Args:
             model_name: HuggingFace model identifier
             store: Store instance for persistence
             tokenizer_params: Optional tokenizer parameters
             model_params: Optional model parameters
+            device: Target device ("cuda", "cpu", "mps"). If "cuda" and CUDA is available,
+                model will be loaded directly to GPU using device_map="auto"
+                (via the HuggingFace factory helpers).
             
         Returns:
             LanguageModel instance
         """
-        return create_from_huggingface(cls, model_name, store, tokenizer_params, model_params)
+        return create_from_huggingface(cls, model_name, store, tokenizer_params, model_params, device)
 
     @classmethod
-    def from_local_torch(cls, model_path: str, tokenizer_path: str, store: Store) -> "LanguageModel":
+    def from_local_torch(
+            cls,
+            model_path: str,
+            tokenizer_path: str,
+            store: Store,
+            device: str | torch.device | None = None,
+    ) -> "LanguageModel":
         """
         Load a language model from local HuggingFace paths.
         
@@ -363,14 +325,21 @@ class LanguageModel:
             model_path: Path to the model directory or file
             tokenizer_path: Path to the tokenizer directory or file
             store: Store instance for persistence
+            device: Optional device string or torch.device (defaults to 'cpu' if None)
             
         Returns:
             LanguageModel instance
         """
-        return create_from_local_torch(cls, model_path, tokenizer_path, store)
+        return create_from_local_torch(cls, model_path, tokenizer_path, store, device)
 
     @classmethod
-    def from_local(cls, saved_path: Path | str, store: Store, model_id: str | None = None) -> "LanguageModel":
+    def from_local(
+            cls,
+            saved_path: Path | str,
+            store: Store,
+            model_id: str | None = None,
+            device: str | torch.device | None = None,
+    ) -> "LanguageModel":
         """
         Load a language model from a saved file (created by save_model).
         
@@ -379,6 +348,7 @@ class LanguageModel:
             store: Store instance for persistence
             model_id: Optional model identifier. If not provided, will use the model_id from saved metadata.
                      If provided, will be used to load the model architecture from HuggingFace.
+            device: Optional device string or torch.device (defaults to 'cpu' if None)
                      
         Returns:
             LanguageModel instance
@@ -387,4 +357,4 @@ class LanguageModel:
             FileNotFoundError: If the saved file doesn't exist
             ValueError: If the saved file format is invalid or model_id is required but not provided
         """
-        return load_model_from_saved_file(cls, saved_path, store, model_id)
+        return load_model_from_saved_file(cls, saved_path, store, model_id, device)

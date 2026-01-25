@@ -1,7 +1,10 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { InferenceOutput, TopNeurons, TokenLatents } from "@/lib/types";
 import { Card, SectionTitle, Button } from "./ui";
+import { api } from "@/lib/api";
+import type { ConceptDictionaryResponse } from "@/lib/api/types";
 
 type InferenceRunCardProps = {
   runNumber: number;
@@ -34,9 +37,43 @@ export function InferenceRunCard({
   top_texts_path,
   onDelete,
 }: InferenceRunCardProps) {
+  const [concepts, setConcepts] = useState<Record<number, string>>({});
+  const [loadingConcepts, setLoadingConcepts] = useState(false);
+
+  useEffect(() => {
+    if (config.conceptConfigPath && config.model_id && config.sae_id) {
+      loadConcepts();
+    } else {
+      setConcepts({});
+    }
+  }, [config.conceptConfigPath, config.model_id, config.sae_id]);
+
+  const loadConcepts = async () => {
+    if (!config.model_id || !config.sae_id) return;
+    setLoadingConcepts(true);
+    try {
+      const data: ConceptDictionaryResponse = await api.getConceptDictionary(config.model_id, config.sae_id);
+      const conceptMap: Record<number, string> = {};
+      for (const [neuronIdxStr, concept] of Object.entries(data.concepts)) {
+        conceptMap[parseInt(neuronIdxStr)] = concept.name;
+      }
+      setConcepts(conceptMap);
+    } catch (e: unknown) {
+      console.error("Failed to load concepts:", e);
+      setConcepts({});
+    } finally {
+      setLoadingConcepts(false);
+    }
+  };
+
   const formatTimestamp = (ts: string) => {
     const date = new Date(ts);
     return date.toLocaleString();
+  };
+
+  const formatNeuronDisplay = (neuronId: number): string => {
+    const conceptName = concepts[neuronId];
+    return conceptName ? `${neuronId} (${conceptName})` : `${neuronId}`;
   };
 
   return (
@@ -126,7 +163,9 @@ export function InferenceRunCard({
             {top_neurons.map((t, idx) => (
               <div key={idx} className="border border-slate-200 rounded-md p-2">
                 <div className="font-semibold text-slate-900">Prompt #{t.prompt_index + 1}</div>
-                <div className="text-slate-700">Neurons: {t.neuron_ids.join(", ")}</div>
+                <div className="text-slate-700">
+                  Neurons: {t.neuron_ids.map((id) => formatNeuronDisplay(id)).join(", ")}
+                </div>
                 <div className="text-slate-600 text-xs">
                   Activations: {t.activations.map((a) => a.toFixed(3)).join(", ")}
                 </div>
@@ -145,7 +184,7 @@ export function InferenceRunCard({
                 <div className="font-semibold text-slate-900">Prompt #{p.prompt_index + 1}</div>
                 {p.tokens.map((tok, j) => (
                   <div key={j} className="text-slate-700 text-xs">
-                    Token {tok.token_index}: {tok.neuron_ids.join(", ")}
+                    Token {tok.token_index}: {tok.neuron_ids.map((id) => formatNeuronDisplay(id)).join(", ")}
                   </div>
                 ))}
               </div>

@@ -7,7 +7,11 @@ import torch
 import torch.nn as nn
 
 from mi_crow.hooks.hook import Hook, HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
-from mi_crow.hooks.utils import extract_tensor_from_input, extract_tensor_from_output
+from mi_crow.hooks.utils import (
+    extract_tensor_from_input,
+    extract_tensor_from_output,
+    apply_modification_to_output
+)
 from mi_crow.utils import get_logger
 
 if TYPE_CHECKING:
@@ -86,13 +90,14 @@ class Controller(Hook):
         if output_tensor is None:
             return
 
-        # Extract input tensor if available for modify_activations
         input_tensor = extract_tensor_from_input(input)
-
-        # Note: forward hooks can't modify output in PyTorch, but we call modify_activations
-        # for consistency. The actual modification happens via the hook mechanism.
-        # We still call it so controllers can capture/process activations.
-        self.modify_activations(module, input_tensor, output_tensor)
+        modified_tensor = self.modify_activations(module, input_tensor, output_tensor)
+        
+        if modified_tensor is not None and isinstance(modified_tensor, torch.Tensor):
+            target_device = None
+            if self.context is not None and hasattr(self.context, 'device') and self.context.device:
+                target_device = torch.device(self.context.device)
+            apply_modification_to_output(output, modified_tensor, target_device=target_device)
 
     def _hook_fn(
             self,

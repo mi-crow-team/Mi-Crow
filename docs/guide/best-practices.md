@@ -13,14 +13,18 @@ This guide covers best practices for using mi-crow effectively in your research.
 ### Scale Gradually
 
 ```python
+import torch
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
 # Start with tiny model
-lm = LanguageModel.from_huggingface("sshleifer/tiny-gpt2", store=store)
+lm = LanguageModel.from_huggingface("sshleifer/tiny-gpt2", store=store, device=device)
 
 # Then move to small
-lm = LanguageModel.from_huggingface("gpt2", store=store)
+lm = LanguageModel.from_huggingface("gpt2", store=store, device=device)
 
 # Finally use larger models
-lm = LanguageModel.from_huggingface("gpt2-large", store=store)
+lm = LanguageModel.from_huggingface("gpt2-large", store=store, device=device)
 ```
 
 ### Consider Your Goals
@@ -190,7 +194,7 @@ hook_id = lm.layers.register_hook("layer_0", detector)
 assert hook_id in lm.layers.context._hook_id_map
 
 # Check hook executes
-outputs = lm.forwards(["test"])
+outputs, encodings = lm.inference.execute_inference(["test"])
 activations = detector.get_captured()
 assert activations is not None, "Hook didn't execute!"
 ```

@@ -4,9 +4,42 @@ import abc
 from pathlib import Path
 from typing import Dict, Any, List, Iterator
 
+# #region agent log
+import json
+import sys
+import os
+from pathlib import Path
+
+_debug_log_path = Path('/mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/.cursor/debug.log')
+if _debug_log_path.parent.exists():
+    torch_search_paths = [p for p in sys.path if 'torch' in p.lower()]
+    try:
+        with open(_debug_log_path, 'a') as f:
+            f.write(json.dumps({"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"A,B,C,D,E","location":"store.py:7","message":"Before torch import","data":{"sys_path":sys.path[:5],"torch_in_path":torch_search_paths},"timestamp":__import__('time').time()*1000}) + '\n')
+    except (OSError, IOError):
+        pass
+# #endregion
 import torch
+# #region agent log
+if _debug_log_path.parent.exists():
+    torch_file = getattr(torch, '__file__', None)
+    torch_path = getattr(torch, '__path__', None)
+    torch_loader = str(getattr(torch, '__loader__', None))
+    try:
+        with open(_debug_log_path, 'a') as f:
+            f.write(json.dumps({"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"A,B,C,D,E","location":"store.py:8","message":"After torch import","data":{"torch_type":str(type(torch)),"torch_file":torch_file,"torch_path":str(torch_path) if torch_path else None,"torch_loader":torch_loader[:100],"has_tensor":hasattr(torch,'Tensor'),"torch_dir_count":len(dir(torch))},"timestamp":__import__('time').time()*1000}) + '\n')
+    except (OSError, IOError):
+        pass
+# #endregion
 
-
+# #region agent log
+if _debug_log_path.parent.exists():
+    try:
+        with open(_debug_log_path, 'a') as f:
+            f.write(json.dumps({"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"A,B,C,D,E","location":"store.py:10","message":"Before TensorMetadata definition","data":{"torch_has_tensor":hasattr(torch,'Tensor'),"torch_attrs":str([x for x in dir(torch) if 'Tensor' in x or 'tensor' in x.lower()][:10])},"timestamp":__import__('time').time()*1000}) + '\n')
+    except (OSError, IOError):
+        pass
+# #endregion
 TensorMetadata = Dict[str, Dict[str, torch.Tensor]]
 
 

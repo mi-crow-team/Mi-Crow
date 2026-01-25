@@ -36,7 +36,9 @@ class LocalStore(Store):
 
     def put_tensor(self, key: str, tensor: torch.Tensor) -> None:
         path = self._full(key)
-        storch.save_file({"tensor": tensor}, str(path))
+        tensor_copy = tensor.clone().detach()
+        storch.save_file({"tensor": tensor_copy}, str(path))
+        del tensor_copy
 
     def get_tensor(self, key: str) -> torch.Tensor:
         loaded = storch.load_file(str(self._full(key)))
@@ -248,7 +250,9 @@ class LocalStore(Store):
                 tensor_filename = f"{tensor_key}.safetensors"
                 tensor_path = layer_dir / tensor_filename
                 try:
-                    storch.save_file({"tensor": tensor}, str(tensor_path))
+                    tensor_copy = tensor.clone().detach()
+                    storch.save_file({"tensor": tensor_copy}, str(tensor_path))
+                    del tensor_copy
                 except Exception as e:
                     raise OSError(
                         f"Failed to save tensor at {tensor_path} for run_id={run_id!r}, "
@@ -423,15 +427,17 @@ class LocalStore(Store):
                     existing = {}
 
                 batch_key = f"batch_{batch_index}"
-                existing[batch_key] = tensor
+                existing[batch_key] = tensor.clone().detach()
 
                 try:
                     storch.save_file(existing, str(tensor_path))
+                    del existing[batch_key]
                 except Exception as e:
+                    tensor_shape = tuple(tensor.shape) if hasattr(tensor, 'shape') else 'unknown'
                     raise OSError(
                         f"Failed to save unified tensor at {tensor_path} for run_id={run_id!r}, "
-                        f"layer={layer_signature!r}, key={tensor_key!r}, batch_index={batch_index}. "
-                        f"Error: {e}"
+                        f"layer={layer_signature!r}, key={tensor_key!r}, batch_index={batch_index}, "
+                        f"shape={tensor_shape}. Error: {e}"
                     ) from e
 
         return f"{self.runs_prefix}/{run_id}/detectors"

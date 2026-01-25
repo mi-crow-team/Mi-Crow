@@ -1,0 +1,33 @@
+{
+  "model": {
+    "model_id": "speakleash/Bielik-1.5B-v3.0-Instruct"
+  },
+  "dataset": {
+    "hf_dataset": "clarin-pl/polemo2-official",
+    "data_split": "train",
+    "text_field": "text",
+    "data_limit": null,
+    "max_length": 256,
+    "batch_size_save": 64
+  },
+  "layer": {
+    "layer_num": null,
+    "layer_signature": "llamaforcausallm_model_layers_15"
+  },
+  "storage": {
+    "store_dir": null,
+    "device": "cpu"
+  },
+  "sae": {
+    "n_latents_multiplier": 4,
+    "top_k": 64
+  },
+  "training": {
+    "epochs": 25,
+    "batch_size_train": 64,
+    "lr": 0.001,
+    "l1_lambda": 0.0001,
+    "snapshot_every_n_epochs": 5,
+    "snapshot_base_path": null
+  }
+}

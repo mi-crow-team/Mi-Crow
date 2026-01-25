@@ -3,11 +3,19 @@
 from dataclasses import dataclass
 from typing import Any, Optional, TYPE_CHECKING
 from datetime import datetime
+from pathlib import Path
 import json
 import logging
 import gc
+import os
 
 import torch
+
+try:
+    from dotenv import load_dotenv
+    DOTENV_AVAILABLE = True
+except ImportError:
+    DOTENV_AVAILABLE = False
 
 from mi_crow.store.store_dataloader import StoreDataloader
 from mi_crow.utils import get_logger
@@ -35,7 +43,6 @@ class SaeTrainingConfig:
     monitoring: int = 1  # 0=silent, 1=basic, 2=detailed (overcomplete parameter)
     scheduler: Optional[Any] = None  # Learning rate scheduler (overcomplete parameter)
     max_nan_fallbacks: int = 5  # For train_sae_amp (overcomplete parameter)
-    # Wandb configuration
     use_wandb: bool = False  # Enable wandb logging
     wandb_project: Optional[str] = None  # Wandb project name (defaults to "sae-training" if not set)
     wandb_entity: Optional[str] = None  # Wandb entity/team name
@@ -44,7 +51,10 @@ class SaeTrainingConfig:
     wandb_config: Optional[dict[str, Any]] = None  # Additional config to log to wandb
     wandb_mode: str = "online"  # Wandb mode: "online", "offline", or "disabled"
     wandb_slow_metrics_frequency: int = 50  # Log slow metrics (L0, dead features) every N epochs (default: 50)
+    wandb_api_key: Optional[str] = None  # Wandb API key (can also be set via WANDB_API_KEY env var)
     memory_efficient: bool = False  # Enable memory-efficient processing (moves tensors to CPU, clears cache)
+    snapshot_every_n_epochs: Optional[int] = None  # Save model snapshot every N epochs (None = disabled)
+    snapshot_base_path: Optional[str] = None  # Base path for snapshots (defaults to training_run_id/snapshots)
 
 
 class SaeTrainer:
@@ -77,26 +87,72 @@ class SaeTrainer:
         cfg = config or SaeTrainingConfig()
 
         wandb_run = self._initialize_wandb(cfg, run_id)
+        if wandb_run is not None and cfg.verbose:
+            try:
+                self.logger.info(f"[SaeTrainer] Wandb run initialized: {wandb_run.name} (id: {wandb_run.id})")
+                self.logger.info(f"[SaeTrainer] Wandb project: {wandb_run.project}, entity: {wandb_run.entity}")
+                self.logger.info(f"[SaeTrainer] Wandb mode: {wandb_run.mode}")
+            except Exception:
+                pass
         device = self._setup_device(cfg)
         optimizer = self._create_optimizer(cfg)
         criterion = self._create_criterion(cfg)
         dataloader = self._create_dataloader(store, run_id, layer_signature, cfg, device)
         monitoring = self._configure_logging(cfg, run_id)
 
-        logs = self._run_training(cfg, dataloader, criterion, optimizer, device, monitoring)
+        if training_run_id is None:
+            training_run_id = f"sae_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
+        logs = self._run_training(cfg, dataloader, criterion, optimizer, device, monitoring, store, training_run_id, run_id, layer_signature)
         history = self._process_training_logs(logs, cfg)
+
+        if cfg.verbose and history.get("loss"):
+            num_epochs = len(history["loss"])
+            for epoch_idx in range(num_epochs):
+                epoch = epoch_idx + 1
+                loss = history["loss"][epoch_idx]
+                recon_mse = history["recon_mse"][epoch_idx] if epoch_idx < len(history["recon_mse"]) else None
+                l1_val = history["l1"][epoch_idx] if epoch_idx < len(history["l1"]) else None
+                r2_val = history["r2"][epoch_idx] if epoch_idx < len(history["r2"]) else None
+                self.logger.info(
+                    "[SaeTrainer] Epoch %d: loss=%.6f recon_mse=%s l1=%s r2=%s",
+                    epoch,
+                    float(loss),
+                    f"{float(recon_mse):.6f}" if recon_mse is not None else "n/a",
+                    f"{float(l1_val):.6f}" if l1_val is not None else "n/a",
+                    f"{float(r2_val):.6f}" if r2_val is not None else "n/a",
+                )
+
         if cfg.memory_efficient:
             self._clear_memory()
 
+        wandb_url = None
         if wandb_run is not None:
+            if cfg.verbose:
+                self.logger.info(f"[SaeTrainer] Logging metrics to wandb (history keys: {list(history.keys())}, num epochs: {len(history.get('loss', []))})")
             self._log_to_wandb(wandb_run, history, cfg)
+            try:
+                wandb_url = wandb_run.url
+                if cfg.verbose:
+                    self.logger.info(f"[SaeTrainer] Wandb run URL: {wandb_url}")
+            except (AttributeError, RuntimeError) as e:
+                if cfg.verbose:
+                    self.logger.warning(f"[SaeTrainer] Could not get wandb URL: {e}")
+            
+            # Ensure wandb run is finished and synced
+            try:
+                import wandb
+                if wandb.run is not None:
+                    wandb.finish()
+                    if cfg.verbose:
+                        self.logger.info("[SaeTrainer] Wandb run finished and synced")
+            except Exception as e:
+                if cfg.verbose:
+                    self.logger.warning(f"[SaeTrainer] Error finishing wandb run: {e}")
 
         if cfg.verbose:
             self.logger.info(f"[SaeTrainer] Training completed, processing {len(history['loss'])} epochs of results")
             self.logger.info("[SaeTrainer] Completed training")
-
-        if training_run_id is None:
-            training_run_id = f"training_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
         if cfg.verbose:
             self.logger.info(f"[SaeTrainer] Saving training outputs to store/runs/{training_run_id}/")
@@ -112,7 +168,8 @@ class SaeTrainer:
 
         return {
             "history": history,
-            "training_run_id": training_run_id
+            "training_run_id": training_run_id,
+            "wandb_url": wandb_url
         }
 
     def _ensure_overcomplete_available(self) -> None:
@@ -122,35 +179,111 @@ class SaeTrainer:
             raise ImportError("overcomplete.sae.train module not available. Cannot use overcomplete training.")
 
     def _initialize_wandb(self, cfg: SaeTrainingConfig, run_id: str) -> Any:
+        """Initialize wandb run if enabled in config."""
         if not cfg.use_wandb:
             return None
 
         try:
             import wandb
-            wandb_project = cfg.wandb_project or "sae-training"
+            import os
+            
+            # Load .env file if available
+            if DOTENV_AVAILABLE:
+                # Try to find .env file in project root
+                current_dir = Path(__file__).parent
+                project_root = current_dir
+                # Walk up to find project root (pyproject.toml or .git)
+                for _ in range(10):  # Limit depth
+                    if (project_root / "pyproject.toml").exists() or (project_root / ".git").exists():
+                        break
+                    if project_root == project_root.parent:
+                        break
+                    project_root = project_root.parent
+                
+                env_file = project_root / ".env"
+                if env_file.exists():
+                    load_dotenv(env_file, override=True)
+            
+            # Get API key from config, environment, or .env (already loaded)
+            wandb_api_key = getattr(cfg, 'wandb_api_key', None) or os.getenv('WANDB_API_KEY')
+            wandb_project = cfg.wandb_project or os.getenv('WANDB_PROJECT') or os.getenv('SERVER_WANDB_PROJECT') or "sae-training"
             wandb_name = cfg.wandb_name or run_id
             wandb_mode = cfg.wandb_mode.lower() if cfg.wandb_mode else "online"
+            
+            # Login with API key before init if available
+            if wandb_api_key:
+                # Clean API key (strip whitespace and quotes)
+                wandb_api_key = wandb_api_key.strip().strip('"').strip("'")
+                os.environ['WANDB_API_KEY'] = wandb_api_key
+                # Login with API key before init
+                try:
+                    # Ensure API key is in environment
+                    os.environ['WANDB_API_KEY'] = wandb_api_key
+                    wandb.login(key=wandb_api_key, relogin=True)
+                except Exception as login_error:
+                    self.logger.warning(f"[SaeTrainer] Wandb login failed: {login_error}")
+                    # Fall back to offline mode if login fails
+                    wandb_mode = "offline"
 
-            return wandb.init(
-                project=wandb_project,
-                entity=cfg.wandb_entity,
-                name=wandb_name,
-                mode=wandb_mode,
-                config={
-                    "run_id": run_id,
-                    "epochs": cfg.epochs,
-                    "batch_size": cfg.batch_size,
-                    "lr": cfg.lr,
-                    "l1_lambda": cfg.l1_lambda,
-                    "device": str(cfg.device),
-                    "dtype": str(cfg.dtype) if cfg.dtype else None,
-                    "use_amp": cfg.use_amp,
-                    "clip_grad": cfg.clip_grad,
-                    "max_batches_per_epoch": cfg.max_batches_per_epoch,
-                    **(cfg.wandb_config or {}),
-                },
-                tags=cfg.wandb_tags or [],
-            )
+            try:
+                # Ensure WANDB_API_KEY is set in environment before init
+                if wandb_api_key:
+                    os.environ['WANDB_API_KEY'] = wandb_api_key
+                wandb_run = wandb.init(
+                    project=wandb_project,
+                    entity=cfg.wandb_entity,
+                    name=wandb_name,
+                    mode=wandb_mode,
+                    settings=wandb.Settings(_disable_stats=True) if wandb_mode == "offline" else None,
+                    config={
+                        "run_id": run_id,
+                        "epochs": cfg.epochs,
+                        "batch_size": cfg.batch_size,
+                        "lr": cfg.lr,
+                        "l1_lambda": cfg.l1_lambda,
+                        "device": str(cfg.device),
+                        "dtype": str(cfg.dtype) if cfg.dtype else None,
+                        "use_amp": cfg.use_amp,
+                        "clip_grad": cfg.clip_grad,
+                        "max_batches_per_epoch": cfg.max_batches_per_epoch,
+                        **(cfg.wandb_config or {}),
+                    },
+                    tags=cfg.wandb_tags or [],
+                )
+            except Exception as init_error:
+                # If init fails with auth error (401), try offline mode
+                if "401" in str(init_error) or "PERMISSION_ERROR" in str(init_error) or "not logged in" in str(init_error).lower():
+                    self.logger.warning(f"[SaeTrainer] Wandb init failed with auth error, retrying in offline mode: {init_error}")
+                    try:
+                        wandb_run = wandb.init(
+                            project=wandb_project,
+                            entity=cfg.wandb_entity,
+                            name=wandb_name,
+                            mode="offline",
+                            config={
+                                "run_id": run_id,
+                                "epochs": cfg.epochs,
+                                "batch_size": cfg.batch_size,
+                                "lr": cfg.lr,
+                                "l1_lambda": cfg.l1_lambda,
+                                "device": str(cfg.device),
+                                "dtype": str(cfg.dtype) if cfg.dtype else None,
+                                "use_amp": cfg.use_amp,
+                                "clip_grad": cfg.clip_grad,
+                                "max_batches_per_epoch": cfg.max_batches_per_epoch,
+                                **(cfg.wandb_config or {}),
+                            },
+                            tags=cfg.wandb_tags or [],
+                        )
+                        self.logger.info("[SaeTrainer] Wandb initialized in offline mode - sync later with: wandb sync")
+                    except Exception as offline_error:
+                        self.logger.warning(f"[SaeTrainer] Wandb init failed even in offline mode: {offline_error}")
+                        return None
+                else:
+                    # Re-raise if it's not an auth error
+                    raise
+            
+            return wandb_run
         except ImportError:
             self.logger.warning("[SaeTrainer] wandb not installed, skipping wandb logging")
             self.logger.warning("[SaeTrainer] Install with: pip install wandb")
@@ -222,11 +355,30 @@ class SaeTrainer:
 
         return monitoring
 
-    def _run_training(self, cfg: SaeTrainingConfig, dataloader: StoreDataloader, criterion, optimizer: torch.optim.Optimizer,
-                     device: torch.device, monitoring: int) -> dict[str, Any]:
+    def _run_training(
+            self, 
+            cfg: SaeTrainingConfig, 
+            dataloader: StoreDataloader, 
+            criterion, 
+            optimizer: torch.optim.Optimizer,
+            device: torch.device, 
+            monitoring: int,
+            store: "Store",
+            training_run_id: str,
+            run_id: str,
+            layer_signature: str | int
+    ) -> dict[str, Any]:
         from overcomplete.sae.train import train_sae, train_sae_amp
 
         device_str = str(device)
+        
+        should_save_snapshots = cfg.snapshot_every_n_epochs is not None and cfg.snapshot_every_n_epochs > 0
+        
+        if should_save_snapshots:
+            return self._run_training_with_snapshots(
+                cfg, dataloader, criterion, optimizer, device, monitoring, 
+                store, training_run_id, run_id, layer_signature
+            )
         
         try:
             if cfg.use_amp and device.type in ("cuda", "cpu"):
@@ -269,6 +421,173 @@ class SaeTrainer:
             import traceback
             self.logger.error(f"[SaeTrainer] Traceback: {traceback.format_exc()}")
             raise
+
+    def _run_training_with_snapshots(
+            self,
+            cfg: SaeTrainingConfig,
+            dataloader: StoreDataloader,
+            criterion,
+            optimizer: torch.optim.Optimizer,
+            device: torch.device,
+            monitoring: int,
+            store: "Store",
+            training_run_id: str,
+            run_id: str,
+            layer_signature: str | int
+    ) -> dict[str, Any]:
+        """
+        Run training epoch by epoch, saving snapshots every N epochs.
+        
+        This method runs training in a loop, one epoch at a time, to enable
+        snapshot saving between epochs.
+        """
+        from overcomplete.sae.train import train_sae, train_sae_amp
+        
+        device_str = str(device)
+        snapshot_freq = cfg.snapshot_every_n_epochs
+        
+        if cfg.verbose:
+            self.logger.info(f"[SaeTrainer] Running training with snapshots every {snapshot_freq} epochs")
+        
+        all_logs: dict[str, Any] = {}
+        
+        try:
+            for epoch in range(1, cfg.epochs + 1):
+                if cfg.verbose:
+                    self.logger.info(f"[SaeTrainer] Training epoch {epoch}/{cfg.epochs}")
+                
+                if cfg.use_amp and device.type in ("cuda", "cpu"):
+                    epoch_logs = train_sae_amp(
+                        model=self.sae.sae_engine,
+                        dataloader=dataloader,
+                        criterion=criterion,
+                        optimizer=optimizer,
+                        scheduler=cfg.scheduler,
+                        nb_epochs=1,
+                        clip_grad=cfg.clip_grad,
+                        monitoring=monitoring,
+                        device=device_str,
+                        max_nan_fallbacks=cfg.max_nan_fallbacks
+                    )
+                else:
+                    epoch_logs = train_sae(
+                        model=self.sae.sae_engine,
+                        dataloader=dataloader,
+                        criterion=criterion,
+                        optimizer=optimizer,
+                        scheduler=cfg.scheduler,
+                        nb_epochs=1,
+                        clip_grad=cfg.clip_grad,
+                        monitoring=monitoring,
+                        device=device_str
+                    )
+                
+                self._merge_epoch_logs(all_logs, epoch_logs)
+                
+                if epoch % snapshot_freq == 0 or epoch == cfg.epochs:
+                    self._save_snapshot(store, training_run_id, run_id, layer_signature, epoch, cfg)
+                
+                if cfg.memory_efficient and epoch % 5 == 0:
+                    self._clear_memory()
+            
+            if cfg.verbose:
+                self.logger.info(
+                    f"[SaeTrainer] Training with snapshots completed, processing {len(all_logs.get('avg_loss', []))} epoch results...")
+            
+            return all_logs
+        except Exception as e:
+            self.logger.error(f"[SaeTrainer] Error during training with snapshots: {e}")
+            import traceback
+            self.logger.error(f"[SaeTrainer] Traceback: {traceback.format_exc()}")
+            raise
+
+    def _merge_epoch_logs(self, all_logs: dict[str, Any], epoch_logs: dict[str, Any]) -> None:
+        """
+        Merge single-epoch logs into accumulated logs.
+        
+        Handles all fields that overcomplete's training functions may return,
+        including avg_loss, r2, z, and dead_features.
+        
+        Args:
+            all_logs: Accumulated logs dictionary to update
+            epoch_logs: Single epoch logs from overcomplete training
+        """
+        for key, value in epoch_logs.items():
+            if key not in all_logs:
+                all_logs[key] = []
+            
+            if isinstance(value, list):
+                all_logs[key].extend(value)
+            else:
+                all_logs[key].append(value)
+
+    def _save_snapshot(
+            self,
+            store: "Store",
+            training_run_id: str,
+            run_id: str,
+            layer_signature: str | int,
+            epoch: int,
+            config: SaeTrainingConfig
+    ) -> None:
+        """
+        Save a snapshot of the current model state.
+        
+        Args:
+            store: Store instance
+            training_run_id: Training run ID
+            run_id: Original activation run ID
+            layer_signature: Layer signature
+            epoch: Current epoch number
+            config: Training configuration
+        """
+        try:
+            snapshot_base = config.snapshot_base_path
+            if snapshot_base is None:
+                run_path = store._run_key(training_run_id)
+                snapshot_dir = run_path / "snapshots"
+            else:
+                snapshot_dir = Path(snapshot_base)
+            
+            snapshot_dir.mkdir(parents=True, exist_ok=True)
+            
+            snapshot_path = snapshot_dir / f"model_epoch_{epoch}.pt"
+            
+            sae_state_dict = self.sae.sae_engine.state_dict()
+            
+            mi_crow_metadata = {
+                "concepts_state": {
+                    'multiplication': self.sae.concepts.multiplication.data.cpu().clone(),
+                    'bias': self.sae.concepts.bias.data.cpu().clone(),
+                },
+                "n_latents": self.sae.context.n_latents,
+                "n_inputs": self.sae.context.n_inputs,
+                "device": self.sae.context.device,
+                "layer_signature": self.sae.context.lm_layer_signature,
+                "model_id": self.sae.context.model_id,
+            }
+            
+            if hasattr(self.sae, 'k'):
+                mi_crow_metadata["k"] = self.sae.k
+            
+            payload = {
+                "sae_state_dict": sae_state_dict,
+                "mi_crow_metadata": mi_crow_metadata,
+                "epoch": epoch,
+                "training_run_id": training_run_id,
+                "activation_run_id": run_id,
+                "layer_signature": str(layer_signature),
+            }
+            
+            torch.save(payload, snapshot_path)
+            
+            if config.verbose:
+                self.logger.info(f"[SaeTrainer] Saved snapshot to: {snapshot_path}")
+        except Exception as e:
+            self.logger.warning(f"[SaeTrainer] Failed to save snapshot at epoch {epoch}: {e}")
+            if config.verbose:
+                import traceback
+                self.logger.warning(f"[SaeTrainer] Traceback: {traceback.format_exc()}")
 
     def _process_training_logs(self, logs: dict[str, Any], cfg: SaeTrainingConfig) -> dict[str, list[float]]:
         history: dict[str, list[float]] = {
@@ -422,18 +741,30 @@ class SaeTrainer:
 
     def _log_to_wandb(self, wandb_run: Any, history: dict[str, list[float]], cfg: SaeTrainingConfig) -> None:
         try:
+            if not history.get("loss"):
+                self.logger.warning("[SaeTrainer] No loss data in history, skipping wandb logging")
+                return
+            
             num_epochs = len(history["loss"])
             slow_metrics_freq = cfg.wandb_slow_metrics_frequency
+            
+            if cfg.verbose:
+                self.logger.info(f"[SaeTrainer] Logging {num_epochs} epochs to wandb")
 
             for epoch in range(1, num_epochs + 1):
                 epoch_idx = epoch - 1
                 should_log_slow = (epoch % slow_metrics_freq == 0) or (epoch == num_epochs)
 
                 metrics = self._build_epoch_metrics(history, epoch, epoch_idx, cfg, should_log_slow)
+                if cfg.verbose:
+                    self.logger.info(f"[SaeTrainer] Logging epoch {epoch} metrics to wandb: {list(metrics.keys())}")
                 wandb_run.log(metrics)
 
             final_metrics = self._build_final_metrics(history, num_epochs)
             wandb_run.summary.update(final_metrics)
+            
+            if cfg.verbose:
+                self.logger.info(f"[SaeTrainer] Updated wandb summary with final metrics: {list(final_metrics.keys())}")
 
             if cfg.verbose:
                 try:
@@ -443,6 +774,8 @@ class SaeTrainer:
                     self.logger.info("[SaeTrainer] Metrics logged to wandb (offline mode)")
         except Exception as e:
             self.logger.warning(f"[SaeTrainer] Failed to log metrics to wandb: {e}")
+            import traceback
+            self.logger.warning(f"[SaeTrainer] Traceback: {traceback.format_exc()}")
 
     def _build_epoch_metrics(self, history: dict[str, list[float]], epoch: int, epoch_idx: int, 
                              cfg: SaeTrainingConfig, should_log_slow: bool) -> dict[str, Any]:

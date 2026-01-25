@@ -132,7 +132,7 @@ detector = LayerActivationDetector(
 hook_id = lm.layers.register_hook("transformer.h.0.attn.c_attn", detector)
 
 # Run inference - hook automatically executes
-outputs = lm.forwards(["Hello, world!"])
+outputs, encodings = lm.inference.execute_inference(["Hello, world!"])
 
 # Access collected data
 activations = detector.tensor_metadata.get("activations")

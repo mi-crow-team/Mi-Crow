@@ -8,7 +8,8 @@ from typing import Sequence, Any, Dict, List, TYPE_CHECKING
 import torch
 from torch import nn
 
-from mi_crow.language_model.utils import get_device_from_model, move_tensors_to_device, extract_logits_from_output
+from mi_crow.language_model.utils import move_tensors_to_device, extract_logits_from_output
+from mi_crow.language_model.device_manager import sync_model_to_context_device
 from mi_crow.utils import get_logger
 
 if TYPE_CHECKING:
@@ -52,12 +53,19 @@ class InferenceEngine:
         """
         if tok_kwargs is None:
             tok_kwargs = {}
-        return {
-            "padding": True,
+        
+        padding_strategy = tok_kwargs.pop("padding", True)
+        if padding_strategy is True and "max_length" in tok_kwargs:
+            padding_strategy = "longest"
+        
+        result = {
+            "padding": padding_strategy,
             "truncation": True,
             "return_tensors": "pt",
             **tok_kwargs,
         }
+        
+        return result
     
     def _setup_trackers(self, texts: Sequence[str]) -> None:
         """
@@ -181,10 +189,15 @@ class InferenceEngine:
             raise ValueError("Tokenizer must be initialized before running inference")
 
         tok_kwargs = self._prepare_tokenizer_kwargs(tok_kwargs)
+        logger.debug(f"[DEBUG] About to tokenize {len(texts)} texts...")
         enc = self.lm.tokenize(texts, **tok_kwargs)
+        logger.debug(f"[DEBUG] Tokenization completed, shape: {enc['input_ids'].shape if isinstance(enc, dict) else 'N/A'}")
 
-        device = get_device_from_model(self.lm.model)
+        device = torch.device(self.lm.context.device)
         device_type = str(device.type)
+
+        sync_model_to_context_device(self.lm)
+
         enc = move_tensors_to_device(enc, device)
 
         self.lm.model.eval()
@@ -469,7 +482,7 @@ class InferenceEngine:
         if store is None:
             raise ValueError("Store must be provided or set on the language model")
         
-        device = get_device_from_model(model)
+        device = torch.device(self.lm.context.device)
         device_type = str(device.type)
         
         options = {

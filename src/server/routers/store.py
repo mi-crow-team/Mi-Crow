@@ -18,6 +18,8 @@ class StoreInfo(BaseModel):
 
     artifact_base_path: str
     activation_datasets: Dict[str, List[ActivationRunInfo]] = Field(default_factory=dict)
+    wandb_project: str | None = None
+    wandb_entity: str | None = None
 
 
 class StorePathUpdate(BaseModel):
@@ -56,10 +58,15 @@ def get_store_info(
     service: SAEService = Depends(get_sae_service),
 ) -> StoreInfo:
     """Return the current artifact base path and discovered local datasets."""
+    import os
     activation_datasets = _gather_activation_datasets(settings, service)
+    wandb_project = settings.wandb_project or os.getenv("WANDB_PROJECT")
+    wandb_entity = os.getenv("WANDB_ENTITY")
     return StoreInfo(
         artifact_base_path=str(settings.artifact_base_path),
         activation_datasets=activation_datasets,
+        wandb_project=wandb_project,
+        wandb_entity=wandb_entity,
     )
 
 

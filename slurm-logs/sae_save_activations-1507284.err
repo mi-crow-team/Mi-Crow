@@ -1,0 +1,647 @@
+   Building mi-crow @ file:///mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow
+      Built mi-crow @ file:///mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow
+Uninstalled 1 package in 10ms
+Installed 1 package in 18ms
+2026-01-10 00:34:27,696 [INFO] __main__: 🚀 Starting Activation Saving
+00:34:27 [INFO] __main__: 🚀 Starting Activation Saving
+2026-01-10 00:34:27,696 [INFO] __main__: 📱 Using device: cpu
+00:34:27 [INFO] __main__: 📱 Using device: cpu
+2026-01-10 00:34:27,696 [INFO] __main__: 🔧 Model: speakleash/Bielik-1.5B-v3.0-Instruct
+00:34:27 [INFO] __main__: 🔧 Model: speakleash/Bielik-1.5B-v3.0-Instruct
+2026-01-10 00:34:27,696 [INFO] __main__: 📊 Dataset: clarin-pl/polemo2-official
+00:34:27 [INFO] __main__: 📊 Dataset: clarin-pl/polemo2-official
+2026-01-10 00:34:27,696 [INFO] __main__: 📊 Data limit: 2000
+00:34:27 [INFO] __main__: 📊 Data limit: 2000
+2026-01-10 00:34:27,696 [INFO] __main__: 💾 Run ID: bielik12_polemo2_layer12_3epochs
+00:34:27 [INFO] __main__: 💾 Run ID: bielik12_polemo2_layer12_3epochs
+2026-01-10 00:34:27,696 [INFO] __main__: 📁 Store directory: /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/experiments/slurm_sae_pipeline/store
+00:34:27 [INFO] __main__: 📁 Store directory: /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/experiments/slurm_sae_pipeline/store
+2026-01-10 00:34:27,697 [INFO] __main__: 🎯 Target layer: llamaforcausallm_model_layers_12_post_attention_layernorm
+00:34:27 [INFO] __main__: 🎯 Target layer: llamaforcausallm_model_layers_12_post_attention_layernorm
+2026-01-10 00:34:27,697 [INFO] __main__: 📥 Loading language model...
+00:34:27 [INFO] __main__: 📥 Loading language model...
+2026-01-10 00:35:43,097 [INFO] __main__: ✅ Model loaded: speakleash_Bielik-1.5B-v3.0-Instruct
+00:35:43 [INFO] __main__: ✅ Model loaded: speakleash_Bielik-1.5B-v3.0-Instruct
+2026-01-10 00:35:43,098 [INFO] __main__: 📱 Device: cpu
+00:35:43 [INFO] __main__: 📱 Device: cpu
+2026-01-10 00:35:43,098 [INFO] __main__: 📁 Store location: /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/experiments/slurm_sae_pipeline/store
+00:35:43 [INFO] __main__: 📁 Store location: /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/experiments/slurm_sae_pipeline/store
+2026-01-10 00:35:43,098 [INFO] __main__: 🎯 Target layer: llamaforcausallm_model_layers_12_post_attention_layernorm
+00:35:43 [INFO] __main__: 🎯 Target layer: llamaforcausallm_model_layers_12_post_attention_layernorm
+2026-01-10 00:35:43,099 [INFO] __main__: 📍 Layer type: resid_mid (after attention, before MLP)
+00:35:43 [INFO] __main__: 📍 Layer type: resid_mid (after attention, before MLP)
+2026-01-10 00:35:43,099 [INFO] __main__: 📥 Loading dataset...
+00:35:43 [INFO] __main__: 📥 Loading dataset...
+2026-01-10 00:35:43,099 [INFO] __main__: 📥 Using HuggingFace datasets server API for polemo2-official...
+00:35:43 [INFO] __main__: 📥 Using HuggingFace datasets server API for polemo2-official...
+2026-01-10 00:35:43,101 [INFO] __main__: 📥 Downloading polemo2-official train split from HuggingFace datasets server...
+00:35:43 [INFO] __main__: 📥 Downloading polemo2-official train split from HuggingFace datasets server...
+2026-01-10 00:35:43,954 [INFO] __main__:    Downloaded 100 rows so far...
+00:35:43 [INFO] __main__:    Downloaded 100 rows so far...
+2026-01-10 00:35:45,112 [INFO] __main__:    Downloaded 200 rows so far...
+00:35:45 [INFO] __main__:    Downloaded 200 rows so far...
+2026-01-10 00:35:45,486 [INFO] __main__:    Downloaded 300 rows so far...
+00:35:45 [INFO] __main__:    Downloaded 300 rows so far...
+2026-01-10 00:35:46,001 [INFO] __main__:    Downloaded 400 rows so far...
+00:35:46 [INFO] __main__:    Downloaded 400 rows so far...
+2026-01-10 00:35:46,390 [INFO] __main__:    Downloaded 500 rows so far...
+00:35:46 [INFO] __main__:    Downloaded 500 rows so far...
+2026-01-10 00:35:46,744 [INFO] __main__:    Downloaded 600 rows so far...
+00:35:46 [INFO] __main__:    Downloaded 600 rows so far...
+2026-01-10 00:35:47,075 [INFO] __main__:    Downloaded 700 rows so far...
+00:35:47 [INFO] __main__:    Downloaded 700 rows so far...
+2026-01-10 00:35:47,410 [INFO] __main__:    Downloaded 800 rows so far...
+00:35:47 [INFO] __main__:    Downloaded 800 rows so far...
+2026-01-10 00:35:47,755 [INFO] __main__:    Downloaded 900 rows so far...
+00:35:47 [INFO] __main__:    Downloaded 900 rows so far...
+2026-01-10 00:35:48,113 [INFO] __main__:    Downloaded 1000 rows so far...
+00:35:48 [INFO] __main__:    Downloaded 1000 rows so far...
+2026-01-10 00:35:48,450 [INFO] __main__:    Downloaded 1100 rows so far...
+00:35:48 [INFO] __main__:    Downloaded 1100 rows so far...
+2026-01-10 00:35:48,819 [INFO] __main__:    Downloaded 1200 rows so far...
+00:35:48 [INFO] __main__:    Downloaded 1200 rows so far...
+2026-01-10 00:35:49,145 [INFO] __main__:    Downloaded 1300 rows so far...
+00:35:49 [INFO] __main__:    Downloaded 1300 rows so far...
+2026-01-10 00:35:49,515 [INFO] __main__:    Downloaded 1400 rows so far...
+00:35:49 [INFO] __main__:    Downloaded 1400 rows so far...
+2026-01-10 00:35:49,832 [INFO] __main__:    Downloaded 1500 rows so far...
+00:35:49 [INFO] __main__:    Downloaded 1500 rows so far...
+2026-01-10 00:35:50,150 [INFO] __main__:    Downloaded 1600 rows so far...
+00:35:50 [INFO] __main__:    Downloaded 1600 rows so far...
+2026-01-10 00:35:50,482 [INFO] __main__:    Downloaded 1700 rows so far...
+00:35:50 [INFO] __main__:    Downloaded 1700 rows so far...
+2026-01-10 00:35:50,831 [INFO] __main__:    Downloaded 1800 rows so far...
+00:35:50 [INFO] __main__:    Downloaded 1800 rows so far...
+2026-01-10 00:35:51,206 [INFO] __main__:    Downloaded 1900 rows so far...
+00:35:51 [INFO] __main__:    Downloaded 1900 rows so far...
+2026-01-10 00:35:51,551 [INFO] __main__:    Downloaded 2000 rows so far...
+00:35:51 [INFO] __main__:    Downloaded 2000 rows so far...
+2026-01-10 00:35:52,223 [INFO] __main__:    Downloaded 2100 rows so far...
+00:35:52 [INFO] __main__:    Downloaded 2100 rows so far...
+2026-01-10 00:35:52,666 [INFO] __main__:    Downloaded 2200 rows so far...
+00:35:52 [INFO] __main__:    Downloaded 2200 rows so far...
+2026-01-10 00:35:53,070 [INFO] __main__:    Downloaded 2300 rows so far...
+00:35:53 [INFO] __main__:    Downloaded 2300 rows so far...
+2026-01-10 00:35:53,531 [INFO] __main__:    Downloaded 2400 rows so far...
+00:35:53 [INFO] __main__:    Downloaded 2400 rows so far...
+2026-01-10 00:35:53,957 [INFO] __main__:    Downloaded 2500 rows so far...
+00:35:53 [INFO] __main__:    Downloaded 2500 rows so far...
+2026-01-10 00:35:54,393 [INFO] __main__:    Downloaded 2600 rows so far...
+00:35:54 [INFO] __main__:    Downloaded 2600 rows so far...
+2026-01-10 00:35:54,993 [INFO] __main__:    Downloaded 2700 rows so far...
+00:35:54 [INFO] __main__:    Downloaded 2700 rows so far...
+2026-01-10 00:35:55,352 [INFO] __main__:    Downloaded 2800 rows so far...
+00:35:55 [INFO] __main__:    Downloaded 2800 rows so far...
+2026-01-10 00:35:56,004 [INFO] __main__:    Downloaded 2900 rows so far...
+00:35:56 [INFO] __main__:    Downloaded 2900 rows so far...
+2026-01-10 00:35:56,376 [INFO] __main__:    Downloaded 3000 rows so far...
+00:35:56 [INFO] __main__:    Downloaded 3000 rows so far...
+2026-01-10 00:35:56,695 [INFO] __main__:    Downloaded 3100 rows so far...
+00:35:56 [INFO] __main__:    Downloaded 3100 rows so far...
+2026-01-10 00:35:57,015 [INFO] __main__:    Downloaded 3200 rows so far...
+00:35:57 [INFO] __main__:    Downloaded 3200 rows so far...
+2026-01-10 00:35:57,338 [INFO] __main__:    Downloaded 3300 rows so far...
+00:35:57 [INFO] __main__:    Downloaded 3300 rows so far...
+2026-01-10 00:35:57,691 [INFO] __main__:    Downloaded 3400 rows so far...
+00:35:57 [INFO] __main__:    Downloaded 3400 rows so far...
+2026-01-10 00:35:58,370 [INFO] __main__:    Downloaded 3500 rows so far...
+00:35:58 [INFO] __main__:    Downloaded 3500 rows so far...
+2026-01-10 00:35:58,767 [INFO] __main__:    Downloaded 3600 rows so far...
+00:35:58 [INFO] __main__:    Downloaded 3600 rows so far...
+2026-01-10 00:35:59,145 [INFO] __main__:    Downloaded 3700 rows so far...
+00:35:59 [INFO] __main__:    Downloaded 3700 rows so far...
+2026-01-10 00:35:59,476 [INFO] __main__:    Downloaded 3800 rows so far...
+00:35:59 [INFO] __main__:    Downloaded 3800 rows so far...
+2026-01-10 00:35:59,834 [INFO] __main__:    Downloaded 3900 rows so far...
+00:35:59 [INFO] __main__:    Downloaded 3900 rows so far...
+2026-01-10 00:36:00,210 [INFO] __main__:    Downloaded 4000 rows so far...
+00:36:00 [INFO] __main__:    Downloaded 4000 rows so far...
+2026-01-10 00:36:00,256 [INFO] __main__: ✅ Downloaded 4000 rows to /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/experiments/slurm_sae_pipeline/cache/polemo2_train.jsonl
+00:36:00 [INFO] __main__: ✅ Downloaded 4000 rows to /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/experiments/slurm_sae_pipeline/cache/polemo2_train.jsonl
+Generating train split: 0 examples [00:00, ? examples/s]Generating train split: 4000 examples [00:00, 7517.96 examples/s]Generating train split: 4000 examples [00:00, 7483.33 examples/s]
+Saving the dataset (0/1 shards):   0%|          | 0/4000 [00:00<?, ? examples/s]Saving the dataset (1/1 shards): 100%|██████████| 4000/4000 [00:00<00:00, 348588.50 examples/s]Saving the dataset (1/1 shards): 100%|██████████| 4000/4000 [00:00<00:00, 338407.25 examples/s]
+2026-01-10 00:36:02,246 [INFO] __main__: ✅ Loaded 4000 text samples from dataset
+00:36:02 [INFO] __main__: ✅ Loaded 4000 text samples from dataset
+2026-01-10 00:36:02,246 [INFO] __main__: 📊 Randomly sampling 2000 rows from 4000 total rows...
+00:36:02 [INFO] __main__: 📊 Randomly sampling 2000 rows from 4000 total rows...
+Saving the dataset (0/1 shards):   0%|          | 0/2000 [00:00<?, ? examples/s]Saving the dataset (1/1 shards): 100%|██████████| 2000/2000 [00:00<00:00, 88443.58 examples/s]Saving the dataset (1/1 shards): 100%|██████████| 2000/2000 [00:00<00:00, 85953.26 examples/s]
+2026-01-10 00:36:02,296 [INFO] __main__: ✅ Sampled 2000 text samples
+00:36:02 [INFO] __main__: ✅ Sampled 2000 text samples
+2026-01-10 00:36:02,296 [INFO] __main__: 💾 Saving activations...
+00:36:02 [INFO] __main__: 💾 Saving activations...
+2026-01-10 00:36:02,296 [INFO] __main__:    Batch size: 8
+00:36:02 [INFO] __main__:    Batch size: 8
+2026-01-10 00:36:02,296 [INFO] __main__:    Max length: 256
+00:36:02 [INFO] __main__:    Max length: 256
+2026-01-10 00:36:02,296 [INFO] mi_crow.language_model.activations: Starting save_activations_dataset: run=bielik12_polemo2_layer12_3epochs, layers=['llamaforcausallm_model_layers_12_post_attention_layernorm'], batch_size=8, device=cpu
+00:36:02 [INFO] mi_crow.language_model.activations: Starting save_activations_dataset: run=bielik12_polemo2_layer12_3epochs, layers=['llamaforcausallm_model_layers_12_post_attention_layernorm'], batch_size=8, device=cpu
+2026-01-10 00:36:07,760 [INFO] mi_crow.language_model.activations: Saved batch 0 for run=bielik12_polemo2_layer12_3epochs
+00:36:07 [INFO] mi_crow.language_model.activations: Saved batch 0 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:36:10,653 [INFO] mi_crow.language_model.activations: Saved batch 1 for run=bielik12_polemo2_layer12_3epochs
+00:36:10 [INFO] mi_crow.language_model.activations: Saved batch 1 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:36:14,172 [INFO] mi_crow.language_model.activations: Saved batch 2 for run=bielik12_polemo2_layer12_3epochs
+00:36:14 [INFO] mi_crow.language_model.activations: Saved batch 2 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:36:20,298 [INFO] mi_crow.language_model.activations: Saved batch 3 for run=bielik12_polemo2_layer12_3epochs
+00:36:20 [INFO] mi_crow.language_model.activations: Saved batch 3 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:36:25,890 [INFO] mi_crow.language_model.activations: Saved batch 4 for run=bielik12_polemo2_layer12_3epochs
+00:36:25 [INFO] mi_crow.language_model.activations: Saved batch 4 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:36:28,483 [INFO] mi_crow.language_model.activations: Saved batch 5 for run=bielik12_polemo2_layer12_3epochs
+00:36:28 [INFO] mi_crow.language_model.activations: Saved batch 5 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:36:31,557 [INFO] mi_crow.language_model.activations: Saved batch 6 for run=bielik12_polemo2_layer12_3epochs
+00:36:31 [INFO] mi_crow.language_model.activations: Saved batch 6 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:36:33,776 [INFO] mi_crow.language_model.activations: Saved batch 7 for run=bielik12_polemo2_layer12_3epochs
+00:36:33 [INFO] mi_crow.language_model.activations: Saved batch 7 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:36:35,998 [INFO] mi_crow.language_model.activations: Saved batch 8 for run=bielik12_polemo2_layer12_3epochs
+00:36:35 [INFO] mi_crow.language_model.activations: Saved batch 8 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:36:39,223 [INFO] mi_crow.language_model.activations: Saved batch 9 for run=bielik12_polemo2_layer12_3epochs
+00:36:39 [INFO] mi_crow.language_model.activations: Saved batch 9 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:36:42,786 [INFO] mi_crow.language_model.activations: Saved batch 10 for run=bielik12_polemo2_layer12_3epochs
+00:36:42 [INFO] mi_crow.language_model.activations: Saved batch 10 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:36:46,012 [INFO] mi_crow.language_model.activations: Saved batch 11 for run=bielik12_polemo2_layer12_3epochs
+00:36:46 [INFO] mi_crow.language_model.activations: Saved batch 11 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:36:48,228 [INFO] mi_crow.language_model.activations: Saved batch 12 for run=bielik12_polemo2_layer12_3epochs
+00:36:48 [INFO] mi_crow.language_model.activations: Saved batch 12 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:36:50,345 [INFO] mi_crow.language_model.activations: Saved batch 13 for run=bielik12_polemo2_layer12_3epochs
+00:36:50 [INFO] mi_crow.language_model.activations: Saved batch 13 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:36:52,327 [INFO] mi_crow.language_model.activations: Saved batch 14 for run=bielik12_polemo2_layer12_3epochs
+00:36:52 [INFO] mi_crow.language_model.activations: Saved batch 14 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:36:56,072 [INFO] mi_crow.language_model.activations: Saved batch 15 for run=bielik12_polemo2_layer12_3epochs
+00:36:56 [INFO] mi_crow.language_model.activations: Saved batch 15 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:37:00,213 [INFO] mi_crow.language_model.activations: Saved batch 16 for run=bielik12_polemo2_layer12_3epochs
+00:37:00 [INFO] mi_crow.language_model.activations: Saved batch 16 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:37:03,355 [INFO] mi_crow.language_model.activations: Saved batch 17 for run=bielik12_polemo2_layer12_3epochs
+00:37:03 [INFO] mi_crow.language_model.activations: Saved batch 17 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:37:05,513 [INFO] mi_crow.language_model.activations: Saved batch 18 for run=bielik12_polemo2_layer12_3epochs
+00:37:05 [INFO] mi_crow.language_model.activations: Saved batch 18 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:37:07,923 [INFO] mi_crow.language_model.activations: Saved batch 19 for run=bielik12_polemo2_layer12_3epochs
+00:37:07 [INFO] mi_crow.language_model.activations: Saved batch 19 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:37:10,223 [INFO] mi_crow.language_model.activations: Saved batch 20 for run=bielik12_polemo2_layer12_3epochs
+00:37:10 [INFO] mi_crow.language_model.activations: Saved batch 20 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:37:13,609 [INFO] mi_crow.language_model.activations: Saved batch 21 for run=bielik12_polemo2_layer12_3epochs
+00:37:13 [INFO] mi_crow.language_model.activations: Saved batch 21 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:37:17,506 [INFO] mi_crow.language_model.activations: Saved batch 22 for run=bielik12_polemo2_layer12_3epochs
+00:37:17 [INFO] mi_crow.language_model.activations: Saved batch 22 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:37:18,997 [INFO] mi_crow.language_model.activations: Saved batch 23 for run=bielik12_polemo2_layer12_3epochs
+00:37:18 [INFO] mi_crow.language_model.activations: Saved batch 23 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:37:23,737 [INFO] mi_crow.language_model.activations: Saved batch 24 for run=bielik12_polemo2_layer12_3epochs
+00:37:23 [INFO] mi_crow.language_model.activations: Saved batch 24 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:37:27,226 [INFO] mi_crow.language_model.activations: Saved batch 25 for run=bielik12_polemo2_layer12_3epochs
+00:37:27 [INFO] mi_crow.language_model.activations: Saved batch 25 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:37:30,663 [INFO] mi_crow.language_model.activations: Saved batch 26 for run=bielik12_polemo2_layer12_3epochs
+00:37:30 [INFO] mi_crow.language_model.activations: Saved batch 26 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:37:33,809 [INFO] mi_crow.language_model.activations: Saved batch 27 for run=bielik12_polemo2_layer12_3epochs
+00:37:33 [INFO] mi_crow.language_model.activations: Saved batch 27 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:37:37,057 [INFO] mi_crow.language_model.activations: Saved batch 28 for run=bielik12_polemo2_layer12_3epochs
+00:37:37 [INFO] mi_crow.language_model.activations: Saved batch 28 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:37:40,261 [INFO] mi_crow.language_model.activations: Saved batch 29 for run=bielik12_polemo2_layer12_3epochs
+00:37:40 [INFO] mi_crow.language_model.activations: Saved batch 29 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:37:42,751 [INFO] mi_crow.language_model.activations: Saved batch 30 for run=bielik12_polemo2_layer12_3epochs
+00:37:42 [INFO] mi_crow.language_model.activations: Saved batch 30 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:37:44,550 [INFO] mi_crow.language_model.activations: Saved batch 31 for run=bielik12_polemo2_layer12_3epochs
+00:37:44 [INFO] mi_crow.language_model.activations: Saved batch 31 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:37:48,097 [INFO] mi_crow.language_model.activations: Saved batch 32 for run=bielik12_polemo2_layer12_3epochs
+00:37:48 [INFO] mi_crow.language_model.activations: Saved batch 32 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:37:50,430 [INFO] mi_crow.language_model.activations: Saved batch 33 for run=bielik12_polemo2_layer12_3epochs
+00:37:50 [INFO] mi_crow.language_model.activations: Saved batch 33 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:37:52,665 [INFO] mi_crow.language_model.activations: Saved batch 34 for run=bielik12_polemo2_layer12_3epochs
+00:37:52 [INFO] mi_crow.language_model.activations: Saved batch 34 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:37:57,341 [INFO] mi_crow.language_model.activations: Saved batch 35 for run=bielik12_polemo2_layer12_3epochs
+00:37:57 [INFO] mi_crow.language_model.activations: Saved batch 35 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:38:00,783 [INFO] mi_crow.language_model.activations: Saved batch 36 for run=bielik12_polemo2_layer12_3epochs
+00:38:00 [INFO] mi_crow.language_model.activations: Saved batch 36 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:38:15,110 [INFO] mi_crow.language_model.activations: Saved batch 37 for run=bielik12_polemo2_layer12_3epochs
+00:38:15 [INFO] mi_crow.language_model.activations: Saved batch 37 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:38:17,499 [INFO] mi_crow.language_model.activations: Saved batch 38 for run=bielik12_polemo2_layer12_3epochs
+00:38:17 [INFO] mi_crow.language_model.activations: Saved batch 38 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:38:21,669 [INFO] mi_crow.language_model.activations: Saved batch 39 for run=bielik12_polemo2_layer12_3epochs
+00:38:21 [INFO] mi_crow.language_model.activations: Saved batch 39 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:38:23,556 [INFO] mi_crow.language_model.activations: Saved batch 40 for run=bielik12_polemo2_layer12_3epochs
+00:38:23 [INFO] mi_crow.language_model.activations: Saved batch 40 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:38:27,353 [INFO] mi_crow.language_model.activations: Saved batch 41 for run=bielik12_polemo2_layer12_3epochs
+00:38:27 [INFO] mi_crow.language_model.activations: Saved batch 41 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:38:31,778 [INFO] mi_crow.language_model.activations: Saved batch 42 for run=bielik12_polemo2_layer12_3epochs
+00:38:31 [INFO] mi_crow.language_model.activations: Saved batch 42 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:38:33,678 [INFO] mi_crow.language_model.activations: Saved batch 43 for run=bielik12_polemo2_layer12_3epochs
+00:38:33 [INFO] mi_crow.language_model.activations: Saved batch 43 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:38:36,124 [INFO] mi_crow.language_model.activations: Saved batch 44 for run=bielik12_polemo2_layer12_3epochs
+00:38:36 [INFO] mi_crow.language_model.activations: Saved batch 44 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:38:39,548 [INFO] mi_crow.language_model.activations: Saved batch 45 for run=bielik12_polemo2_layer12_3epochs
+00:38:39 [INFO] mi_crow.language_model.activations: Saved batch 45 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:38:43,627 [INFO] mi_crow.language_model.activations: Saved batch 46 for run=bielik12_polemo2_layer12_3epochs
+00:38:43 [INFO] mi_crow.language_model.activations: Saved batch 46 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:38:46,965 [INFO] mi_crow.language_model.activations: Saved batch 47 for run=bielik12_polemo2_layer12_3epochs
+00:38:46 [INFO] mi_crow.language_model.activations: Saved batch 47 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:38:49,639 [INFO] mi_crow.language_model.activations: Saved batch 48 for run=bielik12_polemo2_layer12_3epochs
+00:38:49 [INFO] mi_crow.language_model.activations: Saved batch 48 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:38:55,636 [INFO] mi_crow.language_model.activations: Saved batch 49 for run=bielik12_polemo2_layer12_3epochs
+00:38:55 [INFO] mi_crow.language_model.activations: Saved batch 49 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:38:57,519 [INFO] mi_crow.language_model.activations: Saved batch 50 for run=bielik12_polemo2_layer12_3epochs
+00:38:57 [INFO] mi_crow.language_model.activations: Saved batch 50 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:39:00,822 [INFO] mi_crow.language_model.activations: Saved batch 51 for run=bielik12_polemo2_layer12_3epochs
+00:39:00 [INFO] mi_crow.language_model.activations: Saved batch 51 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:39:03,019 [INFO] mi_crow.language_model.activations: Saved batch 52 for run=bielik12_polemo2_layer12_3epochs
+00:39:03 [INFO] mi_crow.language_model.activations: Saved batch 52 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:39:06,689 [INFO] mi_crow.language_model.activations: Saved batch 53 for run=bielik12_polemo2_layer12_3epochs
+00:39:06 [INFO] mi_crow.language_model.activations: Saved batch 53 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:39:08,718 [INFO] mi_crow.language_model.activations: Saved batch 54 for run=bielik12_polemo2_layer12_3epochs
+00:39:08 [INFO] mi_crow.language_model.activations: Saved batch 54 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:39:17,853 [INFO] mi_crow.language_model.activations: Saved batch 55 for run=bielik12_polemo2_layer12_3epochs
+00:39:17 [INFO] mi_crow.language_model.activations: Saved batch 55 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:39:21,116 [INFO] mi_crow.language_model.activations: Saved batch 56 for run=bielik12_polemo2_layer12_3epochs
+00:39:21 [INFO] mi_crow.language_model.activations: Saved batch 56 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:39:23,092 [INFO] mi_crow.language_model.activations: Saved batch 57 for run=bielik12_polemo2_layer12_3epochs
+00:39:23 [INFO] mi_crow.language_model.activations: Saved batch 57 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:39:25,516 [INFO] mi_crow.language_model.activations: Saved batch 58 for run=bielik12_polemo2_layer12_3epochs
+00:39:25 [INFO] mi_crow.language_model.activations: Saved batch 58 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:39:30,819 [INFO] mi_crow.language_model.activations: Saved batch 59 for run=bielik12_polemo2_layer12_3epochs
+00:39:30 [INFO] mi_crow.language_model.activations: Saved batch 59 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:39:34,193 [INFO] mi_crow.language_model.activations: Saved batch 60 for run=bielik12_polemo2_layer12_3epochs
+00:39:34 [INFO] mi_crow.language_model.activations: Saved batch 60 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:39:36,973 [INFO] mi_crow.language_model.activations: Saved batch 61 for run=bielik12_polemo2_layer12_3epochs
+00:39:36 [INFO] mi_crow.language_model.activations: Saved batch 61 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:39:40,436 [INFO] mi_crow.language_model.activations: Saved batch 62 for run=bielik12_polemo2_layer12_3epochs
+00:39:40 [INFO] mi_crow.language_model.activations: Saved batch 62 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:39:42,316 [INFO] mi_crow.language_model.activations: Saved batch 63 for run=bielik12_polemo2_layer12_3epochs
+00:39:42 [INFO] mi_crow.language_model.activations: Saved batch 63 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:39:44,502 [INFO] mi_crow.language_model.activations: Saved batch 64 for run=bielik12_polemo2_layer12_3epochs
+00:39:44 [INFO] mi_crow.language_model.activations: Saved batch 64 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:39:46,287 [INFO] mi_crow.language_model.activations: Saved batch 65 for run=bielik12_polemo2_layer12_3epochs
+00:39:46 [INFO] mi_crow.language_model.activations: Saved batch 65 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:39:49,082 [INFO] mi_crow.language_model.activations: Saved batch 66 for run=bielik12_polemo2_layer12_3epochs
+00:39:49 [INFO] mi_crow.language_model.activations: Saved batch 66 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:39:51,414 [INFO] mi_crow.language_model.activations: Saved batch 67 for run=bielik12_polemo2_layer12_3epochs
+00:39:51 [INFO] mi_crow.language_model.activations: Saved batch 67 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:39:55,260 [INFO] mi_crow.language_model.activations: Saved batch 68 for run=bielik12_polemo2_layer12_3epochs
+00:39:55 [INFO] mi_crow.language_model.activations: Saved batch 68 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:39:58,419 [INFO] mi_crow.language_model.activations: Saved batch 69 for run=bielik12_polemo2_layer12_3epochs
+00:39:58 [INFO] mi_crow.language_model.activations: Saved batch 69 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:40:01,717 [INFO] mi_crow.language_model.activations: Saved batch 70 for run=bielik12_polemo2_layer12_3epochs
+00:40:01 [INFO] mi_crow.language_model.activations: Saved batch 70 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:40:04,209 [INFO] mi_crow.language_model.activations: Saved batch 71 for run=bielik12_polemo2_layer12_3epochs
+00:40:04 [INFO] mi_crow.language_model.activations: Saved batch 71 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:40:07,551 [INFO] mi_crow.language_model.activations: Saved batch 72 for run=bielik12_polemo2_layer12_3epochs
+00:40:07 [INFO] mi_crow.language_model.activations: Saved batch 72 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:40:12,002 [INFO] mi_crow.language_model.activations: Saved batch 73 for run=bielik12_polemo2_layer12_3epochs
+00:40:12 [INFO] mi_crow.language_model.activations: Saved batch 73 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:40:16,229 [INFO] mi_crow.language_model.activations: Saved batch 74 for run=bielik12_polemo2_layer12_3epochs
+00:40:16 [INFO] mi_crow.language_model.activations: Saved batch 74 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:40:18,779 [INFO] mi_crow.language_model.activations: Saved batch 75 for run=bielik12_polemo2_layer12_3epochs
+00:40:18 [INFO] mi_crow.language_model.activations: Saved batch 75 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:40:20,466 [INFO] mi_crow.language_model.activations: Saved batch 76 for run=bielik12_polemo2_layer12_3epochs
+00:40:20 [INFO] mi_crow.language_model.activations: Saved batch 76 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:40:24,705 [INFO] mi_crow.language_model.activations: Saved batch 77 for run=bielik12_polemo2_layer12_3epochs
+00:40:24 [INFO] mi_crow.language_model.activations: Saved batch 77 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:40:30,889 [INFO] mi_crow.language_model.activations: Saved batch 78 for run=bielik12_polemo2_layer12_3epochs
+00:40:30 [INFO] mi_crow.language_model.activations: Saved batch 78 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:40:33,392 [INFO] mi_crow.language_model.activations: Saved batch 79 for run=bielik12_polemo2_layer12_3epochs
+00:40:33 [INFO] mi_crow.language_model.activations: Saved batch 79 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:40:37,292 [INFO] mi_crow.language_model.activations: Saved batch 80 for run=bielik12_polemo2_layer12_3epochs
+00:40:37 [INFO] mi_crow.language_model.activations: Saved batch 80 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:40:39,947 [INFO] mi_crow.language_model.activations: Saved batch 81 for run=bielik12_polemo2_layer12_3epochs
+00:40:39 [INFO] mi_crow.language_model.activations: Saved batch 81 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:40:41,944 [INFO] mi_crow.language_model.activations: Saved batch 82 for run=bielik12_polemo2_layer12_3epochs
+00:40:41 [INFO] mi_crow.language_model.activations: Saved batch 82 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:40:46,777 [INFO] mi_crow.language_model.activations: Saved batch 83 for run=bielik12_polemo2_layer12_3epochs
+00:40:46 [INFO] mi_crow.language_model.activations: Saved batch 83 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:40:49,640 [INFO] mi_crow.language_model.activations: Saved batch 84 for run=bielik12_polemo2_layer12_3epochs
+00:40:49 [INFO] mi_crow.language_model.activations: Saved batch 84 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:40:53,472 [INFO] mi_crow.language_model.activations: Saved batch 85 for run=bielik12_polemo2_layer12_3epochs
+00:40:53 [INFO] mi_crow.language_model.activations: Saved batch 85 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:40:55,710 [INFO] mi_crow.language_model.activations: Saved batch 86 for run=bielik12_polemo2_layer12_3epochs
+00:40:55 [INFO] mi_crow.language_model.activations: Saved batch 86 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:40:59,048 [INFO] mi_crow.language_model.activations: Saved batch 87 for run=bielik12_polemo2_layer12_3epochs
+00:40:59 [INFO] mi_crow.language_model.activations: Saved batch 87 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:41:01,465 [INFO] mi_crow.language_model.activations: Saved batch 88 for run=bielik12_polemo2_layer12_3epochs
+00:41:01 [INFO] mi_crow.language_model.activations: Saved batch 88 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:41:04,806 [INFO] mi_crow.language_model.activations: Saved batch 89 for run=bielik12_polemo2_layer12_3epochs
+00:41:04 [INFO] mi_crow.language_model.activations: Saved batch 89 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:41:08,327 [INFO] mi_crow.language_model.activations: Saved batch 90 for run=bielik12_polemo2_layer12_3epochs
+00:41:08 [INFO] mi_crow.language_model.activations: Saved batch 90 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:41:10,605 [INFO] mi_crow.language_model.activations: Saved batch 91 for run=bielik12_polemo2_layer12_3epochs
+00:41:10 [INFO] mi_crow.language_model.activations: Saved batch 91 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:41:13,039 [INFO] mi_crow.language_model.activations: Saved batch 92 for run=bielik12_polemo2_layer12_3epochs
+00:41:13 [INFO] mi_crow.language_model.activations: Saved batch 92 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:41:15,021 [INFO] mi_crow.language_model.activations: Saved batch 93 for run=bielik12_polemo2_layer12_3epochs
+00:41:15 [INFO] mi_crow.language_model.activations: Saved batch 93 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:41:20,488 [INFO] mi_crow.language_model.activations: Saved batch 94 for run=bielik12_polemo2_layer12_3epochs
+00:41:20 [INFO] mi_crow.language_model.activations: Saved batch 94 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:41:22,823 [INFO] mi_crow.language_model.activations: Saved batch 95 for run=bielik12_polemo2_layer12_3epochs
+00:41:22 [INFO] mi_crow.language_model.activations: Saved batch 95 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:41:25,053 [INFO] mi_crow.language_model.activations: Saved batch 96 for run=bielik12_polemo2_layer12_3epochs
+00:41:25 [INFO] mi_crow.language_model.activations: Saved batch 96 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:41:27,696 [INFO] mi_crow.language_model.activations: Saved batch 97 for run=bielik12_polemo2_layer12_3epochs
+00:41:27 [INFO] mi_crow.language_model.activations: Saved batch 97 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:41:31,231 [INFO] mi_crow.language_model.activations: Saved batch 98 for run=bielik12_polemo2_layer12_3epochs
+00:41:31 [INFO] mi_crow.language_model.activations: Saved batch 98 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:41:33,871 [INFO] mi_crow.language_model.activations: Saved batch 99 for run=bielik12_polemo2_layer12_3epochs
+00:41:33 [INFO] mi_crow.language_model.activations: Saved batch 99 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:41:37,132 [INFO] mi_crow.language_model.activations: Saved batch 100 for run=bielik12_polemo2_layer12_3epochs
+00:41:37 [INFO] mi_crow.language_model.activations: Saved batch 100 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:41:39,207 [INFO] mi_crow.language_model.activations: Saved batch 101 for run=bielik12_polemo2_layer12_3epochs
+00:41:39 [INFO] mi_crow.language_model.activations: Saved batch 101 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:41:41,275 [INFO] mi_crow.language_model.activations: Saved batch 102 for run=bielik12_polemo2_layer12_3epochs
+00:41:41 [INFO] mi_crow.language_model.activations: Saved batch 102 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:41:44,649 [INFO] mi_crow.language_model.activations: Saved batch 103 for run=bielik12_polemo2_layer12_3epochs
+00:41:44 [INFO] mi_crow.language_model.activations: Saved batch 103 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:41:48,092 [INFO] mi_crow.language_model.activations: Saved batch 104 for run=bielik12_polemo2_layer12_3epochs
+00:41:48 [INFO] mi_crow.language_model.activations: Saved batch 104 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:41:50,323 [INFO] mi_crow.language_model.activations: Saved batch 105 for run=bielik12_polemo2_layer12_3epochs
+00:41:50 [INFO] mi_crow.language_model.activations: Saved batch 105 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:41:53,278 [INFO] mi_crow.language_model.activations: Saved batch 106 for run=bielik12_polemo2_layer12_3epochs
+00:41:53 [INFO] mi_crow.language_model.activations: Saved batch 106 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:41:57,043 [INFO] mi_crow.language_model.activations: Saved batch 107 for run=bielik12_polemo2_layer12_3epochs
+00:41:57 [INFO] mi_crow.language_model.activations: Saved batch 107 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:41:59,326 [INFO] mi_crow.language_model.activations: Saved batch 108 for run=bielik12_polemo2_layer12_3epochs
+00:41:59 [INFO] mi_crow.language_model.activations: Saved batch 108 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:42:01,665 [INFO] mi_crow.language_model.activations: Saved batch 109 for run=bielik12_polemo2_layer12_3epochs
+00:42:01 [INFO] mi_crow.language_model.activations: Saved batch 109 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:42:05,653 [INFO] mi_crow.language_model.activations: Saved batch 110 for run=bielik12_polemo2_layer12_3epochs
+00:42:05 [INFO] mi_crow.language_model.activations: Saved batch 110 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:42:09,715 [INFO] mi_crow.language_model.activations: Saved batch 111 for run=bielik12_polemo2_layer12_3epochs
+00:42:09 [INFO] mi_crow.language_model.activations: Saved batch 111 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:42:14,369 [INFO] mi_crow.language_model.activations: Saved batch 112 for run=bielik12_polemo2_layer12_3epochs
+00:42:14 [INFO] mi_crow.language_model.activations: Saved batch 112 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:42:16,874 [INFO] mi_crow.language_model.activations: Saved batch 113 for run=bielik12_polemo2_layer12_3epochs
+00:42:16 [INFO] mi_crow.language_model.activations: Saved batch 113 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:42:18,614 [INFO] mi_crow.language_model.activations: Saved batch 114 for run=bielik12_polemo2_layer12_3epochs
+00:42:18 [INFO] mi_crow.language_model.activations: Saved batch 114 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:42:21,110 [INFO] mi_crow.language_model.activations: Saved batch 115 for run=bielik12_polemo2_layer12_3epochs
+00:42:21 [INFO] mi_crow.language_model.activations: Saved batch 115 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:42:23,301 [INFO] mi_crow.language_model.activations: Saved batch 116 for run=bielik12_polemo2_layer12_3epochs
+00:42:23 [INFO] mi_crow.language_model.activations: Saved batch 116 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:42:37,623 [INFO] mi_crow.language_model.activations: Saved batch 117 for run=bielik12_polemo2_layer12_3epochs
+00:42:37 [INFO] mi_crow.language_model.activations: Saved batch 117 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:42:42,005 [INFO] mi_crow.language_model.activations: Saved batch 118 for run=bielik12_polemo2_layer12_3epochs
+00:42:42 [INFO] mi_crow.language_model.activations: Saved batch 118 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:42:45,592 [INFO] mi_crow.language_model.activations: Saved batch 119 for run=bielik12_polemo2_layer12_3epochs
+00:42:45 [INFO] mi_crow.language_model.activations: Saved batch 119 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:42:49,991 [INFO] mi_crow.language_model.activations: Saved batch 120 for run=bielik12_polemo2_layer12_3epochs
+00:42:49 [INFO] mi_crow.language_model.activations: Saved batch 120 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:42:52,344 [INFO] mi_crow.language_model.activations: Saved batch 121 for run=bielik12_polemo2_layer12_3epochs
+00:42:52 [INFO] mi_crow.language_model.activations: Saved batch 121 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:42:56,114 [INFO] mi_crow.language_model.activations: Saved batch 122 for run=bielik12_polemo2_layer12_3epochs
+00:42:56 [INFO] mi_crow.language_model.activations: Saved batch 122 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:42:58,720 [INFO] mi_crow.language_model.activations: Saved batch 123 for run=bielik12_polemo2_layer12_3epochs
+00:42:58 [INFO] mi_crow.language_model.activations: Saved batch 123 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:43:01,127 [INFO] mi_crow.language_model.activations: Saved batch 124 for run=bielik12_polemo2_layer12_3epochs
+00:43:01 [INFO] mi_crow.language_model.activations: Saved batch 124 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:43:09,191 [INFO] mi_crow.language_model.activations: Saved batch 125 for run=bielik12_polemo2_layer12_3epochs
+00:43:09 [INFO] mi_crow.language_model.activations: Saved batch 125 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:43:11,865 [INFO] mi_crow.language_model.activations: Saved batch 126 for run=bielik12_polemo2_layer12_3epochs
+00:43:11 [INFO] mi_crow.language_model.activations: Saved batch 126 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:43:14,098 [INFO] mi_crow.language_model.activations: Saved batch 127 for run=bielik12_polemo2_layer12_3epochs
+00:43:14 [INFO] mi_crow.language_model.activations: Saved batch 127 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:43:15,957 [INFO] mi_crow.language_model.activations: Saved batch 128 for run=bielik12_polemo2_layer12_3epochs
+00:43:15 [INFO] mi_crow.language_model.activations: Saved batch 128 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:43:20,255 [INFO] mi_crow.language_model.activations: Saved batch 129 for run=bielik12_polemo2_layer12_3epochs
+00:43:20 [INFO] mi_crow.language_model.activations: Saved batch 129 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:43:22,423 [INFO] mi_crow.language_model.activations: Saved batch 130 for run=bielik12_polemo2_layer12_3epochs
+00:43:22 [INFO] mi_crow.language_model.activations: Saved batch 130 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:43:25,017 [INFO] mi_crow.language_model.activations: Saved batch 131 for run=bielik12_polemo2_layer12_3epochs
+00:43:25 [INFO] mi_crow.language_model.activations: Saved batch 131 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:43:27,822 [INFO] mi_crow.language_model.activations: Saved batch 132 for run=bielik12_polemo2_layer12_3epochs
+00:43:27 [INFO] mi_crow.language_model.activations: Saved batch 132 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:43:32,711 [INFO] mi_crow.language_model.activations: Saved batch 133 for run=bielik12_polemo2_layer12_3epochs
+00:43:32 [INFO] mi_crow.language_model.activations: Saved batch 133 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:43:35,201 [INFO] mi_crow.language_model.activations: Saved batch 134 for run=bielik12_polemo2_layer12_3epochs
+00:43:35 [INFO] mi_crow.language_model.activations: Saved batch 134 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:43:37,469 [INFO] mi_crow.language_model.activations: Saved batch 135 for run=bielik12_polemo2_layer12_3epochs
+00:43:37 [INFO] mi_crow.language_model.activations: Saved batch 135 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:43:39,485 [INFO] mi_crow.language_model.activations: Saved batch 136 for run=bielik12_polemo2_layer12_3epochs
+00:43:39 [INFO] mi_crow.language_model.activations: Saved batch 136 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:43:42,020 [INFO] mi_crow.language_model.activations: Saved batch 137 for run=bielik12_polemo2_layer12_3epochs
+00:43:42 [INFO] mi_crow.language_model.activations: Saved batch 137 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:43:47,115 [INFO] mi_crow.language_model.activations: Saved batch 138 for run=bielik12_polemo2_layer12_3epochs
+00:43:47 [INFO] mi_crow.language_model.activations: Saved batch 138 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:43:48,688 [INFO] mi_crow.language_model.activations: Saved batch 139 for run=bielik12_polemo2_layer12_3epochs
+00:43:48 [INFO] mi_crow.language_model.activations: Saved batch 139 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:43:50,915 [INFO] mi_crow.language_model.activations: Saved batch 140 for run=bielik12_polemo2_layer12_3epochs
+00:43:50 [INFO] mi_crow.language_model.activations: Saved batch 140 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:43:53,614 [INFO] mi_crow.language_model.activations: Saved batch 141 for run=bielik12_polemo2_layer12_3epochs
+00:43:53 [INFO] mi_crow.language_model.activations: Saved batch 141 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:43:55,763 [INFO] mi_crow.language_model.activations: Saved batch 142 for run=bielik12_polemo2_layer12_3epochs
+00:43:55 [INFO] mi_crow.language_model.activations: Saved batch 142 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:43:59,081 [INFO] mi_crow.language_model.activations: Saved batch 143 for run=bielik12_polemo2_layer12_3epochs
+00:43:59 [INFO] mi_crow.language_model.activations: Saved batch 143 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:44:03,794 [INFO] mi_crow.language_model.activations: Saved batch 144 for run=bielik12_polemo2_layer12_3epochs
+00:44:03 [INFO] mi_crow.language_model.activations: Saved batch 144 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:44:05,399 [INFO] mi_crow.language_model.activations: Saved batch 145 for run=bielik12_polemo2_layer12_3epochs
+00:44:05 [INFO] mi_crow.language_model.activations: Saved batch 145 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:44:08,062 [INFO] mi_crow.language_model.activations: Saved batch 146 for run=bielik12_polemo2_layer12_3epochs
+00:44:08 [INFO] mi_crow.language_model.activations: Saved batch 146 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:44:10,307 [INFO] mi_crow.language_model.activations: Saved batch 147 for run=bielik12_polemo2_layer12_3epochs
+00:44:10 [INFO] mi_crow.language_model.activations: Saved batch 147 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:44:12,463 [INFO] mi_crow.language_model.activations: Saved batch 148 for run=bielik12_polemo2_layer12_3epochs
+00:44:12 [INFO] mi_crow.language_model.activations: Saved batch 148 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:44:14,879 [INFO] mi_crow.language_model.activations: Saved batch 149 for run=bielik12_polemo2_layer12_3epochs
+00:44:14 [INFO] mi_crow.language_model.activations: Saved batch 149 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:44:17,506 [INFO] mi_crow.language_model.activations: Saved batch 150 for run=bielik12_polemo2_layer12_3epochs
+00:44:17 [INFO] mi_crow.language_model.activations: Saved batch 150 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:44:22,776 [INFO] mi_crow.language_model.activations: Saved batch 151 for run=bielik12_polemo2_layer12_3epochs
+00:44:22 [INFO] mi_crow.language_model.activations: Saved batch 151 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:44:25,278 [INFO] mi_crow.language_model.activations: Saved batch 152 for run=bielik12_polemo2_layer12_3epochs
+00:44:25 [INFO] mi_crow.language_model.activations: Saved batch 152 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:44:29,429 [INFO] mi_crow.language_model.activations: Saved batch 153 for run=bielik12_polemo2_layer12_3epochs
+00:44:29 [INFO] mi_crow.language_model.activations: Saved batch 153 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:44:32,431 [INFO] mi_crow.language_model.activations: Saved batch 154 for run=bielik12_polemo2_layer12_3epochs
+00:44:32 [INFO] mi_crow.language_model.activations: Saved batch 154 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:44:35,900 [INFO] mi_crow.language_model.activations: Saved batch 155 for run=bielik12_polemo2_layer12_3epochs
+00:44:35 [INFO] mi_crow.language_model.activations: Saved batch 155 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:44:38,367 [INFO] mi_crow.language_model.activations: Saved batch 156 for run=bielik12_polemo2_layer12_3epochs
+00:44:38 [INFO] mi_crow.language_model.activations: Saved batch 156 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:44:41,674 [INFO] mi_crow.language_model.activations: Saved batch 157 for run=bielik12_polemo2_layer12_3epochs
+00:44:41 [INFO] mi_crow.language_model.activations: Saved batch 157 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:44:43,836 [INFO] mi_crow.language_model.activations: Saved batch 158 for run=bielik12_polemo2_layer12_3epochs
+00:44:43 [INFO] mi_crow.language_model.activations: Saved batch 158 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:44:47,750 [INFO] mi_crow.language_model.activations: Saved batch 159 for run=bielik12_polemo2_layer12_3epochs
+00:44:47 [INFO] mi_crow.language_model.activations: Saved batch 159 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:44:54,453 [INFO] mi_crow.language_model.activations: Saved batch 160 for run=bielik12_polemo2_layer12_3epochs
+00:44:54 [INFO] mi_crow.language_model.activations: Saved batch 160 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:44:56,921 [INFO] mi_crow.language_model.activations: Saved batch 161 for run=bielik12_polemo2_layer12_3epochs
+00:44:56 [INFO] mi_crow.language_model.activations: Saved batch 161 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:44:59,437 [INFO] mi_crow.language_model.activations: Saved batch 162 for run=bielik12_polemo2_layer12_3epochs
+00:44:59 [INFO] mi_crow.language_model.activations: Saved batch 162 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:45:01,193 [INFO] mi_crow.language_model.activations: Saved batch 163 for run=bielik12_polemo2_layer12_3epochs
+00:45:01 [INFO] mi_crow.language_model.activations: Saved batch 163 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:45:07,148 [INFO] mi_crow.language_model.activations: Saved batch 164 for run=bielik12_polemo2_layer12_3epochs
+00:45:07 [INFO] mi_crow.language_model.activations: Saved batch 164 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:45:10,309 [INFO] mi_crow.language_model.activations: Saved batch 165 for run=bielik12_polemo2_layer12_3epochs
+00:45:10 [INFO] mi_crow.language_model.activations: Saved batch 165 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:45:12,594 [INFO] mi_crow.language_model.activations: Saved batch 166 for run=bielik12_polemo2_layer12_3epochs
+00:45:12 [INFO] mi_crow.language_model.activations: Saved batch 166 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:45:17,884 [INFO] mi_crow.language_model.activations: Saved batch 167 for run=bielik12_polemo2_layer12_3epochs
+00:45:17 [INFO] mi_crow.language_model.activations: Saved batch 167 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:45:21,480 [INFO] mi_crow.language_model.activations: Saved batch 168 for run=bielik12_polemo2_layer12_3epochs
+00:45:21 [INFO] mi_crow.language_model.activations: Saved batch 168 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:45:28,435 [INFO] mi_crow.language_model.activations: Saved batch 169 for run=bielik12_polemo2_layer12_3epochs
+00:45:28 [INFO] mi_crow.language_model.activations: Saved batch 169 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:45:34,994 [INFO] mi_crow.language_model.activations: Saved batch 170 for run=bielik12_polemo2_layer12_3epochs
+00:45:34 [INFO] mi_crow.language_model.activations: Saved batch 170 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:45:43,009 [INFO] mi_crow.language_model.activations: Saved batch 171 for run=bielik12_polemo2_layer12_3epochs
+00:45:43 [INFO] mi_crow.language_model.activations: Saved batch 171 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:45:45,324 [INFO] mi_crow.language_model.activations: Saved batch 172 for run=bielik12_polemo2_layer12_3epochs
+00:45:45 [INFO] mi_crow.language_model.activations: Saved batch 172 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:45:47,031 [INFO] mi_crow.language_model.activations: Saved batch 173 for run=bielik12_polemo2_layer12_3epochs
+00:45:47 [INFO] mi_crow.language_model.activations: Saved batch 173 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:45:50,945 [INFO] mi_crow.language_model.activations: Saved batch 174 for run=bielik12_polemo2_layer12_3epochs
+00:45:50 [INFO] mi_crow.language_model.activations: Saved batch 174 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:45:52,987 [INFO] mi_crow.language_model.activations: Saved batch 175 for run=bielik12_polemo2_layer12_3epochs
+00:45:52 [INFO] mi_crow.language_model.activations: Saved batch 175 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:45:55,545 [INFO] mi_crow.language_model.activations: Saved batch 176 for run=bielik12_polemo2_layer12_3epochs
+00:45:55 [INFO] mi_crow.language_model.activations: Saved batch 176 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:45:57,342 [INFO] mi_crow.language_model.activations: Saved batch 177 for run=bielik12_polemo2_layer12_3epochs
+00:45:57 [INFO] mi_crow.language_model.activations: Saved batch 177 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:45:59,745 [INFO] mi_crow.language_model.activations: Saved batch 178 for run=bielik12_polemo2_layer12_3epochs
+00:45:59 [INFO] mi_crow.language_model.activations: Saved batch 178 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:46:02,203 [INFO] mi_crow.language_model.activations: Saved batch 179 for run=bielik12_polemo2_layer12_3epochs
+00:46:02 [INFO] mi_crow.language_model.activations: Saved batch 179 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:46:05,572 [INFO] mi_crow.language_model.activations: Saved batch 180 for run=bielik12_polemo2_layer12_3epochs
+00:46:05 [INFO] mi_crow.language_model.activations: Saved batch 180 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:46:08,308 [INFO] mi_crow.language_model.activations: Saved batch 181 for run=bielik12_polemo2_layer12_3epochs
+00:46:08 [INFO] mi_crow.language_model.activations: Saved batch 181 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:46:10,793 [INFO] mi_crow.language_model.activations: Saved batch 182 for run=bielik12_polemo2_layer12_3epochs
+00:46:10 [INFO] mi_crow.language_model.activations: Saved batch 182 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:46:13,246 [INFO] mi_crow.language_model.activations: Saved batch 183 for run=bielik12_polemo2_layer12_3epochs
+00:46:13 [INFO] mi_crow.language_model.activations: Saved batch 183 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:46:15,293 [INFO] mi_crow.language_model.activations: Saved batch 184 for run=bielik12_polemo2_layer12_3epochs
+00:46:15 [INFO] mi_crow.language_model.activations: Saved batch 184 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:46:17,995 [INFO] mi_crow.language_model.activations: Saved batch 185 for run=bielik12_polemo2_layer12_3epochs
+00:46:17 [INFO] mi_crow.language_model.activations: Saved batch 185 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:46:21,084 [INFO] mi_crow.language_model.activations: Saved batch 186 for run=bielik12_polemo2_layer12_3epochs
+00:46:21 [INFO] mi_crow.language_model.activations: Saved batch 186 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:46:26,375 [INFO] mi_crow.language_model.activations: Saved batch 187 for run=bielik12_polemo2_layer12_3epochs
+00:46:26 [INFO] mi_crow.language_model.activations: Saved batch 187 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:46:29,125 [INFO] mi_crow.language_model.activations: Saved batch 188 for run=bielik12_polemo2_layer12_3epochs
+00:46:29 [INFO] mi_crow.language_model.activations: Saved batch 188 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:46:31,168 [INFO] mi_crow.language_model.activations: Saved batch 189 for run=bielik12_polemo2_layer12_3epochs
+00:46:31 [INFO] mi_crow.language_model.activations: Saved batch 189 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:46:32,903 [INFO] mi_crow.language_model.activations: Saved batch 190 for run=bielik12_polemo2_layer12_3epochs
+00:46:32 [INFO] mi_crow.language_model.activations: Saved batch 190 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:46:37,701 [INFO] mi_crow.language_model.activations: Saved batch 191 for run=bielik12_polemo2_layer12_3epochs
+00:46:37 [INFO] mi_crow.language_model.activations: Saved batch 191 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:46:40,393 [INFO] mi_crow.language_model.activations: Saved batch 192 for run=bielik12_polemo2_layer12_3epochs
+00:46:40 [INFO] mi_crow.language_model.activations: Saved batch 192 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:46:42,993 [INFO] mi_crow.language_model.activations: Saved batch 193 for run=bielik12_polemo2_layer12_3epochs
+00:46:42 [INFO] mi_crow.language_model.activations: Saved batch 193 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:46:45,690 [INFO] mi_crow.language_model.activations: Saved batch 194 for run=bielik12_polemo2_layer12_3epochs
+00:46:45 [INFO] mi_crow.language_model.activations: Saved batch 194 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:46:50,351 [INFO] mi_crow.language_model.activations: Saved batch 195 for run=bielik12_polemo2_layer12_3epochs
+00:46:50 [INFO] mi_crow.language_model.activations: Saved batch 195 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:46:52,816 [INFO] mi_crow.language_model.activations: Saved batch 196 for run=bielik12_polemo2_layer12_3epochs
+00:46:52 [INFO] mi_crow.language_model.activations: Saved batch 196 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:46:58,864 [INFO] mi_crow.language_model.activations: Saved batch 197 for run=bielik12_polemo2_layer12_3epochs
+00:46:58 [INFO] mi_crow.language_model.activations: Saved batch 197 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:47:01,394 [INFO] mi_crow.language_model.activations: Saved batch 198 for run=bielik12_polemo2_layer12_3epochs
+00:47:01 [INFO] mi_crow.language_model.activations: Saved batch 198 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:47:03,919 [INFO] mi_crow.language_model.activations: Saved batch 199 for run=bielik12_polemo2_layer12_3epochs
+00:47:03 [INFO] mi_crow.language_model.activations: Saved batch 199 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:47:07,495 [INFO] mi_crow.language_model.activations: Saved batch 200 for run=bielik12_polemo2_layer12_3epochs
+00:47:07 [INFO] mi_crow.language_model.activations: Saved batch 200 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:47:09,442 [INFO] mi_crow.language_model.activations: Saved batch 201 for run=bielik12_polemo2_layer12_3epochs
+00:47:09 [INFO] mi_crow.language_model.activations: Saved batch 201 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:47:11,584 [INFO] mi_crow.language_model.activations: Saved batch 202 for run=bielik12_polemo2_layer12_3epochs
+00:47:11 [INFO] mi_crow.language_model.activations: Saved batch 202 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:47:16,602 [INFO] mi_crow.language_model.activations: Saved batch 203 for run=bielik12_polemo2_layer12_3epochs
+00:47:16 [INFO] mi_crow.language_model.activations: Saved batch 203 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:47:22,152 [INFO] mi_crow.language_model.activations: Saved batch 204 for run=bielik12_polemo2_layer12_3epochs
+00:47:22 [INFO] mi_crow.language_model.activations: Saved batch 204 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:47:26,313 [INFO] mi_crow.language_model.activations: Saved batch 205 for run=bielik12_polemo2_layer12_3epochs
+00:47:26 [INFO] mi_crow.language_model.activations: Saved batch 205 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:47:28,774 [INFO] mi_crow.language_model.activations: Saved batch 206 for run=bielik12_polemo2_layer12_3epochs
+00:47:28 [INFO] mi_crow.language_model.activations: Saved batch 206 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:47:30,922 [INFO] mi_crow.language_model.activations: Saved batch 207 for run=bielik12_polemo2_layer12_3epochs
+00:47:30 [INFO] mi_crow.language_model.activations: Saved batch 207 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:47:35,569 [INFO] mi_crow.language_model.activations: Saved batch 208 for run=bielik12_polemo2_layer12_3epochs
+00:47:35 [INFO] mi_crow.language_model.activations: Saved batch 208 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:47:37,604 [INFO] mi_crow.language_model.activations: Saved batch 209 for run=bielik12_polemo2_layer12_3epochs
+00:47:37 [INFO] mi_crow.language_model.activations: Saved batch 209 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:47:39,625 [INFO] mi_crow.language_model.activations: Saved batch 210 for run=bielik12_polemo2_layer12_3epochs
+00:47:39 [INFO] mi_crow.language_model.activations: Saved batch 210 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:47:42,552 [INFO] mi_crow.language_model.activations: Saved batch 211 for run=bielik12_polemo2_layer12_3epochs
+00:47:42 [INFO] mi_crow.language_model.activations: Saved batch 211 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:47:44,410 [INFO] mi_crow.language_model.activations: Saved batch 212 for run=bielik12_polemo2_layer12_3epochs
+00:47:44 [INFO] mi_crow.language_model.activations: Saved batch 212 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:47:46,825 [INFO] mi_crow.language_model.activations: Saved batch 213 for run=bielik12_polemo2_layer12_3epochs
+00:47:46 [INFO] mi_crow.language_model.activations: Saved batch 213 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:47:49,178 [INFO] mi_crow.language_model.activations: Saved batch 214 for run=bielik12_polemo2_layer12_3epochs
+00:47:49 [INFO] mi_crow.language_model.activations: Saved batch 214 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:47:50,783 [INFO] mi_crow.language_model.activations: Saved batch 215 for run=bielik12_polemo2_layer12_3epochs
+00:47:50 [INFO] mi_crow.language_model.activations: Saved batch 215 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:47:56,929 [INFO] mi_crow.language_model.activations: Saved batch 216 for run=bielik12_polemo2_layer12_3epochs
+00:47:56 [INFO] mi_crow.language_model.activations: Saved batch 216 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:47:59,453 [INFO] mi_crow.language_model.activations: Saved batch 217 for run=bielik12_polemo2_layer12_3epochs
+00:47:59 [INFO] mi_crow.language_model.activations: Saved batch 217 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:48:02,567 [INFO] mi_crow.language_model.activations: Saved batch 218 for run=bielik12_polemo2_layer12_3epochs
+00:48:02 [INFO] mi_crow.language_model.activations: Saved batch 218 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:48:04,564 [INFO] mi_crow.language_model.activations: Saved batch 219 for run=bielik12_polemo2_layer12_3epochs
+00:48:04 [INFO] mi_crow.language_model.activations: Saved batch 219 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:48:07,266 [INFO] mi_crow.language_model.activations: Saved batch 220 for run=bielik12_polemo2_layer12_3epochs
+00:48:07 [INFO] mi_crow.language_model.activations: Saved batch 220 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:48:09,677 [INFO] mi_crow.language_model.activations: Saved batch 221 for run=bielik12_polemo2_layer12_3epochs
+00:48:09 [INFO] mi_crow.language_model.activations: Saved batch 221 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:48:18,396 [INFO] mi_crow.language_model.activations: Saved batch 222 for run=bielik12_polemo2_layer12_3epochs
+00:48:18 [INFO] mi_crow.language_model.activations: Saved batch 222 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:48:22,020 [INFO] mi_crow.language_model.activations: Saved batch 223 for run=bielik12_polemo2_layer12_3epochs
+00:48:22 [INFO] mi_crow.language_model.activations: Saved batch 223 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:48:24,549 [INFO] mi_crow.language_model.activations: Saved batch 224 for run=bielik12_polemo2_layer12_3epochs
+00:48:24 [INFO] mi_crow.language_model.activations: Saved batch 224 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:48:26,763 [INFO] mi_crow.language_model.activations: Saved batch 225 for run=bielik12_polemo2_layer12_3epochs
+00:48:26 [INFO] mi_crow.language_model.activations: Saved batch 225 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:48:28,837 [INFO] mi_crow.language_model.activations: Saved batch 226 for run=bielik12_polemo2_layer12_3epochs
+00:48:28 [INFO] mi_crow.language_model.activations: Saved batch 226 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:48:31,490 [INFO] mi_crow.language_model.activations: Saved batch 227 for run=bielik12_polemo2_layer12_3epochs
+00:48:31 [INFO] mi_crow.language_model.activations: Saved batch 227 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:48:33,553 [INFO] mi_crow.language_model.activations: Saved batch 228 for run=bielik12_polemo2_layer12_3epochs
+00:48:33 [INFO] mi_crow.language_model.activations: Saved batch 228 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:48:37,428 [INFO] mi_crow.language_model.activations: Saved batch 229 for run=bielik12_polemo2_layer12_3epochs
+00:48:37 [INFO] mi_crow.language_model.activations: Saved batch 229 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:48:42,315 [INFO] mi_crow.language_model.activations: Saved batch 230 for run=bielik12_polemo2_layer12_3epochs
+00:48:42 [INFO] mi_crow.language_model.activations: Saved batch 230 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:48:46,173 [INFO] mi_crow.language_model.activations: Saved batch 231 for run=bielik12_polemo2_layer12_3epochs
+00:48:46 [INFO] mi_crow.language_model.activations: Saved batch 231 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:48:50,356 [INFO] mi_crow.language_model.activations: Saved batch 232 for run=bielik12_polemo2_layer12_3epochs
+00:48:50 [INFO] mi_crow.language_model.activations: Saved batch 232 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:48:52,798 [INFO] mi_crow.language_model.activations: Saved batch 233 for run=bielik12_polemo2_layer12_3epochs
+00:48:52 [INFO] mi_crow.language_model.activations: Saved batch 233 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:48:55,707 [INFO] mi_crow.language_model.activations: Saved batch 234 for run=bielik12_polemo2_layer12_3epochs
+00:48:55 [INFO] mi_crow.language_model.activations: Saved batch 234 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:48:58,063 [INFO] mi_crow.language_model.activations: Saved batch 235 for run=bielik12_polemo2_layer12_3epochs
+00:48:58 [INFO] mi_crow.language_model.activations: Saved batch 235 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:49:01,053 [INFO] mi_crow.language_model.activations: Saved batch 236 for run=bielik12_polemo2_layer12_3epochs
+00:49:01 [INFO] mi_crow.language_model.activations: Saved batch 236 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:49:05,494 [INFO] mi_crow.language_model.activations: Saved batch 237 for run=bielik12_polemo2_layer12_3epochs
+00:49:05 [INFO] mi_crow.language_model.activations: Saved batch 237 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:49:08,380 [INFO] mi_crow.language_model.activations: Saved batch 238 for run=bielik12_polemo2_layer12_3epochs
+00:49:08 [INFO] mi_crow.language_model.activations: Saved batch 238 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:49:13,093 [INFO] mi_crow.language_model.activations: Saved batch 239 for run=bielik12_polemo2_layer12_3epochs
+00:49:13 [INFO] mi_crow.language_model.activations: Saved batch 239 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:49:15,231 [INFO] mi_crow.language_model.activations: Saved batch 240 for run=bielik12_polemo2_layer12_3epochs
+00:49:15 [INFO] mi_crow.language_model.activations: Saved batch 240 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:49:18,901 [INFO] mi_crow.language_model.activations: Saved batch 241 for run=bielik12_polemo2_layer12_3epochs
+00:49:18 [INFO] mi_crow.language_model.activations: Saved batch 241 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:49:21,500 [INFO] mi_crow.language_model.activations: Saved batch 242 for run=bielik12_polemo2_layer12_3epochs
+00:49:21 [INFO] mi_crow.language_model.activations: Saved batch 242 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:49:23,439 [INFO] mi_crow.language_model.activations: Saved batch 243 for run=bielik12_polemo2_layer12_3epochs
+00:49:23 [INFO] mi_crow.language_model.activations: Saved batch 243 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:49:25,768 [INFO] mi_crow.language_model.activations: Saved batch 244 for run=bielik12_polemo2_layer12_3epochs
+00:49:25 [INFO] mi_crow.language_model.activations: Saved batch 244 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:49:29,667 [INFO] mi_crow.language_model.activations: Saved batch 245 for run=bielik12_polemo2_layer12_3epochs
+00:49:29 [INFO] mi_crow.language_model.activations: Saved batch 245 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:49:32,164 [INFO] mi_crow.language_model.activations: Saved batch 246 for run=bielik12_polemo2_layer12_3epochs
+00:49:32 [INFO] mi_crow.language_model.activations: Saved batch 246 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:49:35,957 [INFO] mi_crow.language_model.activations: Saved batch 247 for run=bielik12_polemo2_layer12_3epochs
+00:49:35 [INFO] mi_crow.language_model.activations: Saved batch 247 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:49:38,350 [INFO] mi_crow.language_model.activations: Saved batch 248 for run=bielik12_polemo2_layer12_3epochs
+00:49:38 [INFO] mi_crow.language_model.activations: Saved batch 248 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:49:40,487 [INFO] mi_crow.language_model.activations: Saved batch 249 for run=bielik12_polemo2_layer12_3epochs
+00:49:40 [INFO] mi_crow.language_model.activations: Saved batch 249 for run=bielik12_polemo2_layer12_3epochs
+2026-01-10 00:49:40,532 [INFO] mi_crow.language_model.activations: Completed save_activations_dataset: run=bielik12_polemo2_layer12_3epochs, batches_saved=250
+00:49:40 [INFO] mi_crow.language_model.activations: Completed save_activations_dataset: run=bielik12_polemo2_layer12_3epochs, batches_saved=250
+2026-01-10 00:49:40,589 [INFO] __main__: ✅ Activations saved!
+00:49:40 [INFO] __main__: ✅ Activations saved!
+2026-01-10 00:49:40,589 [INFO] __main__: 📁 Run name: bielik12_polemo2_layer12_3epochs
+00:49:40 [INFO] __main__: 📁 Run name: bielik12_polemo2_layer12_3epochs
+2026-01-10 00:49:40,590 [INFO] __main__: 📦 Saved 250 batches to store
+00:49:40 [INFO] __main__: 📦 Saved 250 batches to store
+2026-01-10 00:49:40,592 [INFO] __main__: 💾 Run ID saved to: /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/experiments/slurm_sae_pipeline/store/run_id.txt
+00:49:40 [INFO] __main__: 💾 Run ID saved to: /mnt/evafs/groups/mi2lab/akaniasty/Mi-Crow/experiments/slurm_sae_pipeline/store/run_id.txt

@@ -43,7 +43,7 @@ jobs:
         run: |
           pytest \
             --maxfail=1 -q \
-            --cov=. \
+            --cov=mi_crow \
             --cov-report=term \
             --cov-report=xml:coverage.xml \
             --cov-report=html \
