@@ -40,24 +40,28 @@ def log_subcategory_distribution(dataset: ClassificationDataset, dataset_name: s
     """Log the distribution of subcategories in the dataset."""
     logger.info("   Subcategory distribution:")
 
-    # Access underlying HuggingFace dataset directly to get subcategory column
+    # Try to get subcategories from the items directly (which respects format restrictions)
     try:
-        if hasattr(dataset, "_ds"):
-            # Check if column exists in the dataset
-            if "subcategory" not in dataset._ds.column_names:
-                logger.warning("   Subcategory column not available (only text and label columns were saved)")
-                return
+        # Get first item to check if subcategory field is accessible
+        items = list(dataset.iter_items())
+        if not items:
+            logger.warning("   No items in dataset")
+            return
 
-            subcategories = dataset._ds["subcategory"]
-            counter = Counter(subcategories)
+        # Check if subcategory is in the first item
+        if "subcategory" not in items[0]:
+            logger.warning("   Subcategory field not available (not in category_field)")
+            return
 
-            total = len(subcategories)
-            # Sort by count (descending) then by name
-            for subcategory, count in sorted(counter.items(), key=lambda x: (-x[1], str(x[0]))):
-                percentage = (count / total * 100) if total > 0 else 0
-                logger.info("     %s: %d (%.2f%%)", subcategory, count, percentage)
-        else:
-            logger.warning("   Cannot access underlying dataset")
+        # Extract subcategories from all items
+        subcategories = [item["subcategory"] for item in items]
+        counter = Counter(subcategories)
+
+        total = len(subcategories)
+        # Sort by count (descending) then by name
+        for subcategory, count in sorted(counter.items(), key=lambda x: (-x[1], str(x[0]))):
+            percentage = (count / total * 100) if total > 0 else 0
+            logger.info("     %s: %d (%.2f%%)", subcategory, count, percentage)
     except Exception as e:
         logger.warning("   Failed to get subcategory distribution: %s", e)
 
