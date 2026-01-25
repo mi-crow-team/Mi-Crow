@@ -7,13 +7,16 @@ This script:
 - Extracts top-k activating features per token
 - Maps feature indices to concept names from dictionaries
 - Generates structured output
+- Optional steering test: baseline vs steered generation (amplify concept) for a few examples
 
 Usage:
-    python 08_run_sample_inferences.py --sae_paths path1.pt path2.pt --test_sentences_file sentences.txt
+    python 08_run_sample_inferences.py --sae_paths path1.pt --layer_signatures layer_sig ...
+    python 08_run_sample_inferences.py ... --steering_test  # add baseline vs steered generation
 """
 
 import argparse
 import json
+import re
 import torch
 from pathlib import Path
 from typing import Dict, List, Optional, Any
@@ -46,6 +49,72 @@ while project_root != project_root.parent:
 env_file = project_root / ".env"
 if env_file.exists():
     load_dotenv(env_file, override=True)
+
+STEERING_TEMPERATURE = 0.7
+STEERING_AMPLIFICATION = 2.0
+
+
+def map_layer_to_concept_dict(layer_sig: str, base_dir: Path) -> Optional[Path]:
+    """Resolve concept dict path from layer signature (e.g. bielik-1.5b/layer_15)."""
+    m = re.search(r"layers_(\d+)", layer_sig)
+    if not m:
+        return None
+    layer_num = int(m.group(1))
+    if layer_num in (15, 20):
+        model_size = "1.5b"
+    elif layer_num in (28, 38):
+        model_size = "4.5b"
+    else:
+        return None
+    p = base_dir / f"bielik-{model_size}" / f"layer_{layer_num}" / "concepts.json"
+    return p if p.exists() else None
+
+
+def reset_manipulation(sae: Sae) -> None:
+    """Reset SAE concept manipulation to baseline."""
+    sae.concepts.multiplication.data = torch.ones_like(sae.concepts.multiplication.data)
+    sae.concepts.bias.data = torch.zeros_like(sae.concepts.bias.data)
+
+
+def apply_concept_manipulation(sae: Sae, concept_indices: List[int], factor: float) -> None:
+    """Amplify specific concept neurons by factor."""
+    reset_manipulation(sae)
+    for idx in concept_indices:
+        if 0 <= idx < sae.context.n_latents:
+            sae.concepts.multiplication.data[idx] = factor
+
+
+def generate_text(
+    lm: LanguageModel,
+    prompt: str,
+    max_new_tokens: int = 30,
+    temperature: float = STEERING_TEMPERATURE,
+) -> str:
+    """Generate continuation from prompt."""
+    dev = next(lm.model.parameters()).device
+    encoded = lm.tokenizer([prompt], return_tensors="pt")
+    encoded = {k: v.to(dev) for k, v in encoded.items()}
+    with torch.no_grad():
+        out = lm.model.generate(
+            **encoded,
+            max_new_tokens=max_new_tokens,
+            do_sample=True,
+            temperature=temperature,
+            pad_token_id=lm.tokenizer.eos_token_id,
+        )
+    text = lm.tokenizer.decode(out[0], skip_special_tokens=True)
+    return text[len(prompt):].strip()
+
+
+def concept_indices_for_name(concept_dict: ConceptDictionary, name: str) -> List[int]:
+    """Return feature indices whose concept name matches (exact or contains)."""
+    out = []
+    name_lower = name.lower().replace("-", "_")
+    for idx, c in concept_dict.concepts_map.items():
+        n = c.name.lower().replace("-", "_")
+        if name_lower == n or name_lower in n or n in name_lower:
+            out.append(idx)
+    return out
 
 
 def load_sae_auto(sae_path: Path, device: str = "cpu") -> Sae:
@@ -81,7 +150,27 @@ def load_sae_auto(sae_path: Path, device: str = "cpu") -> Sae:
                     sae.context.device = device
                     return sae
                 elif sae_class == "L1Sae":
-                    sae = L1Sae.load(sae_path)
+                    try:
+                        sae = L1Sae.load(sae_path)
+                    except (AssertionError, RuntimeError) as e:
+                        if "cuda" in str(e).lower():
+                            logger.warning("SAE saved with CUDA but CUDA unavailable; loading to CPU.")
+                            payload = torch.load(sae_path, map_location="cpu", weights_only=False)
+                            meta = payload.get("mi_crow_metadata", {})
+                            n_latents = int(meta["n_latents"])
+                            n_inputs = int(meta["n_inputs"])
+                            sae = L1Sae(n_latents=n_latents, n_inputs=n_inputs, device="cpu")
+                            if "sae_state_dict" in payload:
+                                sae.sae_engine.load_state_dict(payload["sae_state_dict"])
+                            elif "model" in payload:
+                                sae.sae_engine.load_state_dict(payload["model"])
+                            cs = meta.get("concepts_state", {})
+                            if "multiplication" in cs:
+                                sae.concepts.multiplication.data = cs["multiplication"].clone()
+                            if "bias" in cs:
+                                sae.concepts.bias.data = cs["bias"].clone()
+                        else:
+                            raise
                     sae.sae_engine.to(target_device)
                     sae.context.device = device
                     return sae
@@ -94,7 +183,27 @@ def load_sae_auto(sae_path: Path, device: str = "cpu") -> Sae:
         sae.context.device = device
         return sae
     except Exception:
-        sae = L1Sae.load(sae_path)
+        try:
+            sae = L1Sae.load(sae_path)
+        except (AssertionError, RuntimeError) as e:
+            if "cuda" in str(e).lower():
+                logger.warning("SAE saved with CUDA but CUDA unavailable; loading to CPU.")
+                payload = torch.load(sae_path, map_location="cpu", weights_only=False)
+                meta = payload.get("mi_crow_metadata", {})
+                n_latents = int(meta["n_latents"])
+                n_inputs = int(meta["n_inputs"])
+                sae = L1Sae(n_latents=n_latents, n_inputs=n_inputs, device="cpu")
+                if "sae_state_dict" in payload:
+                    sae.sae_engine.load_state_dict(payload["sae_state_dict"])
+                elif "model" in payload:
+                    sae.sae_engine.load_state_dict(payload["model"])
+                cs = meta.get("concepts_state", {})
+                if "multiplication" in cs:
+                    sae.concepts.multiplication.data = cs["multiplication"].clone()
+                if "bias" in cs:
+                    sae.concepts.bias.data = cs["bias"].clone()
+            else:
+                raise
         sae.sae_engine.to(target_device)
         sae.context.device = device
         return sae
@@ -120,14 +229,21 @@ def run_inference_with_sae(
     Returns:
         List of token-level feature activations
     """
-    device = lm.context.device
-    inputs = lm.tokenizer.encode(sentence, return_tensors="pt", truncation=True, max_length=512)
-    inputs = {k: v.to(device) for k, v in inputs.items()}
-    
+    device = next(lm.model.parameters()).device
+    enc = lm.tokenizer(
+        sentence,
+        return_tensors="pt",
+        truncation=True,
+        max_length=512,
+    )
+    inputs = {k: v.to(device) for k, v in enc.items()}
     input_ids = inputs["input_ids"][0]
-    tokens = lm.tokenizer.convert_ids_to_tokens(input_ids)
+    tokens = lm.tokenizer.convert_ids_to_tokens(input_ids.tolist())
     
-    sae.eval()
+    if hasattr(sae, "sae_engine"):
+        sae.sae_engine.eval()
+    elif hasattr(sae, "eval"):
+        sae.eval()
     lm.model.eval()
     
     captured_activations = None
@@ -220,21 +336,22 @@ def annotate_sentence_with_features(
         }
         
         for feature_data in token_data["features"]:
+            if not concept_dict:
+                continue
+            concept = concept_dict.get(feature_data["feature_idx"])
+            if not concept:
+                continue
             feature_info = {
                 "feature_idx": feature_data["feature_idx"],
                 "activation": feature_data["activation"],
                 "abs_activation": feature_data["abs_activation"],
+                "concept_name": concept.name,
+                "concept_score": concept.score,
             }
-            
-            if concept_dict:
-                concept = concept_dict.get(feature_data["feature_idx"])
-                if concept:
-                    feature_info["concept_name"] = concept.name
-                    feature_info["concept_score"] = concept.score
-            
             token_info["features"].append(feature_info)
         
-        annotated["tokens"].append(token_info)
+        if token_info["features"]:
+            annotated["tokens"].append(token_info)
     
     return annotated
 
@@ -248,6 +365,8 @@ def main():
     parser.add_argument("--concept_dicts_dir", type=str, default=None, help="Directory containing concept dictionaries")
     parser.add_argument("--top_k", type=int, default=3, help="Number of top features per token")
     parser.add_argument("--output_dir", type=str, default=None, help="Output directory for results")
+    parser.add_argument("--steering_test", action="store_true", help="Run steering test: baseline vs steered generation for a few examples")
+    parser.add_argument("--steering_max_tokens", type=int, default=30, help="Max new tokens for steering generations")
     args = parser.parse_args()
     
     script_dir = Path(__file__).parent
@@ -294,7 +413,8 @@ def main():
     lm.model.eval()
     
     all_results = {}
-    
+    first_sae, first_layer_sig, first_concept_dict = None, None, None
+
     for sae_path_str, layer_sig in zip(args.sae_paths, args.layer_signatures):
         sae_path = Path(sae_path_str)
         logger.info(f"📥 Loading SAE from {sae_path} for layer {layer_sig}...")
@@ -304,7 +424,10 @@ def main():
         
         concept_dict = None
         if args.concept_dicts_dir:
-            concept_dict_path = Path(args.concept_dicts_dir) / sae_path.stem / "concepts.json"
+            base = Path(args.concept_dicts_dir)
+            concept_dict_path = map_layer_to_concept_dict(layer_sig, base)
+            if not concept_dict_path or not concept_dict_path.exists():
+                concept_dict_path = base / sae_path.stem / "concepts.json"
             if concept_dict_path.exists():
                 concept_dict = ConceptDictionary(n_size=sae.context.n_latents)
                 concept_dict.set_directory(concept_dict_path.parent)
@@ -313,6 +436,9 @@ def main():
                     logger.info(f"   Loaded concept dictionary with {len(concept_dict.concepts_map)} concepts")
                 except Exception as e:
                     logger.warning(f"   Could not load concept dictionary: {e}")
+        
+        if first_sae is None and concept_dict is not None:
+            first_sae, first_layer_sig, first_concept_dict = sae, layer_sig, concept_dict
         
         sentence_results = []
         
@@ -330,6 +456,82 @@ def main():
         json.dump(all_results, f, indent=2, ensure_ascii=False)
     
     logger.info(f"✅ Inference complete! Results saved to {output_file}")
+
+    if args.steering_test and first_sae is not None and first_concept_dict is not None:
+        logger.info("🎛️ Running steering test...")
+        _run_steering_test(
+            lm=lm,
+            sae=first_sae,
+            layer_sig=first_layer_sig,
+            concept_dict=first_concept_dict,
+            output_dir=output_dir,
+            max_new_tokens=args.steering_max_tokens,
+        )
+
+
+def _run_steering_test(
+    lm: LanguageModel,
+    sae: Sae,
+    layer_sig: str,
+    concept_dict: Optional[ConceptDictionary],
+    output_dir: Path,
+    max_new_tokens: int = 30,
+) -> None:
+    """
+    Run steering examples: same prompt, baseline vs steered (amplify one concept).
+    Expectation: baseline output is generic; steered output is more about the concept.
+    """
+    if not concept_dict or not concept_dict.concepts_map:
+        logger.warning("⏭️ Steering test skipped: no concept dictionary")
+        return
+
+    steering_examples = [
+        ("Kontynuuj: ", "pokoje_hotelowe"),
+        ("Opowiedz krótko: ", "lekarz"),
+        ("Napisz zdanie: ", "wyrażenie_sprawdzające"),
+    ]
+    results = []
+    hook_id = None
+
+    try:
+        hook_id = lm.layers.register_hook(layer_sig, sae)
+        sae.context.lm = lm
+        sae.context.lm_layer_signature = layer_sig
+    except Exception as e:
+        logger.warning(f"⏭️ Steering test skipped: could not register SAE hook: {e}")
+        return
+
+    try:
+        for prompt, concept_name in steering_examples:
+            indices = concept_indices_for_name(concept_dict, concept_name)
+            if not indices:
+                logger.info(f"   Steering skip: no concept '{concept_name}' in dictionary")
+                continue
+
+            reset_manipulation(sae)
+            baseline = generate_text(lm, prompt, max_new_tokens=max_new_tokens)
+            apply_concept_manipulation(sae, indices, STEERING_AMPLIFICATION)
+            steered = generate_text(lm, prompt, max_new_tokens=max_new_tokens)
+            reset_manipulation(sae)
+
+            results.append({
+                "prompt": prompt,
+                "concept_name": concept_name,
+                "concept_indices": indices,
+                "baseline_output": baseline,
+                "steered_output": steered,
+            })
+            logger.info(f"   Steering: prompt='{prompt[:30]}...' concept={concept_name}")
+            logger.info(f"      Baseline:  {baseline[:80]}...")
+            logger.info(f"      Steered:   {steered[:80]}...")
+    finally:
+        if hook_id is not None:
+            lm.layers.unregister_hook(hook_id)
+
+    out_path = output_dir / "steering_results.json"
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2, ensure_ascii=False)
+    logger.info(f"✅ Steering test complete! Results saved to {out_path}")
 
 
 if __name__ == "__main__":

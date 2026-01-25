@@ -463,24 +463,16 @@ def generate_concepts_report(
                 token_str = text_data.get("token_str", "")
                 
                 words = text.split()
-                highlighted_text = text
-                token_display = None
-                
                 if 0 <= token_idx < len(words):
                     words[token_idx] = f"[{words[token_idx]}]"
                     highlighted_text = " ".join(words)
-                    token_display = words[token_idx].strip("[]")
-                elif token_str and not token_str.startswith("<token_") and token_str in text:
-                    highlighted_text = text.replace(token_str, f"[{token_str}]", 1)
-                    token_display = token_str
+                else:
+                    highlighted_text = text
+                    if token_str and token_str in text:
+                        highlighted_text = text.replace(token_str, f"[{token_str}]", 1)
                 
                 lines.append(f"\n{i}. Activation: {score:.3f}")
-                if token_display:
-                    lines.append(f"   Token: '{token_display}' (index {token_idx})")
-                elif token_str and not token_str.startswith("<token_"):
-                    lines.append(f"   Token: '{token_str}' (index {token_idx}, out of range)")
-                else:
-                    lines.append(f"   Token index: {token_idx} (token not available)")
+                lines.append(f"   Token: '{token_str}' (index {token_idx})")
                 lines.append(f"   Text: {highlighted_text}")
         else:
             lines.append("\nNo text examples available for this feature.")

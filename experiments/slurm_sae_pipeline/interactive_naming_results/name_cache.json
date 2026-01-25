@@ -1,0 +1,844 @@
+{
+  "llamaforcausallm_model_layers_15": {
+    "3369": {
+      "name": "czasownik",
+      "score": 0.85
+    },
+    "537": {
+      "name": "czasownik",
+      "score": 0.85
+    },
+    "1741": {
+      "name": "obsługa",
+      "score": 1.0
+    },
+    "5803": {
+      "name": "czasownik",
+      "score": 0.85
+    },
+    "5878": {
+      "name": "czasownik-zwrotny",
+      "score": 0.95
+    },
+    "3160": {
+      "name": "wszystkie",
+      "score": 1.0
+    },
+    "5431": {
+      "name": "lokalizacja",
+      "score": 0.85
+    },
+    "1293": {
+      "name": "ocena",
+      "score": 0.85
+    },
+    "4542": {
+      "name": "rekomendacja",
+      "score": 0.85
+    },
+    "1555": {
+      "name": "osoba",
+      "score": 0.85
+    },
+    "4246": {
+      "name": "ocena",
+      "score": 0.9
+    },
+    "1038": {
+      "name": "emotikon",
+      "score": 0.9
+    },
+    "3935": {
+      "name": "krytyka",
+      "score": 0.95
+    },
+    "4250": {
+      "name": "aktywacja neuronów",
+      "score": 0.9
+    },
+    "4433": {
+      "name": "natychmiastowość",
+      "score": 0.9
+    },
+    "2794": {
+      "name": "aktywacja neuronu",
+      "score": 0.9
+    },
+    "5382": {
+      "name": "aktywacja neuronów przez konkretne frazy",
+      "score": 0.9
+    },
+    "4371": {
+      "name": "lokalizacja",
+      "score": 0.85
+    },
+    "2369": {
+      "name": "odpowiadanie_na_pytania",
+      "score": 0.95
+    },
+    "2295": {
+      "name": "posiadanie",
+      "score": 0.95
+    },
+    "5623": {
+      "name": "emocje",
+      "score": 0.85
+    },
+    "448": {
+      "name": "powikłanie",
+      "score": 0.9
+    },
+    "464": {
+      "name": "lokalizacja",
+      "score": 0.85
+    },
+    "1046": {
+      "name": "subiektywna ocena",
+      "score": 0.9
+    },
+    "4532": {
+      "name": "modalność",
+      "score": 0.85
+    },
+    "1482": {
+      "name": "porównanie",
+      "score": 0.95
+    },
+    "5649": {
+      "name": "zmiana_lekarza",
+      "score": 0.95
+    },
+    "5391": {
+      "name": "zmiana",
+      "score": 0.95
+    },
+    "6054": {
+      "name": "usługi hotelowe",
+      "score": 0.9
+    },
+    "4101": {
+      "name": "ocena jakości",
+      "score": 0.85
+    },
+    "847": {
+      "name": "operacja",
+      "score": 0.95
+    },
+    "2560": {
+      "name": "pozytywna opinia",
+      "score": 0.95
+    },
+    "3269": {
+      "name": "specjalista",
+      "score": 0.95
+    },
+    "2460": {
+      "name": "lekarz",
+      "score": 1.0
+    },
+    "1050": {
+      "name": "konkretny",
+      "score": 0.95
+    },
+    "6016": {
+      "name": "lekarz",
+      "score": 0.95
+    },
+    "5315": {
+      "name": "sprzeczność",
+      "score": 0.85
+    },
+    "1677": {
+      "name": "nieuczciwość",
+      "score": 0.95
+    },
+    "1341": {
+      "name": "lokalizacja",
+      "score": 0.95
+    },
+    "793": {
+      "name": "podmiotowość",
+      "score": 0.85
+    },
+    "367": {
+      "name": "niekompetencja medyczna",
+      "score": 0.95
+    },
+    "4834": {
+      "name": "subiektywna ocena",
+      "score": 0.9
+    },
+    "4481": {
+      "name": "ocena jakości",
+      "score": 0.9
+    },
+    "5511": {
+      "name": "partykuła 'tylko'",
+      "score": 0.95
+    },
+    "1980": {
+      "name": "ostatnio",
+      "score": 0.95
+    },
+    "5946": {
+      "name": "all_inclusive",
+      "score": 0.95
+    },
+    "176": {
+      "name": "dobra jakość",
+      "score": 0.95
+    },
+    "1004": {
+      "name": "obsługa klienta",
+      "score": 0.85
+    },
+    "3739": {
+      "name": "lokalizacja",
+      "score": 0.85
+    },
+    "2013": {
+      "name": "medyczny",
+      "score": 0.95
+    },
+    "3111": {
+      "name": "czasownik",
+      "score": 0.9
+    },
+    "2086": {
+      "name": "hotel",
+      "score": 0.95
+    },
+    "220": {
+      "name": "lekarz",
+      "score": 0.95
+    },
+    "4123": {
+      "name": "problem",
+      "score": 0.95
+    },
+    "5661": {
+      "name": "lokalizacja",
+      "score": 0.95
+    },
+    "4936": {
+      "name": "obsługa klienta",
+      "score": 0.8
+    },
+    "859": {
+      "name": "wartość",
+      "score": 0.95
+    },
+    "1883": {
+      "name": "agens",
+      "score": 0.95
+    },
+    "5330": {
+      "name": "nad",
+      "score": 0.95
+    },
+    "990": {
+      "name": "procent",
+      "score": 0.95
+    },
+    "638": {
+      "name": "doświadczenie osobiste",
+      "score": 0.9
+    },
+    "5168": {
+      "name": "cena",
+      "score": 0.95
+    },
+    "3246": {
+      "name": "czasopismo naukowe",
+      "score": 0.9
+    },
+    "2008": {
+      "name": "brud",
+      "score": 0.9
+    },
+    "178": {
+      "name": "negacja",
+      "score": 0.95
+    },
+    "2171": {
+      "name": "odległość",
+      "score": 0.9
+    },
+    "5577": {
+      "name": "rekomendacja",
+      "score": 0.95
+    },
+    "3432": {
+      "name": "wykrzyknik",
+      "score": 0.95
+    },
+    "977": {
+      "name": "znalezienie",
+      "score": 0.95
+    },
+    "1591": {
+      "name": "problem",
+      "score": 0.95
+    },
+    "5084": {
+      "name": "brak",
+      "score": 0.95
+    },
+    "1840": {
+      "name": "oczekiwanie",
+      "score": 0.95
+    },
+    "1032": {
+      "name": "powtarzanie",
+      "score": 0.9
+    },
+    "2351": {
+      "name": "czasownik",
+      "score": 0.85
+    },
+    "2101": {
+      "name": "rzeczy",
+      "score": 1.0
+    },
+    "3317": {
+      "name": "strefa",
+      "score": 0.9
+    },
+    "5273": {
+      "name": "kontrastujące porównanie",
+      "score": 0.95
+    },
+    "5105": {
+      "name": "niepoprawna_ortografia",
+      "score": 0.9
+    },
+    "392": {
+      "name": "nowotwory",
+      "score": 0.95
+    },
+    "4908": {
+      "name": "pozytywne_opinie",
+      "score": 0.95
+    },
+    "3247": {
+      "name": "obecność",
+      "score": 0.95
+    },
+    "5456": {
+      "name": "obecność",
+      "score": 0.95
+    },
+    "5290": {
+      "name": "miejsce",
+      "score": 1.0
+    },
+    "2494": {
+      "name": "opinia",
+      "score": 0.95
+    },
+    "1060": {
+      "name": "dawanie nadziei",
+      "score": 0.85
+    },
+    "3855": {
+      "name": "leczenie",
+      "score": 0.95
+    },
+    "5051": {
+      "name": "subiektywna ocena",
+      "score": 0.9
+    },
+    "5174": {
+      "name": "gabinet",
+      "score": 0.95
+    },
+    "3842": {
+      "name": "prośba",
+      "score": 0.95
+    },
+    "5250": {
+      "name": "prośba",
+      "score": 0.95
+    },
+    "5606": {
+      "name": "podziękowanie",
+      "score": 0.95
+    },
+    "3778": {
+      "name": "diagnoza",
+      "score": 0.95
+    },
+    "1588": {
+      "name": "przy",
+      "score": 0.9
+    },
+    "5533": {
+      "name": "materiał",
+      "score": 1.0
+    },
+    "2530": {
+      "name": "niezgodność",
+      "score": 0.85
+    },
+    "3002": {
+      "name": "zawsze",
+      "score": 0.95
+    },
+    "8": {
+      "name": "bardzo",
+      "score": 0.95
+    },
+    "3867": {
+      "name": "obecność",
+      "score": 0.85
+    },
+    "2617": {
+      "name": "lokalizacja",
+      "score": 0.85
+    },
+    "5420": {
+      "name": "podmiot",
+      "score": 0.9
+    },
+    "3261": {
+      "name": "czas",
+      "score": 0.85
+    },
+    "3345": {
+      "name": "czas",
+      "score": 0.95
+    },
+    "2087": {
+      "name": "wykonywanie badania",
+      "score": 0.9
+    },
+    "984": {
+      "name": "przed",
+      "score": 0.95
+    },
+    "6129": {
+      "name": "widok",
+      "score": 0.95
+    },
+    "1205": {
+      "name": "immunoterapia",
+      "score": 0.85
+    },
+    "739": {
+      "name": "lokalizacja",
+      "score": 0.85
+    },
+    "153": {
+      "name": "wizyta lekarska",
+      "score": 0.85
+    },
+    "275": {
+      "name": "polski",
+      "score": 0.95
+    },
+    "2537": {
+      "name": "lokalizacja",
+      "score": 0.9
+    },
+    "4576": {
+      "name": "imiona polskie",
+      "score": 0.9
+    },
+    "1254": {
+      "name": "fundusz",
+      "score": 0.9
+    },
+    "1054": {
+      "name": "cierpliwość",
+      "score": 0.95
+    },
+    "5674": {
+      "name": "lista",
+      "score": 0.95
+    },
+    "2866": {
+      "name": "ocena",
+      "score": 0.95
+    },
+    "4884": {
+      "name": "wyjaśnianie",
+      "score": 0.95
+    },
+    "3793": {
+      "name": "emocja",
+      "score": 0.95
+    },
+    "2313": {
+      "name": "lokalizacja",
+      "score": 0.85
+    },
+    "1349": {
+      "name": "okazać się",
+      "score": 0.95
+    },
+    "5232": {
+      "name": "człowiek",
+      "score": 1.0
+    },
+    "4946": {
+      "name": "spójnik_jednak",
+      "score": 0.95
+    },
+    "400": {
+      "name": "lokalizacja",
+      "score": 0.85
+    },
+    "1166": {
+      "name": "wygodny",
+      "score": 0.95
+    },
+    "4674": {
+      "name": "choroba",
+      "score": 0.95
+    },
+    "6055": {
+      "name": "cecha",
+      "score": 0.95
+    },
+    "5777": {
+      "name": "tłumaczenie",
+      "score": 0.95
+    },
+    "5591": {
+      "name": "emocje",
+      "score": 0.9
+    },
+    "2157": {
+      "name": "refleksywność",
+      "score": 0.95
+    },
+    "633": {
+      "name": "sympatia",
+      "score": 0.9
+    },
+    "2939": {
+      "name": "punkt",
+      "score": 0.95
+    },
+    "6110": {
+      "name": "subiektywne doświadczenie",
+      "score": 0.9
+    },
+    "5875": {
+      "name": "liczebnik",
+      "score": 0.9
+    },
+    "2861": {
+      "name": "karta",
+      "score": 0.95
+    },
+    "1412": {
+      "name": "lekarz",
+      "score": 0.95
+    },
+    "6038": {
+      "name": "ocena_gwiazdkowa",
+      "score": 0.95
+    },
+    "632": {
+      "name": "lokalizacja",
+      "score": 0.95
+    },
+    "5424": {
+      "name": "wycinanie",
+      "score": 0.95
+    },
+    "1755": {
+      "name": "modalność",
+      "score": 0.95
+    },
+    "2576": {
+      "name": "interakcja_lekarz-pacjent",
+      "score": 0.95
+    },
+    "1668": {
+      "name": "rekomendacja",
+      "score": 0.95
+    },
+    "4302": {
+      "name": "widok_na_morze",
+      "score": 0.95
+    },
+    "6113": {
+      "name": "kontakt",
+      "score": 0.95
+    },
+    "3837": {
+      "name": "ściana",
+      "score": 0.95
+    },
+    "129": {
+      "name": "dziecko",
+      "score": 0.95
+    },
+    "4652": {
+      "name": "brak",
+      "score": 0.95
+    },
+    "4288": {
+      "name": "rodzic",
+      "score": 1.0
+    },
+    "38": {
+      "name": "interakcja z obsługą",
+      "score": 0.85
+    },
+    "3169": {
+      "name": "lokalizacja",
+      "score": 0.85
+    },
+    "5030": {
+      "name": "czasownik",
+      "score": 0.85
+    },
+    "454": {
+      "name": "kuchnia",
+      "score": 0.95
+    },
+    "965": {
+      "name": "ocena",
+      "score": 0.9
+    },
+    "4954": {
+      "name": "częstotliwość",
+      "score": 0.95
+    },
+    "2100": {
+      "name": "ocena",
+      "score": 0.9
+    },
+    "1243": {
+      "name": "odległość_spacerem",
+      "score": 0.95
+    },
+    "5145": {
+      "name": "trafienie",
+      "score": 0.95
+    },
+    "2005": {
+      "name": "basen",
+      "score": 0.95
+    },
+    "6102": {
+      "name": "lokalizacja",
+      "score": 0.85
+    },
+    "5808": {
+      "name": "kupić",
+      "score": 0.95
+    },
+    "333": {
+      "name": "obsługa",
+      "score": 1.0
+    },
+    "5592": {
+      "name": "poprzedni",
+      "score": 0.95
+    },
+    "416": {
+      "name": "wnętrza",
+      "score": 0.95
+    },
+    "4190": {
+      "name": "czasownik_rozpoczęcie",
+      "score": 0.9
+    },
+    "3382": {
+      "name": "pamięć",
+      "score": 0.9
+    },
+    "4818": {
+      "name": "opinia",
+      "score": 0.95
+    },
+    "2919": {
+      "name": "internet",
+      "score": 0.95
+    },
+    "3670": {
+      "name": "spójnik koordynujący 'też'",
+      "score": 1.0
+    },
+    "2088": {
+      "name": "nieadekwatność",
+      "score": 0.9
+    },
+    "2769": {
+      "name": "takimi",
+      "score": 0.95
+    },
+    "267": {
+      "name": "szybkość",
+      "score": 0.95
+    },
+    "1950": {
+      "name": "cały czas",
+      "score": 0.95
+    },
+    "453": {
+      "name": "zajęcia",
+      "score": 0.95
+    },
+    "2290": {
+      "name": "m.in.",
+      "score": 0.95
+    },
+    "5744": {
+      "name": "czystość",
+      "score": 0.95
+    },
+    "2397": {
+      "name": "negatywna ocena",
+      "score": 0.95
+    },
+    "5813": {
+      "name": "leki",
+      "score": 0.95
+    },
+    "2928": {
+      "name": "przepłacić",
+      "score": 0.95
+    },
+    "1400": {
+      "name": "wiek dziecka",
+      "score": 0.95
+    },
+    "424": {
+      "name": "firmware",
+      "score": 0.85
+    },
+    "3278": {
+      "name": "operacja",
+      "score": 0.95
+    },
+    "5518": {
+      "name": "czasownik",
+      "score": 0.9
+    },
+    "4690": {
+      "name": "niedostatek",
+      "score": 0.95
+    },
+    "580": {
+      "name": "niezrealizowana obietnica",
+      "score": 0.9
+    },
+    "3118": {
+      "name": "dla",
+      "score": 0.95
+    },
+    "4437": {
+      "name": "naprawdę",
+      "score": 1.0
+    },
+    "1391": {
+      "name": "podkładka",
+      "score": 0.9
+    },
+    "4220": {
+      "name": "omijanie",
+      "score": 0.95
+    },
+    "2121": {
+      "name": "powtarzalność",
+      "score": 0.85
+    },
+    "2682": {
+      "name": "sposób",
+      "score": 0.95
+    },
+    "3824": {
+      "name": "czasownik",
+      "score": 0.85
+    },
+    "3978": {
+      "name": "obsługa",
+      "score": 0.95
+    },
+    "4275": {
+      "name": "przyczyna",
+      "score": 0.95
+    },
+    "4422": {
+      "name": "trochÄŞ",
+      "score": 0.95
+    },
+    "2771": {
+      "name": "lokalizacja",
+      "score": 0.85
+    },
+    "2133": {
+      "name": "zaliczenie",
+      "score": 0.95
+    },
+    "4717": {
+      "name": "ilość",
+      "score": 0.95
+    },
+    "3823": {
+      "name": "noc",
+      "score": 0.95
+    },
+    "2232": {
+      "name": "zaimek osobowy",
+      "score": 0.85
+    },
+    "846": {
+      "name": "obsługa",
+      "score": 0.95
+    },
+    "50": {
+      "name": "osoba",
+      "score": 0.85
+    },
+    "550": {
+      "name": "rekomendacja",
+      "score": 0.95
+    },
+    "3420": {
+      "name": "lokalizacja",
+      "score": 0.85
+    },
+    "4819": {
+      "name": "czasownik",
+      "score": 0.95
+    },
+    "3833": {
+      "name": "subiektywne doświadczenie",
+      "score": 0.85
+    },
+    "3052": {
+      "name": "interpunkcja",
+      "score": 0.85
+    },
+    "4907": {
+      "name": "czasownik",
+      "score": 0.85
+    },
+    "5224": {
+      "name": "mimo",
+      "score": 0.95
+    },
+    "4545": {
+      "name": "subiektywna ocena",
+      "score": 0.85
+    },
+    "5539": {
+      "name": "nawet",
+      "score": 0.95
+    },
+    "5912": {
+      "name": "tryb rozkazujący",
+      "score": 0.95
+    },
+    "887": {
+      "name": "obsługa klienta",
+      "score": 0.9
+    }
+  }
+}

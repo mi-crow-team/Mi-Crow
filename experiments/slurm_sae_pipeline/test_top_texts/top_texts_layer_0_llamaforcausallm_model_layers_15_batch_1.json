@@ -1,0 +1,98 @@
+{
+  "0": [
+    {
+      "text": "Hotel ma piękne pokoje z widokiem na morze",
+      "score": 15.5,
+      "token_idx": 2,
+      "token_str": "pokoje"
+    },
+    {
+      "text": "W pokoju hotelowym jest wygodne łóżko",
+      "score": 14.2,
+      "token_idx": 1,
+      "token_str": "pokoju"
+    },
+    {
+      "text": "Rezerwacja pokoju została potwierdzona",
+      "score": 13.8,
+      "token_idx": 1,
+      "token_str": "pokoju"
+    },
+    {
+      "text": "Pokoje są czyste i dobrze wyposażone",
+      "score": 13.5,
+      "token_idx": 0,
+      "token_str": "Pokoje"
+    },
+    {
+      "text": "Wszystkie pokoje mają klimatyzację",
+      "score": 12.9,
+      "token_idx": 1,
+      "token_str": "pokoje"
+    }
+  ],
+  "1": [
+    {
+      "text": "Naprawdę piękny widok z okna",
+      "score": 18.3,
+      "token_idx": 0,
+      "token_str": "Naprawdę"
+    },
+    {
+      "text": "To jest naprawdę dobre jedzenie",
+      "score": 17.1,
+      "token_idx": 2,
+      "token_str": "naprawdę"
+    },
+    {
+      "text": "Naprawdę warto odwiedzić to miejsce",
+      "score": 16.8,
+      "token_idx": 0,
+      "token_str": "Naprawdę"
+    },
+    {
+      "text": "Byłem naprawdę zadowolony z usług",
+      "score": 16.2,
+      "token_idx": 1,
+      "token_str": "naprawdę"
+    },
+    {
+      "text": "Naprawdę polecam ten hotel",
+      "score": 15.9,
+      "token_idx": 0,
+      "token_str": "Naprawdę"
+    }
+  ],
+  "2": [
+    {
+      "text": "Lekarz zbadał pacjenta dokładnie",
+      "score": 19.2,
+      "token_idx": 0,
+      "token_str": "Lekarz"
+    },
+    {
+      "text": "Wizyta u lekarza była konieczna",
+      "score": 18.5,
+      "token_idx": 2,
+      "token_str": "lekarza"
+    },
+    {
+      "text": "Lekarz przepisał odpowiednie leki",
+      "score": 18.1,
+      "token_idx": 0,
+      "token_str": "Lekarz"
+    },
+    {
+      "text": "Konsultacja z lekarzem specjalistą",
+      "score": 17.8,
+      "token_idx": 2,
+      "token_str": "lekarzem"
+    },
+    {
+      "text": "Lekarz zalecił dalsze badania",
+      "score": 17.3,
+      "token_idx": 0,
+      "token_str": "Lekarz"
+    }
+  ]
+}

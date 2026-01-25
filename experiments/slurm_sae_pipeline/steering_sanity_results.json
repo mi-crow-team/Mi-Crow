@@ -1,0 +1,35 @@
+{
+  "test_sentence": "To jest test zdania do sprawdzenia sterowania.",
+  "test_features": [
+    100,
+    200,
+    300,
+    500
+  ],
+  "manipulation_factor": 2.0,
+  "tests": {
+    "multiplication_setting": {
+      "passed": true,
+      "message": "\u2713 Multiplication parameters set correctly"
+    },
+    "forward_pass": {
+      "passed": true,
+      "message": "\u2713 Manipulation applied correctly during forward pass"
+    },
+    "reset": {
+      "passed": true,
+      "message": "\u2713 Reset works correctly"
+    },
+    "decoded_changes": {
+      "passed": true,
+      "message": "\u2713 Decoded activations change with manipulation",
+      "mean_diff": 39.812461853027344,
+      "max_diff": 7275.5126953125
+    },
+    "hook_integration": {
+      "passed": false,
+      "message": "\u2717 Failed to capture with manipulation"
+    }
+  },
+  "all_passed": false
+}
