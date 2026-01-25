@@ -1,3 +1,4 @@
+# ruff: noqa
 from __future__ import annotations
 
 from pathlib import Path
@@ -230,6 +231,12 @@ class LPM(Detector, Predictor):
                 logger.warning(f"Failed to load batch {batch_idx}: {e}")
                 continue
 
+            # DEBUG NaN means and cov
+            if torch.isnan(activations).any():
+                logger.warning(f"Batch {batch_idx}: Raw activations contain NaNs!")
+            if torch.isinf(activations).any():
+                logger.warning(f"Batch {batch_idx}: Raw activations contain Infs!")
+
             # activations: [batch_size, seq_len, hidden_dim]
             # attention_mask: [batch_size, seq_len]
             if activations.dim() != 3 or attention_mask.dim() != 2:
@@ -243,12 +250,44 @@ class LPM(Detector, Predictor):
 
             # Apply sequence aggregation (filtering is done inside aggregate_activations_batch)
             # Result: [batch_size, hidden_dim]
+            # DEBUG NaN means and cov
+            logger.info(
+                f"Batch {batch_idx}: Before aggregation - activations shape: {activations.shape}, device: {activations.device}"
+            )
+            logger.info(
+                f"Batch {batch_idx}: Before aggregation - attention_mask shape: {attention_mask.shape}, device: {attention_mask.device}"
+            )
+
             try:
                 aggregated = aggregate_activations_batch(
-                    activations.cpu(),  # Keep on CPU to save memory
-                    attention_mask.cpu(),
+                    activations,  # Keep on CPU to save memory
+                    attention_mask,
                     agg=self._get_aggregation_type(),
                 )
+                aggregated = aggregated.cpu()
+
+                # DEBUG NaN means and cov
+                logger.info(
+                    f"Batch {batch_idx}: After aggregation - shape: {aggregated.shape}, device: {aggregated.device}"
+                )
+                if torch.isnan(aggregated).any():
+                    logger.warning(f"Batch {batch_idx}: Aggregated activations contain NaNs!")
+                if torch.isinf(aggregated).any():
+                    logger.warning(f"Batch {batch_idx}: Aggregated activations contain Infs!")
+
+                # DEBUG NaN means and cov
+                logger.info(
+                    f"Batch {batch_idx}: Aggregated stats - mean: {aggregated.mean().item():.4f}, std: {aggregated.std().item():.4f}, min: {aggregated.min().item():.4f}, max: {aggregated.max().item():.4f}"
+                )
+
+                # DEBUG NaN means and cov - Detailed inspection of batch 1, sample 0
+                if batch_idx == 1 and aggregated.shape[0] > 0:
+                    sample_vec = aggregated[0]  # [hidden_dim]
+                    logger.info(f"Batch {batch_idx}, Sample 0: First 10 values: {sample_vec[:10].tolist()}")
+                    logger.info(
+                        f"Batch {batch_idx}, Sample 0: Contains NaN: {torch.isnan(sample_vec).any().item()}, Contains Inf: {torch.isinf(sample_vec).any().item()}"
+                    )
+
             except Exception as e:
                 logger.warning(f"Failed to aggregate batch {batch_idx}: {e}")
                 continue
@@ -312,9 +351,29 @@ class LPM(Detector, Predictor):
         logger.info("Calculating class prototypes...")
         for label, vectors_list in aggregated_activations_by_class.items():
             vectors_tensor = torch.stack(vectors_list)  # [N_class, hidden_dim]
+
+            # DEBUG NaN means and cov
+            logger.info(f"  Class '{label}': Stacked tensor shape: {vectors_tensor.shape}")
+            if torch.isnan(vectors_tensor).any():
+                logger.warning(f"  Class '{label}': Stacked vectors contain NaNs!")
+            if torch.isinf(vectors_tensor).any():
+                logger.warning(f"  Class '{label}': Stacked vectors contain Infs!")
+            logger.info(
+                f"  Class '{label}': Stacked stats - mean: {vectors_tensor.mean().item():.4f}, std: {vectors_tensor.std().item():.4f}"
+            )
+
             mean_vector = vectors_tensor.mean(dim=0)  # [hidden_dim]
             self.lpm_context.prototypes[label] = mean_vector
+
+            # DEBUG NaN means and cov
             logger.info(f"  Class '{label}': {len(vectors_list)} samples, mean shape {mean_vector.shape}")
+            logger.info(
+                f"  Class '{label}': Prototype stats - mean: {mean_vector.mean().item():.4f}, std: {mean_vector.std().item():.4f}, min: {mean_vector.min().item():.4f}, max: {mean_vector.max().item():.4f}"
+            )
+            if torch.isnan(mean_vector).any():
+                logger.warning(f"  Class '{label}': Prototype contains NaNs!")
+            if torch.isinf(mean_vector).any():
+                logger.warning(f"  Class '{label}': Prototype contains Infs!")
 
         # Calculate covariance and precision matrix (if Mahalanobis)
         if self.lpm_context.distance_metric == "mahalanobis":
@@ -367,11 +426,39 @@ class LPM(Detector, Predictor):
         # Σ̃ = (1/(N-K)) * Z^T * Z
         cov = (Z.T @ Z) / (N - K)  # [d, d]
 
+        # DEBUG NaN means and cov
+        logger.info(f"Covariance matrix stats - mean: {cov.mean().item():.4f}, std: {cov.std().item():.4f}")
+        logger.info(f"Covariance matrix stats - min: {cov.min().item():.4f}, max: {cov.max().item():.4f}")
+        if torch.isnan(cov).any():
+            logger.warning("Covariance matrix contains NaNs!")
+        if torch.isinf(cov).any():
+            logger.warning("Covariance matrix contains Infs!")
+
         # Apply Bayes ridge estimator
         # Σ̃^{-1} = d * ((N-1)*Σ̃ + tr(Σ̃)*I_d)^{-1}
         trace = torch.trace(cov)  # scalar
+        # DEBUG NaN means and cov
+        logger.info(f"Trace of covariance: {trace.item():.4f}")
+
         regularized = (N - 1) * cov + trace * torch.eye(d, device=cov.device)  # [d, d]
+
+        # DEBUG NaN means and cov
+        logger.info(
+            f"Regularized matrix stats - mean: {regularized.mean().item():.4f}, std: {regularized.std().item():.4f}"
+        )
+        if torch.isnan(regularized).any():
+            logger.warning("Regularized matrix contains NaNs!")
+        if torch.isinf(regularized).any():
+            logger.warning("Regularized matrix contains Infs!")
+
         precision = d * torch.inverse(regularized)  # [d, d]
+
+        # DEBUG NaN means and cov
+        logger.info(f"Precision matrix stats - mean: {precision.mean().item():.4f}, std: {precision.std().item():.4f}")
+        if torch.isnan(precision).any():
+            logger.warning("Precision matrix contains NaNs!")
+        if torch.isinf(precision).any():
+            logger.warning("Precision matrix contains Infs!")
 
         return precision
 
