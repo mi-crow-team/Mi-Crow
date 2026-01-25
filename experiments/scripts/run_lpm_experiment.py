@@ -1,3 +1,4 @@
+# ruff: noqa
 """
 Run a single LPM experiment with configurable parameters.
 
@@ -182,9 +183,9 @@ def _get_layer_signature(lm: LanguageModel, layer_num: int) -> str:
     return layer_signature
 
 
-def _apply_prefix(texts: list[str], template: str, text_field: str) -> list[str]:
-    """Apply prefix template to texts."""
-    return [template.format(**{text_field: text}) for text in texts]
+def _apply_prefix(texts: list[str], template: str) -> list[str]:
+    """Apply prefix template to texts, always using {prompt} as the placeholder."""
+    return [template.format(prompt=text) for text in texts]
 
 
 def _write_json(path: Path, obj: any) -> None:
@@ -321,7 +322,11 @@ def save_test_attention_masks(
 
     # Generate run name
     ts = _timestamp()
-    run_name = f"test_attention_masks_layer{layer_num}_{ts}"
+    # Extract the part after the first "/" in store_path
+    store_path_suffix = (
+        test_config["store_path"].split("/", 1)[-1] if "/" in test_config["store_path"] else test_config["store_path"]
+    )
+    run_name = f"test_attention_masks_layer{layer_num}_{model_id}_{aggregation_method}_{store_path_suffix}_{ts}"
     logger.info("Run name: %s", run_name)
 
     # Setup attention mask detector
@@ -344,8 +349,7 @@ def save_test_attention_masks(
     if aggregation_method == "last_token_prefix":
         lang = test_config["lang"]
         template = PREFIX_TEMPLATES[lang]
-        text_field = test_config["text_field"]
-        test_texts = _apply_prefix(test_texts, template, text_field)
+        test_texts = _apply_prefix(test_texts, template)
         logger.info("Applied prefix template for %s", lang)
 
     # Process batches
@@ -423,8 +427,7 @@ def run_inference(
     if aggregation_method == "last_token_prefix":
         lang = test_config["lang"]
         template = PREFIX_TEMPLATES[lang]
-        text_field = test_config["text_field"]
-        test_texts = _apply_prefix(test_texts, template, text_field)
+        test_texts = _apply_prefix(test_texts, template)
         logger.info("Applied prefix template for inference")
 
     # Run inference
