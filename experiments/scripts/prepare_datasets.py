@@ -2,7 +2,7 @@
 Prepare and cache all datasets for experiments.
 
 This script downloads and saves the following datasets to local store:
-- WildGuardMix Train (5000 samples, stratified): For English LPM prototypes and probe training
+- WildGuardMix Train (1000 samples, stratified): For English LPM prototypes and probe training
 - WildGuardMix Test (full): For English evaluation (In-Distribution)
 - PL Mix Train: For Polish LPM prototypes and probe training
 - PL Mix Test: For Polish evaluation
@@ -28,6 +28,9 @@ from mi_crow.store import LocalStore
 from mi_crow.utils import get_logger, set_seed
 
 logger = get_logger(__name__)
+
+# Dataset size configuration
+WGMIX_TRAIN_SIZE = 1_000  # Reduced from 5000 for faster iteration
 
 
 def log_label_distribution(dataset: ClassificationDataset, label_field: str, dataset_name: str) -> None:
@@ -71,9 +74,9 @@ def log_subcategory_distribution(dataset: ClassificationDataset, dataset_name: s
 
 
 def prepare_wgmix_train(seed: int) -> None:
-    """Prepare WildGuardMix Train dataset (5000 samples, stratified)."""
+    """Prepare WildGuardMix Train dataset (stratified)."""
     logger.info("=" * 80)
-    logger.info("Preparing WildGuardMix Train (stratified, 5000 samples)")
+    logger.info("Preparing WildGuardMix Train (stratified, %d samples)", WGMIX_TRAIN_SIZE)
     logger.info("=" * 80)
 
     t0 = perf_counter()
@@ -86,7 +89,7 @@ def prepare_wgmix_train(seed: int) -> None:
         split="train",
         text_field="prompt",
         category_field=["prompt_harm_label", "subcategory"],  # Include subcategory to preserve it
-        limit=5_000,
+        limit=WGMIX_TRAIN_SIZE,
         stratify_by="prompt_harm_label",
         stratify_seed=seed,
         drop_na=True,

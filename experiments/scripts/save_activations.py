@@ -95,7 +95,7 @@ PREFIX_TEMPLATES = {
 }
 
 # CPU optimization: number of threads for PyTorch operations
-N_CPU_THREADS = 4
+N_CPU_THREADS = 3
 
 MAX_LENGTH = 256
 
