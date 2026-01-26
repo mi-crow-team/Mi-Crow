@@ -1092,7 +1092,7 @@ def main() -> int:
             args.max_length,
             benchmark,
             test_limit=getattr(args, "test_limit", None),
-            metric=args.metric,
+            metric_name=args.metric,
         )
         masks_elapsed = perf_counter() - masks_t0
 
