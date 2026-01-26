@@ -554,6 +554,7 @@ def save_test_attention_masks(
     max_length: int,
     benchmark: Optional[MemoryBenchmark] = None,
     test_limit: Optional[int] = None,
+    metric_name: Optional[str] = None,
 ) -> str:
     """Save attention masks for test dataset."""
     logger.info("=" * 80)
@@ -579,7 +580,7 @@ def save_test_attention_masks(
         test_config["store_path"].split("/", 1)[-1] if "/" in test_config["store_path"] else test_config["store_path"]
     )
     safe_model_id = model_id.replace("/", "_")
-    run_name = f"test_attention_masks_layer{layer_num}_{safe_model_id}_{aggregation_method}_{store_path_suffix}_{ts}"
+    run_name = f"test_attention_masks_layer{layer_num}_{safe_model_id}_{aggregation_method}_{store_path_suffix}_{metric_name}_{ts}"
     logger.info("Run name: %s", run_name)
 
     # Setup attention mask detector
@@ -1091,6 +1092,7 @@ def main() -> int:
             args.max_length,
             benchmark,
             test_limit=getattr(args, "test_limit", None),
+            metric=args.metric,
         )
         masks_elapsed = perf_counter() - masks_t0
 

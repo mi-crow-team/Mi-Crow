@@ -95,7 +95,7 @@ PREFIX_TEMPLATES = {
 }
 
 # CPU optimization: number of threads for PyTorch operations
-N_CPU_THREADS = 3
+# N_CPU_THREADS = 3
 
 MAX_LENGTH = 256
 
@@ -219,8 +219,8 @@ def main() -> int:  # noqa: C901
     args = parser.parse_args()
 
     # CPU optimization: set number of threads for PyTorch operations
-    torch.set_num_threads(N_CPU_THREADS)
-    logger.info("Set PyTorch CPU threads to: %d", N_CPU_THREADS)
+    # torch.set_num_threads(N_CPU_THREADS)
+    # logger.info("Set PyTorch CPU threads to: %d", N_CPU_THREADS)
 
     script_t0 = perf_counter()
     set_seed(args.seed)
@@ -266,8 +266,13 @@ def main() -> int:  # noqa: C901
     results_store = LocalStore(args.store)
 
     # CPU optimization: use bfloat16 for 2x memory reduction and faster operations
-    model_params = {"torch_dtype": torch.bfloat16}
-    lm = LanguageModel.from_huggingface(args.model, store=results_store, device=args.device, model_params=model_params)
+    # model_params = {"torch_dtype": torch.bfloat16}
+    lm = LanguageModel.from_huggingface(
+        args.model,
+        store=results_store,
+        device=args.device,
+        # model_params=model_params
+    )
 
     # Get effective max length
     effective_max_length = _get_effective_max_length(lm)
