@@ -231,11 +231,46 @@ class LPM(Detector, Predictor):
                 logger.warning(f"Failed to load batch {batch_idx}: {e}")
                 continue
 
-            # DEBUG NaN means and cov
-            if torch.isnan(activations).any():
-                logger.warning(f"Batch {batch_idx}: Raw activations contain NaNs!")
-            if torch.isinf(activations).any():
-                logger.warning(f"Batch {batch_idx}: Raw activations contain Infs!")
+            # DEBUG NaN means and cov - Detailed NaN analysis
+            nan_mask = torch.isnan(activations)
+            inf_mask = torch.isinf(activations)
+
+            if nan_mask.any():
+                total_elements = activations.numel()
+                nan_count = nan_mask.sum().item()
+                nan_percentage = (nan_count / total_elements) * 100
+                logger.warning(
+                    f"Batch {batch_idx}: Raw activations contain {nan_count}/{total_elements} NaNs ({nan_percentage:.2f}%)"
+                )
+
+                # Check if entire tensor is NaN
+                if nan_count == total_elements:
+                    logger.warning(f"Batch {batch_idx}: ENTIRE activation tensor is NaN!")
+                else:
+                    # Sample some non-NaN values if they exist
+                    non_nan_values = activations[~nan_mask]
+                    if non_nan_values.numel() > 0:
+                        logger.info(f"Batch {batch_idx}: Non-NaN values exist - sample: {non_nan_values[:5].tolist()}")
+                        logger.info(
+                            f"Batch {batch_idx}: Non-NaN stats - mean: {non_nan_values.mean().item():.4f}, std: {non_nan_values.std().item():.4f}"
+                        )
+
+                # Check NaN pattern per sample in batch
+                batch_size = activations.shape[0]
+                for sample_idx in range(min(3, batch_size)):  # Check first 3 samples
+                    sample_nans = nan_mask[sample_idx].sum().item()
+                    sample_total = nan_mask[sample_idx].numel()
+                    logger.info(f"Batch {batch_idx}, Sample {sample_idx}: {sample_nans}/{sample_total} NaNs")
+
+            if inf_mask.any():
+                inf_count = inf_mask.sum().item()
+                logger.warning(f"Batch {batch_idx}: Raw activations contain {inf_count} Infs!")
+
+            # Log normal statistics for comparison (even if NaNs present)
+            if not nan_mask.all():  # If not all NaN
+                logger.info(
+                    f"Batch {batch_idx}: Raw activation stats - mean: {activations.nanmean().item():.4f}, std: {activations.std().item():.4f}"
+                )
 
             # activations: [batch_size, seq_len, hidden_dim]
             # attention_mask: [batch_size, seq_len]
