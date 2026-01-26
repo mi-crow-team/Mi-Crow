@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -A mi2lab-normal
 #SBATCH -p short
-#SBATCH -t 10:00:00
+#SBATCH -t 3:00:00
 #SBATCH -N 1
 #SBATCH -c 3
 #SBATCH --mem=42G
