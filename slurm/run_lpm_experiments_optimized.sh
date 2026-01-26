@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH -A mi2lab-normal
 #SBATCH -p short
-#SBATCH -t 10:00:00
+#SBATCH -t 08:00:00
 #SBATCH -N 1
 #SBATCH -c 4
-#SBATCH --mem=36G
+#SBATCH --mem=32G
 #SBATCH --job-name=lpm-opt-experiments
 #SBATCH --output=/mnt/evafs/groups/mi2lab/hkowalski/Mi-Crow/slurm-logs/%x-%A-%a.out
 #SBATCH --error=/mnt/evafs/groups/mi2lab/hkowalski/Mi-Crow/slurm-logs/%x-%A-%a.err
