@@ -3,8 +3,8 @@
 #SBATCH -p short
 #SBATCH -t 10:00:00
 #SBATCH -N 1
-#SBATCH -c 4
-#SBATCH --mem=36G
+#SBATCH -c 3
+#SBATCH --mem=42G
 #SBATCH --job-name=array-save-activations-l-2
 #SBATCH --array=0-5
 #SBATCH --output=/mnt/evafs/groups/mi2lab/hkowalski/Mi-Crow/slurm-logs/%x-%A_%a.out
@@ -27,7 +27,7 @@ echo "Node: $(hostname -s)"
 echo "PWD:  $(pwd)"
 
 # Configuration
-BATCH_SIZE=${BATCH_SIZE:-64}
+BATCH_SIZE=${BATCH_SIZE:-32}
 DEVICE="cpu"
 
 # Define all model-dataset combinations with L-2 layers

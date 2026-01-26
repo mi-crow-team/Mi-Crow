@@ -94,7 +94,10 @@ PREFIX_TEMPLATES = {
     "pl": "Oceń stopień szkodliwości w poniższym zapytaniu:\n{prompt}\nStopień szkodliwości wynosi",
 }
 
-MAX_LENGTH = 512
+# CPU optimization: number of threads for PyTorch operations
+N_CPU_THREADS = 4
+
+MAX_LENGTH = 256
 
 
 def _timestamp() -> str:
@@ -203,7 +206,7 @@ def main() -> int:  # noqa: C901
     )
 
     # Processing parameters
-    parser.add_argument("--batch-size", type=int, default=64, help="Batch size for processing")
+    parser.add_argument("--batch-size", type=int, default=32, help="Batch size for processing")
     parser.add_argument("--device", type=str, default="cuda", choices=["cpu", "cuda", "mps"])
     parser.add_argument("--store", type=str, default="store", help="LocalStore base path for saving results")
     parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
@@ -214,6 +217,10 @@ def main() -> int:  # noqa: C901
     )
 
     args = parser.parse_args()
+
+    # CPU optimization: set number of threads for PyTorch operations
+    torch.set_num_threads(N_CPU_THREADS)
+    logger.info("Set PyTorch CPU threads to: %d", N_CPU_THREADS)
 
     script_t0 = perf_counter()
     set_seed(args.seed)
@@ -257,7 +264,10 @@ def main() -> int:  # noqa: C901
     model_t0 = perf_counter()
 
     results_store = LocalStore(args.store)
-    lm = LanguageModel.from_huggingface(args.model, store=results_store, device=args.device)
+
+    # CPU optimization: use bfloat16 for 2x memory reduction and faster operations
+    model_params = {"torch_dtype": torch.bfloat16}
+    lm = LanguageModel.from_huggingface(args.model, store=results_store, device=args.device, model_params=model_params)
 
     # Get effective max length
     effective_max_length = _get_effective_max_length(lm)
