@@ -679,6 +679,7 @@ def run_inference(
     batch_size: int,
     max_length: int,
     benchmark: Optional[MemoryBenchmark] = None,
+    test_limit: Optional[int] = None,
 ) -> str:
     """Run inference with LPM."""
     logger.info("=" * 80)
@@ -708,7 +709,10 @@ def run_inference(
 
     # Get test texts and apply prefix if needed
     test_texts = test_dataset.get_all_texts()
-    # Note: test_limit is applied in save_test_attention_masks, so we use the same texts here
+    # Apply test_limit to ensure we process the same samples as in attention masks
+    if test_limit is not None and test_limit > 0:
+        test_texts = test_texts[:test_limit]
+        logger.info("Limited test samples to %d for inference", test_limit)
     if aggregation_method == "last_token_prefix":
         lang = test_config["lang"]
         template = PREFIX_TEMPLATES[lang]
@@ -1105,6 +1109,7 @@ def main() -> int:
             args.batch_size,
             args.max_length,
             benchmark,
+            test_limit=getattr(args, "test_limit", None),
         )
         inference_elapsed = perf_counter() - inference_t0
 

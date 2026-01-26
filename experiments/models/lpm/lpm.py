@@ -537,7 +537,18 @@ class LPM(Detector, Predictor):
                     # Ensure it's on the correct device
                     if attention_mask.device != tensor.device:
                         attention_mask = attention_mask.to(tensor.device)
-                    logger.info(f"Using loaded attention mask for batch {self._current_batch_idx}")
+
+                    # Validate dimension compatibility before using the attention mask
+                    if attention_mask.shape[0] != batch_size or attention_mask.shape[1] != seq_len:
+                        logger.warning(
+                            f"Attention mask shape mismatch for batch {self._current_batch_idx}: "
+                            f"activations=[{batch_size}, {seq_len}, {hidden_dim}], "
+                            f"attention_mask={list(attention_mask.shape)}. "
+                            f"Falling back to all-ones mask (treating all tokens as valid)."
+                        )
+                        attention_mask = None
+                    else:
+                        logger.info(f"Using loaded attention mask for batch {self._current_batch_idx}")
 
             # Fallback: create dummy attention mask (all ones - treat all tokens as valid)
             if attention_mask is None:
