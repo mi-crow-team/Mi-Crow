@@ -3,7 +3,7 @@
 #SBATCH -p short
 #SBATCH -t 02:00:00
 #SBATCH -N 1
-#SBATCH -c 8
+#SBATCH -c 6
 #SBATCH --mem=36G
 #SBATCH --job-name=lpm-oom-benchmark
 #SBATCH --output=/mnt/evafs/groups/mi2lab/hkowalski/Mi-Crow/slurm-logs/%x-%j.out
@@ -32,8 +32,8 @@ echo "Date: $(date)"
 echo "=========================================="
 
 # Respect allocated cores for CPU backends
-export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-8}
-export MKL_NUM_THREADS=${SLURM_CPUS_PER_TASK:-8}
+export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-6}
+export MKL_NUM_THREADS=${SLURM_CPUS_PER_TASK:-6}
 
 # Benchmark configuration - use small subset for quick test
 # Test with Bielik-4.5B (the problematic model) on a small subset
