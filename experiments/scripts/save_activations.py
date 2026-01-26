@@ -319,64 +319,66 @@ def main() -> int:  # noqa: C901
     num_batches = (len(dataset) + args.batch_size - 1) // args.batch_size
     logger.info("Processing %d batches of size %d", num_batches, args.batch_size)
 
-    for batch_idx in range(num_batches):
-        start_idx = batch_idx * args.batch_size
-        end_idx = min(start_idx + args.batch_size, len(dataset))
-        batch_texts = dataset.get_all_texts()[start_idx:end_idx]
+    # Use inference_mode for better performance and memory management (matches save_activations_dataset)
+    with torch.inference_mode():
+        for batch_idx in range(num_batches):
+            start_idx = batch_idx * args.batch_size
+            end_idx = min(start_idx + args.batch_size, len(dataset))
+            batch_texts = dataset.get_all_texts()[start_idx:end_idx]
 
-        if args.use_prefix:
-            lang = dataset_config.get("lang")
-            if lang and lang in PREFIX_TEMPLATES:
-                template = PREFIX_TEMPLATES[lang]
-                batch_texts = [template.format(prompt=text) for text in batch_texts]
-            else:
-                logger.warning("No template found for language '%s', skipping prefix/stimuli", lang)
+            if args.use_prefix:
+                lang = dataset_config.get("lang")
+                if lang and lang in PREFIX_TEMPLATES:
+                    template = PREFIX_TEMPLATES[lang]
+                    batch_texts = [template.format(prompt=text) for text in batch_texts]
+                else:
+                    logger.warning("No template found for language '%s', skipping prefix/stimuli", lang)
 
-        _log_gpu_memory(batch_idx, "before_batch", memory_log)
+            _log_gpu_memory(batch_idx, "before_batch", memory_log)
 
-        # Log batch sequence lengths
-        if lm.context.tokenizer:
-            batch_encodings = lm.context.tokenizer(
-                batch_texts,
-                padding=False,
-                truncation=True,
-                max_length=max_length,
-                return_tensors=None,
-            )
-            seq_lengths = [len(ids) for ids in batch_encodings["input_ids"]]
-            logger.info(
-                "[Batch %d] Sequence lengths: min=%d, max=%d, mean=%.1f, samples=%d",
-                batch_idx,
-                min(seq_lengths),
-                max(seq_lengths),
-                sum(seq_lengths) / len(seq_lengths),
-                len(batch_texts),
-            )
+            # Log batch sequence lengths
+            if lm.context.tokenizer:
+                batch_encodings = lm.context.tokenizer(
+                    batch_texts,
+                    padding=False,
+                    truncation=True,
+                    max_length=max_length,
+                    return_tensors=None,
+                )
+                seq_lengths = [len(ids) for ids in batch_encodings["input_ids"]]
+                logger.info(
+                    "[Batch %d] Sequence lengths: min=%d, max=%d, mean=%.1f, samples=%d",
+                    batch_idx,
+                    min(seq_lengths),
+                    max(seq_lengths),
+                    sum(seq_lengths) / len(seq_lengths),
+                    len(batch_texts),
+                )
 
-        try:
-            lm.activations._process_batch(
-                batch_texts,
-                run_name=run_name,
-                batch_index=batch_idx,
-                max_length=max_length,
-                autocast=False,
-                autocast_dtype=None,
-                dtype=None,
-                verbose=True,
-                save_in_batches=True,
-                stop_after_layer=layer_signature,
-            )
-            _log_gpu_memory(batch_idx, "after_batch", memory_log)
-        except torch.cuda.OutOfMemoryError as e:
-            _log_gpu_memory(batch_idx, "OOM_error", memory_log)
-            logger.error("OOM on batch %d: %s", batch_idx, str(e))
-            # Save memory log before crashing
-            memory_log_path = Path(results_store.base_path) / "runs" / f"{run_name}_memory_log.json"
-            memory_log_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(memory_log_path, "w") as f:
-                json.dump(memory_log, f, indent=2)
-            logger.info("Memory log saved to: %s", memory_log_path)
-            raise
+            try:
+                lm.activations._process_batch(
+                    batch_texts,
+                    run_name=run_name,
+                    batch_index=batch_idx,
+                    max_length=max_length,
+                    autocast=False,
+                    autocast_dtype=None,
+                    dtype=None,
+                    verbose=True,
+                    save_in_batches=True,
+                    stop_after_layer=layer_signature,
+                )
+                _log_gpu_memory(batch_idx, "after_batch", memory_log)
+            except torch.cuda.OutOfMemoryError as e:
+                _log_gpu_memory(batch_idx, "OOM_error", memory_log)
+                logger.error("OOM on batch %d: %s", batch_idx, str(e))
+                # Save memory log before crashing
+                memory_log_path = Path(results_store.base_path) / "runs" / f"{run_name}_memory_log.json"
+                memory_log_path.parent.mkdir(parents=True, exist_ok=True)
+                with open(memory_log_path, "w") as f:
+                    json.dump(memory_log, f, indent=2)
+                logger.info("Memory log saved to: %s", memory_log_path)
+                raise
 
     # Cleanup hooks
     lm.layers.unregister_hook(activation_hook_id)
@@ -404,7 +406,7 @@ def main() -> int:  # noqa: C901
     batches = lm.context.store.list_run_batches(actual_run_name)
     logger.info("✅ Saved %d batches", len(batches))
 
-    # Check first batch structure
+    # Check first batch structure and validate data integrity
     if batches:
         _, tensors = lm.context.store.get_detector_metadata(actual_run_name, 0)
         logger.info("First batch contains layers: %s", list(tensors.keys()))
@@ -413,6 +415,27 @@ def main() -> int:  # noqa: C901
             activations = tensors[str(layer_signature)].get("activations")
             if activations is not None:
                 logger.info("✅ Activations shape: %s", activations.shape)
+
+                # Check for NaN values
+                nan_count = torch.isnan(activations).sum().item()
+                if nan_count > 0:
+                    total_elements = activations.numel()
+                    nan_percentage = (nan_count / total_elements) * 100
+                    logger.error(
+                        "❌ WARNING: First batch activations contain %d NaN values (%.2f%% of total)",
+                        nan_count,
+                        nan_percentage,
+                    )
+                else:
+                    logger.info("✅ No NaN values detected in activations")
+                    # Log basic statistics
+                    logger.info(
+                        "   Activation stats - mean: %.4f, std: %.4f, min: %.4f, max: %.4f",
+                        activations.mean().item(),
+                        activations.std().item(),
+                        activations.min().item(),
+                        activations.max().item(),
+                    )
 
         if "attention_masks" in tensors:
             attention_mask = tensors["attention_masks"].get("attention_mask")

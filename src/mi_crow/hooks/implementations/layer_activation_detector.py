@@ -60,7 +60,7 @@ class LayerActivationDetector(Detector):
 
             if tensor is not None:
                 if tensor.is_cuda:
-                    tensor_cpu = tensor.detach().to("cpu", non_blocking=True)
+                    tensor_cpu = tensor.detach().to("cpu")  # Blocking transfer ensures data is ready
                 else:
                     tensor_cpu = tensor.detach()
                 self.tensor_metadata["activations"] = tensor_cpu

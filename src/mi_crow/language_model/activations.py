@@ -307,16 +307,16 @@ class LanguageModelActivations:
         if dtype is not None:
             self._convert_activations_to_dtype(dtype)
 
+        # CRITICAL: Synchronize CUDA to ensure async CPU transfers complete BEFORE saving
+        # non_blocking=True in LayerActivationDetector means tensors may not be ready yet
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
+
         self.context.language_model.save_detector_metadata(
             run_name,
             batch_index,
             unified=not save_in_batches,
         )
-
-        # CRITICAL: Synchronize CUDA before cleanup to ensure async CPU transfers complete
-        # Without this, GPU tensors from non_blocking=True transfers aren't freed
-        if torch.cuda.is_available():
-            torch.cuda.synchronize()
 
         gc.collect()
         if torch.cuda.is_available():

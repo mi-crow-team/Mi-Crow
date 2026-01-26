@@ -210,7 +210,7 @@ class ModelInputDetector(Detector):
                 input_ids = self._extract_input_ids(input)
                 if input_ids is not None:
                     if input_ids.is_cuda:
-                        input_ids_cpu = input_ids.detach().to("cpu", non_blocking=True)
+                        input_ids_cpu = input_ids.detach().to("cpu")  # Blocking transfer ensures data is ready
                     else:
                         input_ids_cpu = input_ids.detach()
                     self.tensor_metadata["input_ids"] = input_ids_cpu
@@ -222,7 +222,7 @@ class ModelInputDetector(Detector):
                     original_attention_mask = self._extract_attention_mask(input)
                     combined_mask = self._create_combined_attention_mask(input_ids, original_attention_mask, module)
                     if combined_mask.is_cuda:
-                        combined_mask_cpu = combined_mask.detach().to("cpu", non_blocking=True)
+                        combined_mask_cpu = combined_mask.detach().to("cpu")  # Blocking transfer ensures data is ready
                     else:
                         combined_mask_cpu = combined_mask.detach()
                     self.tensor_metadata["attention_mask"] = combined_mask_cpu
