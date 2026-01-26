@@ -126,27 +126,27 @@ ACTIVATION_RUN_IDS = {
     (
         "speakleash/Bielik-1.5B-v3.0-Instruct",
         "wgmix_train",
-    ): "activations_bielik_1_5b_v3_0_instruct_wgmix_train_layer31_20260117_123045",
+    ): "activations_maxlen_512_bielik_1_5b_v3_0_instruct_wgmix_train_layer31_20260126_044427",
     (
         "speakleash/Bielik-1.5B-v3.0-Instruct",
         "plmix_train",
-    ): "activations_bielik_1_5b_v3_0_instruct_plmix_train_layer31_20260117_123845",
+    ): "activations_maxlen_512_bielik_1_5b_v3_0_instruct_plmix_train_layer31_20260126_044427",
     (
         "speakleash/Bielik-4.5B-v3.0-Instruct",
         "wgmix_train",
-    ): "activations_bielik_4_5b_v3_0_instruct_wgmix_train_layer59_20260117_120524",
+    ): "activations_maxlen_512_bielik_4_5b_v3_0_instruct_wgmix_train_layer59_20260126_044544",
     (
         "speakleash/Bielik-4.5B-v3.0-Instruct",
         "plmix_train",
-    ): "activations_bielik_4_5b_v3_0_instruct_plmix_train_layer59_20260117_122827",
+    ): "activations_maxlen_512_bielik_4_5b_v3_0_instruct_plmix_train_layer59_20260126_044544",
     (
         "meta-llama/Llama-3.2-3B-Instruct",
         "plmix_train",
-    ): "activations_llama_3_2_3b_instruct_plmix_train_layer27_20260117_120312",
+    ): "activations_maxlen_512_llama_3_2_3b_instruct_plmix_train_layer27_20260126_044507",
     (
         "meta-llama/Llama-3.2-3B-Instruct",
         "wgmix_train",
-    ): "activations_llama_3_2_3b_instruct_wgmix_train_layer27_20260117_115104",
+    ): "activations_maxlen_512_llama_3_2_3b_instruct_wgmix_train_layer27_20260126_044507",
 }
 
 # Activation run IDs (prefixed - for last_token_prefix)
@@ -154,27 +154,27 @@ PREFIXED_ACTIVATION_RUN_IDS = {
     (
         "speakleash/Bielik-1.5B-v3.0-Instruct",
         "wgmix_train",
-    ): "activations_maxlen_512_bielik_1_5b_v3_0_instruct_wgmix_train_prefixed_layer31_20260118_002749",
+    ): "activations_maxlen_512_bielik_1_5b_v3_0_instruct_wgmix_train_prefixed_layer31_20260126_044427",
     (
         "speakleash/Bielik-1.5B-v3.0-Instruct",
         "plmix_train",
-    ): "activations_maxlen_512_bielik_1_5b_v3_0_instruct_plmix_train_prefixed_layer31_20260118_003746",
+    ): "activations_maxlen_512_bielik_1_5b_v3_0_instruct_plmix_train_prefixed_layer31_20260126_044427",
     (
         "speakleash/Bielik-4.5B-v3.0-Instruct",
         "wgmix_train",
-    ): "activations_maxlen_512_bielik_4_5b_v3_0_instruct_wgmix_train_prefixed_layer59_20260117_235606",
+    ): "activations_maxlen_512_bielik_4_5b_v3_0_instruct_wgmix_train_prefixed_layer59_20260126_044544",
     (
         "speakleash/Bielik-4.5B-v3.0-Instruct",
         "plmix_train",
-    ): "activations_maxlen_512_bielik_4_5b_v3_0_instruct_plmix_train_prefixed_layer59_20260118_002429",
+    ): "activations_maxlen_256_bielik_4_5b_v3_0_instruct_plmix_train_prefixed_layer59_20260126_053934",
     (
         "meta-llama/Llama-3.2-3B-Instruct",
         "wgmix_train",
-    ): "activations_maxlen_512_llama_3_2_3b_instruct_wgmix_train_prefixed_layer27_20260117_233725",
+    ): "activations_maxlen_512_llama_3_2_3b_instruct_wgmix_train_prefixed_layer27_20260126_044507",
     (
         "meta-llama/Llama-3.2-3B-Instruct",
         "plmix_train",
-    ): "activations_maxlen_512_llama_3_2_3b_instruct_plmix_train_prefixed_layer27_20260117_235302",
+    ): "activations_maxlen_512_llama_3_2_3b_instruct_plmix_train_prefixed_layer27_20260126_044507",
 }
 
 # Prefix templates

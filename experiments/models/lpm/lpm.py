@@ -205,6 +205,45 @@ class LPM(Detector, Predictor):
         batch_indices = store.list_run_batches(run_id)
         logger.info(f"Found {len(batch_indices)} batches in run {run_id}")
 
+        # FIRST PASS: Count total available activations
+        logger.info("Counting available activations...")
+        total_available_activations = 0
+        for batch_idx in batch_indices:
+            try:
+                # Load only activations to check batch size
+                activations = store.get_detector_metadata_by_layer_by_key(
+                    run_id, batch_idx, str(self.lpm_context.layer_signature), "activations"
+                )
+                batch_size = activations.shape[0]
+                total_available_activations += batch_size
+                del activations
+            except Exception as e:
+                logger.warning(f"Could not count samples in batch {batch_idx}: {e}")
+                continue
+
+        logger.info(f"Total available activations: {total_available_activations}")
+        logger.info(f"Dataset size: {len(dataset)}")
+
+        # Determine effective max_samples
+        effective_max_samples = min(len(dataset), total_available_activations)
+        if max_samples is not None:
+            effective_max_samples = min(effective_max_samples, max_samples)
+            logger.info(f"User-specified max_samples: {max_samples}")
+
+        logger.info(f"Effective max_samples for training: {effective_max_samples}")
+
+        if effective_max_samples < len(dataset):
+            logger.warning(
+                f"Using only {effective_max_samples} samples out of {len(dataset)} in dataset "
+                f"(limited by available activations: {total_available_activations})"
+            )
+
+        if total_available_activations > len(dataset):
+            logger.warning(
+                f"Found {total_available_activations} activations but dataset has only {len(dataset)} samples. "
+                f"Will use first {effective_max_samples} samples."
+            )
+
         # Prepare to accumulate aggregated activations
         aggregated_activations_by_class: Dict[str, List[torch.Tensor]] = {}
         all_aggregated_activations: List[torch.Tensor] = []
@@ -214,7 +253,7 @@ class LPM(Detector, Predictor):
         samples_processed = 0
 
         for batch_idx in tqdm(batch_indices, desc="Loading and aggregating activations"):
-            if max_samples is not None and samples_processed >= max_samples:
+            if samples_processed >= effective_max_samples:
                 break
 
             # Load activations and attention masks
@@ -333,12 +372,21 @@ class LPM(Detector, Predictor):
 
             # Match with dataset labels
             for i in range(batch_size):
-                if max_samples is not None and samples_processed >= max_samples:
+                if samples_processed >= effective_max_samples:
                     break
 
                 sample_idx = current_sample_idx + i
+
+                # Safety check: ensure we don't exceed dataset size
                 if sample_idx >= len(dataset):
-                    logger.warning(f"Sample index {sample_idx} out of dataset bounds")
+                    logger.warning(f"Sample index {sample_idx} out of dataset bounds (dataset size: {len(dataset)})")
+                    break
+
+                # Safety check: ensure we don't exceed available activations
+                if sample_idx >= total_available_activations:
+                    logger.warning(
+                        f"Sample index {sample_idx} exceeds available activations ({total_available_activations})"
+                    )
                     break
 
                 # Get label from dataset
