@@ -339,6 +339,12 @@ class LinearProbe(Detector, Predictor):
         X_all = torch.stack(all_aggregated_activations)  # [N, hidden_dim]
         y_all = torch.tensor(all_labels, dtype=torch.float32)  # [N]
 
+        # Convert to float32 if needed (bfloat16 doesn't support all operations)
+        original_dtype = X_all.dtype
+        if X_all.dtype == torch.bfloat16:
+            logger.info(f"Converting activations from {original_dtype} to float32 for training")
+            X_all = X_all.float()
+
         # Split into train/val (80/20)
         dataset_size = len(X_all)
         num_val = int(dataset_size * 0.2)
