@@ -42,10 +42,11 @@ This will:
 ### Generated Visualizations
 
 #### Figure 1: LPM Metric Comparison
-- **File**: `visualizations/fig1_lpm_metric_comparison_mean.png`
+- **File**: `visualizations/fig1_lpm_metric_comparison_all.png`
 - **Description**: Compares Euclidean vs. Mahalanobis distance metrics for LPM
 - **Format**: Grouped bar chart, faceted by dataset (PLMix, WGMix)
-- **Aggregation**: Uses mean aggregation with whiskers showing min/max across aggregations
+- **Aggregation**: Shows mean across all 3 aggregation methods with error bars (whiskers) indicating min/max performance
+- **Enhancement**: Whiskers provide insight into aggregation sensitivity
 
 #### Figure 2a: LPM Aggregation Impact
 - **Files**: 
@@ -60,10 +61,26 @@ This will:
   - `visualizations/aggregation_impact_linear_probe_wgmix.png`
 - **Description**: Shows impact of aggregation methods for Linear Probes
 
-#### Figure 3: Method Comparison
+#### Figure 3: Method Comparison (with Stability Indicators)
 - **File**: `visualizations/fig3_method_comparison.png`
 - **Description**: Compares best LPM vs. best Linear Probe for each dataset
-- **Purpose**: Demonstrates stability vs. peak performance trade-off
+- **Enhancement**: Includes horizontal dashed lines showing mean performance across ALL configurations
+- **Purpose**: Gap between best (bar) and mean (line) indicates method stability
+  - Large gap = unstable (performance varies a lot)
+  - Small gap = stable (consistently good)
+
+#### Figure 4: Consolidated Aggregation Impact
+- **File**: `visualizations/fig4_aggregation_consolidated.png`
+- **Description**: Two-panel visualization showing aggregation impact across all experiments
+- **Left Panel**: Aggregation sensitivity (F1 range) for both methods on both datasets
+- **Right Panel**: Detailed breakdown of Probe/WGMix (where differences are largest)
+- **Purpose**: Shows which method×dataset combinations are most/least sensitive to aggregation choice
+
+#### Figure 5: Detailed Method Comparison (All Configurations)
+- **File**: `visualizations/fig5_method_comparison_detailed.png`
+- **Description**: Comprehensive horizontal bar chart showing LPM vs. Probe for all 18 configurations
+- **Format**: Shows all model×dataset×aggregation combinations side-by-side
+- **Purpose**: Complete performance overview for deep analysis and pattern identification
 
 ### Generated Tables
 

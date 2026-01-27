@@ -34,6 +34,10 @@ from experiments.results.analysis_code.visualizations import (
     plot_lpm_metric_comparison,
     plot_method_comparison,
 )
+from experiments.results.analysis_code.new_visualizations import (
+    plot_aggregation_impact_consolidated,
+    plot_method_comparison_detailed,
+)
 
 # LPM run_ids (from where_results_are_saved.md)
 LPM_RUN_IDS = [
@@ -178,12 +182,30 @@ def main():
         print()
 
     if len(lpm_df) > 0 and len(probe_df) > 0:
-        # Figure 3: Method Comparison
-        print("📊 Figure 3: Method Comparison (LPM vs. Linear Probe)")
+        # Figure 3: Method Comparison (with stability lines)
+        print("📊 Figure 3: Method Comparison (LPM vs. Linear Probe with Stability)")
         plot_method_comparison(
             lpm_df,
             probe_df,
             viz_dir / "fig3_method_comparison.png",
+        )
+        print()
+
+        # Figure 4: Consolidated Aggregation Impact
+        print("📊 Figure 4: Consolidated Aggregation Impact")
+        plot_aggregation_impact_consolidated(
+            lpm_df,
+            probe_df,
+            viz_dir / "fig4_aggregation_consolidated.png",
+        )
+        print()
+
+        # Figure 5: Detailed Method Comparison (All Configurations)
+        print("📊 Figure 5: Detailed Method Comparison (All Configurations)")
+        plot_method_comparison_detailed(
+            lpm_df,
+            probe_df,
+            viz_dir / "fig5_method_comparison_detailed.png",
         )
         print()
 

@@ -93,7 +93,7 @@ def save_figure(fig: plt.Figure, output_path: Path, dpi: int = 300):
 def plot_lpm_metric_comparison(
     df: pd.DataFrame,
     output_path: Path,
-    aggregation: str = "mean",
+    aggregation: str = "all",
     show_whiskers: bool = True,
 ) -> plt.Figure:
     """Figure 1: LPM Metric Comparison (Euclidean vs. Mahalanobis).
@@ -104,8 +104,8 @@ def plot_lpm_metric_comparison(
     Args:
         df: DataFrame with LPM results
         output_path: Path to save figure
-        aggregation: Which aggregation method to use (default: 'mean')
-                    If 'all', uses mean across all aggregation methods
+        aggregation: Which aggregation method to use (default: 'all')
+                    If 'all', uses mean across all aggregation methods with whiskers
         show_whiskers: Whether to show min/max whiskers across aggregations
 
     Returns:
@@ -146,50 +146,98 @@ def plot_lpm_metric_comparison(
 
             # Ensure models are in correct order
             f1_values = []
+            f1_errors = []  # For whiskers: [[lower_errors], [upper_errors]]
+
             for model in models:
                 model_data = metric_data[metric_data["model"] == model]
                 if len(model_data) > 0:
-                    f1_values.append(model_data["f1"].values[0])
+                    f1_mean = model_data["f1"].values[0]
+                    f1_values.append(f1_mean)
+
+                    # Calculate whisker errors if data available
+                    if whiskers_df is not None:
+                        whisker_row = whiskers_df[
+                            (whiskers_df["test_dataset"] == dataset)
+                            & (whiskers_df["metric"] == metric)
+                            & (whiskers_df["model"] == model)
+                        ]
+                        if len(whisker_row) > 0:
+                            f1_min = whisker_row["min"].values[0]
+                            f1_max = whisker_row["max"].values[0]
+                            f1_errors.append([f1_mean - f1_min, f1_max - f1_mean])
+                        else:
+                            f1_errors.append([0.0, 0.0])
+                    else:
+                        f1_errors.append([0.0, 0.0])
                 else:
                     f1_values.append(0.0)
+                    f1_errors.append([0.0, 0.0])
 
-            bars = ax.bar(
-                x_pos + i * width - width / 2,
-                f1_values,
-                width,
-                label=metric_labels[metric],
-                color=colors[i],
-            )
+            # Convert errors to format for matplotlib: [[lower], [upper]]
+            errors_array = np.array(f1_errors).T if f1_errors else None
 
-            # Add value labels on top of bars
-            for bar, f1 in zip(bars, f1_values):
+            # Plot bars with optional error bars
+            if errors_array is not None and np.any(errors_array > 0):
+                bars = ax.bar(
+                    x_pos + i * width - width / 2,
+                    f1_values,
+                    width,
+                    label=metric_labels[metric],
+                    color=colors[i],
+                    yerr=errors_array,
+                    capsize=3,
+                    error_kw={"linewidth": 1.5, "ecolor": "black", "alpha": 0.7},
+                )
+            else:
+                bars = ax.bar(
+                    x_pos + i * width - width / 2,
+                    f1_values,
+                    width,
+                    label=metric_labels[metric],
+                    color=colors[i],
+                )
+
+            # Add value labels with leader lines when whiskers present
+            for j, (bar, f1) in enumerate(zip(bars, f1_values)):
                 height = bar.get_height()
                 if height > 0:
-                    ax.text(
-                        bar.get_x() + bar.get_width() / 2.0,
-                        height,
-                        f"{f1:.3f}",
-                        ha="center",
-                        va="bottom",
-                        fontsize=8,
-                    )
+                    bar_x = bar.get_x() + bar.get_width() / 2.0
 
-            # Add whiskers if requested and available
-            if whiskers_df is not None:
-                for j, model in enumerate(models):
-                    whisker_data = whiskers_df[
-                        (whiskers_df["test_dataset"] == dataset)
-                        & (whiskers_df["metric"] == metric)
-                        & (whiskers_df["model"] == model)
-                    ]
-                    if len(whisker_data) > 0:
-                        min_val = whisker_data["min"].values[0]
-                        max_val = whisker_data["max"].values[0]
-                        ax.plot(
-                            [x_pos[j] + i * width - width / 2] * 2,
-                            [min_val, max_val],
-                            "k-",
-                            linewidth=1,
+                    # If whiskers present, use leader line from bar top to offset label
+                    if errors_array is not None and np.any(errors_array > 0):
+                        upper_error = errors_array[1][j] if j < len(errors_array[1]) else 0.0
+                        whisker_top = height + upper_error
+
+                        # Position label to the left with vertical offset
+                        label_x = bar_x - 0.04  # Offset to the left
+                        label_y = whisker_top + 0.04  # Slightly above whisker top
+
+                        # Draw leader line with arrow from label to bar mean
+                        ax.annotate(
+                            f"{f1:.3f}",
+                            xy=(bar_x, height),  # Arrow points at bar top (mean)
+                            xytext=(label_x, label_y),  # Label position
+                            ha="right",
+                            va="center",
+                            fontsize=8,
+                            arrowprops=dict(
+                                arrowstyle="-|>",
+                                color="gray",
+                                linewidth=0.7,
+                                alpha=0.7,
+                                shrinkA=0,
+                                shrinkB=0,
+                            ),
+                        )
+                    else:
+                        # No whiskers - simple text above bar
+                        ax.text(
+                            bar_x,
+                            height,
+                            f"{f1:.3f}",
+                            ha="center",
+                            va="bottom",
+                            fontsize=8,
                         )
 
         ax.set_xlabel("Model", fontsize=10)
@@ -201,8 +249,9 @@ def plot_lpm_metric_comparison(
         ax.legend(loc="lower right", fontsize=9)
         ax.grid(axis="y", alpha=0.3)
 
+    title_suffix = "Mean Across Aggregations" if aggregation == "all" else f"{aggregation.replace('_', ' ').title()}"
     fig.suptitle(
-        f"LPM: Euclidean vs. Mahalanobis Distance ({aggregation.replace('_', ' ').title()})",
+        f"LPM: Euclidean vs. Mahalanobis Distance ({title_suffix})",
         fontsize=12,
         fontweight="bold",
     )
@@ -332,6 +381,8 @@ def plot_method_comparison(
     """Figure 3: Linear Probe vs. LPM (Method Battle).
 
     Compares best performing LPM vs. Linear Probe for each dataset.
+    Includes horizontal lines showing mean performance across all experiments
+    to visualize stability (gap between best and mean).
 
     Args:
         lpm_df: DataFrame with LPM results
@@ -342,6 +393,10 @@ def plot_method_comparison(
         Matplotlib figure
     """
     setup_plotting_style()
+
+    # Calculate overall mean F1 for each method (stability indicator)
+    lpm_mean_f1 = lpm_df["f1"].mean()
+    probe_mean_f1 = probe_df["f1"].mean()
 
     # Find best F1 for each method and dataset
     results = []
@@ -421,13 +476,31 @@ def plot_method_comparison(
                     fontweight="bold",
                 )
 
+    # Add horizontal dashed lines for mean performance (stability indicator)
+    ax.axhline(
+        lpm_mean_f1,
+        color=colors[0],
+        linestyle="--",
+        linewidth=1.5,
+        alpha=0.7,
+        label=f"LPM Mean (all configs): {lpm_mean_f1:.3f}",
+    )
+    ax.axhline(
+        probe_mean_f1,
+        color=colors[1],
+        linestyle="--",
+        linewidth=1.5,
+        alpha=0.7,
+        label=f"Probe Mean (all configs): {probe_mean_f1:.3f}",
+    )
+
     ax.set_xlabel("Dataset", fontsize=10)
     ax.set_ylabel("F1 Score (Best Configuration)", fontsize=10)
     ax.set_title("Method Comparison: LPM vs. Linear Probe", fontsize=11, fontweight="bold", pad=15)
     ax.set_xticks(x_pos)
     ax.set_xticklabels(datasets)  # No rotation needed for 2 labels
     ax.set_ylim(0.0, 1.1)  # Full scale with margin
-    ax.legend(loc="lower right", fontsize=9)
+    ax.legend(loc="lower right", fontsize=8)
     ax.grid(axis="y", alpha=0.3)
 
     plt.tight_layout()
