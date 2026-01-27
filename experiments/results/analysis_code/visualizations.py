@@ -209,8 +209,8 @@ def plot_lpm_metric_comparison(
                         whisker_top = height + upper_error
 
                         # Position label to the left with vertical offset
-                        label_x = bar_x - 0.04  # Offset to the left
-                        label_y = whisker_top + 0.04  # Slightly above whisker top
+                        label_x = bar_x + 0.01  # Offset to the left
+                        label_y = whisker_top + 0.06  # Slightly above whisker top
 
                         # Draw leader line with arrow from label to bar mean
                         ax.annotate(
@@ -224,7 +224,7 @@ def plot_lpm_metric_comparison(
                                 arrowstyle="-|>",
                                 color="gray",
                                 linewidth=0.7,
-                                alpha=0.7,
+                                alpha=0.6,
                                 shrinkA=0,
                                 shrinkB=0,
                             ),
