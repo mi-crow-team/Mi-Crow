@@ -462,18 +462,19 @@ def plot_method_comparison(
             color=colors[i],
         )
 
-        # Add value labels
+        # Add value labels inside bars at the top
         for bar, f1 in zip(bars, f1_values):
             height = bar.get_height()
             if height > 0:
                 ax.text(
                     bar.get_x() + bar.get_width() / 2.0,
-                    height,
+                    height * 0.95,  # Position inside bar near top
                     f"{f1:.3f}",
                     ha="center",
-                    va="bottom",
-                    fontsize=9,
+                    va="top",
+                    fontsize=9.5,
                     fontweight="bold",
+                    # color="white",  # White text for visibility on colored bars
                 )
 
     # Add horizontal dashed lines for mean performance (stability indicator)

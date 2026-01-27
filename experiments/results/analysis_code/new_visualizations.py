@@ -112,7 +112,7 @@ def plot_aggregation_impact_consolidated(
     ax1.set_title("Sensitivity to Aggregation Method", fontsize=11, fontweight="bold", pad=15)
     ax1.set_xticks(x_pos)
     ax1.set_xticklabels(datasets)
-    ax1.legend(loc="upper right", fontsize=9)
+    ax1.legend(loc="lower right", fontsize=9)
     ax1.grid(axis="y", alpha=0.3)
 
     # Right plot: Detailed probe/wgmix breakdown (where differences are largest)
