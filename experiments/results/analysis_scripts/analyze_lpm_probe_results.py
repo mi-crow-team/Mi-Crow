@@ -155,8 +155,8 @@ def main():
         print("📊 Figure 1: LPM Metric Comparison (Euclidean vs. Mahalanobis)")
         plot_lpm_metric_comparison(
             lpm_df,
-            viz_dir / "fig1_lpm_metric_comparison_mean.png",
-            aggregation="mean",
+            viz_dir / "fig1_lpm_metric_comparison_all.png",
+            aggregation="all",
             show_whiskers=True,
         )
         print()
