@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from visualizations import save_figure, setup_plotting_style
+from experiments.results.analysis_code.visualizations import save_figure, setup_plotting_style
 
 
 def plot_aggregation_impact_consolidated(

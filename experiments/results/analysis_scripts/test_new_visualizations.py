@@ -14,11 +14,11 @@ matplotlib.use("Agg")  # Non-interactive backend
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "analysis_code"))
 
-from new_visualizations import (
+from experiments.results.analysis_code.new_visualizations import (
     plot_aggregation_impact_consolidated,
     plot_method_comparison_detailed,
 )
-from visualizations import (
+from experiments.results.analysis_code.visualizations import (
     plot_lpm_metric_comparison,
     plot_method_comparison,
 )
