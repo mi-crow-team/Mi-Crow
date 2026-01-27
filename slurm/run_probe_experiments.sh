@@ -1,15 +1,16 @@
 #!/bin/bash
 #SBATCH -A mi2lab-normal
-#SBATCH -p short,long
+#SBATCH -p short
 #SBATCH -t 12:00:00
 #SBATCH -N 1
-#SBATCH -c 8
+#SBATCH -c 4
 #SBATCH --mem=36G
 #SBATCH --job-name=probe-experiments
-#SBATCH --output=/mnt/evafs/groups/mi2lab/kkania/Mi-Crow/slurm-logs/%x-%A-%a.out
-#SBATCH --error=/mnt/evafs/groups/mi2lab/kkania/Mi-Crow/slurm-logs/%x-%A-%a.err
+#SBATCH --output=/mnt/evafs/groups/mi2lab/hkowalski/Mi-Crow/slurm-logs/%x-%A-%a.out
+#SBATCH --error=/mnt/evafs/groups/mi2lab/hkowalski/Mi-Crow/slurm-logs/%x-%A-%a.err
 #SBATCH --export=ALL
-#SBATCH --mail-type=FAIL,END
+#SBATCH --mail-user hubik112@gmail.com
+#SBATCH --mail-type FAIL,END
 #SBATCH --array=0-35
 
 # Linear Probe Experiments - Full Matrix
