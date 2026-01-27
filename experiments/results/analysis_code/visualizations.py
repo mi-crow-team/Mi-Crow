@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -13,24 +14,33 @@ import seaborn as sns
 
 
 # Configure matplotlib for LaTeX-style output
-def setup_plotting_style():
-    """Set up matplotlib and seaborn for thesis-ready plots."""
-    # Use LaTeX fonts if available
-    try:
-        plt.rcParams.update(
-            {
-                "text.usetex": True,
-                "font.family": "serif",
-                "font.serif": ["Computer Modern Roman"],
-            }
-        )
-    except Exception:
-        # Fallback if LaTeX not available
-        plt.rcParams.update(
-            {
-                "font.family": "serif",
-            }
-        )
+def setup_plotting_style(use_latex: bool = False):
+    """Set up matplotlib and seaborn for thesis-ready plots.
+
+    Args:
+        use_latex: Whether to use LaTeX for text rendering (requires LaTeX installation)
+    """
+    # Only use LaTeX if explicitly requested and available
+    if use_latex:
+        if shutil.which("latex") is not None:
+            try:
+                plt.rcParams.update(
+                    {
+                        "text.usetex": True,
+                        "font.family": "serif",
+                        "font.serif": ["Computer Modern Roman"],
+                    }
+                )
+                print("✅ Using LaTeX for text rendering")
+            except Exception as e:
+                print(f"⚠️  Could not enable LaTeX: {e}")
+                plt.rcParams.update({"font.family": "serif"})
+        else:
+            print("⚠️  LaTeX not found, using standard fonts")
+            plt.rcParams.update({"font.family": "serif"})
+    else:
+        # Use serif fonts without LaTeX
+        plt.rcParams.update({"font.family": "serif"})
 
     # Seaborn paper context and style
     sns.set_context("paper")
