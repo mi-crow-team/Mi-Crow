@@ -103,7 +103,10 @@ outputs
 # Experiments
 .llm_context/
 .local_results/
-results/
+experiments/results/visualizations/
+experiments/results/tables/
+experiments/results/IMPLEMENTATION_SUMMARY.md
+experiments/results/requirements.txt
 # Exclude data store directories but NOT src/mi_crow/store/ (package code)
 /experiments/*/store/
 /experiments/store/
