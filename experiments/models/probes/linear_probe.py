@@ -581,23 +581,29 @@ class LinearProbe(Detector, Predictor):
         """Save probe to store."""
         from datetime import datetime
 
-        path = Path(relative_path)
+        full_path = Path(store.base_path) / relative_path
+        full_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Save context
-        context_data = {
-            "model_id": self.probe_context.model_id,
-            "layer_signature": self.probe_context.layer_signature,
-            "layer_number": self.probe_context.layer_number,
-            "dataset_name": self.probe_context.dataset_name,
-            "run_id": self.probe_context.run_id,
-            "aggregation_method": self.probe_context.aggregation_method,
+        # Save state
+        state = {
+            "config": {
+                "model_id": self.probe_context.model_id,
+                "layer_signature": self.probe_context.layer_signature,
+                "layer_number": self.probe_context.layer_number,
+                "dataset_name": self.probe_context.dataset_name,
+                "run_id": self.probe_context.run_id,
+                "aggregation_method": self.probe_context.aggregation_method,
+                "learning_rate": self.probe_context.learning_rate,
+                "weight_decay": self.probe_context.weight_decay,
+                "batch_size": self.probe_context.batch_size,
+                "max_epochs": self.probe_context.max_epochs,
+                "patience": self.probe_context.patience,
+                "hidden_dim": self.probe_context.hidden_dim,
+                "positive_label": self.positive_label,
+                "saved_at": datetime.now().isoformat(),
+            },
             "weight": self.probe_context.weight,
             "bias": self.probe_context.bias,
-            "learning_rate": self.probe_context.learning_rate,
-            "weight_decay": self.probe_context.weight_decay,
-            "batch_size": self.probe_context.batch_size,
-            "max_epochs": self.probe_context.max_epochs,
-            "patience": self.probe_context.patience,
             "train_losses": self.probe_context.train_losses,
             "val_losses": self.probe_context.val_losses,
             "val_accuracies": self.probe_context.val_accuracies,
@@ -605,58 +611,65 @@ class LinearProbe(Detector, Predictor):
             "best_epoch": self.probe_context.best_epoch,
             "num_train_samples": self.probe_context.num_train_samples,
             "num_val_samples": self.probe_context.num_val_samples,
-            "hidden_dim": self.probe_context.hidden_dim,
-            "device": self.probe_context.device,
-            "saved_at": datetime.now().isoformat(),
         }
 
-        # Save to store
-        context_path = path / "probe_context.pt"
-        store.save_file(str(context_path), context_data)
-        logger.info(f"Saved probe context to {context_path}")
+        torch.save(state, full_path)
+        logger.info(f"Saved probe model to {full_path}")
+        logger.info(f"  Relative path in store: {relative_path}")
 
     @classmethod
     def load(cls, store: Store, relative_path: Union[str, Path], device: str = "cpu") -> "LinearProbe":
         """Load probe from store."""
-        path = Path(relative_path)
-        context_path = path / "probe_context.pt"
+        full_path = Path(store.base_path) / relative_path
+        if not full_path.exists():
+            raise FileNotFoundError(f"Probe model not found at {full_path}")
 
-        # Load context
-        context_data = store.load_file(str(context_path))
+        state = torch.load(full_path, map_location=device)
+        config = state["config"]
 
         # Create probe instance
         probe = cls(
-            layer_signature=context_data["layer_signature"],
-            layer_number=context_data["layer_number"],
-            aggregation_method=context_data["aggregation_method"],
-            learning_rate=context_data["learning_rate"],
-            weight_decay=context_data["weight_decay"],
-            batch_size=context_data["batch_size"],
-            max_epochs=context_data["max_epochs"],
-            patience=context_data["patience"],
+            layer_signature=config["layer_signature"],
+            layer_number=config.get("layer_number"),
+            aggregation_method=config["aggregation_method"],
+            learning_rate=config["learning_rate"],
+            weight_decay=config["weight_decay"],
+            batch_size=config["batch_size"],
+            max_epochs=config["max_epochs"],
+            patience=config["patience"],
             device=device,
+            positive_label=config.get("positive_label", "harmful"),
         )
 
-        # Restore context
-        probe.probe_context.model_id = context_data.get("model_id")
-        probe.probe_context.dataset_name = context_data.get("dataset_name")
-        probe.probe_context.run_id = context_data.get("run_id")
-        probe.probe_context.weight = context_data["weight"]
-        probe.probe_context.bias = context_data["bias"]
-        probe.probe_context.train_losses = context_data.get("train_losses", [])
-        probe.probe_context.val_losses = context_data.get("val_losses", [])
-        probe.probe_context.val_accuracies = context_data.get("val_accuracies", [])
-        probe.probe_context.val_aucs = context_data.get("val_aucs", [])
-        probe.probe_context.best_epoch = context_data.get("best_epoch")
-        probe.probe_context.num_train_samples = context_data.get("num_train_samples")
-        probe.probe_context.num_val_samples = context_data.get("num_val_samples")
-        probe.probe_context.hidden_dim = context_data["hidden_dim"]
+        # Restore learned parameters
+        probe.probe_context.model_id = config.get("model_id")
+        probe.probe_context.dataset_name = config.get("dataset_name")
+        probe.probe_context.run_id = config.get("run_id")
+        probe.probe_context.weight = state["weight"]
+        probe.probe_context.bias = state["bias"]
+        probe.probe_context.train_losses = state.get("train_losses", [])
+        probe.probe_context.val_losses = state.get("val_losses", [])
+        probe.probe_context.val_accuracies = state.get("val_accuracies", [])
+        probe.probe_context.val_aucs = state.get("val_aucs", [])
+        probe.probe_context.best_epoch = state.get("best_epoch")
+        probe.probe_context.num_train_samples = state.get("num_train_samples")
+        probe.probe_context.num_val_samples = state.get("num_val_samples")
+        probe.probe_context.hidden_dim = config.get("hidden_dim")
 
         # Recreate linear layer
         if probe.probe_context.hidden_dim is not None:
             probe.linear = nn.Linear(probe.probe_context.hidden_dim, 1).to(device)
-            probe.linear.weight.data = context_data["weight"].unsqueeze(0).to(device)
-            probe.linear.bias.data = context_data["bias"].to(device)
+            probe.linear.weight.data = state["weight"].unsqueeze(0).to(device)
+            probe.linear.bias.data = state["bias"].to(device)
 
-        logger.info(f"Loaded probe from {context_path}")
+        # Move to device
+        probe.probe_context.to(device)
+
+        logger.info(f"Loaded probe model from {full_path}")
+        logger.info(f"  Relative path in store: {relative_path}")
+        logger.info(f"  Model: {probe.probe_context.model_id}")
+        logger.info(f"  Layer: {probe.probe_context.layer_signature}")
+        logger.info(f"  Aggregation: {probe.probe_context.aggregation_method}")
+        logger.info(f"  Best epoch: {probe.probe_context.best_epoch}")
+
         return probe
