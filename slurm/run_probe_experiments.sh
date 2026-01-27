@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -A mi2lab-normal
 #SBATCH -p short
-#SBATCH -t 12:00:00
+#SBATCH -t 06:00:00
 #SBATCH -N 1
 #SBATCH -c 4
 #SBATCH --mem=36G
@@ -145,10 +145,12 @@ uv run python -m experiments.scripts.run_probe_experiment_oom \
     --learning-rate "$LR" \
     --weight-decay "$WEIGHT_DECAY" \
     --batch-size "$BATCH_SIZE" \
+    --inference-batch-size 32 \
     --max-epochs "$MAX_EPOCHS" \
     --patience "$PATIENCE" \
     $TEST_LIMIT \
-    --seed 42
+    --seed 42 \
+    --benchmark
 
 echo ""
 echo "=========================================="

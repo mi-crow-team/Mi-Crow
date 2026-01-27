@@ -953,8 +953,8 @@ def main() -> int:
     parser.add_argument(
         "--inference-batch-size",
         type=int,
-        default=4,
-        help="Inference batch size (default: 4)",
+        default=32,
+        help="Inference batch size (default: 32)",
     )
     parser.add_argument(
         "--max-length",

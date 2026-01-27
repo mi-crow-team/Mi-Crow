@@ -19,11 +19,13 @@ uv run python -m experiments.scripts.run_probe_experiment_oom \
     --learning-rate 1e-3 \
     --weight-decay 1e-4 \
     --batch-size 32 \
+    --inference-batch-size 32 \
     --max-epochs 20 \
     --patience 5 \
     --max-train-samples 200 \
     --test-limit 100 \
-    --seed 42
+    --seed 42 \
+    --benchmark
 
 echo "=================================="
 echo "Test completed successfully!"
