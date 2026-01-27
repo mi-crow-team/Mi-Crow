@@ -129,8 +129,6 @@ class LPM(Detector, Predictor):
         Example:
             # Before inference, load attention masks
             lpm.load_inference_attention_masks(store, "test_attention_masks_run")
-            # Then run inference normally
-            lm.detectors.add_detector(lpm)
             ...
         """
         logger.info(f"Loading attention masks from run: {run_id}")
