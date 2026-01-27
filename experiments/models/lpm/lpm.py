@@ -493,6 +493,13 @@ class LPM(Detector, Predictor):
         N, d = activations.shape
         K = len(label_names)  # Number of classes
 
+        # Convert to float32 if needed (bfloat16 doesn't support all operations)
+        original_dtype = activations.dtype
+        if activations.dtype == torch.bfloat16:
+            logger.info(f"Converting activations from {original_dtype} to float32 for precision matrix calculation")
+            activations = activations.float()
+            # labels = labels.long()  # Ensure labels are long type
+
         # Center activations using class-specific means
         centered_activations = []
         for class_idx, label_name in enumerate(label_names):
@@ -523,7 +530,7 @@ class LPM(Detector, Predictor):
         # DEBUG NaN means and cov
         logger.info(f"Trace of covariance: {trace.item():.4f}")
 
-        regularized = (N - 1) * cov + trace * torch.eye(d, device=cov.device)  # [d, d]
+        regularized = (N - 1) * cov + trace * torch.eye(d, device=cov.device, dtype=cov.dtype)  # [d, d]
 
         # DEBUG NaN means and cov
         logger.info(
