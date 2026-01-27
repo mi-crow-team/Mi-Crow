@@ -23,6 +23,11 @@ def setup_plotting_style(use_latex: bool = False):
         use_latex: Whether to use LaTeX for text rendering (requires LaTeX installation)
                   Default: False (not required for thesis-quality plots)
     """
+    # Seaborn setup FIRST (so we can override its font settings)
+    sns.set_context("paper", font_scale=1.0)
+    sns.set_style("whitegrid")
+    sns.set_palette("Set2")
+
     # Use serif fonts (professional appearance without LaTeX dependency)
     if use_latex and shutil.which("latex") is not None:
         try:
@@ -36,17 +41,40 @@ def setup_plotting_style(use_latex: bool = False):
             print("✅ Using LaTeX for text rendering")
         except Exception as e:
             print(f"⚠️  Could not enable LaTeX: {e}")
-            plt.rcParams.update({"font.family": "serif", "font.size": 10})
+            # Fallback to explicit serif fonts
+            plt.rcParams.update(
+                {
+                    "font.family": "serif",
+                    "font.serif": [
+                        "DejaVu Serif",
+                        "Liberation Serif",
+                        "Bitstream Vera Serif",
+                        "Times New Roman",
+                        "serif",
+                    ],
+                    "font.size": 10,
+                    "axes.labelsize": 10,
+                    "axes.titlesize": 11,
+                    "xtick.labelsize": 9,
+                    "ytick.labelsize": 9,
+                    "legend.fontsize": 9,
+                }
+            )
     else:
-        # Default: serif fonts without LaTeX (thesis-appropriate)
-        plt.rcParams.update({"font.family": "serif", "font.size": 10})
-
-    # Seaborn paper context and style
-    sns.set_context("paper")
-    sns.set_style("whitegrid")
-
-    # Use Set2 palette (good contrast, print-friendly)
-    sns.set_palette("Set2")
+        # Default: explicit serif fonts without LaTeX (thesis-appropriate)
+        # List multiple serif fonts as fallbacks
+        plt.rcParams.update(
+            {
+                "font.family": "serif",
+                "font.serif": ["DejaVu Serif", "Liberation Serif", "Bitstream Vera Serif", "Times New Roman", "serif"],
+                "font.size": 10,
+                "axes.labelsize": 10,
+                "axes.titlesize": 11,
+                "xtick.labelsize": 9,
+                "ytick.labelsize": 9,
+                "legend.fontsize": 9,
+            }
+        )
 
 
 def save_figure(fig: plt.Figure, output_path: Path, dpi: int = 300):
