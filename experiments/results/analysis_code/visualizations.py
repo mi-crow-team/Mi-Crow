@@ -17,37 +17,36 @@ import seaborn as sns
 def setup_plotting_style(use_latex: bool = False):
     """Set up matplotlib and seaborn for thesis-ready plots.
 
+    Following visualization rules from experiments/.llm_context/experiments/visualization_rules.md
+
     Args:
         use_latex: Whether to use LaTeX for text rendering (requires LaTeX installation)
+                  Default: False (not required for thesis-quality plots)
     """
-    # Only use LaTeX if explicitly requested and available
-    if use_latex:
-        if shutil.which("latex") is not None:
-            try:
-                plt.rcParams.update(
-                    {
-                        "text.usetex": True,
-                        "font.family": "serif",
-                        "font.serif": ["Computer Modern Roman"],
-                    }
-                )
-                print("✅ Using LaTeX for text rendering")
-            except Exception as e:
-                print(f"⚠️  Could not enable LaTeX: {e}")
-                plt.rcParams.update({"font.family": "serif"})
-        else:
-            print("⚠️  LaTeX not found, using standard fonts")
-            plt.rcParams.update({"font.family": "serif"})
+    # Use serif fonts (professional appearance without LaTeX dependency)
+    if use_latex and shutil.which("latex") is not None:
+        try:
+            plt.rcParams.update(
+                {
+                    "text.usetex": True,
+                    "font.family": "serif",
+                    "font.serif": ["Computer Modern Roman"],
+                }
+            )
+            print("✅ Using LaTeX for text rendering")
+        except Exception as e:
+            print(f"⚠️  Could not enable LaTeX: {e}")
+            plt.rcParams.update({"font.family": "serif", "font.size": 10})
     else:
-        # Use serif fonts without LaTeX
-        plt.rcParams.update({"font.family": "serif"})
+        # Default: serif fonts without LaTeX (thesis-appropriate)
+        plt.rcParams.update({"font.family": "serif", "font.size": 10})
 
     # Seaborn paper context and style
     sns.set_context("paper")
     sns.set_style("whitegrid")
 
-    # Use colorblind-safe palette
-    sns.set_palette("colorblind")
+    # Use Set2 palette (good contrast, print-friendly)
+    sns.set_palette("Set2")
 
 
 def save_figure(fig: plt.Figure, output_path: Path, dpi: int = 300):
@@ -108,7 +107,7 @@ def plot_lpm_metric_comparison(
     metrics = ["euclidean", "mahalanobis"]
 
     metric_labels = {"euclidean": "Euclidean", "mahalanobis": "Mahalanobis"}
-    colors = sns.color_palette("colorblind", n_colors=2)
+    colors = sns.color_palette("Set2", n_colors=2)
 
     for ax, (dataset, dataset_label) in zip(axes, datasets):
         x_pos = np.arange(len(models))
@@ -167,10 +166,10 @@ def plot_lpm_metric_comparison(
 
         ax.set_xlabel("Model", fontsize=10)
         ax.set_ylabel("F1 Score" if dataset == "plmix_test" else "", fontsize=10)
-        ax.set_title(dataset_label, fontsize=11, fontweight="bold")
+        ax.set_title(dataset_label, fontsize=11, fontweight="bold", pad=15)
         ax.set_xticks(x_pos)
-        ax.set_xticklabels(models, rotation=15, ha="right")
-        ax.set_ylim(0.5, 1.0)
+        ax.set_xticklabels(models)  # No rotation - fits without it
+        ax.set_ylim(0.0, 1.1)  # Full scale with margin for labels
         ax.legend(loc="lower right", fontsize=9)
         ax.grid(axis="y", alpha=0.3)
 
@@ -228,7 +227,7 @@ def plot_aggregation_impact(
         "last_token_prefix": "Last Token + Prefix",
     }
 
-    colors = sns.color_palette("colorblind", n_colors=3)
+    colors = sns.color_palette("Set2", n_colors=3)
     figures = []
 
     for dataset, dataset_label in datasets:
@@ -276,10 +275,11 @@ def plot_aggregation_impact(
             f"{method} - Aggregation Methods: {dataset_label} {title_suffix}",
             fontsize=11,
             fontweight="bold",
+            pad=15,
         )
         ax.set_xticks(x_pos)
-        ax.set_xticklabels(models, rotation=15, ha="right")
-        ax.set_ylim(0.0, 1.0)
+        ax.set_xticklabels(models)  # No rotation needed
+        ax.set_ylim(0.0, 1.1)  # Full scale with margin
         ax.legend(loc="lower right", fontsize=9)
         ax.grid(axis="y", alpha=0.3)
 
@@ -352,7 +352,7 @@ def plot_method_comparison(
 
     datasets = ["PLMIX", "WGMIX"]
     methods = ["LPM", "Linear Probe"]
-    colors = sns.color_palette("colorblind", n_colors=2)
+    colors = sns.color_palette("Set2", n_colors=2)
 
     x_pos = np.arange(len(datasets))
     width = 0.35
@@ -395,10 +395,10 @@ def plot_method_comparison(
 
     ax.set_xlabel("Dataset", fontsize=10)
     ax.set_ylabel("F1 Score (Best Configuration)", fontsize=10)
-    ax.set_title("Method Comparison: LPM vs. Linear Probe", fontsize=11, fontweight="bold")
+    ax.set_title("Method Comparison: LPM vs. Linear Probe", fontsize=11, fontweight="bold", pad=15)
     ax.set_xticks(x_pos)
-    ax.set_xticklabels(datasets)
-    ax.set_ylim(0.0, 1.0)
+    ax.set_xticklabels(datasets)  # No rotation needed for 2 labels
+    ax.set_ylim(0.0, 1.1)  # Full scale with margin
     ax.legend(loc="lower right", fontsize=9)
     ax.grid(axis="y", alpha=0.3)
 
