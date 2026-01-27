@@ -98,7 +98,7 @@ class LinearProbe(Detector, Predictor):
             },
         )
 
-        self.context = ProbeContext(
+        self.probe_context = ProbeContext(
             layer_signature=layer_signature,
             layer_number=layer_number,
             aggregation_method=aggregation_method,
@@ -123,12 +123,12 @@ class LinearProbe(Detector, Predictor):
 
     def _get_aggregation_type(self) -> Literal["last", "mean"]:
         """Convert aggregation method to format expected by aggregate_activations_batch."""
-        if self.context.aggregation_method in ["last_token", "last_token_prefix"]:
+        if self.probe_context.aggregation_method in ["last_token", "last_token_prefix"]:
             return "last"
-        elif self.context.aggregation_method == "mean":
+        elif self.probe_context.aggregation_method == "mean":
             return "mean"
         else:
-            raise ValueError(f"Unknown aggregation method: {self.context.aggregation_method}")
+            raise ValueError(f"Unknown aggregation_method: {self.probe_context.aggregation_method}")
 
     def load_inference_attention_masks(self, store: Store, run_id: str) -> None:
         """
@@ -194,12 +194,14 @@ class LinearProbe(Detector, Predictor):
         logger.info("=" * 80)
         logger.info("FITTING LINEAR PROBE")
         logger.info("=" * 80)
-        logger.info(f"Aggregation method: {self.context.aggregation_method}")
+        logger.info(f"Aggregation method: {self.probe_context.aggregation_method}")
 
         # Store metadata
-        self.context.model_id = model_id
-        self.context.run_id = run_id
-        self.context.dataset_name = dataset_name if dataset_name is not None else getattr(dataset, "name", "unknown")
+        self.probe_context.model_id = model_id
+        self.probe_context.run_id = run_id
+        self.probe_context.dataset_name = (
+            dataset_name if dataset_name is not None else getattr(dataset, "name", "unknown")
+        )
 
         # Validate binary labels
         all_categories = [item[category_field] for item in dataset]
@@ -229,7 +231,7 @@ class LinearProbe(Detector, Predictor):
         for batch_idx in batch_indices:
             try:
                 activations = store.get_detector_metadata_by_layer_by_key(
-                    run_id, batch_idx, str(self.context.layer_signature), "activations"
+                    run_id, batch_idx, str(self.probe_context.layer_signature), "activations"
                 )
                 batch_size = activations.shape[0]
                 total_available_activations += batch_size
@@ -270,7 +272,7 @@ class LinearProbe(Detector, Predictor):
             try:
                 # Load activations
                 activations = store.get_detector_metadata_by_layer_by_key(
-                    run_id, batch_idx, str(self.context.layer_signature), "activations"
+                    run_id, batch_idx, str(self.probe_context.layer_signature), "activations"
                 )
 
                 # Load attention masks (if available)
@@ -297,9 +299,9 @@ class LinearProbe(Detector, Predictor):
                 )
 
                 # Initialize hidden_dim from first batch
-                if self.context.hidden_dim is None:
-                    self.context.hidden_dim = aggregated.shape[1]
-                    logger.info(f"Detected hidden_dim: {self.context.hidden_dim}")
+                if self.probe_context.hidden_dim is None:
+                    self.probe_context.hidden_dim = aggregated.shape[1]
+                    logger.info(f"Detected hidden_dim: {self.probe_context.hidden_dim}")
 
                 # Get batch size
                 actual_batch_size = aggregated.shape[0]
@@ -347,27 +349,27 @@ class LinearProbe(Detector, Predictor):
         train_indices = indices[:num_train]
         val_indices = indices[num_train:]
 
-        X_train = X_all[train_indices].to(self.context.device)
-        y_train = y_all[train_indices].to(self.context.device)
-        X_val = X_all[val_indices].to(self.context.device) if num_val > 0 else None
-        y_val = y_all[val_indices].to(self.context.device) if num_val > 0 else None
+        X_train = X_all[train_indices].to(self.probe_context.device)
+        y_train = y_all[train_indices].to(self.probe_context.device)
+        X_val = X_all[val_indices].to(self.probe_context.device) if num_val > 0 else None
+        y_val = y_all[val_indices].to(self.probe_context.device) if num_val > 0 else None
 
-        self.context.num_train_samples = num_train
-        self.context.num_val_samples = num_val
+        self.probe_context.num_train_samples = num_train
+        self.probe_context.num_val_samples = num_val
 
         logger.info(f"Train samples: {num_train}, Val samples: {num_val}")
         logger.info(f"X_train shape: {X_train.shape}, y_train shape: {y_train.shape}")
 
         # Initialize linear layer
-        self.linear = nn.Linear(self.context.hidden_dim, 1).to(self.context.device)
-        logger.info(f"Initialized linear layer: {self.context.hidden_dim} -> 1")
+        self.linear = nn.Linear(self.probe_context.hidden_dim, 1).to(self.probe_context.device)
+        logger.info(f"Initialized linear layer: {self.probe_context.hidden_dim} -> 1")
 
         # Train the probe
         self._train_probe(X_train, y_train, X_val, y_val)
 
         # Store learned parameters in context
-        self.context.weight = self.linear.weight.data.squeeze().cpu()
-        self.context.bias = self.linear.bias.data.cpu()
+        self.probe_context.weight = self.linear.weight.data.squeeze().cpu()
+        self.probe_context.bias = self.linear.bias.data.cpu()
 
         logger.info("=" * 80)
         logger.info("LINEAR PROBE TRAINING COMPLETE")
@@ -385,15 +387,15 @@ class LinearProbe(Detector, Predictor):
         train_dataset = TensorDataset(X_train, y_train)
         train_loader = DataLoader(
             train_dataset,
-            batch_size=self.context.batch_size,
+            batch_size=self.probe_context.batch_size,
             shuffle=True,
         )
 
         # Optimizer and loss
         optimizer = torch.optim.AdamW(
             self.linear.parameters(),
-            lr=self.context.learning_rate,
-            weight_decay=self.context.weight_decay,
+            lr=self.probe_context.learning_rate,
+            weight_decay=self.probe_context.weight_decay,
         )
         criterion = nn.BCEWithLogitsLoss()
 
@@ -402,9 +404,11 @@ class LinearProbe(Detector, Predictor):
         patience_counter = 0
         best_state = None
 
-        logger.info(f"Starting training: max_epochs={self.context.max_epochs}, patience={self.context.patience}")
+        logger.info(
+            f"Starting training: max_epochs={self.probe_context.max_epochs}, patience={self.probe_context.patience}"
+        )
 
-        for epoch in range(self.context.max_epochs):
+        for epoch in range(self.probe_context.max_epochs):
             # Training
             self.linear.train()
             train_loss = 0.0
@@ -417,7 +421,7 @@ class LinearProbe(Detector, Predictor):
                 train_loss += loss.item() * len(X_batch)
 
             train_loss /= len(X_train)
-            self.context.train_losses.append(train_loss)
+            self.probe_context.train_losses.append(train_loss)
 
             # Validation
             if X_val is not None and y_val is not None:
@@ -433,12 +437,12 @@ class LinearProbe(Detector, Predictor):
                     val_acc = accuracy_score(y_val_np, val_preds)
                     val_auc = roc_auc_score(y_val_np, val_probs)
 
-                    self.context.val_losses.append(val_loss)
-                    self.context.val_accuracies.append(val_acc)
-                    self.context.val_aucs.append(val_auc)
+                    self.probe_context.val_losses.append(val_loss)
+                    self.probe_context.val_accuracies.append(val_acc)
+                    self.probe_context.val_aucs.append(val_auc)
 
                     logger.info(
-                        f"Epoch {epoch + 1}/{self.context.max_epochs} | "
+                        f"Epoch {epoch + 1}/{self.probe_context.max_epochs} | "
                         f"Train Loss: {train_loss:.4f} | "
                         f"Val Loss: {val_loss:.4f} | "
                         f"Val Acc: {val_acc:.4f} | "
@@ -448,7 +452,7 @@ class LinearProbe(Detector, Predictor):
                     # Early stopping check
                     if val_auc > best_val_auc:
                         best_val_auc = val_auc
-                        self.context.best_epoch = epoch + 1
+                        self.probe_context.best_epoch = epoch + 1
                         patience_counter = 0
                         # Save best model state
                         best_state = {
@@ -457,17 +461,17 @@ class LinearProbe(Detector, Predictor):
                         }
                     else:
                         patience_counter += 1
-                        if patience_counter >= self.context.patience:
-                            logger.info(f"Early stopping at epoch {epoch + 1} (patience={self.context.patience})")
+                        if patience_counter >= self.probe_context.patience:
+                            logger.info(f"Early stopping at epoch {epoch + 1} (patience={self.probe_context.patience})")
                             # Restore best model
                             if best_state is not None:
                                 self.linear.weight.data = best_state["weight"]
                                 self.linear.bias.data = best_state["bias"]
                             break
             else:
-                logger.info(f"Epoch {epoch + 1}/{self.context.max_epochs} | Train Loss: {train_loss:.4f}")
+                logger.info(f"Epoch {epoch + 1}/{self.probe_context.max_epochs} | Train Loss: {train_loss:.4f}")
 
-        logger.info(f"Training complete. Best epoch: {self.context.best_epoch}, Best Val AUC: {best_val_auc:.4f}")
+        logger.info(f"Training complete. Best epoch: {self.probe_context.best_epoch}, Best Val AUC: {best_val_auc:.4f}")
 
     def process_activations(  # noqa: C901
         self, module: torch.nn.Module, input: HOOK_FUNCTION_INPUT, output: HOOK_FUNCTION_OUTPUT
@@ -543,7 +547,7 @@ class LinearProbe(Detector, Predictor):
             logger.warning(f"Unexpected tensor dimensionality: {tensor.dim()}")
             return
 
-        vectors = vectors.to(self.context.device)
+        vectors = vectors.to(self.probe_context.device)
 
         # Apply linear layer
         self.linear.eval()
@@ -581,28 +585,28 @@ class LinearProbe(Detector, Predictor):
 
         # Save context
         context_data = {
-            "model_id": self.context.model_id,
-            "layer_signature": self.context.layer_signature,
-            "layer_number": self.context.layer_number,
-            "dataset_name": self.context.dataset_name,
-            "run_id": self.context.run_id,
-            "aggregation_method": self.context.aggregation_method,
-            "weight": self.context.weight,
-            "bias": self.context.bias,
-            "learning_rate": self.context.learning_rate,
-            "weight_decay": self.context.weight_decay,
-            "batch_size": self.context.batch_size,
-            "max_epochs": self.context.max_epochs,
-            "patience": self.context.patience,
-            "train_losses": self.context.train_losses,
-            "val_losses": self.context.val_losses,
-            "val_accuracies": self.context.val_accuracies,
-            "val_aucs": self.context.val_aucs,
-            "best_epoch": self.context.best_epoch,
-            "num_train_samples": self.context.num_train_samples,
-            "num_val_samples": self.context.num_val_samples,
-            "hidden_dim": self.context.hidden_dim,
-            "device": self.context.device,
+            "model_id": self.probe_context.model_id,
+            "layer_signature": self.probe_context.layer_signature,
+            "layer_number": self.probe_context.layer_number,
+            "dataset_name": self.probe_context.dataset_name,
+            "run_id": self.probe_context.run_id,
+            "aggregation_method": self.probe_context.aggregation_method,
+            "weight": self.probe_context.weight,
+            "bias": self.probe_context.bias,
+            "learning_rate": self.probe_context.learning_rate,
+            "weight_decay": self.probe_context.weight_decay,
+            "batch_size": self.probe_context.batch_size,
+            "max_epochs": self.probe_context.max_epochs,
+            "patience": self.probe_context.patience,
+            "train_losses": self.probe_context.train_losses,
+            "val_losses": self.probe_context.val_losses,
+            "val_accuracies": self.probe_context.val_accuracies,
+            "val_aucs": self.probe_context.val_aucs,
+            "best_epoch": self.probe_context.best_epoch,
+            "num_train_samples": self.probe_context.num_train_samples,
+            "num_val_samples": self.probe_context.num_val_samples,
+            "hidden_dim": self.probe_context.hidden_dim,
+            "device": self.probe_context.device,
             "saved_at": datetime.now().isoformat(),
         }
 
@@ -634,23 +638,23 @@ class LinearProbe(Detector, Predictor):
         )
 
         # Restore context
-        probe.context.model_id = context_data.get("model_id")
-        probe.context.dataset_name = context_data.get("dataset_name")
-        probe.context.run_id = context_data.get("run_id")
-        probe.context.weight = context_data["weight"]
-        probe.context.bias = context_data["bias"]
-        probe.context.train_losses = context_data.get("train_losses", [])
-        probe.context.val_losses = context_data.get("val_losses", [])
-        probe.context.val_accuracies = context_data.get("val_accuracies", [])
-        probe.context.val_aucs = context_data.get("val_aucs", [])
-        probe.context.best_epoch = context_data.get("best_epoch")
-        probe.context.num_train_samples = context_data.get("num_train_samples")
-        probe.context.num_val_samples = context_data.get("num_val_samples")
-        probe.context.hidden_dim = context_data["hidden_dim"]
+        probe.probe_context.model_id = context_data.get("model_id")
+        probe.probe_context.dataset_name = context_data.get("dataset_name")
+        probe.probe_context.run_id = context_data.get("run_id")
+        probe.probe_context.weight = context_data["weight"]
+        probe.probe_context.bias = context_data["bias"]
+        probe.probe_context.train_losses = context_data.get("train_losses", [])
+        probe.probe_context.val_losses = context_data.get("val_losses", [])
+        probe.probe_context.val_accuracies = context_data.get("val_accuracies", [])
+        probe.probe_context.val_aucs = context_data.get("val_aucs", [])
+        probe.probe_context.best_epoch = context_data.get("best_epoch")
+        probe.probe_context.num_train_samples = context_data.get("num_train_samples")
+        probe.probe_context.num_val_samples = context_data.get("num_val_samples")
+        probe.probe_context.hidden_dim = context_data["hidden_dim"]
 
         # Recreate linear layer
-        if probe.context.hidden_dim is not None:
-            probe.linear = nn.Linear(probe.context.hidden_dim, 1).to(device)
+        if probe.probe_context.hidden_dim is not None:
+            probe.linear = nn.Linear(probe.probe_context.hidden_dim, 1).to(device)
             probe.linear.weight.data = context_data["weight"].unsqueeze(0).to(device)
             probe.linear.bias.data = context_data["bias"].to(device)
 

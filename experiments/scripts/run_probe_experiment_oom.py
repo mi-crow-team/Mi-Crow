@@ -479,10 +479,10 @@ def train_probe(
     fit_elapsed = perf_counter() - fit_t0
 
     logger.info("✅ Probe trained (%.2fs)", fit_elapsed)
-    logger.info("   Best epoch: %s", probe.context.best_epoch)
+    logger.info("   Best epoch: %s", probe.probe_context.best_epoch)
     logger.info(
         "   Best val AUC: %.4f",
-        probe.context.val_aucs[probe.context.best_epoch - 1] if probe.context.best_epoch else 0.0,
+        probe.probe_context.val_aucs[probe.probe_context.best_epoch - 1] if probe.probe_context.best_epoch else 0.0,
     )
 
     if benchmark:
@@ -665,7 +665,7 @@ def run_inference(
         benchmark.measure("after_model_load_inference")
 
     # Register hook
-    layer_signature = probe.context.layer_signature
+    layer_signature = probe.probe_context.layer_signature
     hook_id = lm.layers.register_hook(layer_signature, probe, HookType.FORWARD)
 
     # Get test texts and apply prefix if needed
@@ -846,7 +846,7 @@ def evaluate_and_analyze(
         "layer_number": experiment_config["layer"],
         "model_id": experiment_config["model"],
         "learning_rate": experiment_config["learning_rate"],
-        "best_epoch": probe.context.best_epoch,
+        "best_epoch": probe.probe_context.best_epoch,
         "accuracy": float(accuracy),
         "roc_auc": float(roc_auc),
         "pr_auc": float(pr_auc),
