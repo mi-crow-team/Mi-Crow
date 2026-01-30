@@ -25,6 +25,12 @@ from mi_crow.hooks.controller import Controller
 from mi_crow.hooks import HookType
 
 
+def _mock_hook(base_class: type, class_name: str) -> Mock:
+    """Create a mock hook with a specific class name without mutating base classes."""
+    hook_class = type(class_name, (base_class,), {})
+    return Mock(spec=hook_class)
+
+
 
 
 class TestCollectHooksMetadata:
@@ -63,7 +69,7 @@ class TestCollectHooksMetadata:
         context = Mock(spec=LanguageModelContext)
 
 
-        detector = Mock(spec=Detector)
+        detector = _mock_hook(Detector, "LayerActivationDetector")
 
 
         detector.id = "detector_1"
@@ -73,9 +79,6 @@ class TestCollectHooksMetadata:
 
 
         detector.layer_signature = "layer_0"
-
-
-        detector.__class__.__name__ = "LayerActivationDetector"
 
 
         detector.enabled = True
@@ -125,7 +128,7 @@ class TestCollectHooksMetadata:
         context = Mock(spec=LanguageModelContext)
 
 
-        controller = Mock(spec=Controller)
+        controller = _mock_hook(Controller, "FunctionController")
 
 
         controller.id = "controller_1"
@@ -135,9 +138,6 @@ class TestCollectHooksMetadata:
 
 
         controller.layer_signature = "layer_1"
-
-
-        controller.__class__.__name__ = "FunctionController"
 
 
         controller.enabled = False
@@ -181,7 +181,7 @@ class TestCollectHooksMetadata:
         context = Mock(spec=LanguageModelContext)
 
 
-        detector1 = Mock(spec=Detector)
+        detector1 = _mock_hook(Detector, "Detector1")
 
 
         detector1.id = "detector_1"
@@ -193,14 +193,11 @@ class TestCollectHooksMetadata:
         detector1.layer_signature = "layer_0"
 
 
-        detector1.__class__.__name__ = "Detector1"
-
-
         detector1.enabled = True
 
 
 
-        detector2 = Mock(spec=Detector)
+        detector2 = _mock_hook(Detector, "Detector2")
 
 
         detector2.id = "detector_2"
@@ -210,9 +207,6 @@ class TestCollectHooksMetadata:
 
 
         detector2.layer_signature = "layer_0"
-
-
-        detector2.__class__.__name__ = "Detector2"
 
 
         detector2.enabled = False
@@ -253,7 +247,7 @@ class TestCollectHooksMetadata:
         context = Mock(spec=LanguageModelContext)
 
 
-        detector1 = Mock(spec=Detector)
+        detector1 = _mock_hook(Detector, "Detector")
 
 
         detector1.id = "detector_1"
@@ -265,14 +259,11 @@ class TestCollectHooksMetadata:
         detector1.layer_signature = "layer_0"
 
 
-        detector1.__class__.__name__ = "Detector"
-
-
         detector1.enabled = True
 
 
 
-        controller1 = Mock(spec=Controller)
+        controller1 = _mock_hook(Controller, "Controller")
 
 
         controller1.id = "controller_1"
@@ -282,9 +273,6 @@ class TestCollectHooksMetadata:
 
 
         controller1.layer_signature = "layer_1"
-
-
-        controller1.__class__.__name__ = "Controller"
 
 
         controller1.enabled = True
@@ -328,7 +316,7 @@ class TestCollectHooksMetadata:
         context = Mock(spec=LanguageModelContext)
 
 
-        detector = Mock(spec=Detector)
+        detector = _mock_hook(Detector, "Detector")
 
 
         detector.id = "detector_1"
@@ -338,9 +326,6 @@ class TestCollectHooksMetadata:
 
 
         detector.layer_signature = 0
-
-
-        detector.__class__.__name__ = "Detector"
 
 
         detector.enabled = True
@@ -375,7 +360,7 @@ class TestCollectHooksMetadata:
         context = Mock(spec=LanguageModelContext)
 
 
-        detector = Mock(spec=Detector)
+        detector = _mock_hook(Detector, "Detector")
 
 
         detector.id = "detector_1"
@@ -385,9 +370,6 @@ class TestCollectHooksMetadata:
 
 
         detector.layer_signature = None
-
-
-        detector.__class__.__name__ = "Detector"
 
 
         detector.enabled = True
@@ -422,7 +404,7 @@ class TestCollectHooksMetadata:
         context = Mock(spec=LanguageModelContext)
 
 
-        detector = Mock(spec=Detector)
+        detector = _mock_hook(Detector, "Detector")
 
 
         detector.id = "detector_1"
@@ -432,9 +414,6 @@ class TestCollectHooksMetadata:
 
 
         detector.layer_signature = "layer_0"
-
-
-        detector.__class__.__name__ = "Detector"
 
 
         detector.enabled = True

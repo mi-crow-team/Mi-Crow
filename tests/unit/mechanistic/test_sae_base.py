@@ -973,6 +973,32 @@ class TestSaeMultipleInheritance:
 
 
 
+    def test_sae_inherits_from_both_controller_and_detector(self):
+
+
+        """Test that SAE inherits from both Controller and Detector."""
+
+
+        sae = ConcreteSae(n_latents=100, n_inputs=200)
+
+
+
+
+        mro_names = [cls.__name__ for cls in type(sae).__mro__]
+
+
+        assert 'Controller' in mro_names
+
+
+        assert 'Detector' in mro_names
+
+
+
+
+        assert sae._is_both_controller_and_detector() is True
+
+
+
     def test_sae_has_both_controller_and_detector_methods(self):
 
 

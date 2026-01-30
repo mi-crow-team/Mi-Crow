@@ -2,8 +2,16 @@
 
 from __future__ import annotations
 
-from typing import List, Dict, Any, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 from transformers import PreTrainedTokenizerBase
+
+try:
+    from transformers.tokenization_utils_base import BatchEncoding
+except ImportError:
+    try:
+        from transformers import BatchEncoding
+    except ImportError:
+        BatchEncoding = dict  # type: ignore[misc,assignment]
 
 
 class MockTokenizer(PreTrainedTokenizerBase):
@@ -236,6 +244,38 @@ class MockTokenizer(PreTrainedTokenizerBase):
         if skip_special_tokens:
             tokens = [t for t in tokens if t not in [self._pad_token, self._eos_token, self._bos_token, self._unk_token]]
         return " ".join(tokens)
+
+    def _encode_plus(
+        self,
+        text: Union[str, List[str]],
+        text_pair: Optional[Union[str, List[str]]] = None,
+        add_special_tokens: bool = True,
+        padding_strategy: Any = None,
+        truncation_strategy: Any = None,
+        max_length: Optional[int] = None,
+        return_tensors: Optional[str] = None,
+        **kwargs
+    ) -> BatchEncoding:
+        """Implement _encode_plus for transformers tokenizer __call__ compatibility."""
+        texts = [text] if isinstance(text, str) else text
+        if text_pair is not None:
+            pair = [text_pair] if isinstance(text_pair, str) else text_pair
+            if len(texts) == 1 and len(pair) == 1:
+                texts = [texts[0] + " " + pair[0]]
+        # Convert padding_strategy to padding bool (PaddingStrategy.DO_NOT_PAD = "do_not_pad")
+        padding = (
+            padding_strategy is not None
+            and str(padding_strategy) != "PaddingStrategy.DO_NOT_PAD"
+            and "do_not_pad" not in str(padding_strategy).lower()
+        )
+        result = self.batch_encode_plus(
+            texts,
+            add_special_tokens=add_special_tokens,
+            padding=padding,
+            return_tensors=return_tensors,
+            **kwargs
+        )
+        return BatchEncoding(result)
 
     def batch_encode_plus(
         self,
