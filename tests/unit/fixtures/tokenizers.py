@@ -12,7 +12,14 @@ class MockTokenizer(PreTrainedTokenizerBase):
     _SPECIAL_TOKEN_NAMES = {"pad_token", "eos_token", "bos_token", "unk_token"}
     _SPECIAL_ID_NAMES = {"pad_token_id", "eos_token_id", "bos_token_id", "unk_token_id"}
 
+    @property
+    def vocab_size(self) -> int:
+        return getattr(self, "_mock_vocab_size", 1000)
+
     def __setattr__(self, key, value):
+        if key == "vocab_size":
+            object.__setattr__(self, "_mock_vocab_size", value)
+            return
         if key in self._SPECIAL_TOKEN_NAMES:
             object.__setattr__(self, f"_{key}", value)
             if hasattr(self, "_special_tokens_map"):
