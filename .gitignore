@@ -69,7 +69,9 @@ Temporary Items
 .pytest_cache/
 .coverage
 coverage.xml
+coverage.json
 htmlcov/
+
 
 # MkDocs generated site
 site/
@@ -116,6 +118,11 @@ results/
 # Dataset CSV files
 data/
 
+# MI Experiments results
+local_results_folder/
+.local_lpm_results/
+
+
 # frontend
 src/frontend/node_modules/
 src/frontend/dist/
@@ -123,6 +130,8 @@ src/frontend/build/
 src/frontend/.next/
 
 mi_crow_server
+
+# SLURM logs
 slurm-logs/
 
 # SLURM SAE Pipeline output directories
@@ -142,6 +151,7 @@ experiments/slurm_sae_pipeline/*_metrics.json
 experiments/slurm_sae_pipeline/dictionaries/**/concepts_report.txt
 experiments/verify_sae_training/*.ipynb
 
+
 # Coverage files
 .coverage.*
 .coverage
@@ -149,3 +159,6 @@ experiments/verify_sae_training/*.ipynb
 # uv package manager
 .uv-bin/
 .uv-cache/
+
+# Mid-development report:
+raport_implementacji.md
