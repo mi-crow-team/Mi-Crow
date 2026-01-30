@@ -88,6 +88,7 @@ class MockTokenizer(PreTrainedTokenizerBase):
         object.__setattr__(self, 'split_special_tokens', False)
         object.__setattr__(self, 'verbose', False)
         object.__setattr__(self, '_in_target_context_manager', False)
+        object.__setattr__(self, 'model_max_length', 512)
         
         # Define special token property helpers so assignments behave predictably
         def _make_token_property(attr_name):
