@@ -185,7 +185,7 @@ class LanguageModelTokenizer:
         if callable(tokenizer):
             try:
                 return tokenizer(texts, **kwargs)
-            except TypeError:
+            except (TypeError, NotImplementedError):
                 pass
 
         # Try batch_encode_plus
