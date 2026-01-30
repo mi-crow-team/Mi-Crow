@@ -84,12 +84,15 @@ class MockTokenizer(PreTrainedTokenizerBase):
         object.__setattr__(self, 'bos_token_id', 3)
         object.__setattr__(self, 'unk_token_id', 1)
         
-        # Set special tokens map for compatibility
+        # Set special tokens map for compatibility (include cls/sep/mask for transformers __getattr__)
         object.__setattr__(self, '_special_tokens_map', {
             'pad_token': pad_token,
             'eos_token': eos_token,
             'bos_token': bos_token,
             'unk_token': unk_token,
+            'cls_token': None,
+            'sep_token': None,
+            'mask_token': None,
         })
         
         # Add other required attributes for transformers compatibility
