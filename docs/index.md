@@ -1,10 +1,10 @@
 <div align="center">
   <img src="logo.svg" alt="Mi-Crow Logo" width="300">
-  
-  # Mi-Crow
-  
-  **Python library for mechanistic interpretability research on Large Language Models**  
 </div>
+
+# Mi-Crow
+  
+**Python library for mechanistic interpretability research on Large Language Models**  
 
 ---
 
@@ -16,27 +16,27 @@
 
 <div class="grid cards" markdown>
 
--   :material-robot:{ .lg .middle } __Activation Analysis__
+-   :robot: __Activation Analysis__
     
     Save and analyze model activations from any layer with minimal performance overhead
 
--   :material-brain:{ .lg .middle } __SAE Training__
+-   :brain: __SAE Training__
     
     Train sparse autoencoders to discover interpretable features and concepts
 
--   :material-lightbulb:{ .lg .middle } __Concept Discovery__
+-   :bulb: __Concept Discovery__
     
     Identify and name concepts learned by SAE neurons through automated analysis
 
--   :material-gamepad:{ .lg .middle } __Model Steering__
+-   :video_game: __Model Steering__
     
     Manipulate model behavior through concept-based interventions and activation control
 
--   :material-hook:{ .lg .middle } __Hook System__
+-   :hook:__Hook System__
     
     Flexible framework for intercepting and modifying activations at any layer
 
--   :material-database:{ .lg .middle } __Data Persistence__
+-   :floppy_disk: __Data Persistence__
     
     Efficient hierarchical storage for managing large-scale experiment data
 
@@ -200,19 +200,19 @@ If you use Mi-Crow in your research, please cite:
 
 <div class="grid cards" markdown>
 
--   :material-rocket-launch:{ .lg .middle } __[Quick Start](guide/quickstart.md)__
+-   :rocket: __[Quick Start](guide/quickstart.md)__
     
     Get up and running in minutes
 
--   :material-book-open-variant:{ .lg .middle } __[User Guide](guide/index.md)__
+-   :book: __[User Guide](guide/index.md)__
     
     Comprehensive documentation
 
--   :material-code-tags:{ .lg .middle } __[Examples](guide/examples.md)__
+-   :wrench: __[Examples](guide/examples.md)__
     
     Explore example notebooks
 
--   :material-flask-outline:{ .lg .middle } __[Experiments](experiments/index.md)__
+-   🧪 __[Experiments](experiments/index.md)__
     
     Real-world use cases
 
