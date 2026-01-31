@@ -3,11 +3,7 @@
   
   # Mi-Crow
   
-  **Python library for mechanistic interpretability research on Large Language Models**
-  
-  [![PyPI](https://img.shields.io/pypi/v/mi-crow)](https://pypi.org/project/mi-crow/)
-  [![CI](https://github.com/AdamKaniasty/Inzynierka/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/AdamKaniasty/Inzynierka/actions)
-  [![Docs](https://img.shields.io/badge/docs-gh--pages-blue)](https://adamkaniasty.github.io/Inzynierka/)
+  **Python library for mechanistic interpretability research on Large Language Models**  
 </div>
 
 ---
