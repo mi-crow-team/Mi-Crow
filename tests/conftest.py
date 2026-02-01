@@ -1,4 +1,3 @@
-
 def pytest_addoption(parser):
     parser.addoption(
         "--unit",
@@ -19,24 +18,24 @@ def pytest_addoption(parser):
         help="Run only end-to-end tests (from tests/e2e/)",
     )
 
+
 import pytest
 from mi_crow.datasets.loading_strategy import LoadingStrategy
-from tests.unit.fixtures.stores import create_temp_store, create_mock_store
-from tests.unit.fixtures.models import create_mock_model
-from tests.unit.fixtures.tokenizers import create_mock_tokenizer
 from tests.unit.fixtures.datasets import create_sample_dataset
 from tests.unit.fixtures.language_models import create_language_model_from_mock
+from tests.unit.fixtures.models import create_mock_model
+from tests.unit.fixtures.stores import create_mock_store, create_temp_store
+from tests.unit.fixtures.tokenizers import create_mock_tokenizer
+
 
 def pytest_collection_modifyitems(config, items):
     """
     Automatically add markers based on test file location and support --unit/--integration/--e2e flags.
-    
     Uses marker-based selection when markers are present, falls back to path-based for backward compatibility.
     """
     # Auto-add markers based on file path if not already marked
     for item in items:
         path_str = str(item.path).replace("\\", "/")
-        
         # Only add marker if test doesn't already have one
         if not any(mark.name in ("unit", "integration", "e2e") for mark in item.iter_markers()):
             if "/tests/unit/" in path_str:
@@ -45,7 +44,7 @@ def pytest_collection_modifyitems(config, items):
                 item.add_marker(pytest.mark.integration)
             elif "/tests/e2e/" in path_str:
                 item.add_marker(pytest.mark.e2e)
-    
+
     # Support --unit, --integration, --e2e flags (backward compatibility)
     # Prefer marker-based selection if markers are present
     if config.getoption("--unit"):
@@ -56,7 +55,6 @@ def pytest_collection_modifyitems(config, items):
             has_unit_marker = any(mark.name == "unit" for mark in item.iter_markers())
             path_str = str(item.path).replace("\\", "/")
             is_unit_path = "/tests/unit/" in path_str
-            
             if has_unit_marker or is_unit_path:
                 selected.append(item)
             else:
@@ -70,7 +68,6 @@ def pytest_collection_modifyitems(config, items):
             has_integration_marker = any(mark.name == "integration" for mark in item.iter_markers())
             path_str = str(item.path).replace("\\", "/")
             is_integration_path = "/tests/integration/" in path_str
-            
             if has_integration_marker or is_integration_path:
                 selected.append(item)
             else:
@@ -84,7 +81,6 @@ def pytest_collection_modifyitems(config, items):
             has_e2e_marker = any(mark.name == "e2e" for mark in item.iter_markers())
             path_str = str(item.path).replace("\\", "/")
             is_e2e_path = "/tests/e2e/" in path_str
-            
             if has_e2e_marker or is_e2e_path:
                 selected.append(item)
             else:
@@ -150,4 +146,3 @@ def loading_strategy(request):
 def non_streaming_strategy(request):
     """Parametrized fixture for non-streaming loading strategies."""
     return request.param
-

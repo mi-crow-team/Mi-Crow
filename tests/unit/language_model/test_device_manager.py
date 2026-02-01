@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from unittest.mock import MagicMock, patch
+
 import pytest
 import torch
-from unittest.mock import MagicMock, patch
 
 from mi_crow.language_model.device_manager import (
     ensure_context_device,
@@ -12,8 +13,8 @@ from mi_crow.language_model.device_manager import (
     sync_model_to_context_device,
 )
 from tests.unit.fixtures.language_models import create_language_model_from_mock
-from tests.unit.fixtures.stores import create_temp_store
 from tests.unit.fixtures.models import create_mock_model
+from tests.unit.fixtures.stores import create_temp_store
 from tests.unit.fixtures.tokenizers import create_mock_tokenizer
 
 
@@ -39,7 +40,7 @@ class TestNormalizeDevice:
         """Test that 'cuda' normalizes to 'cuda:0' when CUDA is available."""
         if not torch.cuda.is_available():
             pytest.skip("CUDA not available")
-        
+
         result = normalize_device("cuda")
         assert result == "cuda:0"
 
@@ -47,7 +48,7 @@ class TestNormalizeDevice:
         """Test that 'cuda:0' is preserved when CUDA is available."""
         if not torch.cuda.is_available():
             pytest.skip("CUDA not available")
-        
+
         result = normalize_device("cuda:0")
         assert result == "cuda:0"
 
@@ -61,10 +62,9 @@ class TestNormalizeDevice:
         """Test that 'mps' works when MPS is available."""
         mps_backend = getattr(torch.backends, "mps", None)
         mps_available = bool(mps_backend and mps_backend.is_available())
-        
         if not mps_available:
             pytest.skip("MPS not available")
-        
+
         result = normalize_device("mps")
         assert result == "mps"
 
@@ -78,7 +78,7 @@ class TestNormalizeDevice:
         """Test that torch.device('cuda:0') normalizes correctly."""
         if not torch.cuda.is_available():
             pytest.skip("CUDA not available")
-        
+
         result = normalize_device(torch.device("cuda:0"))
         assert result == "cuda:0"
 
@@ -90,10 +90,9 @@ class TestEnsureContextDevice:
         """Test that valid context.device returns torch.device."""
         model = create_mock_model()
         tokenizer = create_mock_tokenizer()
-        
         from mi_crow.language_model.language_model import LanguageModel
+
         lm = LanguageModel(model=model, tokenizer=tokenizer, store=temp_store, device="cpu")
-        
         device = ensure_context_device(lm)
         assert isinstance(device, torch.device)
         assert str(device) == "cpu"
@@ -102,13 +101,12 @@ class TestEnsureContextDevice:
         """Test that CUDA context.device returns correct torch.device."""
         if not torch.cuda.is_available():
             pytest.skip("CUDA not available")
-        
+
         model = create_mock_model()
         tokenizer = create_mock_tokenizer()
-        
         from mi_crow.language_model.language_model import LanguageModel
+
         lm = LanguageModel(model=model, tokenizer=tokenizer, store=temp_store, device="cuda")
-        
         device = ensure_context_device(lm)
         assert isinstance(device, torch.device)
         assert str(device) == "cuda:0"
@@ -117,7 +115,6 @@ class TestEnsureContextDevice:
         """Test that missing context raises ValueError."""
         mock_lm = MagicMock()
         del mock_lm.context
-        
         with pytest.raises(ValueError, match="context.device"):
             ensure_context_device(mock_lm)
 
@@ -126,7 +123,6 @@ class TestEnsureContextDevice:
         mock_lm = MagicMock()
         mock_lm.context = MagicMock()
         del mock_lm.context.device
-        
         with pytest.raises(ValueError, match="context.device"):
             ensure_context_device(mock_lm)
 
@@ -135,7 +131,6 @@ class TestEnsureContextDevice:
         mock_lm = MagicMock()
         mock_lm.context = MagicMock()
         mock_lm.context.device = None
-        
         with pytest.raises(ValueError, match="context.device"):
             ensure_context_device(mock_lm)
 
@@ -147,13 +142,12 @@ class TestSyncModelToContextDevice:
         """Test that sync is no-op when model is already on context.device."""
         model = create_mock_model()
         tokenizer = create_mock_tokenizer()
-        
         from mi_crow.language_model.language_model import LanguageModel
+
         lm = LanguageModel(model=model, tokenizer=tokenizer, store=temp_store, device="cpu")
-        
         sync_model_to_context_device(lm)
-        
         from mi_crow.language_model.utils import get_device_from_model
+
         model_device = get_device_from_model(lm.model)
         assert model_device.type == "cpu"
 
@@ -161,20 +155,18 @@ class TestSyncModelToContextDevice:
         """Test that model is moved from CUDA to CPU when context.device is CPU."""
         if not torch.cuda.is_available():
             pytest.skip("CUDA not available")
-        
+
         model = create_mock_model()
         model = model.cuda()
         tokenizer = create_mock_tokenizer()
-        
         from mi_crow.language_model.language_model import LanguageModel
+
         lm = LanguageModel(model=model, tokenizer=tokenizer, store=temp_store, device="cpu")
-        
         from mi_crow.language_model.utils import get_device_from_model
+
         model_device_before = get_device_from_model(lm.model)
         assert model_device_before.type == "cuda"
-        
         sync_model_to_context_device(lm)
-        
         model_device_after = get_device_from_model(lm.model)
         assert model_device_after.type == "cpu"
 
@@ -182,14 +174,14 @@ class TestSyncModelToContextDevice:
         """Test that model is moved from CPU to CUDA when context.device is CUDA."""
         if not torch.cuda.is_available():
             pytest.skip("CUDA not available")
-        
+
         model = create_mock_model()
         tokenizer = create_mock_tokenizer()
-        
         from mi_crow.language_model.language_model import LanguageModel
+
         lm = LanguageModel(model=model, tokenizer=tokenizer, store=temp_store, device="cuda")
-        
         from mi_crow.language_model.utils import get_device_from_model
+
         model_device_after = get_device_from_model(lm.model)
         assert model_device_after.type == "cuda"
         assert str(model_device_after) == "cuda:0"
@@ -198,7 +190,6 @@ class TestSyncModelToContextDevice:
         """Test that sync raises ValueError when context is missing."""
         mock_lm = MagicMock()
         del mock_lm.context
-        
         with pytest.raises(ValueError, match="context.device"):
             sync_model_to_context_device(mock_lm)
 
@@ -208,6 +199,5 @@ class TestSyncModelToContextDevice:
         mock_lm.context = MagicMock()
         mock_lm.context.device = None
         mock_lm.model = create_mock_model()
-        
         with pytest.raises(ValueError, match="context.device"):
             sync_model_to_context_device(mock_lm)

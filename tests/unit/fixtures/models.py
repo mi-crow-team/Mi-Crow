@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 import torch
 from torch import nn
-from typing import Optional
 
 
 class SimpleLM(nn.Module):
@@ -15,9 +16,7 @@ class SimpleLM(nn.Module):
         self.vocab_size = vocab_size
         self.hidden_size = hidden_size
         self.embedding = nn.Embedding(vocab_size, hidden_size)
-        self.layers = nn.ModuleList([
-            nn.Linear(hidden_size, hidden_size) for _ in range(num_layers)
-        ])
+        self.layers = nn.ModuleList([nn.Linear(hidden_size, hidden_size) for _ in range(num_layers)])
         self.lm_head = nn.Linear(hidden_size, vocab_size)
 
     def forward(self, input_ids: torch.Tensor, attention_mask: Optional[torch.Tensor] = None, **kwargs) -> torch.Tensor:
@@ -71,11 +70,11 @@ class ModelWithLastHiddenState(nn.Module):
     def forward(self, x: torch.Tensor):
         """Forward pass returning object with last_hidden_state."""
         hidden = self.linear(x)
-        
+
         class Output:
             def __init__(self, last_hidden_state):
                 self.last_hidden_state = last_hidden_state
-        
+
         return Output(hidden)
 
 
@@ -87,13 +86,12 @@ def create_mock_model(
 ) -> nn.Module:
     """
     Create a mock model for testing.
-    
     Args:
         model_type: Type of model ("simple", "sequential", "hidden_state", "last_hidden_state")
         vocab_size: Vocabulary size for language models
         hidden_size: Hidden layer size
         num_layers: Number of layers
-        
+
     Returns:
         Mock PyTorch model
     """
@@ -107,4 +105,3 @@ def create_mock_model(
         return ModelWithLastHiddenState(input_size=vocab_size, hidden_size=hidden_size)
     else:
         raise ValueError(f"Unknown model_type: {model_type}")
-

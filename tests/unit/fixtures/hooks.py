@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Optional, Callable
+from typing import Callable, Optional
+
 import torch
 
-from mi_crow.hooks.detector import Detector
 from mi_crow.hooks.controller import Controller
-from mi_crow.hooks.hook import HookType, HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT
-from mi_crow.hooks.implementations.layer_activation_detector import LayerActivationDetector
+from mi_crow.hooks.detector import Detector
+from mi_crow.hooks.hook import HOOK_FUNCTION_INPUT, HOOK_FUNCTION_OUTPUT, HookType
 from mi_crow.hooks.implementations.function_controller import FunctionController
+from mi_crow.hooks.implementations.layer_activation_detector import LayerActivationDetector
 from mi_crow.store.store import Store
 
 
@@ -82,13 +83,12 @@ def create_mock_detector(
 ) -> MockDetector:
     """
     Create a mock detector for testing.
-    
     Args:
         hook_type: Type of hook
         hook_id: Optional hook ID
         store: Optional store instance
         layer_signature: Optional layer signature
-        
+
     Returns:
         MockDetector instance
     """
@@ -108,13 +108,12 @@ def create_mock_controller(
 ) -> MockController:
     """
     Create a mock controller for testing.
-    
     Args:
         hook_type: Type of hook
         hook_id: Optional hook ID
         layer_signature: Optional layer signature
         modification_factor: Factor to multiply activations by
-        
+
     Returns:
         MockController instance
     """
@@ -132,11 +131,10 @@ def create_activation_detector(
 ) -> LayerActivationDetector:
     """
     Create a LayerActivationDetector for testing.
-    
     Args:
         layer_signature: Layer to attach to
         hook_id: Optional hook ID
-        
+
     Returns:
         LayerActivationDetector instance
     """
@@ -154,13 +152,12 @@ def create_function_controller(
 ) -> FunctionController:
     """
     Create a FunctionController for testing.
-    
     Args:
         layer_signature: Layer to attach to
         function: Function to apply to tensors
         hook_type: Type of hook
         hook_id: Optional hook ID
-        
+
     Returns:
         FunctionController instance
     """
@@ -170,4 +167,3 @@ def create_function_controller(
         hook_type=hook_type,
         hook_id=hook_id,
     )
-
