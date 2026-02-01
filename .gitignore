@@ -128,3 +128,6 @@ src/frontend/build/
 src/frontend/.next/
 
 mi_crow_server
+
+.uv-bin/
+slurm-logs/

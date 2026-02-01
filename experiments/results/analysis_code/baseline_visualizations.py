@@ -332,3 +332,84 @@ def plot_prompt_stability(
     fig.savefig(output_path, dpi=300, bbox_inches="tight")
     print(f"✅ Saved prompt stability plot to: {output_path}")
     plt.close()
+
+
+def plot_prompt_stability_boxplot(
+    prompting_df: pd.DataFrame,
+    output_path: Path,
+) -> None:
+    """Create box plot showing prompt stability for prompted models.
+
+    Args:
+        prompting_df: DataFrame with direct prompting results
+        output_path: Path to save the plot
+    """
+    setup_plotting_style()
+
+    # Prepare data
+    plot_data = []
+
+    for model_short, model_name in [
+        ("llama-3_2-3b-instruct", "Llama-3B"),
+        ("bielik-4_5b-v3_0-instruct", "Bielik-4.5B"),
+    ]:
+        model_data = prompting_df[prompting_df["model_short"] == model_short]
+
+        for dataset in ["plmix_test", "wgmix_test"]:
+            dataset_label = "PLMix" if dataset == "plmix_test" else "WGMix"
+            dataset_data = model_data[model_data["test_dataset"] == dataset]
+
+            for _, row in dataset_data.iterrows():
+                plot_data.append(
+                    {
+                        "Model": model_name,
+                        "Dataset": dataset_label,
+                        "Prompt": f"Prompt {row['prompt_id']}",
+                        "F1": row["f1"],
+                    }
+                )
+
+    df = pd.DataFrame(plot_data)
+
+    # Create figure with two subplots
+    fig, axes = plt.subplots(1, 2, figsize=(10, 5), sharey=True)
+
+    datasets = ["PLMix", "WGMix"]
+    colors = sns.color_palette("Set2", 2)
+
+    for ax, dataset in zip(axes, datasets):
+        dataset_data = df[df["Dataset"] == dataset]
+
+        # Create box plot
+        sns.boxplot(
+            data=dataset_data,
+            x="Model",
+            y="F1",
+            palette=colors,
+            ax=ax,
+        )
+
+        # Overlay individual prompt points
+        sns.stripplot(
+            data=dataset_data,
+            x="Model",
+            y="F1",
+            color="black",
+            alpha=0.6,
+            size=5,
+            ax=ax,
+        )
+
+        ax.set_xlabel("Model", fontsize=10)
+        ax.set_ylabel("F1 Score" if dataset == "PLMix" else "", fontsize=10)
+        ax.set_title(f"{dataset}: Prompt Stability", fontsize=11, fontweight="bold", pad=15)
+        ax.set_ylim(0.0, 1.1)
+        ax.grid(axis="y", alpha=0.3)
+
+    fig.suptitle("Prompt Variation Analysis (Box Plot)", fontsize=12, fontweight="bold")
+    plt.tight_layout()
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output_path, dpi=300, bbox_inches="tight")
+    print(f"✅ Saved prompt stability boxplot to: {output_path}")
+    plt.close()

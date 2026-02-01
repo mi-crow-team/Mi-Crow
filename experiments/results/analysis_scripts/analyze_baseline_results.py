@@ -39,6 +39,7 @@ from experiments.results.analysis_code.baseline_visualizations import (
     plot_baseline_bar_chart,
     plot_baseline_heatmap,
     plot_prompt_stability,
+    plot_prompt_stability_boxplot,
 )
 
 # ============================================================================
@@ -178,10 +179,17 @@ def main() -> int:
     )
     print()
 
-    print("📊 Visualization 3: Prompt Stability Analysis")
+    print("📊 Visualization 3: Prompt Stability Analysis (Violin)")
     plot_prompt_stability(
         prompting_df=prompting_df,
         output_path=viz_dir / "prompt_stability.png",
+    )
+    print()
+
+    print("📊 Visualization 4: Prompt Stability Analysis (Box Plot)")
+    plot_prompt_stability_boxplot(
+        prompting_df=prompting_df,
+        output_path=viz_dir / "prompt_stability_boxplot.png",
     )
     print()
 
