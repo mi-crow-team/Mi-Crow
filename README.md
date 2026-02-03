@@ -19,6 +19,15 @@
 - **Hierarchical Data Persistence** - Efficient storage and management of large-scale experiment data
 - **Research Focused** - Comprehensive testing (85%+ coverage), extensive documentation, and designed for interpretability research workflows
 
+## Acknowledgements
+This project was developed as part of an engineering thesis at the Faculty of Mathematics and Information Science, Warsaw University of Technology (WUT).
+
+We extend our sincere gratitude to our thesis supervisors:
+- **mgr inż. Vladimir Zaigrajew**
+- **prof. dr hab. inż. Przemysław Biecek**
+
+for their invaluable guidance, insightful feedback, and continuous support throughout the course of this work.
+
 ## Installation
 
 ### Install from PyPI
@@ -214,10 +223,6 @@ See the main repository for license information: [Mi-Crow License](https://githu
 - **Maintainers**: Adam Kaniasty, Hubert Kowalski
 - **Email**: adam.kaniasty@gmail.com
 - **GitHub**: [@AdamKaniasty](https://github.com/AdamKaniasty)
-
-## Acknowledgments
-
-This work was developed in collaboration with the **Bielik** team and represents a contribution to the open-source mechanistic interpretability community.
 
 ---
 
