@@ -1,0 +1,2409 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Python library for mechanistic interpretability research on Large Language Models">
+      
+      
+      
+        <link rel="canonical" href="https://adamkaniasty.github.io/Inzynierka/guide/workflows/concept-discovery/">
+      
+      
+        <link rel="prev" href="../training-sae/">
+      
+      
+        <link rel="next" href="../concept-manipulation/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Concept Discovery - Mi-Crow</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#concept-discovery" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="Mi-Crow" class="md-header__button md-logo" aria-label="Mi-Crow" data-md-component="logo">
+      
+  <img src="../../../docs/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Mi-Crow
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Concept Discovery
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/AdamKaniasty/Inzynierka" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    AdamKaniasty/Inzynierka
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  User Guide
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../experiments/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Experiments
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../api/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  API Reference
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Mi-Crow" class="md-nav__button md-logo" aria-label="Mi-Crow" data-md-component="logo">
+      
+  <img src="../../../docs/logo.svg" alt="logo">
+
+    </a>
+    Mi-Crow
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/AdamKaniasty/Inzynierka" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    AdamKaniasty/Inzynierka
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation &amp; Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../core-concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core Concepts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../hooks/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hooks System
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Hooks System
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../hooks/fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hooks Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../hooks/detectors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using Detector Hooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../hooks/controllers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using Controller Hooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../hooks/registration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hook Registration and Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../hooks/advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Hooks Patterns
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workflows
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Workflows
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../saving-activations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Saving Activations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../training-sae/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training SAE Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concept Discovery
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concept Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-load-and-attach-sae" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Load and Attach SAE
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-enable-text-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Enable Text Tracking
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-run-inference-on-dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Run Inference on Dataset
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-get-top-texts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Get Top Texts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 4: Get Top Texts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#understanding-top-texts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Understanding Top Texts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-5-export-for-manual-curation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Export for Manual Curation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-6-manual-concept-curation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Manual Concept Curation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-7-load-curated-concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Load Curated Concepts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analyzing-concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analyzing Concepts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Analyzing Concepts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#most-active-neurons" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Most Active Neurons
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#concept-distribution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concept Distribution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#check-concept-quality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check Concept Quality
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-concept-consistency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test Concept Consistency
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-techniques" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Techniques
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Techniques">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#filtering-by-activation-threshold" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filtering by Activation Threshold
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clustering-similar-neurons" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clustering Similar Neurons
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Best Practices
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#no-texts-collected" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        No Texts Collected
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#too-manyfew-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Too Many/Few Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unclear-concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unclear Concepts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concept-manipulation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concept Manipulation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../activation-control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Activation Control with Hooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../best-practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../experiments/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiments
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Experiments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../experiments/verify-sae-training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Verify SAE Training Experiment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../experiments/slurm-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SLURM SAE Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../api/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/language_model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Language Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sae/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SAE
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/datasets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Datasets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/store/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Store
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/hooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-load-and-attach-sae" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Load and Attach SAE
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-enable-text-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Enable Text Tracking
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-run-inference-on-dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Run Inference on Dataset
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-get-top-texts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Get Top Texts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 4: Get Top Texts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#understanding-top-texts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Understanding Top Texts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-5-export-for-manual-curation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Export for Manual Curation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-6-manual-concept-curation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Manual Concept Curation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-7-load-curated-concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Load Curated Concepts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analyzing-concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analyzing Concepts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Analyzing Concepts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#most-active-neurons" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Most Active Neurons
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#concept-distribution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concept Distribution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#check-concept-quality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check Concept Quality
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-concept-consistency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test Concept Consistency
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-techniques" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Techniques
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Techniques">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#filtering-by-activation-threshold" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filtering by Activation Threshold
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clustering-similar-neurons" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clustering Similar Neurons
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Best Practices
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#no-texts-collected" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        No Texts Collected
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#too-manyfew-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Too Many/Few Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unclear-concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unclear Concepts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/AdamKaniasty/Inzynierka/blob/main/guide/workflows/concept-discovery.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="concept-discovery">Concept Discovery<a class="headerlink" href="#concept-discovery" title="Permanent link">&para;</a></h1>
+<p>This guide covers discovering interpretable concepts by analyzing SAE neuron activations and collecting top activating texts.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>Concept discovery involves:
+1. Attaching a trained SAE to the model
+2. Enabling text tracking
+3. Running inference on a dataset
+4. Analyzing top activating texts for each neuron
+5. Manually curating concept names</p>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<p>Before discovering concepts, you need:
+- A trained SAE (see <a href="../training-sae/">Training SAE Models</a>)
+- A dataset for inference
+- The SAE attached to the model</p>
+<h2 id="step-1-load-and-attach-sae">Step 1: Load and Attach SAE<a class="headerlink" href="#step-1-load-and-attach-sae" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mi_crow.mechanistic.sae</span><span class="w"> </span><span class="kn">import</span> <span class="n">TopKSae</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+<span class="c1"># Load trained SAE</span>
+<span class="n">sae</span> <span class="o">=</span> <span class="n">TopKSae</span><span class="p">(</span><span class="n">n_latents</span><span class="o">=</span><span class="mi">4096</span><span class="p">,</span> <span class="n">n_inputs</span><span class="o">=</span><span class="mi">768</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
+<span class="n">sae</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sae_model.pt&quot;</span><span class="p">))</span>
+<span class="n">sae</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+
+<span class="c1"># Attach to model</span>
+<span class="n">lm</span><span class="o">.</span><span class="n">attach_sae</span><span class="p">(</span><span class="n">sae</span><span class="p">,</span> <span class="n">layer_signature</span><span class="o">=</span><span class="s2">&quot;transformer.h.0.attn.c_attn&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>The <code>attach_sae</code> method:
+- Registers the SAE as a hook on the specified layer
+- Enables SAE decoding during inference
+- Makes the SAE available for concept operations</p>
+<h2 id="step-2-enable-text-tracking">Step 2: Enable Text Tracking<a class="headerlink" href="#step-2-enable-text-tracking" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="c1"># Enable automatic text tracking</span>
+<span class="n">sae</span><span class="o">.</span><span class="n">concepts</span><span class="o">.</span><span class="n">enable_text_tracking</span><span class="p">(</span><span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Parameters</strong>:
+- <code>top_k</code>: Number of top activating texts to track per neuron
+- Higher k = more examples but more memory</p>
+<p>Text tracking:
+- Automatically collects text snippets during inference
+- Tracks which texts activate each neuron most strongly
+- Accumulates data across batches</p>
+<h2 id="step-3-run-inference-on-dataset">Step 3: Run Inference on Dataset<a class="headerlink" href="#step-3-run-inference-on-dataset" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mi_crow.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">TextDataset</span>
+
+<span class="c1"># Prepare dataset</span>
+<span class="n">texts</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;The cat sat on the mat.&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Dogs are loyal companions.&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Science requires careful observation.&quot;</span><span class="p">,</span>
+    <span class="c1"># ... more texts</span>
+<span class="p">]</span> <span class="o">*</span> <span class="mi">100</span>  <span class="c1"># Repeat for more examples</span>
+
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">TextDataset</span><span class="p">(</span><span class="n">texts</span><span class="o">=</span><span class="n">texts</span><span class="p">)</span>
+
+<span class="c1"># Run inference - text tracking happens automatically</span>
+<span class="n">outputs</span><span class="p">,</span> <span class="n">encodings</span> <span class="o">=</span> <span class="n">lm</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">execute_inference</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">texts</span><span class="p">)</span>
+</code></pre></div>
+<p>During inference:
+- SAE decodes activations to sparse latents
+- Text tracker records which texts activate each neuron
+- Top-K texts are maintained for each neuron</p>
+<h2 id="step-4-get-top-texts">Step 4: Get Top Texts<a class="headerlink" href="#step-4-get-top-texts" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="c1"># Get top activating texts for all neurons</span>
+<span class="n">top_texts</span> <span class="o">=</span> <span class="n">sae</span><span class="o">.</span><span class="n">concepts</span><span class="o">.</span><span class="n">get_top_texts</span><span class="p">()</span>
+
+<span class="c1"># Access texts for a specific neuron</span>
+<span class="n">neuron_42_texts</span> <span class="o">=</span> <span class="n">top_texts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="p">[])</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Neuron 42 top texts:&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">text</span><span class="p">,</span> <span class="n">activation</span> <span class="ow">in</span> <span class="n">neuron_42_texts</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Activation: </span><span class="si">{</span><span class="n">activation</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="understanding-top-texts">Understanding Top Texts<a class="headerlink" href="#understanding-top-texts" title="Permanent link">&para;</a></h3>
+<p>Each entry contains:
+- <strong>Text</strong>: The input text that activated the neuron
+- <strong>Activation</strong>: The activation strength (higher = stronger)</p>
+<p>Patterns in top texts reveal what the neuron detects:
+- Semantic concepts (e.g., "family", "science")
+- Syntactic patterns (e.g., "question words", "past tense")
+- Domain-specific (e.g., "medical terms", "programming")</p>
+<h2 id="step-5-export-for-manual-curation">Step 5: Export for Manual Curation<a class="headerlink" href="#step-5-export-for-manual-curation" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="c1"># Export top texts to JSON</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;top_texts.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">top_texts</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># Or export in a more readable format</span>
+<span class="n">export_data</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">neuron_idx</span><span class="p">,</span> <span class="n">texts</span> <span class="ow">in</span> <span class="n">top_texts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">text</span><span class="p">,</span> <span class="n">activation</span> <span class="ow">in</span> <span class="n">texts</span><span class="p">:</span>
+        <span class="n">export_data</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s2">&quot;neuron&quot;</span><span class="p">:</span> <span class="n">neuron_idx</span><span class="p">,</span>
+            <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">text</span><span class="p">,</span>
+            <span class="s2">&quot;activation&quot;</span><span class="p">:</span> <span class="n">activation</span>
+        <span class="p">})</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;top_texts_flat.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">export_data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="step-6-manual-concept-curation">Step 6: Manual Concept Curation<a class="headerlink" href="#step-6-manual-concept-curation" title="Permanent link">&para;</a></h2>
+<p>Create a CSV file mapping neurons to concept names:</p>
+<div class="highlight"><pre><span></span><code>neuron_idx,concept_name,confidence
+0,family relationships,0.9
+0,parent-child interactions,0.8
+1,nature and outdoors,0.9
+1,animals and wildlife,0.8
+2,scientific terminology,0.95
+2,academic language,0.85
+</code></pre></div>
+<p><strong>Curation Tips</strong>:
+- Look for common themes in top texts
+- Assign multiple concepts if neuron is polysemous
+- Use confidence scores to indicate certainty
+- Review multiple top texts, not just the first</p>
+<h2 id="step-7-load-curated-concepts">Step 7: Load Curated Concepts<a class="headerlink" href="#step-7-load-curated-concepts" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="c1"># Load curated concepts</span>
+<span class="n">concepts_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;curated_concepts.csv&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create concept dictionary</span>
+<span class="n">concepts</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">concepts_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+    <span class="n">neuron_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;neuron_idx&#39;</span><span class="p">])</span>
+    <span class="n">concept_name</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;concept_name&#39;</span><span class="p">]</span>
+    <span class="n">confidence</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;confidence&#39;</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">neuron_idx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">concepts</span><span class="p">:</span>
+        <span class="n">concepts</span><span class="p">[</span><span class="n">neuron_idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">concepts</span><span class="p">[</span><span class="n">neuron_idx</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">concept_name</span><span class="p">,</span>
+        <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="n">confidence</span>
+    <span class="p">})</span>
+
+<span class="c1"># Save to SAE</span>
+<span class="n">sae</span><span class="o">.</span><span class="n">concepts</span><span class="o">.</span><span class="n">load_concepts</span><span class="p">(</span><span class="n">concepts</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="analyzing-concepts">Analyzing Concepts<a class="headerlink" href="#analyzing-concepts" title="Permanent link">&para;</a></h2>
+<h3 id="most-active-neurons">Most Active Neurons<a class="headerlink" href="#most-active-neurons" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Find neurons with highest average activation</span>
+<span class="n">neuron_activity</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">neuron_idx</span><span class="p">,</span> <span class="n">texts</span> <span class="ow">in</span> <span class="n">top_texts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">texts</span><span class="p">:</span>
+        <span class="n">avg_activation</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">act</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">act</span> <span class="ow">in</span> <span class="n">texts</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">texts</span><span class="p">)</span>
+        <span class="n">neuron_activity</span><span class="p">[</span><span class="n">neuron_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">avg_activation</span>
+
+<span class="c1"># Sort by activity</span>
+<span class="n">sorted_neurons</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">neuron_activity</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Most active neurons:&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">neuron_idx</span><span class="p">,</span> <span class="n">activity</span> <span class="ow">in</span> <span class="n">sorted_neurons</span><span class="p">[:</span><span class="mi">10</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Neuron </span><span class="si">{</span><span class="n">neuron_idx</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">activity</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="concept-distribution">Concept Distribution<a class="headerlink" href="#concept-distribution" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Analyze concept coverage</span>
+<span class="n">concept_counts</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">neuron_idx</span><span class="p">,</span> <span class="n">concepts_list</span> <span class="ow">in</span> <span class="n">concepts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">concept</span> <span class="ow">in</span> <span class="n">concepts_list</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">concept</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+        <span class="n">concept_counts</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">concept_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Concept distribution:&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">concept</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">concept_counts</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">concept</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2"> neurons&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
+<h3 id="check-concept-quality">Check Concept Quality<a class="headerlink" href="#check-concept-quality" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Verify concepts make sense</span>
+<span class="k">for</span> <span class="n">neuron_idx</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>  <span class="c1"># Check first few</span>
+    <span class="n">texts</span> <span class="o">=</span> <span class="n">top_texts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">neuron_idx</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">concepts_list</span> <span class="o">=</span> <span class="n">concepts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">neuron_idx</span><span class="p">,</span> <span class="p">[])</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Neuron </span><span class="si">{</span><span class="n">neuron_idx</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Concepts: </span><span class="si">{</span><span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">concepts_list</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Top texts:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">text</span><span class="p">,</span> <span class="n">act</span> <span class="ow">in</span> <span class="n">texts</span><span class="p">[:</span><span class="mi">3</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    </span><span class="si">{</span><span class="n">act</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">text</span><span class="p">[:</span><span class="mi">50</span><span class="p">]</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="test-concept-consistency">Test Concept Consistency<a class="headerlink" href="#test-concept-consistency" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Run inference on new texts and check if concepts activate</span>
+<span class="n">test_texts</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;My family loves to travel together.&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;The scientist conducted experiments.&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Dogs are friendly animals.&quot;</span>
+<span class="p">]</span>
+
+<span class="n">outputs</span><span class="p">,</span> <span class="n">encodings</span> <span class="o">=</span> <span class="n">lm</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">execute_inference</span><span class="p">(</span><span class="n">test_texts</span><span class="p">)</span>
+
+<span class="c1"># Check which concepts activated</span>
+<span class="c1"># (Implementation depends on SAE concept API)</span>
+</code></pre></div>
+<h2 id="advanced-techniques">Advanced Techniques<a class="headerlink" href="#advanced-techniques" title="Permanent link">&para;</a></h2>
+<h3 id="filtering-by-activation-threshold">Filtering by Activation Threshold<a class="headerlink" href="#filtering-by-activation-threshold" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Only consider texts above threshold</span>
+<span class="n">threshold</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="n">filtered_texts</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="k">for</span> <span class="n">neuron_idx</span><span class="p">,</span> <span class="n">texts</span> <span class="ow">in</span> <span class="n">top_texts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">filtered</span> <span class="o">=</span> <span class="p">[(</span><span class="n">text</span><span class="p">,</span> <span class="n">act</span><span class="p">)</span> <span class="k">for</span> <span class="n">text</span><span class="p">,</span> <span class="n">act</span> <span class="ow">in</span> <span class="n">texts</span> <span class="k">if</span> <span class="n">act</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">filtered</span><span class="p">:</span>
+        <span class="n">filtered_texts</span><span class="p">[</span><span class="n">neuron_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">filtered</span>
+</code></pre></div>
+<h3 id="clustering-similar-neurons">Clustering Similar Neurons<a class="headerlink" href="#clustering-similar-neurons" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Group neurons with similar activation patterns</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.cluster</span><span class="w"> </span><span class="kn">import</span> <span class="n">KMeans</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Create activation matrix (neurons x samples)</span>
+<span class="c1"># Then cluster neurons</span>
+<span class="c1"># (Implementation depends on your data structure)</span>
+</code></pre></div>
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Use diverse datasets</strong>: Include various topics and styles</li>
+<li><strong>Review multiple top texts</strong>: Don't judge by first example alone</li>
+<li><strong>Check for polysemy</strong>: Neurons may detect multiple concepts</li>
+<li><strong>Validate on held-out data</strong>: Test concepts on new texts</li>
+<li><strong>Iterate</strong>: Refine concepts based on analysis</li>
+</ol>
+<h2 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">&para;</a></h2>
+<h3 id="no-texts-collected">No Texts Collected<a class="headerlink" href="#no-texts-collected" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Solution: Ensure text tracking is enabled</span>
+<span class="n">sae</span><span class="o">.</span><span class="n">concepts</span><span class="o">.</span><span class="n">enable_text_tracking</span><span class="p">(</span><span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="c1"># And run inference</span>
+<span class="n">outputs</span><span class="p">,</span> <span class="n">encodings</span> <span class="o">=</span> <span class="n">lm</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">execute_inference</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">texts</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="too-manyfew-examples">Too Many/Few Examples<a class="headerlink" href="#too-manyfew-examples" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Adjust top_k</span>
+<span class="n">sae</span><span class="o">.</span><span class="n">concepts</span><span class="o">.</span><span class="n">enable_text_tracking</span><span class="p">(</span><span class="n">top_k</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>  <span class="c1"># More examples</span>
+<span class="c1"># or</span>
+<span class="n">sae</span><span class="o">.</span><span class="n">concepts</span><span class="o">.</span><span class="n">enable_text_tracking</span><span class="p">(</span><span class="n">top_k</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>   <span class="c1"># Fewer examples</span>
+</code></pre></div>
+<h3 id="unclear-concepts">Unclear Concepts<a class="headerlink" href="#unclear-concepts" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Solution: Use more diverse dataset</span>
+<span class="c1"># Or check if SAE training was successful</span>
+<span class="c1"># Or increase dataset size</span>
+</code></pre></div>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<p>After discovering concepts:</p>
+<ul>
+<li><strong><a href="../concept-manipulation/">Concept Manipulation</a></strong> - Use concepts to control model</li>
+<li><strong><a href="../training-sae/">Training SAE Models</a></strong> - Improve SAE if concepts unclear</li>
+<li><strong><a href="../../examples/">Examples</a></strong> - See example notebooks</li>
+</ul>
+<h2 id="related-examples">Related Examples<a class="headerlink" href="#related-examples" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>examples/02_attach_sae_and_save_texts.ipynb</code> - Complete concept discovery example</li>
+<li><code>experiments/verify_sae_training/04_name_sae_concepts.ipynb</code> - Concept naming</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "content.code.copy", "content.action.edit", "content.tabs.link", "content.tooltips"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

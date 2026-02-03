@@ -1,0 +1,2572 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Python library for mechanistic interpretability research on Large Language Models">
+      
+      
+      
+        <link rel="canonical" href="https://adamkaniasty.github.io/Inzynierka/guide/troubleshooting/">
+      
+      
+        <link rel="prev" href="../best-practices/">
+      
+      
+        <link rel="next" href="../examples/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Troubleshooting - Mi-Crow</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#troubleshooting" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Mi-Crow" class="md-header__button md-logo" aria-label="Mi-Crow" data-md-component="logo">
+      
+  <img src="../../docs/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Mi-Crow
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Troubleshooting
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/AdamKaniasty/Inzynierka" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    AdamKaniasty/Inzynierka
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  User Guide
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../experiments/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Experiments
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../api/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  API Reference
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Mi-Crow" class="md-nav__button md-logo" aria-label="Mi-Crow" data-md-component="logo">
+      
+  <img src="../../docs/logo.svg" alt="logo">
+
+    </a>
+    Mi-Crow
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/AdamKaniasty/Inzynierka" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    AdamKaniasty/Inzynierka
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation &amp; Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core-concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core Concepts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../hooks/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hooks System
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Hooks System
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hooks/fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hooks Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hooks/detectors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using Detector Hooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hooks/controllers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using Controller Hooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hooks/registration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hook Registration and Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hooks/advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Hooks Patterns
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../workflows/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workflows
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Workflows
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../workflows/saving-activations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Saving Activations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../workflows/training-sae/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training SAE Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../workflows/concept-discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concept Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../workflows/concept-manipulation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concept Manipulation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../workflows/activation-control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Activation Control with Hooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../best-practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#common-errors-and-solutions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Errors and Solutions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Errors and Solutions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#layer-signature-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer Signature Not Found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#out-of-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Out of Memory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hook-not-executing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hook Not Executing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sae-training-instability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SAE Training Instability
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#poor-sae-reconstruction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Poor SAE Reconstruction
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#layer-signature-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer Signature Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Layer Signature Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finding-correct-layer-names" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding Correct Layer Names
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layer-name-variations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer Name Variations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#memory-problems" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Memory Problems
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Memory Problems">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gpu-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GPU Memory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#memory-leaks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Memory Leaks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#accumulating-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Accumulating Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training-instability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Training Instability
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Training Instability">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#loss-not-decreasing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loss Not Decreasing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exploding-gradients" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exploding Gradients
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dead-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dead Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#device-compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Device Compatibility
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Device Compatibility">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cuda-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CUDA Issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mps-apple-silicon" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MPS (Apple Silicon)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#device-mismatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Device Mismatch
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#import-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Import Errors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Import Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#module-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Module Not Found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#version-mismatches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version Mismatches
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-help" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Help
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting Help">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#check-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#debug-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debug Information
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reproduce-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reproduce Issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../experiments/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiments
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Experiments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../experiments/verify-sae-training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Verify SAE Training Experiment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../experiments/slurm-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SLURM SAE Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../api/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/language_model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Language Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/sae/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SAE
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/datasets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Datasets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/store/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Store
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/hooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#common-errors-and-solutions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Errors and Solutions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Errors and Solutions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#layer-signature-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer Signature Not Found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#out-of-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Out of Memory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hook-not-executing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hook Not Executing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sae-training-instability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SAE Training Instability
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#poor-sae-reconstruction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Poor SAE Reconstruction
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#layer-signature-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer Signature Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Layer Signature Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finding-correct-layer-names" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding Correct Layer Names
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layer-name-variations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer Name Variations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#memory-problems" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Memory Problems
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Memory Problems">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gpu-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GPU Memory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#memory-leaks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Memory Leaks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#accumulating-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Accumulating Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training-instability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Training Instability
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Training Instability">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#loss-not-decreasing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loss Not Decreasing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exploding-gradients" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exploding Gradients
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dead-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dead Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#device-compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Device Compatibility
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Device Compatibility">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cuda-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CUDA Issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mps-apple-silicon" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MPS (Apple Silicon)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#device-mismatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Device Mismatch
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#import-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Import Errors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Import Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#module-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Module Not Found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#version-mismatches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version Mismatches
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-help" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Help
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting Help">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#check-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#debug-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debug Information
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reproduce-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reproduce Issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/AdamKaniasty/Inzynierka/blob/main/guide/troubleshooting.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h1>
+<p>This guide covers common issues and their solutions when using mi-crow.</p>
+<h2 id="common-errors-and-solutions">Common Errors and Solutions<a class="headerlink" href="#common-errors-and-solutions" title="Permanent link">&para;</a></h2>
+<h3 id="layer-signature-not-found">Layer Signature Not Found<a class="headerlink" href="#layer-signature-not-found" title="Permanent link">&para;</a></h3>
+<p><strong>Error</strong>: <code>ValueError: Layer signature not found</code></p>
+<p><strong>Causes</strong>:
+- Incorrect layer name
+- Layer doesn't exist in model
+- Typo in layer name</p>
+<p><strong>Solutions</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. List available layers</span>
+<span class="n">layers</span> <span class="o">=</span> <span class="n">lm</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">list_layers</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Available layers:&quot;</span><span class="p">,</span> <span class="n">layers</span><span class="p">)</span>
+
+<span class="c1"># 2. Use exact name from list</span>
+<span class="n">layer_name</span> <span class="o">=</span> <span class="n">layers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># Don&#39;t guess!</span>
+
+<span class="c1"># 3. Verify layer exists before using</span>
+<span class="k">if</span> <span class="n">layer_name</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
+    <span class="n">hook_id</span> <span class="o">=</span> <span class="n">lm</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">register_hook</span><span class="p">(</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">detector</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Layer </span><span class="si">{</span><span class="n">layer_name</span><span class="si">}</span><span class="s2"> not found!&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="out-of-memory">Out of Memory<a class="headerlink" href="#out-of-memory" title="Permanent link">&para;</a></h3>
+<p><strong>Error</strong>: <code>RuntimeError: CUDA out of memory</code></p>
+<p><strong>Causes</strong>:
+- Batch size too large
+- Model too large for GPU
+- Accumulating tensors in memory</p>
+<p><strong>Solutions</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Reduce batch size</span>
+<span class="n">run_id</span> <span class="o">=</span> <span class="n">lm</span><span class="o">.</span><span class="n">activations</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+    <span class="n">layer_signature</span><span class="o">=</span><span class="s2">&quot;layer_0&quot;</span><span class="p">,</span>
+    <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># Minimal batch size</span>
+    <span class="n">sample_limit</span><span class="o">=</span><span class="mi">100</span>
+<span class="p">)</span>
+
+<span class="c1"># 2. Use CPU instead of GPU</span>
+<span class="n">sae</span> <span class="o">=</span> <span class="n">TopKSae</span><span class="p">(</span><span class="n">n_latents</span><span class="o">=</span><span class="mi">4096</span><span class="p">,</span> <span class="n">n_inputs</span><span class="o">=</span><span class="mi">768</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+
+<span class="c1"># 3. Clear detector data periodically</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">clear_captured</span><span class="p">()</span>
+
+<span class="c1"># 4. Move tensors to CPU</span>
+<span class="n">activations</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_captured</span><span class="p">()</span>
+<span class="n">activations_cpu</span> <span class="o">=</span> <span class="n">activations</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
+</code></pre></div>
+<h3 id="hook-not-executing">Hook Not Executing<a class="headerlink" href="#hook-not-executing" title="Permanent link">&para;</a></h3>
+<p><strong>Symptoms</strong>: Hook doesn't seem to run, no data collected</p>
+<p><strong>Causes</strong>:
+- Hook not registered
+- Hook disabled
+- Wrong layer signature
+- Hook unregistered too early</p>
+<p><strong>Solutions</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Verify hook is registered</span>
+<span class="n">hook_id</span> <span class="o">=</span> <span class="n">lm</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">register_hook</span><span class="p">(</span><span class="s2">&quot;layer_0&quot;</span><span class="p">,</span> <span class="n">detector</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">hook_id</span> <span class="ow">in</span> <span class="n">lm</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">_hook_id_map</span>
+
+<span class="c1"># 2. Check hook is enabled</span>
+<span class="k">assert</span> <span class="n">detector</span><span class="o">.</span><span class="n">is_enabled</span><span class="p">(),</span> <span class="s2">&quot;Hook is disabled!&quot;</span>
+
+<span class="c1"># 3. Verify layer name is correct</span>
+<span class="n">layers</span> <span class="o">=</span> <span class="n">lm</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">list_layers</span><span class="p">()</span>
+<span class="k">assert</span> <span class="s2">&quot;layer_0&quot;</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">,</span> <span class="s2">&quot;Layer doesn&#39;t exist!&quot;</span>
+
+<span class="c1"># 4. Ensure hook stays registered during inference</span>
+<span class="n">outputs</span><span class="p">,</span> <span class="n">encodings</span> <span class="o">=</span> <span class="n">lm</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">execute_inference</span><span class="p">([</span><span class="s2">&quot;test&quot;</span><span class="p">])</span>
+<span class="n">activations</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_captured</span><span class="p">()</span>  <span class="c1"># Check before unregistering</span>
+</code></pre></div>
+<h3 id="sae-training-instability">SAE Training Instability<a class="headerlink" href="#sae-training-instability" title="Permanent link">&para;</a></h3>
+<p><strong>Symptoms</strong>: Loss doesn't decrease, weights not learning</p>
+<p><strong>Causes</strong>:
+- Learning rate too high
+- Too much regularization
+- Not enough training data
+- Dead features</p>
+<p><strong>Solutions</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Reduce learning rate</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">SaeTrainingConfig</span><span class="p">(</span>
+    <span class="n">epochs</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+    <span class="n">lr</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span>  <span class="c1"># Lower learning rate</span>
+    <span class="n">l1_lambda</span><span class="o">=</span><span class="mf">1e-5</span>  <span class="c1"># Lower regularization</span>
+<span class="p">)</span>
+
+<span class="c1"># 2. Check for dead features</span>
+<span class="n">dead_count</span> <span class="o">=</span> <span class="n">history</span><span class="p">[</span><span class="s1">&#39;dead_features&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="k">if</span> <span class="n">dead_count</span> <span class="o">&gt;</span> <span class="n">sae</span><span class="o">.</span><span class="n">n_latents</span> <span class="o">*</span> <span class="mf">0.1</span><span class="p">:</span>  <span class="c1"># More than 10% dead</span>
+    <span class="c1"># Reduce sparsity</span>
+    <span class="n">sae</span> <span class="o">=</span> <span class="n">TopKSae</span><span class="p">(</span><span class="n">n_latents</span><span class="o">=</span><span class="mi">4096</span><span class="p">,</span> <span class="n">n_inputs</span><span class="o">=</span><span class="mi">768</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span>  <span class="c1"># Increase k</span>
+
+<span class="c1"># 3. Verify weights are learning</span>
+<span class="n">weight_var</span> <span class="o">=</span> <span class="n">sae</span><span class="o">.</span><span class="n">encoder</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">var</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">weight_var</span> <span class="o">&lt;</span> <span class="mf">0.01</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: Weights may not be learning!&quot;</span><span class="p">)</span>
+    <span class="c1"># Try different learning rate or more epochs</span>
+</code></pre></div>
+<h3 id="poor-sae-reconstruction">Poor SAE Reconstruction<a class="headerlink" href="#poor-sae-reconstruction" title="Permanent link">&para;</a></h3>
+<p><strong>Symptoms</strong>: Low R² score, high reconstruction error</p>
+<p><strong>Causes</strong>:
+- Model capacity too small
+- Not enough training
+- Wrong hyperparameters</p>
+<p><strong>Solutions</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Increase model capacity</span>
+<span class="n">sae</span> <span class="o">=</span> <span class="n">TopKSae</span><span class="p">(</span>
+    <span class="n">n_latents</span><span class="o">=</span><span class="mi">8192</span><span class="p">,</span>  <span class="c1"># More neurons</span>
+    <span class="n">n_inputs</span><span class="o">=</span><span class="mi">768</span><span class="p">,</span>
+    <span class="n">k</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>            <span class="c1"># More active neurons</span>
+    <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># 2. Train longer</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">SaeTrainingConfig</span><span class="p">(</span>
+    <span class="n">epochs</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>  <span class="c1"># More epochs</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+    <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span>
+<span class="p">)</span>
+
+<span class="c1"># 3. Adjust hyperparameters</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">SaeTrainingConfig</span><span class="p">(</span>
+    <span class="n">epochs</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+    <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+    <span class="n">l1_lambda</span><span class="o">=</span><span class="mf">1e-5</span>  <span class="c1"># Less regularization</span>
+<span class="p">)</span>
+</code></pre></div>
+<h2 id="layer-signature-issues">Layer Signature Issues<a class="headerlink" href="#layer-signature-issues" title="Permanent link">&para;</a></h2>
+<h3 id="finding-correct-layer-names">Finding Correct Layer Names<a class="headerlink" href="#finding-correct-layer-names" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># List all layers</span>
+<span class="n">all_layers</span> <span class="o">=</span> <span class="n">lm</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">list_layers</span><span class="p">()</span>
+
+<span class="c1"># Filter by pattern</span>
+<span class="n">attention_layers</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">all_layers</span> <span class="k">if</span> <span class="s2">&quot;attn&quot;</span> <span class="ow">in</span> <span class="n">l</span><span class="p">]</span>
+<span class="n">mlp_layers</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">all_layers</span> <span class="k">if</span> <span class="s2">&quot;mlp&quot;</span> <span class="ow">in</span> <span class="n">l</span><span class="p">]</span>
+
+<span class="c1"># Print for inspection</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">layer</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_layers</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">layer</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="layer-name-variations">Layer Name Variations<a class="headerlink" href="#layer-name-variations" title="Permanent link">&para;</a></h3>
+<p>Different models use different naming conventions:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># GPT-2 style</span>
+<span class="s2">&quot;transformer.h.0.attn.c_attn&quot;</span>
+
+<span class="c1"># BERT style</span>
+<span class="s2">&quot;bert.encoder.layer.0.attention.self.query&quot;</span>
+
+<span class="c1"># Custom models</span>
+<span class="s2">&quot;model.layers.0.self_attn.q_proj&quot;</span>
+
+<span class="c1"># Always check your specific model</span>
+<span class="n">layers</span> <span class="o">=</span> <span class="n">lm</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">list_layers</span><span class="p">()</span>
+</code></pre></div>
+<h2 id="memory-problems">Memory Problems<a class="headerlink" href="#memory-problems" title="Permanent link">&para;</a></h2>
+<h3 id="gpu-memory">GPU Memory<a class="headerlink" href="#gpu-memory" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check GPU memory</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GPU memory: </span><span class="si">{</span><span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">get_device_properties</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">total_memory</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">1e9</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> GB&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Allocated: </span><span class="si">{</span><span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">memory_allocated</span><span class="p">()</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">1e9</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> GB&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cached: </span><span class="si">{</span><span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">memory_reserved</span><span class="p">()</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">1e9</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> GB&quot;</span><span class="p">)</span>
+
+<span class="c1"># Clear cache if needed</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">empty_cache</span><span class="p">()</span>
+</code></pre></div>
+<h3 id="memory-leaks">Memory Leaks<a class="headerlink" href="#memory-leaks" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check for unregistered hooks</span>
+<span class="n">hook_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lm</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">_hook_id_map</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registered hooks: </span><span class="si">{</span><span class="n">hook_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Unregister all if needed</span>
+<span class="k">for</span> <span class="n">hook_id</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">lm</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">_hook_id_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+    <span class="n">lm</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">unregister_hook</span><span class="p">(</span><span class="n">hook_id</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="accumulating-data">Accumulating Data<a class="headerlink" href="#accumulating-data" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Clear detector data</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">clear_captured</span><span class="p">()</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">tensor_metadata</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+<span class="c1"># Move to CPU</span>
+<span class="n">activations</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_captured</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">activations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">activations_cpu</span> <span class="o">=</span> <span class="n">activations</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
+    <span class="c1"># Use CPU version, original will be garbage collected</span>
+</code></pre></div>
+<h2 id="training-instability">Training Instability<a class="headerlink" href="#training-instability" title="Permanent link">&para;</a></h2>
+<h3 id="loss-not-decreasing">Loss Not Decreasing<a class="headerlink" href="#loss-not-decreasing" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check training history</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initial loss: </span><span class="si">{</span><span class="n">history</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final loss: </span><span class="si">{</span><span class="n">history</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">history</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">history</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Loss didn&#39;t decrease!&quot;</span><span class="p">)</span>
+    <span class="c1"># Try:</span>
+    <span class="c1"># - Lower learning rate</span>
+    <span class="c1"># - More epochs</span>
+    <span class="c1"># - Different initialization</span>
+</code></pre></div>
+<h3 id="exploding-gradients">Exploding Gradients<a class="headerlink" href="#exploding-gradients" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Reduce learning rate</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">SaeTrainingConfig</span><span class="p">(</span>
+    <span class="n">epochs</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+    <span class="n">lr</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span>  <span class="c1"># Much lower learning rate</span>
+    <span class="n">l1_lambda</span><span class="o">=</span><span class="mf">1e-5</span>
+<span class="p">)</span>
+
+<span class="c1"># Or use gradient clipping (if supported)</span>
+</code></pre></div>
+<h3 id="dead-features">Dead Features<a class="headerlink" href="#dead-features" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check dead features</span>
+<span class="n">dead_ratio</span> <span class="o">=</span> <span class="n">history</span><span class="p">[</span><span class="s1">&#39;dead_features&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">sae</span><span class="o">.</span><span class="n">n_latents</span>
+
+<span class="k">if</span> <span class="n">dead_ratio</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Too many dead features: </span><span class="si">{</span><span class="n">dead_ratio</span><span class="si">:</span><span class="s2">.2%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># Solutions:</span>
+    <span class="c1"># - Increase k (sparsity)</span>
+    <span class="c1"># - Reduce l1_lambda</span>
+    <span class="c1"># - Increase learning rate slightly</span>
+</code></pre></div>
+<h2 id="device-compatibility">Device Compatibility<a class="headerlink" href="#device-compatibility" title="Permanent link">&para;</a></h2>
+<h3 id="cuda-issues">CUDA Issues<a class="headerlink" href="#cuda-issues" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mi_crow.language_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">LanguageModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mi_crow.store</span><span class="w"> </span><span class="kn">import</span> <span class="n">LocalStore</span>
+
+<span class="c1"># Check CUDA availability</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CUDA available: </span><span class="si">{</span><span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CUDA version: </span><span class="si">{</span><span class="n">torch</span><span class="o">.</span><span class="n">version</span><span class="o">.</span><span class="n">cuda</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Always choose device based on availability</span>
+<span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using device: </span><span class="si">{</span><span class="n">device</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">store</span> <span class="o">=</span> <span class="n">LocalStore</span><span class="p">(</span><span class="n">base_path</span><span class="o">=</span><span class="s2">&quot;./store&quot;</span><span class="p">)</span>
+
+<span class="c1"># This will raise a clear ValueError if you force device=\&quot;cuda\&quot; but CUDA is not available</span>
+<span class="n">lm</span> <span class="o">=</span> <span class="n">LanguageModel</span><span class="o">.</span><span class="n">from_huggingface</span><span class="p">(</span>
+    <span class="s2">&quot;sshleifer/tiny-gpt2&quot;</span><span class="p">,</span>
+    <span class="n">store</span><span class="o">=</span><span class="n">store</span><span class="p">,</span>
+    <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<h3 id="mps-apple-silicon">MPS (Apple Silicon)<a class="headerlink" href="#mps-apple-silicon" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check MPS availability</span>
+<span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">mps</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+    <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;mps&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using Apple Silicon GPU&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cpu&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using CPU&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="device-mismatch">Device Mismatch<a class="headerlink" href="#device-mismatch" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Ensure model and data on same device</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+<span class="c1"># Check device</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model device: </span><span class="si">{</span><span class="nb">next</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span><span class="o">.</span><span class="n">device</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Data device: </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">device</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="import-errors">Import Errors<a class="headerlink" href="#import-errors" title="Permanent link">&para;</a></h2>
+<h3 id="module-not-found">Module Not Found<a class="headerlink" href="#module-not-found" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Verify installation</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">mi_crow</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">mi_crow</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
+
+<span class="c1"># Check imports</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mi_crow.language_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">LanguageModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mi_crow.hooks</span><span class="w"> </span><span class="kn">import</span> <span class="n">Detector</span>
+</code></pre></div>
+<h3 id="version-mismatches">Version Mismatches<a class="headerlink" href="#version-mismatches" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check versions</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">transformers</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PyTorch: </span><span class="si">{</span><span class="n">torch</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Transformers: </span><span class="si">{</span><span class="n">transformers</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Update if needed</span>
+<span class="c1"># pip install --upgrade torch transformers</span>
+</code></pre></div>
+<h2 id="getting-help">Getting Help<a class="headerlink" href="#getting-help" title="Permanent link">&para;</a></h2>
+<h3 id="check-documentation">Check Documentation<a class="headerlink" href="#check-documentation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>User guide sections</li>
+<li>API reference</li>
+<li>Example notebooks</li>
+<li>Experiment walkthroughs</li>
+</ul>
+<h3 id="debug-information">Debug Information<a class="headerlink" href="#debug-information" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Enable verbose logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+
+<span class="c1"># Check system info</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Python: </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PyTorch: </span><span class="si">{</span><span class="n">torch</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="reproduce-issues">Reproduce Issues<a class="headerlink" href="#reproduce-issues" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Create minimal reproduction</span>
+<span class="c1"># 1. Start with simplest possible case</span>
+<span class="c1"># 2. Add complexity until issue appears</span>
+<span class="c1"># 3. Document exact steps</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mi_crow.language_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">LanguageModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mi_crow.store</span><span class="w"> </span><span class="kn">import</span> <span class="n">LocalStore</span>
+
+<span class="n">store</span> <span class="o">=</span> <span class="n">LocalStore</span><span class="p">(</span><span class="n">base_path</span><span class="o">=</span><span class="s2">&quot;./store&quot;</span><span class="p">)</span>
+<span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span>
+
+<span class="n">lm</span> <span class="o">=</span> <span class="n">LanguageModel</span><span class="o">.</span><span class="n">from_huggingface</span><span class="p">(</span><span class="s2">&quot;sshleifer/tiny-gpt2&quot;</span><span class="p">,</span> <span class="n">store</span><span class="o">=</span><span class="n">store</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+<span class="n">layers</span> <span class="o">=</span> <span class="n">lm</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">list_layers</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong><a href="../best-practices/">Best Practices</a></strong> - Prevent issues before they occur</li>
+<li><strong><a href="../examples/">Examples</a></strong> - See working code</li>
+<li><strong><a href="../../api/">API Reference</a></strong> - Detailed API documentation</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "content.code.copy", "content.action.edit", "content.tabs.link", "content.tooltips"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
